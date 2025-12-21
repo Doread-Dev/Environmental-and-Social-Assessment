@@ -33,4 +33,3 @@ Frontend setup instructions will be added here.
 ## License
 
 ISC
-

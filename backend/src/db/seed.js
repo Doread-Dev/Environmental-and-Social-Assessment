@@ -34,13 +34,11 @@ async function seedLookups() {
   ];
 
   const jobTitles = [
+    "Environmental specialist",
     "Program Manager",
     "Project Manager",
-    "Site Supervisor",
-    "Environmental Officer",
-    "Contractor",
-    "Consultant",
-    "Community Representative",
+    "Environmental focal point",
+    "Viewer"
   ];
 
   // Minimal starter set of questions and indicators; can be extended later

@@ -5,7 +5,15 @@ const registerSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
   job_title: Joi.string().optional(),
-  role: Joi.string().valid("admin", "program_manager", "project_manager", "site_supervisor", "viewer").optional(),
+  role: Joi.string()
+    .valid(
+      "environmental_specialist",
+      "program_manager",
+      "project_manager",
+      "environmental_focal_point",
+      "viewer"
+    )
+    .optional(),
 });
 
 const loginSchema = Joi.object({

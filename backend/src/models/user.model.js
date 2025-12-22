@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
 
 const roles = [
-  "admin",
+  "environmental_specialist",
   "program_manager",
   "project_manager",
-  "site_supervisor",
+  "environmental_focal_point",
   "viewer",
 ];
 

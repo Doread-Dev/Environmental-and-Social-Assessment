@@ -34,7 +34,7 @@ async function seedLookups() {
   ];
 
   const jobTitles = [
-    "Environmental specialist",
+    "Environmental Specialist",
     "Program Manager",
     "Project Manager",
     "Environmental focal point",

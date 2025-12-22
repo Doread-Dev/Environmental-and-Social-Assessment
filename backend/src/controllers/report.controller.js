@@ -7,9 +7,9 @@ exports.dashboard = asyncHandler(async (req, res) => {
 });
 
 exports.export = asyncHandler(async (req, res) => {
-  const { type, projectId } = req.query;
-  const result = await service.exportCsv({ type, projectId });
-  res.setHeader("Content-Type", "text/csv");
+  const { type, projectId, format } = req.query;
+  const result = await service.exportReport({ type, projectId, format });
+  res.setHeader("Content-Type", result.contentType);
   res.setHeader("Content-Disposition", `attachment; filename=${result.filename}`);
   res.send(result.content);
 });

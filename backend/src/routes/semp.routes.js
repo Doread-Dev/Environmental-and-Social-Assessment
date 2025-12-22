@@ -9,18 +9,54 @@ const {
   createActionSchema,
   updateActionSchema,
 } = require("../validators/semp.validator");
+const { auth, requireRole } = require("../middlewares/auth");
 
 const router = express.Router();
 
 router.get("/project/:projectId", controller.getPlan);
-router.post("/objectives", validate(createObjectiveSchema), controller.createObjective);
-router.put("/objectives/:id", validate(updateObjectiveSchema), controller.updateObjective);
+router.post(
+  "/objectives",
+  auth,
+  requireRole("environmental_specialist", "program_manager", "project_manager"),
+  validate(createObjectiveSchema),
+  controller.createObjective
+);
+router.put(
+  "/objectives/:id",
+  auth,
+  requireRole("environmental_specialist", "program_manager", "project_manager"),
+  validate(updateObjectiveSchema),
+  controller.updateObjective
+);
 
-router.post("/targets", validate(createTargetSchema), controller.createTarget);
-router.put("/targets/:id", validate(updateTargetSchema), controller.updateTarget);
+router.post(
+  "/targets",
+  auth,
+  requireRole("environmental_specialist", "program_manager", "project_manager"),
+  validate(createTargetSchema),
+  controller.createTarget
+);
+router.put(
+  "/targets/:id",
+  auth,
+  requireRole("environmental_specialist", "program_manager", "project_manager"),
+  validate(updateTargetSchema),
+  controller.updateTarget
+);
 
-router.post("/actions", validate(createActionSchema), controller.createAction);
-router.put("/actions/:id", validate(updateActionSchema), controller.updateAction);
+router.post(
+  "/actions",
+  auth,
+  requireRole("environmental_specialist", "program_manager", "project_manager"),
+  validate(createActionSchema),
+  controller.createAction
+);
+router.put(
+  "/actions/:id",
+  auth,
+  requireRole("environmental_specialist", "program_manager", "project_manager"),
+  validate(updateActionSchema),
+  controller.updateAction
+);
 
 module.exports = router;
-

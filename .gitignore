@@ -33,6 +33,7 @@ build/
 # Backend specific
 backend/node_modules/
 backend/.env
+backend/uploads/
 
 # Frontend specific (when added)
 frontend/node_modules/

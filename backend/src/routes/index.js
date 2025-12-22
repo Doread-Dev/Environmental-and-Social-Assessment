@@ -1,7 +1,27 @@
 const express = require("express");
+
+const projectsRoutes = require("./projects.routes");
+const screeningsRoutes = require("./screenings.routes");
+const assessmentsRoutes = require("./assessments.routes");
+const monitoringRoutes = require("./monitoring.routes");
+const managementRoutes = require("./management.routes");
+const mitigationRoutes = require("./mitigation.routes");
+const sempRoutes = require("./semp.routes");
+const lookupsRoutes = require("./lookups.routes");
+const attachmentsRoutes = require("./attachments.routes");
+const authRoutes = require("./auth.routes");
+
 const router = express.Router();
 
-// Add your routes here
-// Example: router.use('/your-route', yourRoutes);
+router.use("/auth", authRoutes);
+router.use("/projects", projectsRoutes);
+router.use("/screenings", screeningsRoutes);
+router.use("/assessments", assessmentsRoutes);
+router.use("/monitoring", monitoringRoutes);
+router.use("/management", managementRoutes);
+router.use("/mitigation", mitigationRoutes);
+router.use("/semp", sempRoutes);
+router.use("/lookups", lookupsRoutes);
+router.use("/attachments", attachmentsRoutes);
 
 module.exports = router;

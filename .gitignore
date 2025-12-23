@@ -2,6 +2,7 @@
 node_modules/
 package-lock.json
 yarn.lock
+.cursor/
 
 # Environment variables
 .env
@@ -34,6 +35,7 @@ build/
 backend/node_modules/
 backend/.env
 backend/uploads/
+backend/exports/
 
 # Frontend specific (when added)
 frontend/node_modules/

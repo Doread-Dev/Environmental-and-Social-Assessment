@@ -256,7 +256,7 @@
 {
   "project": "<PROJECT_ID>",
   "activity_description": "Dust suppression",
-  "potential_impact": "low",
+  "potential_impact": "Potential dust impact near houses",
   "recommended_actions": "Water spraying",
   "monitoring_requirements": "Weekly check",
   "responsible": "<USER_ID>"

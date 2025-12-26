@@ -4,7 +4,7 @@ const createManagementActivitySchema = Joi.object({
   project: Joi.string().required(),
   serial_number: Joi.number().optional(),
   activity_description: Joi.string().required(),
-  potential_impact: Joi.string().valid("low", "medium", "high").optional(),
+  potential_impact: Joi.string().allow("", null).optional(),
   recommended_actions: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).optional(),
   monitoring_requirements: Joi.string().allow("", null),
   responsible: Joi.string().optional(),

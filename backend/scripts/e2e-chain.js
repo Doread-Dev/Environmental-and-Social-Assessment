@@ -182,7 +182,7 @@ async function main() {
       indicator: indicatorId,
       scores: { baseline: 1 },
       final_assessment: "medium",
-      ranking: 2,
+      ranking: "medium",
     },
   });
   if (mon.status !== 201)

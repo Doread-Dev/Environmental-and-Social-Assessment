@@ -222,7 +222,7 @@
   "indicator": "<INDICATOR_ID>",
   "scores": { "baseline": 1, "Q1": 2 },
   "final_assessment": "medium",
-  "ranking": 2
+  "ranking": "medium"
 }
 ```
 
@@ -284,8 +284,9 @@
 {
   "project": "<PROJECT_ID>",
   "output_description": "Waste management",
-  "impact_level": "medium",
-  "mitigation_measures": "Segregation and proper disposal",
+  "potential_impact_and_significance": "Possible soil contamination, medium significance",
+  "mitigation_and_enhancement_measures": "Segregation, labeling, safe disposal",
+  "schedule": "Before: train staff; During: daily checks; After: monthly audit",
   "responsible": "<USER_ID>"
 }
 ```

@@ -11,8 +11,12 @@ const createMonitoringSchema = Joi.object({
     Q4: Joi.number().optional(),
   }).optional(),
   total: Joi.number().optional(),
-  final_assessment: Joi.string().valid("negligible", "low", "medium", "high", "not_applicable").optional(),
-  ranking: Joi.number().min(0).max(3).optional(),
+  final_assessment: Joi.string()
+    .valid("negligible", "low", "medium", "high", "not_applicable")
+    .optional(),
+  ranking: Joi.string()
+    .valid("negligible", "low", "medium", "high", "not_applicable")
+    .optional(),
   responsible: Joi.string().optional(),
   note: Joi.string().allow("", null),
 });
@@ -28,4 +32,3 @@ module.exports = {
   updateMonitoringSchema,
   updateQuarterSchema,
 };
-

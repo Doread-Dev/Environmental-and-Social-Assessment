@@ -13,15 +13,26 @@ const scoreSchema = new mongoose.Schema(
 
 const monitoringRecordSchema = new mongoose.Schema(
   {
-    project: { type: mongoose.Schema.Types.ObjectId, ref: "Project", required: true },
-    indicator: { type: mongoose.Schema.Types.ObjectId, ref: "Indicator", required: true },
+    project: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Project",
+      required: true,
+    },
+    indicator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Indicator",
+      required: true,
+    },
     scores: scoreSchema,
     total: { type: Number },
     final_assessment: {
       type: String,
       enum: ["negligible", "low", "medium", "high", "not_applicable"],
     },
-    ranking: { type: Number, min: 0, max: 3 },
+    ranking: {
+      type: String,
+      enum: ["negligible", "low", "medium", "high", "not_applicable"],
+    },
     responsible: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     note: { type: String },
   },
@@ -32,4 +43,3 @@ const monitoringRecordSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("MonitoringRecord", monitoringRecordSchema);
-

@@ -8,6 +8,13 @@ import dataProvider from "./providers/dataProvider";
 import LoginPage from "./resources/auth/LoginPage";
 
 import { ProjectList, ProjectCreate, ProjectEdit } from "./resources/projects";
+import {
+  ScreeningCreate,
+  ScreeningEdit,
+  ScreeningList,
+  ScreeningShow,
+} from "./resources/projects/screenings";
+
 
 // تخصيص الثيم
 const theme = createTheme(
@@ -40,6 +47,23 @@ const App = () => {
             list={ProjectList}
             create={ProjectCreate}
             edit={ProjectEdit}
+          />
+
+          {/* <Resource
+            name="screenings"
+            list={ScreeningList}
+            create={ScreeningCreate}
+            edit={ScreeningEdit}
+            show={ScreeningShow}
+            options={{ label: "الفحوصات البيئية" }}
+          /> */}
+          <Resource
+            name="screenings"
+            list={ScreeningList}
+            create={ScreeningCreate}
+            edit={ScreeningEdit}
+            show={ScreeningShow}
+            options={{ label: "الفحوصات البيئية" }}
           />
         </Admin>
       </div>

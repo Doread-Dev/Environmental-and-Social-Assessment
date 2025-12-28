@@ -1022,10 +1022,16 @@ const mitigationPlanSchema = new mongoose.Schema(
 
 ### Reports
 
-| Method | Endpoint                    | Description                           |
-| ------ | --------------------------- | ------------------------------------- | ---------------------- | ----- | ---------------------------------------- |
-| GET    | `/api/v1/reports/dashboard` | إحصاءات عامة (dashboard)              |
-| GET    | `/api/v1/reports/export`    | تصدير CSV/Excel/PDF (مع type=projects | monitoring، format=csv | excel | pdf، و projectId اختياري للـ monitoring) |
+| Method | Endpoint                    | Description                                                                                                                                         |
+| ------ | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/v1/reports/dashboard` | إحصاءات عامة (dashboard)                                                                                                                            |
+| GET    | `/api/v1/reports/export`    | تصدير CSV/Excel/PDF (مع type=projects أو monitoring، format=csv أو excel أو pdf، و projectId اختياري للـ monitoring)                                |
+
+### Users
+
+| Method | Endpoint          | Description                               |
+| ------ | ----------------- | ----------------------------------------- |
+| GET    | `/api/v1/users`   | قائمة المستخدمين (مسموح لجميع الأدوار عدا viewer) |
 
 ### Auth
 

@@ -8,6 +8,7 @@ const managementRoutes = require("./management.routes");
 const mitigationRoutes = require("./mitigation.routes");
 const sempRoutes = require("./semp.routes");
 const reportsRoutes = require("./reports.routes");
+const usersRoutes = require("./users.routes");
 const lookupsRoutes = require("./lookups.routes");
 const attachmentsRoutes = require("./attachments.routes");
 const authRoutes = require("./auth.routes");
@@ -23,6 +24,7 @@ router.use("/management", managementRoutes);
 router.use("/mitigation", mitigationRoutes);
 router.use("/semp", sempRoutes);
 router.use("/reports", reportsRoutes);
+router.use("/users", usersRoutes);
 router.use("/lookups", lookupsRoutes);
 router.use("/attachments", attachmentsRoutes);
 

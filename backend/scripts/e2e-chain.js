@@ -40,6 +40,8 @@ async function req(method, path, { token, body } = {}) {
 async function main() {
   const adminEmail = "admin@example.com";
   const adminPass = "Passw0rd!";
+  const viewerEmail = "viewer-chain@example.com";
+  const viewerPass = "Passw0rd!";
 
   // 0) Auth
   let login = await req("POST", "/api/v1/auth/login", {
@@ -61,6 +63,21 @@ async function main() {
   if (login.status !== 200) throw new Error("Admin login failed");
   const token = login.data.data.token;
   const adminId = login.data.data.user._id;
+
+  // Create/viewer user to test access control on /users
+  await req("POST", "/api/v1/auth/register", {
+    token,
+    body: {
+      email: viewerEmail,
+      password: viewerPass,
+      name: "Viewer Chain",
+      role: "viewer",
+    },
+  });
+  const viewerLogin = await req("POST", "/api/v1/auth/login", {
+    body: { email: viewerEmail, password: viewerPass },
+  });
+  const viewerToken = viewerLogin.status === 200 ? viewerLogin.data.data.token : null;
 
   // Lookups (seed if empty)
   let indicators = await req("GET", "/api/v1/lookups/indicators");
@@ -219,6 +236,10 @@ async function main() {
     { token }
   );
 
+  // 10) Users listing (allowed) and viewer denied
+  const usersAdmin = await req("GET", "/api/v1/users", { token });
+  const usersViewer = await req("GET", "/api/v1/users", { token: viewerToken });
+
   console.log("Done", {
     projectId,
     screeningId,
@@ -229,6 +250,8 @@ async function main() {
     dashboardStatus: dash.status,
     exportProjectsStatus: expProj.status,
     exportMonitoringStatus: expMon.status,
+    usersAdminStatus: usersAdmin.status,
+    usersViewerStatus: usersViewer.status,
   });
 }
 

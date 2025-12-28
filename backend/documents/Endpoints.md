@@ -38,6 +38,17 @@
 
 ---
 
+## Users (متاح لجميع الأدوار ما عدا viewer)
+
+- GET `/api/v1/users`
+  - هيدر: Authorization (أي دور باستثناء viewer)
+  - لا جسم. يعيد قائمة المستخدمين.
+- GET `/api/v1/users/:id`
+  - هيدر: Authorization (أي دور باستثناء viewer)
+  - لا جسم. يعيد تفاصيل مستخدم.
+
+---
+
 ## 1) Lookups (مرحلة التمهيد، للقراءة)
 
 - GET `/api/v1/impact-categories`

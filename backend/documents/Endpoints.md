@@ -38,14 +38,12 @@
 
 ---
 
-## Users (متاح لجميع الأدوار ما عدا viewer)
+## Users
 
 - GET `/api/v1/users`
-  - هيدر: Authorization (أي دور باستثناء viewer)
-  - لا جسم. يعيد قائمة المستخدمين.
-- GET `/api/v1/users/:id`
-  - هيدر: Authorization (أي دور باستثناء viewer)
-  - لا جسم. يعيد تفاصيل مستخدم.
+  - هيدر: Authorization
+  - الأدوار المسموحة: env_specialist / program_manager / project_manager / environmental_focal_point
+  - يعيد قائمة بجميع المستخدمين (مرتبة تنازلياً بالتاريخ)
 
 ---
 

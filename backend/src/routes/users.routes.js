@@ -4,19 +4,18 @@ const { auth, requireRole } = require("../middlewares/auth");
 
 const router = express.Router();
 
-// Allowed for all roles except viewer
-router.use(
+// Allow all roles except viewer
+router.get(
+  "/",
   auth,
   requireRole(
     "environmental_specialist",
     "program_manager",
     "project_manager",
     "environmental_focal_point"
-  )
+  ),
+  controller.getAll
 );
-
-router.get("/", controller.getAll);
-router.get("/:id", controller.getOne);
 
 module.exports = router;
 

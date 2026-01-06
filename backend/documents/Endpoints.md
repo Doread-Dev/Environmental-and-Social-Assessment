@@ -146,7 +146,7 @@
 }
 ```
 
-### GET `/api/v1/screenings` | `/api/v1/screenings/:id` | `/api/v1/projects/:projectId/screening`
+### GET `/api/v1/screenings` | `/api/v1/screenings/:id` | `/api/v1/screening/project/:projectId`
 
 - قراءة (مفتوحة).
 
@@ -272,7 +272,7 @@
 }
 ```
 
-### GET `/api/v1/projects/:projectId/management`
+### GET `/api/v1/management/project/:projectId`
 
 - قراءة (مفتوحة).
 
@@ -300,7 +300,7 @@
 }
 ```
 
-### GET `/api/v1/projects/:projectId/mitigation`
+### GET `/api/v1/mitigation/projects/:projectId`
 
 - قراءة (مفتوحة).
 
@@ -310,7 +310,7 @@
 
 ---
 
-## 9) SEMP (Tool 3/4 الهرمي)
+## 9) SEMP 
 
 ### POST `/api/v1/semp/objectives`
 
@@ -341,7 +341,7 @@
 
 - نفس الأدوار.
 
-### GET `/api/v1/projects/:projectId/semp`
+### GET `/api/v1/semp/projects/:projectId`
 
 - قراءة (مفتوحة).
 

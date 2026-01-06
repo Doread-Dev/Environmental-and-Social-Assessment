@@ -906,7 +906,7 @@ const managementActivitySchema = new mongoose.Schema(
 
 ```javascript
 const mitigationPlanSchema = new mongoose.Schema(
-{
+    {
     project: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Project",
@@ -948,7 +948,7 @@ const mitigationPlanSchema = new mongoose.Schema(
 | ------ | --------------------------------------- | -------------- |
 | GET    | `/api/v1/screenings`                    | قائمة الفرز    |
 | GET    | `/api/v1/screenings/:id`                | تفاصيل فرز     |
-| GET    | `/api/v1/projects/:projectId/screening` | فرز مشروع معين |
+| GET    | `/api/v1/screening/project/:projectId` | فرز مشروع معين |
 | POST   | `/api/v1/screenings`                    | إنشاء فرز      |
 | PUT    | `/api/v1/screenings/:id`                | تحديث فرز      |
 | PATCH  | `/api/v1/screenings/:id/approve`        | الموافقة       |
@@ -960,7 +960,7 @@ const mitigationPlanSchema = new mongoose.Schema(
 | ------ | ---------------------------------------- | ------------------- |
 | GET    | `/api/v1/assessments`                    | قائمة التقييمات     |
 | GET    | `/api/v1/assessments/:id`                | تفاصيل تقييم        |
-| GET    | `/api/v1/projects/:projectId/assessment` | تقييم مشروع معين    |
+| GET    | `/api/v1/assessment/project/:projectId` | تقييم مشروع معين    |
 | POST   | `/api/v1/assessments`                    | إنشاء تقييم         |
 | PUT    | `/api/v1/assessments/:id`                | تحديث تقييم         |
 | POST   | `/api/v1/assessments/:id/methods`        | إضافة طريقة تقييم   |
@@ -973,7 +973,7 @@ const mitigationPlanSchema = new mongoose.Schema(
 | Method | Endpoint                                 | Description    |
 | ------ | ---------------------------------------- | -------------- |
 | GET    | `/api/v1/monitoring`                     | قائمة السجلات  |
-| GET    | `/api/v1/projects/:projectId/monitoring` | سجلات مشروع    |
+| GET    | `/api/v1/monitoring/project/:projectId` | سجلات مشروع    |
 | POST   | `/api/v1/monitoring`                     | إنشاء سجل      |
 | PUT    | `/api/v1/monitoring/:id`                 | تحديث سجل      |
 | PATCH  | `/api/v1/monitoring/:id/quarter/:q`      | تحديث ربع سنوي |
@@ -982,7 +982,7 @@ const mitigationPlanSchema = new mongoose.Schema(
 
 | Method | Endpoint                                 | Description         |
 | ------ | ---------------------------------------- | ------------------- |
-| GET    | `/api/v1/projects/:projectId/management` | قائمة إجراءات مشروع |
+| GET    | `/api/v1/management/project/:projectId` | قائمة إجراءات مشروع |
 | POST   | `/api/v1/management`                     | إنشاء إجراء         |
 | PUT    | `/api/v1/management/:id`                 | تحديث إجراء         |
 | DELETE | `/api/v1/management/:id`                 | حذف إجراء           |
@@ -991,7 +991,7 @@ const mitigationPlanSchema = new mongoose.Schema(
 
 | Method | Endpoint                                 | Description        |
 | ------ | ---------------------------------------- | ------------------ |
-| GET    | `/api/v1/projects/:projectId/mitigation` | خطة التخفيف لمشروع |
+| GET    | `/api/v1/mitigation/projects/:projectId` | خطة التخفيف لمشروع |
 | POST   | `/api/v1/mitigation`                     | إنشاء بند تخفيف    |
 | PUT    | `/api/v1/mitigation/:id`                 | تحديث بند تخفيف    |
 | DELETE | `/api/v1/mitigation/:id`                 | حذف بند تخفيف      |
@@ -1000,7 +1000,7 @@ const mitigationPlanSchema = new mongoose.Schema(
 
 | Method | Endpoint                           | Description    |
 | ------ | ---------------------------------- | -------------- |
-| GET    | `/api/v1/projects/:projectId/semp` | خطة مشروع      |
+| GET    | `/api/v1/semp/projects/:projectId` | خطة مشروع      |
 | POST   | `/api/v1/semp/objectives`          | إنشاء هدف      |
 | POST   | `/api/v1/semp/targets`             | إنشاء هدف فرعي |
 | POST   | `/api/v1/semp/actions`             | إنشاء إجراء    |

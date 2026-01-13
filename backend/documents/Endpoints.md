@@ -185,7 +185,7 @@
 { "method_type": "survey", "details": "Household survey" }
 ```
 
-### POST `/api/v1/assessments/:id/consultations`
+### POST `/api/v1/assessments/:id/consultations` "عدلت"
 
 ```json
 {

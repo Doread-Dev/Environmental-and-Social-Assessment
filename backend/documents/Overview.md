@@ -352,7 +352,7 @@ return "High";
 
 #### الربط مع ERD
 
-- **Primary Entity**: `ManagementActivity` (مُدمج في ERD المحدث)
+- **Primary Entity**: `ManagementActivity` 
 - **Alternative**: استخدام `SEMP_Objective -> SEMP_Target -> SEMP_Action`
 - **Parent**: `Project`
 - **References**: `User` (responsible_id)
@@ -930,7 +930,7 @@ const mitigationPlanSchema = new mongoose.Schema(
 
 ---
 
-## API Endpoints
+## API Endpoints (عدلت)
 
 ### Projects
 

@@ -82,6 +82,34 @@ const calculateImpact = async (assessmentId) => {
   return assessment;
 };
 
+const setStatus = async (id, status, approvedBy, recommendations = null) => {
+  const updateData = {
+    status,
+    approved_by: approvedBy,
+  };
+
+  // إضافة recommendations فقط في حالة الموافقة
+  if (status === "approved" && recommendations) {
+    updateData.recommendations = recommendations;
+  }
+
+  const updated = await Assessment.findByIdAndUpdate(id, updateData, {
+    new: true,
+    runValidators: true,
+  }).populate("project officer approved_by");
+
+  if (!updated) throw new ApiError(404, "Assessment not found");
+  return updated;
+};
+
+const approveAssessment = async (id, approvedBy, recommendations) => {
+  return setStatus(id, "approved", approvedBy, recommendations);
+};
+
+const rejectAssessment = async (id, approvedBy) => {
+  return setStatus(id, "rejected", approvedBy, null);
+};
+
 module.exports = {
   listAssessments,
   getAssessment,
@@ -92,4 +120,6 @@ module.exports = {
   addConsultation,
   addScores,
   calculateImpact,
+  approveAssessment,
+  rejectAssessment,
 };

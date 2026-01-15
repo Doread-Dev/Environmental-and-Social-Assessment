@@ -27,11 +27,18 @@ exports.update = asyncHandler(async (req, res) => {
 });
 
 exports.approve = asyncHandler(async (req, res) => {
-  const data = await service.setStatus(req.params.id, "approved");
+  const { recommendations } = req.body || {};
+  const approvedBy = req.user._id;
+  const data = await service.approveScreening(
+    req.params.id,
+    approvedBy,
+    recommendations
+  );
   res.json({ success: true, data });
 });
 
 exports.reject = asyncHandler(async (req, res) => {
-  const data = await service.setStatus(req.params.id, "rejected");
+  const approvedBy = req.user._id;
+  const data = await service.rejectScreening(req.params.id, approvedBy);
   res.json({ success: true, data });
 });

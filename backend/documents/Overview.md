@@ -1202,17 +1202,19 @@ const mitigationPlanSchema = new mongoose.Schema(
 
 ### Tool 2: Assessment
 
-| Method | Endpoint                                | Description         |
-| ------ | --------------------------------------- | ------------------- |
-| GET    | `/api/v1/assessments`                   | قائمة التقييمات     |
-| GET    | `/api/v1/assessments/:id`               | تفاصيل تقييم        |
-| GET    | `/api/v1/assessment/project/:projectId` | تقييم مشروع معين    |
-| POST   | `/api/v1/assessments`                   | إنشاء تقييم         |
-| PUT    | `/api/v1/assessments/:id`               | تحديث تقييم         |
-| POST   | `/api/v1/assessments/:id/methods`       | إضافة طريقة تقييم   |
-| POST   | `/api/v1/assessments/:id/consultations` | إضافة مشاورة        |
-| POST   | `/api/v1/assessments/:id/scores`        | إضافة/تحديث النتائج |
-| PATCH  | `/api/v1/assessments/:id/calculate`     | حساب المجموع        |
+| Method | Endpoint                                | Description          |
+| ------ | --------------------------------------- | -------------------- |
+| GET    | `/api/v1/assessments`                   | قائمة التقييمات      |
+| GET    | `/api/v1/assessments/:id`               | تفاصيل تقييم         |
+| GET    | `/api/v1/assessment/project/:projectId` | تقييم مشروع معين     |
+| POST   | `/api/v1/assessments`                   | إنشاء تقييم          |
+| PUT    | `/api/v1/assessments/:id`               | تحديث تقييم          |
+| POST   | `/api/v1/assessments/:id/methods`       | إضافة طريقة تقييم    |
+| POST   | `/api/v1/assessments/:id/consultations` | إضافة مشاورة         |
+| POST   | `/api/v1/assessments/:id/scores`        | إضافة/تحديث النتائج  |
+| PATCH  | `/api/v1/assessments/:id/calculate`     | حساب المجموع         |
+| PATCH  | `/api/v1/assessments/:id/approve`       | الموافقة على التقييم |
+| PATCH  | `/api/v1/assessments/:id/reject`        | رفض التقييم          |
 
 ### Tool 5: Monitoring
 

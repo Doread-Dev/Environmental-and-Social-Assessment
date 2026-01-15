@@ -142,7 +142,6 @@
   "category_reason": "High environmental sensitivity",
   "potential_negative": "Dust",
   "potential_positive": "Job creation",
-  "recommendations": "Use dust control"
 }
 ```
 
@@ -157,7 +156,15 @@
 ### PATCH `/api/v1/screenings/:id/approve` | `/reject`
 
 - هيدر: Authorization (env_specialist / program_manager).
-- لا جسم مطلوب.
+- جسم (لـ approve فقط، اختياري):
+
+```json
+{
+  "recommendations": "نص التوصيات"
+}
+```
+
+- ملاحظة: في حالة approve، يمكن إرسال recommendations. في حالة reject، لا body مطلوب.
 
 ---
 
@@ -207,6 +214,19 @@
 
 - هيدر: Authorization (env_specialist / program_manager).
 - لا جسم مطلوب؛ يحسب total و impact level.
+
+### PATCH `/api/v1/assessments/:id/approve` | `/reject`
+
+- هيدر: Authorization (env_specialist / program_manager).
+- جسم (لـ approve فقط، اختياري):
+
+```json
+{
+  "recommendations": "نص التوصيات"
+}
+```
+
+- ملاحظة: في حالة approve، يمكن إرسال recommendations. في حالة reject، لا body مطلوب.
 
 ### GET `/api/v1/assessments` | `/:id` | `/project/:projectId`
 
@@ -310,7 +330,7 @@
 
 ---
 
-## 9) SEMP 
+## 9) SEMP
 
 ### POST `/api/v1/semp/objectives`
 

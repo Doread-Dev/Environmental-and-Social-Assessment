@@ -11,7 +11,9 @@ const createAssessmentSchema = Joi.object({
   potential_positive_impact: Joi.string().allow("", null),
   approved_by: Joi.string().optional(),
   recommendations: Joi.string().allow("", null),
-  status: Joi.string().valid("draft", "submitted", "approved", "rejected").optional(),
+  status: Joi.string()
+    .valid("draft", "submitted", "approved", "rejected")
+    .optional(),
 });
 
 const updateAssessmentSchema = createAssessmentSchema.fork(
@@ -42,11 +44,15 @@ const addScoresSchema = Joi.array()
   )
   .min(1);
 
+const approveAssessmentSchema = Joi.object({
+  recommendations: Joi.string().allow("", null).optional(),
+});
+
 module.exports = {
   createAssessmentSchema,
   updateAssessmentSchema,
   addMethodSchema,
   addConsultationSchema,
   addScoresSchema,
+  approveAssessmentSchema,
 };
-

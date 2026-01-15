@@ -7,6 +7,7 @@ const {
   addMethodSchema,
   addConsultationSchema,
   addScoresSchema,
+  approveAssessmentSchema,
 } = require("../validators/assessment.validator");
 const { auth, requireRole } = require("../middlewares/auth");
 
@@ -55,6 +56,19 @@ router.patch(
   auth,
   requireRole("environmental_specialist", "program_manager"),
   controller.calculate
+);
+router.patch(
+  "/:id/approve",
+  auth,
+  requireRole("environmental_specialist", "program_manager"),
+  validate(approveAssessmentSchema),
+  controller.approve
+);
+router.patch(
+  "/:id/reject",
+  auth,
+  requireRole("environmental_specialist", "program_manager"),
+  controller.reject
 );
 
 module.exports = router;

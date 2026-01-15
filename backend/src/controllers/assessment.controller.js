@@ -46,3 +46,19 @@ exports.calculate = asyncHandler(async (req, res) => {
   res.json({ success: true, data });
 });
 
+exports.approve = asyncHandler(async (req, res) => {
+  const { recommendations } = req.body || {};
+  const approvedBy = req.user._id;
+  const data = await service.approveAssessment(
+    req.params.id,
+    approvedBy,
+    recommendations
+  );
+  res.json({ success: true, data });
+});
+
+exports.reject = asyncHandler(async (req, res) => {
+  const approvedBy = req.user._id;
+  const data = await service.rejectAssessment(req.params.id, approvedBy);
+  res.json({ success: true, data });
+});

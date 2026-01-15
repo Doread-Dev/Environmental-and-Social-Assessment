@@ -17,8 +17,13 @@ const updateScreeningSchema = createScreeningSchema.fork(
   (schema) => schema.optional()
 );
 
+const approveScreeningSchema = Joi.object({
+  recommendations: Joi.string().allow("", null).optional(),
+});
+
 module.exports = {
   createScreeningSchema,
   updateScreeningSchema,
+  approveScreeningSchema,
 };
 

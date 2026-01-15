@@ -1,7 +1,11 @@
 const express = require("express");
 const controller = require("../controllers/screening.controller");
 const validate = require("../middlewares/validate");
-const { createScreeningSchema, updateScreeningSchema } = require("../validators/screening.validator");
+const {
+  createScreeningSchema,
+  updateScreeningSchema,
+  approveScreeningSchema,
+} = require("../validators/screening.validator");
 const { auth, requireRole } = require("../middlewares/auth");
 
 const router = express.Router();
@@ -27,6 +31,7 @@ router.patch(
   "/:id/approve",
   auth,
   requireRole("environmental_specialist", "program_manager"),
+  validate(approveScreeningSchema),
   controller.approve
 );
 router.patch(

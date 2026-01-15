@@ -31,14 +31,32 @@ const updateScreening = async (id, payload) => {
   return updated;
 };
 
-const setStatus = async (id, status) => {
-  const updated = await Screening.findByIdAndUpdate(
-    id,
-    { status },
-    { new: true, runValidators: true }
-  );
+const setStatus = async (id, status, approvedBy, recommendations = null) => {
+  const updateData = {
+    status,
+    approved_by: approvedBy,
+  };
+
+  // إضافة recommendations فقط في حالة الموافقة
+  if (status === "approved" && recommendations) {
+    updateData.recommendations = recommendations;
+  }
+
+  const updated = await Screening.findByIdAndUpdate(id, updateData, {
+    new: true,
+    runValidators: true,
+  }).populate("project approved_by");
+
   if (!updated) throw new ApiError(404, "Screening not found");
   return updated;
+};
+
+const approveScreening = async (id, approvedBy, recommendations) => {
+  return setStatus(id, "approved", approvedBy, recommendations);
+};
+
+const rejectScreening = async (id, approvedBy) => {
+  return setStatus(id, "rejected", approvedBy, null);
 };
 
 module.exports = {
@@ -47,5 +65,7 @@ module.exports = {
   getByProject,
   createScreening,
   updateScreening,
-  setStatus,
+  setStatus, 
+  approveScreening,
+  rejectScreening, 
 };

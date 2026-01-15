@@ -25,6 +25,9 @@
 - **Database**: MongoDB with Mongoose v8.0.3
 - **Validation**: Joi v17.11.0
 - **Security**: Helmet v7.1.0, CORS v2.8.5
+- **Authentication**: JWT (jsonwebtoken v9.0.2), bcryptjs v2.4.3
+- **File Upload**: Multer v1.4.5-lts.1
+- **Reporting**: ExcelJS v4.4.0, PDFKit v0.13.0
 - **Logging**: Morgan v1.10.0
 - **Environment**: dotenv v16.3.1
 
@@ -35,32 +38,112 @@ backend/
 ├── src/
 │   ├── config/
 │   │   └── database.js          # MongoDB connection
+│   ├── controllers/             # Request handlers (12 controllers)
+│   │   ├── assessment.controller.js
+│   │   ├── attachment.controller.js
+│   │   ├── auth.controller.js
+│   │   ├── lookup.controller.js
+│   │   ├── managementActivity.controller.js
+│   │   ├── mitigationPlan.controller.js
+│   │   ├── monitoring.controller.js
+│   │   ├── project.controller.js
+│   │   ├── report.controller.js
+│   │   ├── screening.controller.js
+│   │   ├── semp.controller.js
+│   │   └── user.controller.js
+│   ├── db/
+│   │   └── seed.js              # Database seeding script
 │   ├── middlewares/
+│   │   ├── auth.js              # JWT authentication & authorization
 │   │   ├── errorHandler.js      # Centralized error handling
+│   │   ├── upload.js            # Multer file upload configuration
 │   │   └── validate.js          # Joi validation middleware
-│   ├── routes/
-│   │   └── index.js             # API routes (empty)
+│   ├── models/                  # Mongoose schemas (19 models)
+│   │   ├── annexItem.model.js
+│   │   ├── assessment.model.js
+│   │   ├── assessmentImpactScore.model.js
+│   │   ├── assessmentMethod.model.js
+│   │   ├── attachment.model.js
+│   │   ├── communityConsultation.model.js
+│   │   ├── impactCategory.model.js
+│   │   ├── impactQuestion.model.js
+│   │   ├── indicator.model.js
+│   │   ├── jobTitle.model.js
+│   │   ├── managementActivity.model.js
+│   │   ├── mitigationPlan.model.js
+│   │   ├── monitoringRecord.model.js
+│   │   ├── project.model.js
+│   │   ├── screening.model.js
+│   │   ├── sempAction.model.js
+│   │   ├── sempObjective.model.js
+│   │   ├── sempTarget.model.js
+│   │   └── user.model.js
+│   ├── routes/                  # API route definitions (12 route files)
+│   │   ├── assessments.routes.js
+│   │   ├── attachments.routes.js
+│   │   ├── auth.routes.js
+│   │   ├── index.js             # Main router (aggregates all routes)
+│   │   ├── lookups.routes.js
+│   │   ├── management.routes.js
+│   │   ├── mitigation.routes.js
+│   │   ├── monitoring.routes.js
+│   │   ├── projects.routes.js
+│   │   ├── reports.routes.js
+│   │   ├── screenings.routes.js
+│   │   ├── semp.routes.js
+│   │   └── users.routes.js
+│   ├── services/                # Business logic layer (12 services)
+│   │   ├── assessment.service.js
+│   │   ├── attachment.service.js
+│   │   ├── auth.service.js
+│   │   ├── lookup.service.js
+│   │   ├── managementActivity.service.js
+│   │   ├── mitigationPlan.service.js
+│   │   ├── monitoring.service.js
+│   │   ├── project.service.js
+│   │   ├── report.service.js
+│   │   ├── screening.service.js
+│   │   ├── semp.service.js
+│   │   └── user.service.js
 │   ├── utils/
 │   │   ├── ApiError.js          # Custom error class
-│   │   └── asyncHandler.js      # Async wrapper
+│   │   └── asyncHandler.js      # Async wrapper for error handling
+│   ├── validators/              # Joi validation schemas (9 validators)
+│   │   ├── assessment.validator.js
+│   │   ├── attachment.validator.js
+│   │   ├── auth.validator.js
+│   │   ├── managementActivity.validator.js
+│   │   ├── mitigationPlan.validator.js
+│   │   ├── monitoring.validator.js
+│   │   ├── project.validator.js
+│   │   ├── screening.validator.js
+│   │   └── semp.validator.js
 │   ├── app.js                   # Express app configuration
 │   └── server.js                # Server entry point
+├── uploads/                     # File upload directory
+├── exports/                     # Generated reports directory
+├── documents/                   # Project documentation
+├── scripts/                     # Utility scripts
+└── package.json
 ```
 
 ### ما تم إعداده
 
-✅ البنية الأساسية للباك إند  
-✅ معالجة الأخطاء المركزية  
-✅ نظام التحقق من البيانات  
-✅ الأمان الأساسي (Helmet, CORS)  
-✅ اتصال MongoDB  
-✅ جميع نماذج Mongoose للأدوات الخمس + الكيانات المساعدة  
-✅ سكربت Seed للـ Lookups (`npm run seed`)
-✅ تشغيل Seed فعليًا (ImpactCategory, ImpactQuestion, Indicator, JobTitle)  
-✅ Controllers/Routes/Services/Validators لكل الأدوات الأساسية  
-✅ Authentication/Authorization  
-✅ File upload handling (للمستندات المرفقة)  
-✅ Reporting system
+✅ **البنية الأساسية**: Express.js مع MongoDB/Mongoose  
+✅ **معالجة الأخطاء**: Error handler middleware مركزي  
+✅ **التحقق من البيانات**: Joi validation middleware لجميع المسارات  
+✅ **الأمان**: Helmet (security headers) + CORS configuration  
+✅ **قاعدة البيانات**: اتصال MongoDB مع Mongoose  
+✅ **النماذج**: 19 Mongoose model (الأدوات الخمس + الكيانات المساعدة)  
+✅ **Database Seeding**: سكربت Seed (`npm run seed`) للـ Lookups  
+✅ **البيانات الأولية**: ImpactCategory, ImpactQuestion, Indicator, JobTitle  
+✅ **Architecture Pattern**: Controllers → Services → Models (12 controllers, 12 services)  
+✅ **API Routes**: 12 route files مع تجميع في `routes/index.js`  
+✅ **Validators**: 9 Joi validator files للتحقق من المدخلات  
+✅ **Authentication**: JWT-based authentication مع bcryptjs للتشفير  
+✅ **Authorization**: Role-based access control (5 roles)  
+✅ **File Upload**: Multer middleware مع تخزين محلي في `uploads/`  
+✅ **Reporting**: Dashboard stats + Export (CSV/Excel/PDF) باستخدام ExcelJS و PDFKit
 
 ---
 
@@ -72,29 +155,31 @@ backend/
 ┌─────────────────┐              ┌─────────────────┐
 │    JobTitle     │ 1:N          │     AnnexItem   │
 ├─────────────────┤              ├─────────────────┤
-│ job_title_id PK │              │ annex_id PK     │
+│ _id PK          │              │ _id PK          │
 │ title_name      │              │ title           │
-└────────┬────────┘              │ description     │
+│ created_at/updated_at│         │ description     │
+└────────┬────────┘              │ created_at/updated_at│
          │                       └─────────────────┘
          │
          ▼
 ┌─────────────────┐
 │      User       │
 ├─────────────────┤
-│ user_id PK      │
+│ _id PK          │
 │ name            │
-│ email           │
+│ email (unique)  │
 │ password (hash) │
-│ job_title_id FK │
+│ job_title FK    │
 │ role (enum)     │
 │ is_active       │
+│ created_at/updated_at│
 └────────┬────────┘
          │ (approvals/responsibility/uploads)
          ▼
 ┌────────────────────────────────────────────────────────────────────────┐
 │                                PROJECT                                 │
 ├────────────────────────────────────────────────────────────────────────┤
-│ project_id PK │ title │ location │ start_date │ end_date │ component  │
+│ _id PK (ObjectId) │ title │ location │ start_date │ end_date │ project_component │
 └───────┬───────────────────────┬───────────────┬───────────┬──────────┘
         │1:1                    │1:1            │1:N        │1:N
         ▼                       ▼               ▼           ▼
@@ -102,44 +187,56 @@ backend/
 │   Screening   │      │   Assessment   │   │ MonitoringRecord   │   │ ManagementActivity │
 │   (Tool 1)    │      │   (Tool 2)     │   │     (Tool 5)       │   │      (Tool 3)      │
 ├───────────────┤      ├────────────────┤   ├────────────────────┤   ├────────────────────┤
-│ screening_id  │      │ assessment_id  │   │ monitoring_id      │   │ activity_id         │
-│ project_id FK │      │ project_id FK  │   │ project_id FK      │   │ project_id FK       │
-│ category_code │      │ officer_id FK  │   │ indicator_id FK    │   │ serial_number       │
-│ category_reason│     │ project_activity│  │ scores object      │   │ activity_description│
-│ potential_neg │      │ description    │   │ total / final_ass. │   │ potential_impact    │
-│ potential_pos │      │ legal_req      │   │ ranking            │   │ recommended_actions │
-│ approved_by FK│      │ approved_by FK │   │ responsible_id FK  │   │ monitoring_requirem.│
-│ status/date   │      │ status         │   │ created_at / upd.  │   │ responsible_id FK   │
-└───────┬───────┘      └───────┬────────┘   └──────────┬─────────┘   │ notes              │
-        │1:1                   │1:N                   │             └────────────────────┘
+│ _id PK        │      │ _id PK         │   │ _id PK             │   │ _id PK             │
+│ project FK    │      │ project FK     │   │ project FK         │   │ project FK         │
+│ category_code │      │ officer FK     │   │ indicator FK       │   │ serial_number      │
+│ category_reason│     │ project_activity│  │ scores (object)    │   │ activity_description│
+│ potential_negative│   │ description   │   │   baseline, Q1-Q4  │   │ potential_impact   │
+│ potential_positive│   │ environmental_setting│ total (Number)  │   │ recommended_actions│
+│ approved_by FK│      │ legal_requirements│ final_assessment   │   │ monitoring_requirements│
+│ recommendations│     │ total_project_score│ ranking (enum)    │   │ responsible FK     │
+│ screening_date│      │ total_project_impact│ responsible FK    │   │ notes              │
+│ status (enum) │      │ is_complete    │   │ note               │   │                    │
+│               │      │ potential_negative_impact│ created_at/updated_at│                    │
+│               │      │ potential_positive_impact│                    │                    │
+│               │      │ approved_by FK │   │                    │   │                    │
+│               │      │ recommendations│   │                    │   │                    │
+│               │      │ status (enum)  │   │                    │   │                    │
+│               │      │ created_at/updated_at│                │   │                    │
+└───────┬───────┘      └───────┬────────┘   └──────────┬─────────┘   └────────────────────┘
+        │1:1                   │1:N                   │
         ▼                      ▼                      │
 ┌─────────────────────┐   ┌─────────────────────────┐ │
 │   MitigationPlan    │   │ AssessmentMethod        │ │
 │     (Tool 4)        │   ├─────────────────────────┤ │
-├─────────────────────┤   │ method_id PK            │ │
-│ plan_id PK          │   │ assessment_id FK        │ │
-│ project_id FK       │   │ method_type             │ │
+├─────────────────────┤   │ _id PK                  │ │
+│ _id PK              │   │ assessment FK           │ │
+│ project FK          │   │ method_type             │ │
 │ serial_number       │   │ details                 │ │
-│ output_description  │   └─────────────────────────┘ │
-│ env/social/climate  │                              │
-│ impact_level        │   ┌─────────────────────────┐ │
-│ mitigation measures │   │ CommunityConsultation   │ │
-│ enhancement measures│   ├─────────────────────────┤ │
-│ monitoring          │   │ consultation_id PK      │ │
-│ schedule before/during/after│ assessment_id FK     │ │
-│ is_continuous       │   │ type, participants      │ │
-│ responsible_id FK   │   │ notes                   │ │
+│ output_description  │   │ created_at/updated_at   │ │
+│ potential_impact_and_significance│                 │   └─────────────────────────┘ │
+│ mitigation_and_enhancement_measures│                │
+│ monitoring          │   ┌─────────────────────────┐ │
+│ schedule            │   │ CommunityConsultation   │ │
+│ responsible FK      │   ├─────────────────────────┤ │
+│ notes               │   │ _id PK                  │ │
+│ created_at/updated_at│   │ assessment FK           │ │
+│                     │   │ type                    │ │
+│                     │   │ participants            │ │
+│                     │   │ notes                   │ │
+│                     │   │ created_at/updated_at   │ │
 └──────────┬──────────┘   └─────────────────────────┘ │
            │                                          │
            │                                          ▼1:N
            │                             ┌─────────────────────────┐
            │                             │ AssessmentImpactScore   │
            │                             ├─────────────────────────┤
-           │                             │ score_id PK             │
-           │                             │ assessment_id FK        │
-           │                             │ question_id FK          │
+           │                             │ _id PK                  │
+           │                             │ assessment FK           │
+           │                             │ question FK              │
            │                             │ level (enum)            │
            │                             │ note                    │
+           │                             │ created_at/updated_at    │
            │                             └─────────────────────────┘
            │
            │1:N (hierarchical alternative for Tool 4)
@@ -147,25 +244,37 @@ backend/
 ┌─────────────────────┐      ┌─────────────────┐      ┌─────────────────┐
 │  SEMP_Objective     │1:N   │   SEMP_Target   │1:N   │   SEMP_Action   │
 ├─────────────────────┤      ├─────────────────┤      ├─────────────────┤
-│ objective_id PK     │      │ target_id PK    │      │ action_id PK    │
-│ project_id FK       │      │ objective_id FK │      │ target_id FK    │
-│ objective_text      │      │ target_text     │      │ action_text     │
-└────────┬────────────┘      └────────┬────────┘      │ responsible_id FK
-         │1:N                         │1:N            │ resources, due_date
+│ _id PK              │      │ _id PK          │      │ _id PK          │
+│ project FK           │      │ objective FK    │      │ target FK        │
+│ objective_text       │      │ target_text     │      │ action_text      │
+│ created_at/updated_at│      │ created_at/updated_at│ │ responsible FK   │
+└────────┬────────────┘      └────────┬────────┘      │ resources        │
+         │1:N                         │1:N            │ due_date         │
+         │                            │               │ created_at/updated_at│
          │                            │              └─────────────────────
          ▼                            ▼
 ┌─────────────────┐        ┌─────────────────┐
 │   Attachment    │        │   Indicator     │
 ├─────────────────┤        ├─────────────────┤
-│ attachment_id PK│        │ indicator_id PK │
-│ entity_type     │        │ category_id FK  │
-│ entity_id       │        │ name/definition │
-│ file meta       │        └─────────────────┘
+│ _id PK          │        │ _id PK          │
+│ entity_type     │        │ category FK     │
+│ entity_id       │        │ name            │
+│ file_name       │        │ definition      │
+│ file_path       │        │ measurement     │
+│ file_type       │        │ created_at/updated_at│
+│ file_size       │        └─────────────────┘
 │ uploaded_by FK  │
+│ created_at/updated_at│
 └─────────────────┘
 
 LOOKUPS: ImpactCategory (A-H) 1:N ImpactQuestion; Indicator links to
 ImpactCategory; JobTitle for User; AnnexItem referenced by plans/reports.
+
+ملاحظات:
+- جميع الـ Primary Keys (PK) هي ObjectId في MongoDB (تلقائياً)
+- جميع الـ Foreign Keys (FK) هي ObjectId references
+- جميع الجداول تحتوي على created_at و updated_at (timestamps)
+- جميع الجداول لا تحتوي على versionKey (versionKey: false)
 ```
 
 ### ملخص الكيانات (Entity Summary)
@@ -200,21 +309,21 @@ ImpactCategory; JobTitle for User; AnnexItem referenced by plans/reports.
 
 ```
 Entities: Project + Screening
-Lookups: JobTitle (for approved_by)
+Lookups: User (for approved_by)
 ```
 
 ### Tool 2: Assessment (التقييم التفصيلي)
 
 ```
 Entities: Assessment + AssessmentMethod + CommunityConsultation + AssessmentImpactScore
-Lookups: ImpactCategory + ImpactQuestion + JobTitle
+Lookups: ImpactCategory + ImpactQuestion + User (for officer, approved_by)
 ```
 
 ### Tool 3: Management Activities (إجراءات الإدارة)
 
 ```
 Entities: ManagementActivity
-Lookups: JobTitle + User (responsible_id)
+Lookups: User (for responsible)
 ```
 
 ### Tool 4: Mitigation Plan (خطة التخفيف)
@@ -222,21 +331,21 @@ Lookups: JobTitle + User (responsible_id)
 ```
 Entities: MitigationPlan
   أو (كبديل هرمي) SEMP_Objective + SEMP_Target + SEMP_Action
-Lookups: JobTitle + User
+Lookups: User (for responsible)
 ```
 
 ### Tool 5: Monitoring (المراقبة)
 
 ```
 Entities: MonitoringRecord
-Lookups: Indicator + ImpactCategory + JobTitle
+Lookups: Indicator + ImpactCategory (via Indicator) + User (for responsible)
 ```
 
 ### Management Plan (خطة الإدارة)
 
 ```
 Entities: SEMP_Objective + SEMP_Target + SEMP_Action
-Lookups: JobTitle + AnnexItem
+Lookups: User (for responsible in SEMP_Action)
 ```
 
 ---
@@ -254,25 +363,25 @@ Lookups: JobTitle + AnnexItem
 #### الربط مع ERD
 
 - **Primary Entity**: `Screening`
-- **Parent**: `Project` (FK: project_id)
+- **Parent**: `Project` (FK: project)
 - **References**: `User` (FK: approved_by)
 
 #### الحقول المطلوبة (من ERD + الإضافات)
 
-| Field              | Type             | Source    |
-| ------------------ | ---------------- | --------- |
-| screening_id       | int (PK)         | ERD       |
-| project_id         | int (FK)         | ERD       |
-| category_code      | string (A-F)     | ERD       |
-| category_reason    | string           | ERD       |
-| potential_negative | string           | ERD       |
-| potential_positive | string           | ERD       |
-| approved_by        | int (FK -> User) | ERD       |
-| recommendations    | string           | ERD       |
-| screening_date     | date             | **إضافة** |
-| status             | enum             | **إضافة** |
-| created_at         | date             | **إضافة** |
-| updated_at         | date             | **إضافة** |
+| Field              | Type                  | Source    |
+| ------------------ | --------------------- | --------- |
+| \_id               | ObjectId (PK)         | MongoDB   |
+| project            | ObjectId (FK)         | ERD       |
+| category_code      | string (A-F)          | ERD       |
+| category_reason    | string                | ERD       |
+| potential_negative | string                | ERD       |
+| potential_positive | string                | ERD       |
+| approved_by        | ObjectId (FK -> User) | ERD       |
+| recommendations    | string                | ERD       |
+| screening_date     | date                  | **إضافة** |
+| status             | enum                  | **إضافة** |
+| created_at         | date                  | **إضافة** |
+| updated_at         | date                  | **إضافة** |
 
 #### تصنيفات الفئة (Category Codes)
 
@@ -305,7 +414,7 @@ Lookups: JobTitle + AnnexItem
 - **Lookups**:
   - `ImpactCategory` (للمحاور A-H)
   - `ImpactQuestion` (الأسئلة لكل محور)
-  - `User` (officer_id, approved_by)
+  - `User` (officer, approved_by)
 
 #### المحاور الثمانية (ImpactCategory)
 
@@ -329,15 +438,16 @@ enum: ["negligible", "low", "medium", "high", "not_applicable"];
 #### حساب Total Project Score
 
 ```javascript
-const scoreMap = { negligible: 0, low: 1, medium: 2, high: 3 };
-const scores = assessmentImpactScores.map((s) => scoreMap[s.level] || 0);
-const totalScore = scores.reduce((a, b) => a + b, 0);
-const avgScore = totalScore / scores.length;
+const levelScore = { negligible: 0, low: 1, medium: 2, high: 3 };
+const numericScores = scores.map((s) => levelScore[s.level] ?? 0);
+const totalScore = numericScores.reduce((a, b) => a + b, 0);
+const avg = totalScore / numericScores.length;
 
-// Determine Impact Level
-if (avgScore <= 1) return "Low";
-if (avgScore <= 2) return "Medium";
-return "High";
+// Determine Impact Level (stored as lowercase)
+let level = "High";
+if (avg <= 1) level = "Low";
+else if (avg <= 2) level = "Medium";
+// Note: The value is stored as lowercase in the database (level.toLowerCase())
 ```
 
 ---
@@ -352,25 +462,26 @@ return "High";
 
 #### الربط مع ERD
 
-- **Primary Entity**: `ManagementActivity` 
+- **Primary Entity**: `ManagementActivity`
 - **Alternative**: استخدام `SEMP_Objective -> SEMP_Target -> SEMP_Action`
 - **Parent**: `Project`
-- **References**: `User` (responsible_id)
+- **References**: `User` (responsible)
 
 #### الهيكل المقترح
 
 ```javascript
 ManagementActivity {
-  activity_id: int (PK),
-  project_id: int (FK -> Project),
-  serial_number: int,
-  activity_description: string,      // وصف الإجراء
-  potential_impact: enum ['low','medium','high'],
-  recommended_actions: string | string[], // الإجراءات المطلوبة
-  monitoring_requirements: string,   // متطلبات المراقبة
-  responsible_id: int (FK -> User),  // المسؤول
-  notes: string,
-  created_at: date
+  _id: ObjectId (PK),
+  project: ObjectId (FK -> Project),
+  serial_number: Number,
+  activity_description: String,      // وصف الإجراء
+  potential_impact: String,          // نص حر (free text)
+  recommended_actions: Mixed,        // string or array
+  monitoring_requirements: String,   // متطلبات المراقبة
+  responsible: ObjectId (FK -> User), // المسؤول
+  notes: String,
+  created_at: Date,
+  updated_at: Date
 }
 ```
 
@@ -426,7 +537,7 @@ SEMP_Objective (الهدف الاستراتيجي)
 - **Lookups**:
   - `Indicator` (المؤشرات)
   - `ImpactCategory` (فئات التأثير)
-  - `User` (responsible_id)
+  - `User` (responsible)
 
 #### هيكل Scores Object
 
@@ -440,18 +551,23 @@ scores: {
 }
 ```
 
-#### حساب Ranking
+#### حساب Total و Ranking
 
 ```javascript
-const rankingMap = {
-  negligible: 0,
-  low: 1,
-  medium: 2,
-  high: 3,
-};
+// Total = sum of available numeric scores (baseline + Q1 + Q2 + Q3 + Q4)
+const total = Object.values(record.scores || {}).reduce(
+  (acc, v) => acc + (typeof v === "number" ? v : 0),
+  0
+);
+record.total = total;
 
-// Total = sum of quarterly scores
-// Ranking = based on final_assessment enum
+// ranking is a String enum field, not a Number
+// ranking: {
+//   type: String,
+//   enum: ["negligible", "low", "medium", "high", "not_applicable"]
+// }
+// Note: ranking is set manually or based on final_assessment enum value
+// Both ranking and final_assessment use the same enum values
 ```
 
 ---
@@ -461,80 +577,108 @@ const rankingMap = {
 ### ImpactCategory
 
 ```javascript
-// Pre-populated data
+// Pre-populated data (from seed.js)
 [
-  { category_id: 1, name: "Air Quality" },
-  { category_id: 2, name: "Water Quality" },
-  { category_id: 3, name: "Noise" },
-  { category_id: 4, name: "Solid Waste" },
-  { category_id: 5, name: "Radiation" },
-  { category_id: 6, name: "Toxic & Dangerous Materials" },
-  { category_id: 7, name: "Plants, Forests & Wildlife" },
-  { category_id: 8, name: "Land Use & Social Impacts" },
+  { code: "A", name: "Air Quality", name_ar: "جودة الهواء" },
+  { code: "B", name: "Water Quality", name_ar: "جودة المياه" },
+  { code: "C", name: "Noise", name_ar: "الضجيج" },
+  { code: "D", name: "Solid Waste", name_ar: "النفايات الصلبة" },
+  { code: "E", name: "Radiation", name_ar: "الإشعاع" },
+  { code: "F", name: "Toxic & Dangerous Materials", name_ar: "المواد الخطرة" },
+  {
+    code: "J",
+    name: "Plants, Forests & Wildlife",
+    name_ar: "النباتات والحياة البرية",
+  },
+  {
+    code: "H",
+    name: "Land Use & Social Impacts",
+    name_ar: "استخدام الأرض والمجتمع",
+  },
 ];
+// Note: MongoDB automatically generates _id (ObjectId) for each document
 ```
 
 ### Indicator (أمثلة)
 
 ```javascript
-// Each category has 3 indicators (24 total)
+// Example data structure (from seed.js)
+// Note: category is stored as ObjectId reference to ImpactCategory
 [
-  // Air Quality
+  // Air Quality (code: "A")
   {
-    indicator_id: 1,
-    category_id: 1,
+    category: ObjectId("..."), // Reference to ImpactCategory with code "A"
     name: "Visible Air Pollution",
-    definition: "...",
+    definition: "Presence of visible dust/smoke around the site",
     measurement: "Observation",
   },
   {
-    indicator_id: 2,
-    category_id: 1,
+    category: ObjectId("..."), // Reference to ImpactCategory with code "A"
     name: "Community Complaints about Air",
-    definition: "...",
+    definition: "Logged air-quality complaints from community",
     measurement: "Review complaints",
   },
+  // Water Quality (code: "B")
   {
-    indicator_id: 3,
-    category_id: 1,
-    name: "Impact on Soil/Plants",
-    definition: "...",
-    measurement: "Observation",
+    category: ObjectId("..."), // Reference to ImpactCategory with code "B"
+    name: "Water Quality Complaints",
+    definition: "Number of complaints related to water contamination",
+    measurement: "Review complaints",
   },
   // ... more indicators
 ];
+// Note: MongoDB automatically generates _id (ObjectId) for each document
+// The seed script uses category codes to find the corresponding ImpactCategory _id
 ```
 
 ### ImpactQuestion (أمثلة)
 
 ```javascript
-// Each category has multiple questions
+// Example data structure (from seed.js)
+// Note: category is stored as ObjectId reference to ImpactCategory
 [
+  // Air Quality (code: "A")
   {
-    question_id: 1,
-    category_id: 1,
+    category: ObjectId("..."), // Reference to ImpactCategory with code "A"
     question_text: "Will the project generate dust or smoke?",
+    question_text_ar: null, // Optional Arabic translation
   },
   {
-    question_id: 2,
-    category_id: 1,
+    category: ObjectId("..."), // Reference to ImpactCategory with code "A"
     question_text: "Will there be vehicle emissions?",
+    question_text_ar: null,
+  },
+  // Water Quality (code: "B")
+  {
+    category: ObjectId("..."), // Reference to ImpactCategory with code "B"
+    question_text: "Will the project discharge wastewater?",
+    question_text_ar: null,
+  },
+  // Noise (code: "C")
+  {
+    category: ObjectId("..."), // Reference to ImpactCategory with code "C"
+    question_text: "Will the project create sustained noise?",
+    question_text_ar: null,
   },
   // ... more questions
 ];
+// Note: MongoDB automatically generates _id (ObjectId) for each document
+// The seed script uses category codes to find the corresponding ImpactCategory _id
 ```
 
 ### JobTitle
 
 ```javascript
-// Pre-populated data
+// Pre-populated data (from seed.js)
 [
-  { job_title_id: 1, title_name: "Environmental Specialist" },
-  { job_title_id: 2, title_name: "Program Manager" },
-  { job_title_id: 3, title_name: "Project Manager" },
-  { job_title_id: 4, title_name: "Environmental Focal point" },
-  { job_title_id: 5, title_name: "Viewer" },
+  { title_name: "Environmental Specialist" },
+  { title_name: "Program Manager" },
+  { title_name: "Project Manager" },
+  { title_name: "Environmental focal point" },
+  { title_name: "Viewer" },
 ];
+// Note: MongoDB automatically generates _id (ObjectId) for each document
+// The seed script converts the array of strings to objects with title_name field
 ```
 
 ---
@@ -546,40 +690,71 @@ const rankingMap = {
 ```javascript
 const projectSchema = new mongoose.Schema(
   {
-    title: { type: String, required: true },
-    location: { type: String, required: true },
+    title: { type: String, required: true, trim: true },
+    location: { type: String, required: true, trim: true },
     start_date: { type: Date, required: true },
     end_date: { type: Date, required: true },
-    project_component: { type: String },
+    project_component: { type: String, trim: true },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    versionKey: false,
+  }
 );
 ```
 
 ### 2. User Model
 
 ```javascript
+const roles = [
+  "environmental_specialist",
+  "program_manager",
+  "project_manager",
+  "environmental_focal_point",
+  "viewer",
+];
+
+const bcrypt = require("bcryptjs");
+
 const userSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
+    name: { type: String, required: true, trim: true },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
     password: { type: String, required: true },
     job_title: { type: mongoose.Schema.Types.ObjectId, ref: "JobTitle" },
-    role: {
-      type: String,
-      enum: [
-        "environmental_specialist",
-        "program_manager",
-        "project_manager",
-        "environmental_focal_point",
-        "viewer",
-      ],
-      default: "viewer",
-    },
+    role: { type: String, enum: roles, default: "viewer" },
     is_active: { type: Boolean, default: true },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    versionKey: false,
+  }
 );
+
+// Hash password before saving
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
+});
+
+// Compare password method
+userSchema.methods.comparePassword = async function (candidate) {
+  return bcrypt.compare(candidate, this.password);
+};
+
+// Remove password from JSON output
+userSchema.methods.toJSON = function () {
+  const obj = this.toObject();
+  delete obj.password;
+  return obj;
+};
 ```
 
 ### 3. Screening Model (Tool 1)
@@ -609,7 +784,10 @@ const screeningSchema = new mongoose.Schema(
       default: "draft",
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    versionKey: false,
+  }
 );
 ```
 
@@ -637,7 +815,7 @@ const assessmentSchema = new mongoose.Schema(
     total_project_score: { type: Number },
     total_project_impact: {
       type: String,
-      enum: ["Low", "Medium", "High"],
+      enum: ["low", "medium", "high"],
     },
     is_complete: { type: Boolean, default: false },
 
@@ -652,7 +830,10 @@ const assessmentSchema = new mongoose.Schema(
       default: "draft",
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    versionKey: false,
+  }
 );
 ```
 
@@ -669,7 +850,10 @@ const assessmentMethodSchema = new mongoose.Schema(
     method_type: { type: String, required: true },
     details: { type: String },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    versionKey: false,
+  }
 );
 ```
 
@@ -687,47 +871,68 @@ const communityConsultationSchema = new mongoose.Schema(
     participants: { type: String },
     notes: { type: String },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    versionKey: false,
+  }
 );
 ```
 
 ### 7. ImpactCategory Model (Lookup)
 
 ```javascript
-const impactCategorySchema = new mongoose.Schema({
-  name: { type: String, required: true, unique: true },
-  code: { type: String, required: true, unique: true }, // A, B, C, etc.
-  name_ar: { type: String },
-});
+const impactCategorySchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, unique: true, trim: true },
+    code: { type: String, required: true, unique: true, trim: true }, // A, B, C, etc.
+    name_ar: { type: String, trim: true },
+  },
+  {
+    timestamps: true,
+    versionKey: false,
+  }
+);
 ```
 
 ### 8. ImpactQuestion Model (Lookup)
 
 ```javascript
-const impactQuestionSchema = new mongoose.Schema({
-  category: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "ImpactCategory",
-    required: true,
+const impactQuestionSchema = new mongoose.Schema(
+  {
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ImpactCategory",
+      required: true,
+    },
+    question_text: { type: String, required: true },
+    question_text_ar: { type: String },
   },
-  question_text: { type: String, required: true },
-  question_text_ar: { type: String },
-});
+  {
+    timestamps: true,
+    versionKey: false,
+  }
+);
 ```
 
 ### 9. Indicator Model (Lookup)
 
 ```javascript
-const indicatorSchema = new mongoose.Schema({
-  category: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "ImpactCategory",
-    required: true,
+const indicatorSchema = new mongoose.Schema(
+  {
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ImpactCategory",
+      required: true,
+    },
+    name: { type: String, required: true },
+    definition: { type: String, required: true },
+    measurement: { type: String, required: true },
   },
-  name: { type: String, required: true },
-  definition: { type: String, required: true },
-  measurement: { type: String, required: true },
-});
+  {
+    timestamps: true,
+    versionKey: false,
+  }
+);
 ```
 
 ### 10. AssessmentImpactScore Model
@@ -752,13 +957,27 @@ const assessmentImpactScoreSchema = new mongoose.Schema(
     },
     note: { type: String },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    versionKey: false,
+  }
 );
 ```
 
 ### 11. MonitoringRecord Model (Tool 5)
 
 ```javascript
+const scoreSchema = new mongoose.Schema(
+  {
+    baseline: { type: Number },
+    Q1: { type: Number },
+    Q2: { type: Number },
+    Q3: { type: Number },
+    Q4: { type: Number },
+  },
+  { _id: false, versionKey: false }
+);
+
 const monitoringRecordSchema = new mongoose.Schema(
   {
     project: {
@@ -771,23 +990,23 @@ const monitoringRecordSchema = new mongoose.Schema(
       ref: "Indicator",
       required: true,
     },
-    scores: {
-      baseline: { type: Number },
-      Q1: { type: Number },
-      Q2: { type: Number },
-      Q3: { type: Number },
-      Q4: { type: Number },
-    },
+    scores: scoreSchema,
     total: { type: Number },
     final_assessment: {
       type: String,
       enum: ["negligible", "low", "medium", "high", "not_applicable"],
     },
-    ranking: { type: Number, min: 0, max: 3 },
+    ranking: {
+      type: String,
+      enum: ["negligible", "low", "medium", "high", "not_applicable"],
+    },
     responsible: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     note: { type: String },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    versionKey: false,
+  }
 );
 ```
 
@@ -803,7 +1022,10 @@ const sempObjectiveSchema = new mongoose.Schema(
     },
     objective_text: { type: String, required: true },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    versionKey: false,
+  }
 );
 ```
 
@@ -819,7 +1041,10 @@ const sempTargetSchema = new mongoose.Schema(
     },
     target_text: { type: String, required: true },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    versionKey: false,
+  }
 );
 ```
 
@@ -838,25 +1063,40 @@ const sempActionSchema = new mongoose.Schema(
     resources: { type: String },
     due_date: { type: Date },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    versionKey: false,
+  }
 );
 ```
 
 ### 15. JobTitle Model (Lookup)
 
 ```javascript
-const jobTitleSchema = new mongoose.Schema({
-  title_name: { type: String, required: true, unique: true },
-});
+const jobTitleSchema = new mongoose.Schema(
+  {
+    title_name: { type: String, required: true, unique: true },
+  },
+  {
+    timestamps: true,
+    versionKey: false,
+  }
+);
 ```
 
 ### 16. AnnexItem Model (Reference)
 
 ```javascript
-const annexItemSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: { type: String },
-});
+const annexItemSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true, trim: true },
+    description: { type: String, trim: true },
+  },
+  {
+    timestamps: true,
+    versionKey: false,
+  }
+);
 ```
 
 ### 17. Attachment Model
@@ -876,7 +1116,10 @@ const attachmentSchema = new mongoose.Schema(
     file_size: { type: Number },
     uploaded_by: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    versionKey: false,
+  }
 );
 ```
 
@@ -898,7 +1141,10 @@ const managementActivitySchema = new mongoose.Schema(
     responsible: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     notes: { type: String },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    versionKey: false,
+  }
 );
 ```
 
@@ -906,7 +1152,7 @@ const managementActivitySchema = new mongoose.Schema(
 
 ```javascript
 const mitigationPlanSchema = new mongoose.Schema(
-    {
+  {
     project: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Project",
@@ -925,12 +1171,12 @@ const mitigationPlanSchema = new mongoose.Schema(
     timestamps: true,
     versionKey: false,
   }
-  );
+);
 ```
 
 ---
 
-## API Endpoints (عدلت)
+## API Endpoints
 
 ### Projects
 
@@ -944,69 +1190,70 @@ const mitigationPlanSchema = new mongoose.Schema(
 
 ### Tool 1: Screening
 
-| Method | Endpoint                                | Description    |
-| ------ | --------------------------------------- | -------------- |
-| GET    | `/api/v1/screenings`                    | قائمة الفرز    |
-| GET    | `/api/v1/screenings/:id`                | تفاصيل فرز     |
+| Method | Endpoint                               | Description    |
+| ------ | -------------------------------------- | -------------- |
+| GET    | `/api/v1/screenings`                   | قائمة الفرز    |
+| GET    | `/api/v1/screenings/:id`               | تفاصيل فرز     |
 | GET    | `/api/v1/screening/project/:projectId` | فرز مشروع معين |
-| POST   | `/api/v1/screenings`                    | إنشاء فرز      |
-| PUT    | `/api/v1/screenings/:id`                | تحديث فرز      |
-| PATCH  | `/api/v1/screenings/:id/approve`        | الموافقة       |
-| PATCH  | `/api/v1/screenings/:id/reject`         | الرفض          |
+| POST   | `/api/v1/screenings`                   | إنشاء فرز      |
+| PUT    | `/api/v1/screenings/:id`               | تحديث فرز      |
+| PATCH  | `/api/v1/screenings/:id/approve`       | الموافقة       |
+| PATCH  | `/api/v1/screenings/:id/reject`        | الرفض          |
 
 ### Tool 2: Assessment
 
-| Method | Endpoint                                 | Description         |
-| ------ | ---------------------------------------- | ------------------- |
-| GET    | `/api/v1/assessments`                    | قائمة التقييمات     |
-| GET    | `/api/v1/assessments/:id`                | تفاصيل تقييم        |
+| Method | Endpoint                                | Description         |
+| ------ | --------------------------------------- | ------------------- |
+| GET    | `/api/v1/assessments`                   | قائمة التقييمات     |
+| GET    | `/api/v1/assessments/:id`               | تفاصيل تقييم        |
 | GET    | `/api/v1/assessment/project/:projectId` | تقييم مشروع معين    |
-| POST   | `/api/v1/assessments`                    | إنشاء تقييم         |
-| PUT    | `/api/v1/assessments/:id`                | تحديث تقييم         |
-| POST   | `/api/v1/assessments/:id/methods`        | إضافة طريقة تقييم   |
-| POST   | `/api/v1/assessments/:id/consultations`  | إضافة مشاورة        |
-| POST   | `/api/v1/assessments/:id/scores`         | إضافة/تحديث النتائج |
-| PATCH  | `/api/v1/assessments/:id/calculate`      | حساب المجموع        |
+| POST   | `/api/v1/assessments`                   | إنشاء تقييم         |
+| PUT    | `/api/v1/assessments/:id`               | تحديث تقييم         |
+| POST   | `/api/v1/assessments/:id/methods`       | إضافة طريقة تقييم   |
+| POST   | `/api/v1/assessments/:id/consultations` | إضافة مشاورة        |
+| POST   | `/api/v1/assessments/:id/scores`        | إضافة/تحديث النتائج |
+| PATCH  | `/api/v1/assessments/:id/calculate`     | حساب المجموع        |
 
 ### Tool 5: Monitoring
 
-| Method | Endpoint                                 | Description    |
-| ------ | ---------------------------------------- | -------------- |
-| GET    | `/api/v1/monitoring`                     | قائمة السجلات  |
-| GET    | `/api/v1/monitoring/project/:projectId` | سجلات مشروع    |
-| POST   | `/api/v1/monitoring`                     | إنشاء سجل      |
-| PUT    | `/api/v1/monitoring/:id`                 | تحديث سجل      |
-| PATCH  | `/api/v1/monitoring/:id/quarter/:q`      | تحديث ربع سنوي |
+| Method                                                                        | Endpoint                                | Description    |
+| ----------------------------------------------------------------------------- | --------------------------------------- | -------------- |
+| GET                                                                           | `/api/v1/monitoring`                    | قائمة السجلات  |
+| GET                                                                           | `/api/v1/monitoring/project/:projectId` | سجلات مشروع    |
+| POST                                                                          | `/api/v1/monitoring`                    | إنشاء سجل      |
+| PUT                                                                           | `/api/v1/monitoring/:id`                | تحديث سجل      |
+| PATCH                                                                         | `/api/v1/monitoring/:id/quarter/:q`     | تحديث ربع سنوي |
+| **ملاحظة**: لا يوجد endpoint `GET /api/v1/monitoring/:id` للحصول على سجل واحد |
 
 ### Tool 3: Management Activities
 
-| Method | Endpoint                                 | Description         |
-| ------ | ---------------------------------------- | ------------------- |
+| Method | Endpoint                                | Description         |
+| ------ | --------------------------------------- | ------------------- |
 | GET    | `/api/v1/management/project/:projectId` | قائمة إجراءات مشروع |
-| POST   | `/api/v1/management`                     | إنشاء إجراء         |
-| PUT    | `/api/v1/management/:id`                 | تحديث إجراء         |
-| DELETE | `/api/v1/management/:id`                 | حذف إجراء           |
+| POST   | `/api/v1/management`                    | إنشاء إجراء         |
+| PUT    | `/api/v1/management/:id`                | تحديث إجراء         |
+| DELETE | `/api/v1/management/:id`                | حذف إجراء           |
 
 ### Tool 4: Mitigation Plan
 
-| Method | Endpoint                                 | Description        |
-| ------ | ---------------------------------------- | ------------------ |
-| GET    | `/api/v1/mitigation/projects/:projectId` | خطة التخفيف لمشروع |
-| POST   | `/api/v1/mitigation`                     | إنشاء بند تخفيف    |
-| PUT    | `/api/v1/mitigation/:id`                 | تحديث بند تخفيف    |
-| DELETE | `/api/v1/mitigation/:id`                 | حذف بند تخفيف      |
+| Method | Endpoint                                | Description        |
+| ------ | --------------------------------------- | ------------------ |
+| GET    | `/api/v1/mitigation/project/:projectId` | خطة التخفيف لمشروع |
+| POST   | `/api/v1/mitigation`                    | إنشاء بند تخفيف    |
+| PUT    | `/api/v1/mitigation/:id`                | تحديث بند تخفيف    |
+| DELETE | `/api/v1/mitigation/:id`                | حذف بند تخفيف      |
 
 ### SEMP (Tool 3/4)
 
-| Method | Endpoint                           | Description    |
-| ------ | ---------------------------------- | -------------- |
-| GET    | `/api/v1/semp/projects/:projectId` | خطة مشروع      |
-| POST   | `/api/v1/semp/objectives`          | إنشاء هدف      |
-| POST   | `/api/v1/semp/targets`             | إنشاء هدف فرعي |
-| POST   | `/api/v1/semp/actions`             | إنشاء إجراء    |
-| PUT    | `/api/v1/semp/objectives/:id`      | تحديث هدف      |
-| PUT    | `/api/v1/semp/targets/:id`         | تحديث هدف فرعي |
-| PUT    | `/api/v1/semp/actions/:id`         | تحديث إجراء    |
+| Method | Endpoint                          | Description    |
+| ------ | --------------------------------- | -------------- |
+| GET    | `/api/v1/semp/project/:projectId` | خطة مشروع      |
+| POST   | `/api/v1/semp/objectives`         | إنشاء هدف      |
+| POST   | `/api/v1/semp/targets`            | إنشاء هدف فرعي |
+| POST   | `/api/v1/semp/actions`            | إنشاء إجراء    |
+| PUT    | `/api/v1/semp/objectives/:id`     | تحديث هدف      |
+| PUT    | `/api/v1/semp/targets/:id`        | تحديث هدف فرعي |
+| PUT    | `/api/v1/semp/actions/:id`        | تحديث إجراء    |
 
 ### Lookups
 
@@ -1022,16 +1269,16 @@ const mitigationPlanSchema = new mongoose.Schema(
 
 ### Reports
 
-| Method | Endpoint                    | Description                                                                                                                                         |
-| ------ | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET    | `/api/v1/reports/dashboard` | إحصاءات عامة (dashboard)                                                                                                                            |
-| GET    | `/api/v1/reports/export`    | تصدير CSV/Excel/PDF (مع type=projects أو monitoring، format=csv أو excel أو pdf، و projectId اختياري للـ monitoring)                                |
+| Method | Endpoint                    | Description                                                                                                          |
+| ------ | --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/v1/reports/dashboard` | إحصاءات عامة (dashboard)                                                                                             |
+| GET    | `/api/v1/reports/export`    | تصدير CSV/Excel/PDF (مع type=projects أو monitoring، format=csv أو excel أو pdf، و projectId اختياري للـ monitoring) |
 
 ### Users
 
-| Method | Endpoint          | Description                               |
-| ------ | ----------------- | ----------------------------------------- |
-| GET    | `/api/v1/users`   | قائمة المستخدمين (مسموح لجميع الأدوار عدا viewer) |
+| Method | Endpoint        | Description                                       |
+| ------ | --------------- | ------------------------------------------------- |
+| GET    | `/api/v1/users` | قائمة المستخدمين (مسموح لجميع الأدوار عدا viewer) |
 
 ### Auth
 
@@ -1066,9 +1313,9 @@ const mitigationPlanSchema = new mongoose.Schema(
 │  7. إضافة CommunityConsultations                                    │
 │  8. إضافة AssessmentImpactScores لكل سؤال                          │
 │  9. حساب Total Project Impact                                       │
-│     ├── Low → Tool 3 كافٍ                                           │
-│     ├── Medium → Tool 3 + يُفضل Tool 4                              │
-│     └── High → Tool 3 + Tool 4 إلزامي                               │
+│     ├── Low                                           │
+│     ├── Medium                             │
+│     └── High                               │
 │ 10. موافقة Program Manager + Environmental Officer                  │
 └─────────────────────────────────────────────────────────────────────┘
                                     │
@@ -1112,59 +1359,10 @@ const mitigationPlanSchema = new mongoose.Schema(
 
 - **Tool 1** يجب أن يُكمل قبل Tool 2
 - **Tool 2** يجب أن يُكمل قبل Tool 3 و Tool 4
-- **Tool 5** يمكن أن يبدأ بعد Tool 2
 
-### 2. Category Rules
+### 2. Data Integrity
 
-| Category | Tool 2     | Tool 3    | Tool 4    |
-| -------- | ---------- | --------- | --------- |
-| A        | ✅ إلزامي  | ✅ إلزامي | ✅ إلزامي |
-| B        | ✅ إلزامي  | ✅ إلزامي | يُفضل     |
-| C        | اختياري    | اختياري   | ❌        |
-| D        | مختصر      | اختياري   | ❌        |
-| E        | ❌ لا يمكن | ❌        | ❌        |
-| F        | اختياري    | اختياري   | ❌        |
-
-### 3. Impact Level Rules
-
-| Impact | Tool 3    | Tool 4    |
-| ------ | --------- | --------- |
-| Low    | ✅ كافٍ   | ❌        |
-| Medium | ✅ إلزامي | يُفضل     |
-| High   | ✅ إلزامي | ✅ إلزامي |
-
-### 4. Data Integrity
-
-- لا يمكن حذف Project مرتبط بـ Screening
-- لا يمكن تعديل Category بعد الموافقة
 - Screening.status = 'approved' قبل إنشاء Assessment
-
----
-
-## الخطوات التالية (Next Steps)
-
-### Phase 1: إعداد قاعدة البيانات
-
-1. ✅ تحليل ERD
-2. ✅ إنشاء Mongoose Models
-3. ✅ تشغيل Seed للـ Lookups (`npm run seed`)
-
-### Phase 2: إنشاء الـ API
-
-4. ✅ Routes & Controllers
-5. ✅ Services (Business Logic)
-6. ✅ Validators (Joi)
-
-### Phase 3: الميزات الإضافية
-
-7. ✅ Authentication (JWT) + Authorization middleware
-8. ✅ File Upload (مرفقات مع التخزين المحلي uploads/)
-9. ✅ تفعيل حماية المسارات بحسب الأدوار (auth + requireRole) مع حارس تسجيل أول مستخدم فقط
-
-### Phase 4: التقارير
-
-10. ✅ Dashboard Stats (API: /reports/dashboard)
-11. ✅ PDF/Excel/CSV Export (API: /reports/export?type=projects|monitoring&format=csv|excel|pdf)
 
 ---
 
@@ -1186,6 +1384,6 @@ const mitigationPlanSchema = new mongoose.Schema(
 
 ---
 
-**آخر تحديث**: 21 ديسمبر 2024
-**الإصدار**: 2.0.0
-**الحالة**: مُحدَّث مع ERD
+**آخر تحديث**: 15 يناير 2026
+**الإصدار**: 2.2.0
+**الحالة**: مُحدَّث ومصحح - متوافق مع الكود الفعلي

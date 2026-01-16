@@ -2,11 +2,11 @@ const mongoose = require("mongoose");
 
 const scoreSchema = new mongoose.Schema(
   {
-    baseline: { type: Number },
-    Q1: { type: Number },
-    Q2: { type: Number },
-    Q3: { type: Number },
-    Q4: { type: Number },
+    baseline: { type: String },
+    Q1: { type: String },
+    Q2: { type: String },
+    Q3: { type: String },
+    Q4: { type: String },
   },
   { _id: false, versionKey: false }
 );
@@ -24,11 +24,8 @@ const monitoringRecordSchema = new mongoose.Schema(
       required: true,
     },
     scores: scoreSchema,
-    total: { type: Number },
-    final_assessment: {
-      type: String,
-      enum: ["negligible", "low", "medium", "high", "not_applicable"],
-    },
+    total: { type: String },
+    final_assessment: { type: String },
     ranking: {
       type: String,
       enum: ["negligible", "low", "medium", "high", "not_applicable"],

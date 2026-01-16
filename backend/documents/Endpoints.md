@@ -249,11 +249,25 @@
 {
   "project": "<PROJECT_ID>",
   "indicator": "<INDICATOR_ID>",
-  "scores": { "baseline": 1, "Q1": 2 },
-  "final_assessment": "medium",
+  "scores": {
+    "baseline": "قيمة يدوية",
+    "Q1": "قيمة يدوية",
+    "Q2": "قيمة يدوية",
+    "Q3": "قيمة يدوية",
+    "Q4": "قيمة يدوية"
+  },
+  "total": "قيمة يدوية",
+  "final_assessment": "تقييم نهائي نص حر",
   "ranking": "medium"
 }
 ```
+
+**ملاحظات**:
+
+- جميع القيم في `scores` هي نصية (String) ويدوية
+- `total` هو نص يدوي (لا يتم حسابه تلقائياً)
+- `final_assessment` هو نص حر (لا enum)
+- `ranking` هو enum محدد لكن يتم إرساله يدوياً
 
 ### PATCH `/api/v1/monitoring/:id/quarter/:q`
 
@@ -261,8 +275,14 @@
 - جسم:
 
 ```json
-{ "value": 3 }
+{ "value": "قيمة نصية يدوية" }
 ```
+
+**ملاحظات**:
+
+- `value` نص (String) وليس رقم
+- لا يتم حساب `total` تلقائياً بعد تحديث quarter
+- يجب تحديث `total` يدوياً عبر PUT endpoint إذا لزم الأمر
 
 ### GET `/api/v1/monitoring` | `/project/:projectId`
 

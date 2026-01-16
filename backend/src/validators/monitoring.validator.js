@@ -4,16 +4,14 @@ const createMonitoringSchema = Joi.object({
   project: Joi.string().required(),
   indicator: Joi.string().required(),
   scores: Joi.object({
-    baseline: Joi.number().optional(),
-    Q1: Joi.number().optional(),
-    Q2: Joi.number().optional(),
-    Q3: Joi.number().optional(),
-    Q4: Joi.number().optional(),
+    baseline: Joi.string().allow("", null).optional(),
+    Q1: Joi.string().allow("", null).optional(),
+    Q2: Joi.string().allow("", null).optional(),
+    Q3: Joi.string().allow("", null).optional(),
+    Q4: Joi.string().allow("", null).optional(),
   }).optional(),
-  total: Joi.number().optional(),
-  final_assessment: Joi.string()
-    .valid("negligible", "low", "medium", "high", "not_applicable")
-    .optional(),
+  total: Joi.string().allow("", null).optional(),
+  final_assessment: Joi.string().allow("", null).optional(),
   ranking: Joi.string()
     .valid("negligible", "low", "medium", "high", "not_applicable")
     .optional(),
@@ -24,7 +22,7 @@ const createMonitoringSchema = Joi.object({
 const updateMonitoringSchema = createMonitoringSchema;
 
 const updateQuarterSchema = Joi.object({
-  value: Joi.number().required(),
+  value: Joi.string().allow("", null).required(),
 });
 
 module.exports = {

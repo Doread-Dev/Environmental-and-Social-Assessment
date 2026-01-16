@@ -31,14 +31,9 @@ const updateQuarter = async (id, quarterKey, value) => {
   }
 
   record.scores = record.scores || {};
-  record.scores[quarterKey] = value;
+  record.scores[quarterKey] = value; // value الآن String
 
-  // total = sum of available numeric scores
-  const total = Object.values(record.scores || {}).reduce(
-    (acc, v) => acc + (typeof v === "number" ? v : 0),
-    0
-  );
-  record.total = total;
+  // لا يتم حساب total تلقائياً - سيتم إرساله من الفرونت
 
   await record.save();
   return record;

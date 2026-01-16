@@ -590,31 +590,28 @@ SEMP_Objective (الهدف الاستراتيجي)
 
 ```javascript
 scores: {
-  baseline: number,  // قبل البدء
-  Q1: number,        // الربع الأول
-  Q2: number,        // الربع الثاني
-  Q3: number,        // الربع الثالث
-  Q4: number         // الربع الرابع
+  baseline: string,  // قبل البدء (نص يدوي)
+  Q1: string,        // الربع الأول (نص يدوي)
+  Q2: string,        // الربع الثاني (نص يدوي)
+  Q3: string,        // الربع الثالث (نص يدوي)
+  Q4: string         // الربع الرابع (نص يدوي)
 }
 ```
 
-#### حساب Total و Ranking
+#### إدخال القيم يدوياً
 
 ```javascript
-// Total = sum of available numeric scores (baseline + Q1 + Q2 + Q3 + Q4)
-const total = Object.values(record.scores || {}).reduce(
-  (acc, v) => acc + (typeof v === "number" ? v : 0),
-  0
-);
-record.total = total;
+// جميع القيم يتم إدخالها يدوياً من الفرونت
+// لا يوجد حساب تلقائي في الـ Backend
 
-// ranking is a String enum field, not a Number
-// ranking: {
-//   type: String,
-//   enum: ["negligible", "low", "medium", "high", "not_applicable"]
-// }
-// Note: ranking is set manually or based on final_assessment enum value
-// Both ranking and final_assessment use the same enum values
+// total: نص يدوي يتم إرساله من الفرونت
+record.total = "قيمة يدوية";
+
+// final_assessment: نص حر (لا enum)
+record.final_assessment = "أي نص يريده المستخدم";
+
+// ranking: enum محدد لكن يتم إرساله يدوياً من الفرونت
+record.ranking = "medium"; // من enum: negligible, low, medium, high, not_applicable
 ```
 
 ---
@@ -1027,11 +1024,11 @@ const assessmentImpactScoreSchema = new mongoose.Schema(
 ```javascript
 const scoreSchema = new mongoose.Schema(
   {
-    baseline: { type: Number },
-    Q1: { type: Number },
-    Q2: { type: Number },
-    Q3: { type: Number },
-    Q4: { type: Number },
+    baseline: { type: String },
+    Q1: { type: String },
+    Q2: { type: String },
+    Q3: { type: String },
+    Q4: { type: String },
   },
   { _id: false, versionKey: false }
 );
@@ -1049,11 +1046,8 @@ const monitoringRecordSchema = new mongoose.Schema(
       required: true,
     },
     scores: scoreSchema,
-    total: { type: Number },
-    final_assessment: {
-      type: String,
-      enum: ["negligible", "low", "medium", "high", "not_applicable"],
-    },
+    total: { type: String },
+    final_assessment: { type: String },
     ranking: {
       type: String,
       enum: ["negligible", "low", "medium", "high", "not_applicable"],

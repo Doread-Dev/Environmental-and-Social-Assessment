@@ -2,6 +2,9 @@
 node_modules/
 package-lock.json
 yarn.lock
+documents/editPlan.md
+documents/editPlan2.md
+documents/editPlan3.md
 
 # Environment variables
 .env

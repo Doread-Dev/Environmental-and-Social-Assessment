@@ -438,16 +438,63 @@ enum: ["negligible", "low", "medium", "high", "not_applicable"];
 #### حساب Total Project Score
 
 ```javascript
-const levelScore = { negligible: 0, low: 1, medium: 2, high: 3 };
-const numericScores = scores.map((s) => levelScore[s.level] ?? 0);
-const totalScore = numericScores.reduce((a, b) => a + b, 0);
-const avg = totalScore / numericScores.length;
+// حساب عدد كل مستوى من AssessmentImpactScore
+const scoreCount = {
+  negligible: 0,
+  low: 0,
+  medium: 0,
+  high: 0,
+  not_applicable: 0,
+};
 
-// Determine Impact Level (stored as lowercase)
-let level = "High";
-if (avg <= 1) level = "Low";
-else if (avg <= 2) level = "Medium";
-// Note: The value is stored as lowercase in the database (level.toLowerCase())
+scores.forEach((score) => {
+  if (scoreCount.hasOwnProperty(score.level)) {
+    scoreCount[score.level]++;
+  }
+});
+
+// تحديد total_project_impact بناءً على أعلى عدد
+// أولوية: high > medium > low > negligible
+// not_applicable لا يُؤخذ بالحسبان إلا إذا كانت كل المستويات الأخرى = 0
+let maxLevel = null;
+let maxCount = -1;
+
+const levelsToCheck = ["negligible", "low", "medium", "high"];
+levelsToCheck.forEach((level) => {
+  if (scoreCount[level] > maxCount) {
+    maxCount = scoreCount[level];
+    maxLevel = level;
+  }
+});
+
+// إذا كانت كل المستويات = 0، استخدم not_applicable
+if (maxCount === 0 && scoreCount.not_applicable > 0) {
+  maxLevel = "not_applicable";
+} else if (maxCount === 0) {
+  // إذا كانت كل المستويات = 0 و not_applicable = 0، استخدم negligible كقيمة افتراضية
+  maxLevel = "negligible";
+}
+
+// في حالة التعادل، اختر الأعلى حسب الأولوية
+if (maxCount > 0) {
+  const priority = { high: 4, medium: 3, low: 2, negligible: 1 };
+  let highestPriority = null;
+  let highestPriorityValue = -1;
+
+  levelsToCheck.forEach((level) => {
+    if (
+      scoreCount[level] === maxCount &&
+      priority[level] > highestPriorityValue
+    ) {
+      highestPriorityValue = priority[level];
+      highestPriority = level;
+    }
+  });
+
+  if (highestPriority) {
+    maxLevel = highestPriority;
+  }
+}
 ```
 
 ---
@@ -794,6 +841,17 @@ const screeningSchema = new mongoose.Schema(
 ### 4. Assessment Model (Tool 2)
 
 ```javascript
+const scoreCountSchema = new mongoose.Schema(
+  {
+    negligible: { type: Number, default: 0 },
+    low: { type: Number, default: 0 },
+    medium: { type: Number, default: 0 },
+    high: { type: Number, default: 0 },
+    not_applicable: { type: Number, default: 0 },
+  },
+  { _id: false, versionKey: false }
+);
+
 const assessmentSchema = new mongoose.Schema(
   {
     project: {
@@ -812,10 +870,10 @@ const assessmentSchema = new mongoose.Schema(
     legal_requirements: { type: String },
 
     // Calculated fields
-    total_project_score: { type: Number },
+    total_project_score: scoreCountSchema,
     total_project_impact: {
       type: String,
-      enum: ["low", "medium", "high"],
+      enum: ["negligible", "low", "medium", "high", "not_applicable"],
     },
     is_complete: { type: Boolean, default: false },
 
@@ -1259,15 +1317,15 @@ const mitigationPlanSchema = new mongoose.Schema(
 
 ### Lookups
 
-| Method | Endpoint                     | Description       |
-| ------ | ---------------------------- | ----------------- |
-| GET    | `/api/v1/impact-categories`  | فئات التأثير      |
-| GET    | `/api/v1/impact-questions`   | الأسئلة           |
-| GET    | `/api/v1/indicators`         | المؤشرات          |
-| GET    | `/api/v1/job-titles`         | المسميات الوظيفية |
-| POST   | `/api/v1/attachments`        | إنشاء سجل مرفق    |
-| POST   | `/api/v1/attachments/upload` | رفع ملف فعلي      |
-| GET    | `/api/v1/attachments/:id`    | تفاصيل مرفق       |
+| Method | Endpoint                            | Description       |
+| ------ | ----------------------------------- | ----------------- |
+| GET    | `/api/v1/lookups/impact-categories` | فئات التأثير      |
+| GET    | `/api/v1/lookups/impact-questions`  | الأسئلة           |
+| GET    | `/api/v1/lookups/indicators`        | المؤشرات          |
+| GET    | `/api/v1/lookups/job-titles`        | المسميات الوظيفية |
+| POST   | `/api/v1/attachments`               | إنشاء سجل مرفق    |
+| POST   | `/api/v1/attachments/upload`        | رفع ملف فعلي      |
+| GET    | `/api/v1/attachments/:id`           | تفاصيل مرفق       |
 
 ### Reports
 

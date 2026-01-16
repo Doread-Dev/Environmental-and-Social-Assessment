@@ -4,8 +4,6 @@ const CommunityConsultation = require("../models/communityConsultation.model");
 const AssessmentImpactScore = require("../models/assessmentImpactScore.model");
 const ApiError = require("../utils/ApiError");
 
-const levelScore = { negligible: 0, low: 1, medium: 2, high: 3 };
-
 const listAssessments = async () =>
   Assessment.find()
     .populate("project officer approved_by")
@@ -66,16 +64,67 @@ const calculateImpact = async (assessmentId) => {
   const scores = await AssessmentImpactScore.find({ assessment: assessmentId });
   if (!scores.length) throw new ApiError(400, "No scores to calculate");
 
-  const numericScores = scores.map((s) => levelScore[s.level] ?? 0);
-  const totalScore = numericScores.reduce((a, b) => a + b, 0);
-  const avg = totalScore / numericScores.length;
+  // حساب عدد كل مستوى
+  const scoreCount = {
+    negligible: 0,
+    low: 0,
+    medium: 0,
+    high: 0,
+    not_applicable: 0,
+  };
 
-  let level = "High";
-  if (avg <= 1) level = "Low";
-  else if (avg <= 2) level = "Medium";
+  scores.forEach((score) => {
+    if (scoreCount.hasOwnProperty(score.level)) {
+      scoreCount[score.level]++;
+    }
+  });
 
-  assessment.total_project_score = totalScore;
-  assessment.total_project_impact = level.toLowerCase();
+  // تحديد total_project_impact بناءً على أعلى عدد
+  // أولوية: high > medium > low > negligible
+  // not_applicable لا يُؤخذ بالحسبان إلا إذا كانت كل المستويات الأخرى = 0
+  let maxLevel = null;
+  let maxCount = -1;
+
+  // فحص المستويات (بدون not_applicable)
+  const levelsToCheck = ["negligible", "low", "medium", "high"];
+  levelsToCheck.forEach((level) => {
+    if (scoreCount[level] > maxCount) {
+      maxCount = scoreCount[level];
+      maxLevel = level;
+    }
+  });
+
+  // إذا كانت كل المستويات = 0، استخدم not_applicable
+  if (maxCount === 0 && scoreCount.not_applicable > 0) {
+    maxLevel = "not_applicable";
+  } else if (maxCount === 0) {
+    // إذا كانت كل المستويات = 0 و not_applicable = 0، استخدم negligible كقيمة افتراضية
+    maxLevel = "negligible";
+  }
+
+  // في حالة التعادل، اختر الأعلى حسب الأولوية
+  if (maxCount > 0) {
+    const priority = { high: 4, medium: 3, low: 2, negligible: 1 };
+    let highestPriority = null;
+    let highestPriorityValue = -1;
+
+    levelsToCheck.forEach((level) => {
+      if (
+        scoreCount[level] === maxCount &&
+        priority[level] > highestPriorityValue
+      ) {
+        highestPriorityValue = priority[level];
+        highestPriority = level;
+      }
+    });
+
+    if (highestPriority) {
+      maxLevel = highestPriority;
+    }
+  }
+
+  assessment.total_project_score = scoreCount;
+  assessment.total_project_impact = maxLevel;
   assessment.is_complete = true;
   await assessment.save();
 

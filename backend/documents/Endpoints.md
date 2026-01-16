@@ -49,10 +49,10 @@
 
 ## 1) Lookups (مرحلة التمهيد، للقراءة)
 
-- GET `/api/v1/impact-categories`
-- GET `/api/v1/impact-questions`
-- GET `/api/v1/indicators`
-- GET `/api/v1/job-titles`
+- GET `/api/v1/lookups/impact-categories`
+- GET `/api/v1/lookups/impact-questions`
+- GET `/api/v1/lookups/indicators`
+- GET `/api/v1/lookups/job-titles`
 - بدون توكن أو يمكن استخدام توكن (قراءة فقط).
 - في بوست مان: Method GET، لا جسم، يمكن ترك الهيدر بدون Authorization.
 
@@ -141,7 +141,7 @@
   "category_code": "A",
   "category_reason": "High environmental sensitivity",
   "potential_negative": "Dust",
-  "potential_positive": "Job creation",
+  "potential_positive": "Job creation"
 }
 ```
 

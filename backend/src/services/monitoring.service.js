@@ -6,6 +6,14 @@ const listMonitoring = async () =>
     .populate("project indicator responsible")
     .sort({ createdAt: -1 });
 
+const getMonitoringRecord = async (id) => {
+  const record = await MonitoringRecord.findById(id).populate(
+    "project indicator responsible"
+  );
+  if (!record) throw new ApiError(404, "Monitoring record not found");
+  return record;
+};
+
 const getByProject = async (projectId) =>
   MonitoringRecord.find({ project: projectId }).populate(
     "project indicator responsible"
@@ -41,6 +49,7 @@ const updateQuarter = async (id, quarterKey, value) => {
 
 module.exports = {
   listMonitoring,
+  getMonitoringRecord,
   getByProject,
   createRecord,
   updateRecord,

@@ -6,6 +6,11 @@ exports.getAll = asyncHandler(async (req, res) => {
   res.json({ success: true, data });
 });
 
+exports.getOne = asyncHandler(async (req, res) => {
+  const data = await service.getMonitoringRecord(req.params.id);
+  res.json({ success: true, data });
+});
+
 exports.getByProject = asyncHandler(async (req, res) => {
   const data = await service.getByProject(req.params.projectId);
   res.json({ success: true, data });

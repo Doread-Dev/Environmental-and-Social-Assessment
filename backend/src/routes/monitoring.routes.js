@@ -12,6 +12,7 @@ const router = express.Router();
 
 router.get("/", controller.getAll);
 router.get("/project/:projectId", controller.getByProject);
+router.get("/:id", controller.getOne);
 router.post(
   "/",
   auth,

@@ -1274,10 +1274,10 @@ const mitigationPlanSchema = new mongoose.Schema(
 | ----------------------------------------------------------------------------- | --------------------------------------- | -------------- |
 | GET                                                                           | `/api/v1/monitoring`                    | قائمة السجلات  |
 | GET                                                                           | `/api/v1/monitoring/project/:projectId` | سجلات مشروع    |
+| GET                                                                           | `/api/v1/monitoring/:id`                | تفاصيل سجل واحد |
 | POST                                                                          | `/api/v1/monitoring`                    | إنشاء سجل      |
 | PUT                                                                           | `/api/v1/monitoring/:id`                | تحديث سجل      |
 | PATCH                                                                         | `/api/v1/monitoring/:id/quarter/:q`     | تحديث ربع سنوي |
-| **ملاحظة**: لا يوجد endpoint `GET /api/v1/monitoring/:id` للحصول على سجل واحد |
 
 ### Tool 3: Management Activities
 

@@ -240,6 +240,23 @@
 
 ## 6) Tool 5: Monitoring
 
+### GET `/api/v1/monitoring`
+
+- الاستخدام: الحصول على قائمة بجميع سجلات المراقبة.
+- في بوست مان: Method GET، لا جسم، لا يحتاج Authorization (مفتوح للقراءة).
+
+### GET `/api/v1/monitoring/:id`
+
+- الاستخدام: الحصول على سجل مراقبة واحد بواسطة ID.
+- في بوست مان: Method GET، لا جسم، لا يحتاج Authorization (مفتوح للقراءة).
+- مثال: `GET /api/v1/monitoring/507f1f77bcf86cd799439011`
+- الناتج: سجل واحد مع populate للعلاقات (project, indicator, responsible).
+
+### GET `/api/v1/monitoring/project/:projectId`
+
+- الاستخدام: الحصول على جميع سجلات المراقبة لمشروع معين.
+- في بوست مان: Method GET، لا جسم، لا يحتاج Authorization (مفتوح للقراءة).
+
 ### POST `/api/v1/monitoring`
 
 - هيدر: Authorization (env_specialist / program_manager / project_manager)
@@ -284,7 +301,7 @@
 - لا يتم حساب `total` تلقائياً بعد تحديث quarter
 - يجب تحديث `total` يدوياً عبر PUT endpoint إذا لزم الأمر
 
-### GET `/api/v1/monitoring` | `/project/:projectId`
+### GET `/api/v1/monitoring` | `/api/v1/monitoring/:id` | `/project/:projectId`
 
 - قراءة (مفتوحة).
 

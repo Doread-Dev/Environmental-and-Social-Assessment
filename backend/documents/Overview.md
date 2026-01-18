@@ -120,8 +120,7 @@ backend/
 │   │   └── semp.validator.js
 │   ├── app.js                   # Express app configuration
 │   └── server.js                # Server entry point
-├── uploads/                     # File upload directory
-├── exports/                     # Generated reports directory
+├── uploads/                     # File upload directory (Multer; يُنشأ عند التشغيل). التقارير: إرسال في الاستجابة HTTP فقط
 ├── documents/                   # Project documentation
 ├── scripts/                     # Utility scripts
 └── package.json
@@ -192,7 +191,7 @@ backend/
 │ category_code │      │ officer FK     │   │ indicator FK       │   │ serial_number      │
 │ category_reason│     │ project_activity│  │ scores (object)    │   │ activity_description│
 │ potential_negative│   │ description   │   │   baseline, Q1-Q4  │   │ potential_impact   │
-│ potential_positive│   │ environmental_setting│ total (Number)  │   │ recommended_actions│
+│ potential_positive│   │ environmental_setting│ total (String) │   │ recommended_actions│
 │ approved_by FK│      │ legal_requirements│ final_assessment   │   │ monitoring_requirements│
 │ recommendations│     │ total_project_score│ ranking (enum)    │   │ responsible FK     │
 │ screening_date│      │ total_project_impact│ responsible FK    │   │ notes              │
@@ -267,8 +266,8 @@ backend/
 │ created_at/updated_at│
 └─────────────────┘
 
-LOOKUPS: ImpactCategory (A-H) 1:N ImpactQuestion; Indicator links to
-ImpactCategory; JobTitle for User; AnnexItem referenced by plans/reports.
+LOOKUPS: ImpactCategory (A,B,C,D,E,F,J,H) 1:N ImpactQuestion; Indicator links to
+ImpactCategory; JobTitle for User; AnnexItem (lookup).
 
 ملاحظات:
 - جميع الـ Primary Keys (PK) هي ObjectId في MongoDB (تلقائياً)
@@ -669,10 +668,9 @@ record.ranking = "medium"; // من enum: negligible, low, medium, high, not_appl
     definition: "Number of complaints related to water contamination",
     measurement: "Review complaints",
   },
-  // ... more indicators
 ];
-// Note: MongoDB automatically generates _id (ObjectId) for each document
-// The seed script uses category codes to find the corresponding ImpactCategory _id
+// Note: MongoDB automatically generates _id (ObjectId) for each document.
+// seed.js يعيّن category من catByCode[code] عند الإدراج. (3 مؤشرات في seed الحالي)
 ```
 
 ### ImpactQuestion (أمثلة)
@@ -706,8 +704,9 @@ record.ranking = "medium"; // من enum: negligible, low, medium, high, not_appl
   },
   // ... more questions
 ];
-// Note: MongoDB automatically generates _id (ObjectId) for each document
-// The seed script uses category codes to find the corresponding ImpactCategory _id
+// Note: MongoDB automatically generates _id (ObjectId) for each document.
+// The seed uses: category (من catByCode[code]), question_text (من text).
+// question_text_ar اختياري في الموديل ولا يُعبَّأ في seed.js.
 ```
 
 ### JobTitle
@@ -1088,7 +1087,7 @@ const sempTargetSchema = new mongoose.Schema(
   {
     objective: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "SEMP_Objective",
+      ref: "SempObjective",
       required: true,
     },
     target_text: { type: String, required: true },
@@ -1107,7 +1106,7 @@ const sempActionSchema = new mongoose.Schema(
   {
     target: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "SEMP_Target",
+      ref: "SempTarget",
       required: true,
     },
     action_text: { type: String, required: true },
@@ -1127,7 +1126,7 @@ const sempActionSchema = new mongoose.Schema(
 ```javascript
 const jobTitleSchema = new mongoose.Schema(
   {
-    title_name: { type: String, required: true, unique: true },
+    title_name: { type: String, required: true, unique: true, trim: true },
   },
   {
     timestamps: true,
@@ -1246,7 +1245,7 @@ const mitigationPlanSchema = new mongoose.Schema(
 | ------ | -------------------------------------- | -------------- |
 | GET    | `/api/v1/screenings`                   | قائمة الفرز    |
 | GET    | `/api/v1/screenings/:id`               | تفاصيل فرز     |
-| GET    | `/api/v1/screening/project/:projectId` | فرز مشروع معين |
+| GET    | `/api/v1/screenings/project/:projectId` | فرز مشروع معين |
 | POST   | `/api/v1/screenings`                   | إنشاء فرز      |
 | PUT    | `/api/v1/screenings/:id`               | تحديث فرز      |
 | PATCH  | `/api/v1/screenings/:id/approve`       | الموافقة       |
@@ -1258,7 +1257,7 @@ const mitigationPlanSchema = new mongoose.Schema(
 | ------ | --------------------------------------- | -------------------- |
 | GET    | `/api/v1/assessments`                   | قائمة التقييمات      |
 | GET    | `/api/v1/assessments/:id`               | تفاصيل تقييم         |
-| GET    | `/api/v1/assessment/project/:projectId` | تقييم مشروع معين     |
+| GET    | `/api/v1/assessments/project/:projectId` | تقييم مشروع معين     |
 | POST   | `/api/v1/assessments`                   | إنشاء تقييم          |
 | PUT    | `/api/v1/assessments/:id`               | تحديث تقييم          |
 | POST   | `/api/v1/assessments/:id/methods`       | إضافة طريقة تقييم    |
@@ -1377,31 +1376,32 @@ const mitigationPlanSchema = new mongoose.Schema(
 ┌─────────────────────────────────────────────────────────────────────┐
 │                       PHASE 3: PLANNING                              │
 ├─────────────────────────────────────────────────────────────────────┤
-│ 11. إنشاء SEMP_Objectives (Tool 3/4)                                │
-│ 12. إضافة SEMP_Targets لكل هدف                                      │
-│ 13. إضافة SEMP_Actions لكل هدف فرعي                                 │
-│ 14. تحديد المسؤوليات والمواعيد                                      │
-│ 15. موافقة Project Manager                                          │
+│ 11. إنشاء إجراءات الإدارة التشغيلية (Tool 3 – ManagementActivity)   │
+│     • وصف النشاط، الأثر المحتمل، الإجراءات الموصى بها              │
+│     • متطلبات المراقبة، تعيين المسؤول (responsible)                 │
+│ 12. إنشاء بنود خطة التخفيف (Tool 4 – MitigationPlan)                │
+│     • وصف المخرج، الأثر والأهمية، إجراءات التخفيف والتعزيز          │
+│     • المراقبة، الجدول الزمني (schedule)، تعيين المسؤول             │
 └─────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │                      PHASE 4: MONITORING                             │
 ├─────────────────────────────────────────────────────────────────────┤
-│ 16. إنشاء MonitoringRecords لكل Indicator (Tool 5)                  │
-│ 17. تسجيل Baseline قبل البدء                                        │
-│ 18. تحديث Q1, Q2, Q3, Q4 كل 3 أشهر                                  │
-│ 19. حساب Total و Ranking                                            │
-│ 20. إضافة Final Assessment                                          │
+│ 13. إنشاء MonitoringRecords لكل Indicator (Tool 5)                  │
+│ 14. تسجيل Baseline قبل البدء                                        │
+│ 15. تحديث Q1, Q2, Q3, Q4 كل 3 أشهر                                  │
+│ 16. حساب Total و Ranking                                            │
+│ 17. إضافة Final Assessment                                          │
 └─────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │                       PHASE 5: REVIEW                                │
 ├─────────────────────────────────────────────────────────────────────┤
-│ 21. مراجعة دورية للأهداف (كل 30 يوم)                                │
-│ 22. تحديث الخطة عند ظهور مخاطر جديدة                                │
-│ 23. إعداد التقارير النهائية                                         │
+│ 18. مراجعة دورية للأهداف (كل 30 يوم)                                │
+│ 19. تحديث الخطة عند ظهور مخاطر جديدة                                │
+│ 20. إعداد التقارير النهائية                                         │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 

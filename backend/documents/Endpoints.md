@@ -42,7 +42,7 @@
 
 - GET `/api/v1/users`
   - هيدر: Authorization
-  - الأدوار المسموحة: env_specialist / program_manager / project_manager / environmental_focal_point
+  - الأدوار المسموحة: environmental_specialist / program_manager / project_manager / environmental_focal_point
   - يعيد قائمة بجميع المستخدمين (مرتبة تنازلياً بالتاريخ)
 
 ---
@@ -63,7 +63,7 @@
 ### POST `/api/v1/attachments`
 
 - الاستخدام: إنشاء سجل مرفق (بدون رفع ملف).
-- هيدر: Authorization (أدوار: env_specialist / program_manager / project_manager)
+- هيدر: Authorization (أدوار: environmental_specialist / program_manager / project_manager)
 - جسم مثال:
 
 ```json
@@ -80,7 +80,7 @@
 ### POST `/api/v1/attachments/upload`
 
 - الاستخدام: رفع ملف فعلي عبر multipart/form-data.
-- هيدر: Authorization (أدوار: env_specialist / program_manager / project_manager / environmental_focal_point)
+- هيدر: Authorization (أدوار: environmental_specialist / program_manager / project_manager / environmental_focal_point)
 - في بوست مان:
   - Method: POST
   - Authorization: Bearer <token>
@@ -100,7 +100,7 @@
 
 ### POST `/api/v1/projects`
 
-- هيدر: Authorization (أدوار: env_specialist / program_manager / project_manager)
+- هيدر: Authorization (أدوار: environmental_specialist / program_manager / project_manager)
 - جسم مثال:
 
 ```json
@@ -132,7 +132,7 @@
 
 ### POST `/api/v1/screenings`
 
-- هيدر: Authorization (env_specialist / program_manager / project_manager)
+- هيدر: Authorization (environmental_specialist / program_manager / project_manager)
 - جسم مثال:
 
 ```json
@@ -145,7 +145,7 @@
 }
 ```
 
-### GET `/api/v1/screenings` | `/api/v1/screenings/:id` | `/api/v1/screening/project/:projectId`
+### GET `/api/v1/screenings` | `/api/v1/screenings/:id` | `/api/v1/screenings/project/:projectId`
 
 - قراءة (مفتوحة).
 
@@ -155,7 +155,7 @@
 
 ### PATCH `/api/v1/screenings/:id/approve` | `/reject`
 
-- هيدر: Authorization (env_specialist / program_manager).
+- هيدر: Authorization (environmental_specialist / program_manager).
 - جسم (لـ approve فقط، اختياري):
 
 ```json
@@ -172,7 +172,7 @@
 
 ### POST `/api/v1/assessments`
 
-- هيدر: Authorization (env_specialist / program_manager / project_manager)
+- هيدر: Authorization (environmental_specialist / program_manager / project_manager)
 - جسم مثال:
 
 ```json
@@ -212,12 +212,12 @@
 
 ### PATCH `/api/v1/assessments/:id/calculate`
 
-- هيدر: Authorization (env_specialist / program_manager).
+- هيدر: Authorization (environmental_specialist / program_manager).
 - لا جسم مطلوب؛ يحسب total و impact level.
 
 ### PATCH `/api/v1/assessments/:id/approve` | `/reject`
 
-- هيدر: Authorization (env_specialist / program_manager).
+- هيدر: Authorization (environmental_specialist / program_manager).
 - جسم (لـ approve فقط، اختياري):
 
 ```json
@@ -259,7 +259,7 @@
 
 ### POST `/api/v1/monitoring`
 
-- هيدر: Authorization (env_specialist / program_manager / project_manager)
+- هيدر: Authorization (environmental_specialist / program_manager / project_manager)
 - جسم مثال:
 
 ```json
@@ -288,7 +288,7 @@
 
 ### PATCH `/api/v1/monitoring/:id/quarter/:q`
 
-- أدوار: env_specialist / program_manager / project_manager / environmental_focal_point
+- أدوار: environmental_specialist / program_manager / project_manager / environmental_focal_point
 - جسم:
 
 ```json
@@ -315,7 +315,7 @@
 
 ### POST `/api/v1/management`
 
-- هيدر: Authorization (env_specialist / program_manager / project_manager)
+- هيدر: Authorization (environmental_specialist / program_manager / project_manager)
 - جسم مثال:
 
 ```json
@@ -343,7 +343,7 @@
 
 ### POST `/api/v1/mitigation`
 
-- هيدر: Authorization (env_specialist / program_manager)
+- هيدر: Authorization (environmental_specialist / program_manager)
 - جسم مثال:
 
 ```json
@@ -357,7 +357,7 @@
 }
 ```
 
-### GET `/api/v1/mitigation/projects/:projectId`
+### GET `/api/v1/mitigation/project/:projectId`
 
 - قراءة (مفتوحة).
 
@@ -371,7 +371,7 @@
 
 ### POST `/api/v1/semp/objectives`
 
-- هيدر: Authorization (env_specialist / program_manager / project_manager)
+- هيدر: Authorization (environmental_specialist / program_manager / project_manager)
 - جسم مثال:
 
 ```json
@@ -398,7 +398,7 @@
 
 - نفس الأدوار.
 
-### GET `/api/v1/semp/projects/:projectId`
+### GET `/api/v1/semp/project/:projectId`
 
 - قراءة (مفتوحة).
 
@@ -413,7 +413,7 @@
 
 ### GET `/api/v1/reports/export`
 
-- هيدر: Authorization (env_specialist / program_manager).
+- هيدر: Authorization (environmental_specialist / program_manager).
 - بارامترات استعلام:
   - `type`: `projects` أو `monitoring`
   - `format`: `csv` أو `excel` أو `pdf`
@@ -433,7 +433,7 @@
 3. Screening: POST ثم (اختياري) PATCH approve/reject.
 4. Assessment: POST ثم add methods/consultations/scores ثم PATCH calculate.
 5. Management/Mitigation/SEMP: أنشئ حسب الحاجة على نفس المشروع.
-6. Monitoring: أنشئ سجلاً ثم PATCH الربع السنوي بقيمة رقمية.
+6. Monitoring: أنشئ سجلاً ثم PATCH الربع السنوي بقيمة نصية (value: string).
 7. Attachments: جرّب upload بملف صغير (Text/PNG).
 8. Reports: جرّب dashboard بقراءة، ثم export بكل الصيغ لكل من projects و monitoring.
 

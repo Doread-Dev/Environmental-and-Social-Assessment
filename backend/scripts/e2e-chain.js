@@ -70,7 +70,7 @@ async function main() {
   ) {
     const seedPath = path.join(__dirname, "..", "src", "db", "seed.js");
     execSync(`node "${seedPath}"`, { stdio: "inherit" });
-    indicators = await req("GET", "/api/v1/lookups/indicators");
+    indicators = await req("GET", "/api/v1/lookups/indicators"); 
   }
   const indicatorId = indicators.data?.data?.[0]?._id;
   if (!indicatorId) throw new Error("No indicators available; seed failed.");
@@ -158,21 +158,6 @@ async function main() {
     },
   });
 
-  // 6) SEMP (objective -> target -> action)
-  const obj = await req("POST", "/api/v1/semp/objectives", {
-    token,
-    body: { project: projectId, objective_text: "Reduce dust" },
-  });
-  const objId = obj.data.data?._id;
-  const tgt = await req("POST", "/api/v1/semp/targets", {
-    token,
-    body: { objective: objId, target_text: "Weekly spraying" },
-  });
-  const tgtId = tgt.data.data?._id;
-  await req("POST", "/api/v1/semp/actions", {
-    token,
-    body: { target: tgtId, action_text: "Spray water daily" },
-  });
 
   // 7) Monitoring
   const mon = await req("POST", "/api/v1/monitoring", {

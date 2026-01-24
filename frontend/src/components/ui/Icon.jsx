@@ -16,12 +16,17 @@ function Icon({ name, size = 'md', filled = false, className, ...props }) {
     xl: 'text-3xl', // 30px
   }
 
+  // Check if className contains a custom text size class
+  const hasCustomSize =
+    className &&
+    /text-\[[^\]]+\]|text-(xs|sm|base|lg|xl|2xl|3xl|4xl|5xl|6xl|7xl|8xl|9xl)/.test(className)
+
   return (
     <span
       className={cn(
         filled ? 'material-symbols-filled' : 'material-symbols-outlined',
         'select-none',
-        sizes[size],
+        !hasCustomSize && sizes[size],
         className
       )}
       aria-hidden="true"

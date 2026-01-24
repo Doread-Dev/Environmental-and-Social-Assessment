@@ -95,10 +95,7 @@ const Checkbox = forwardRef(
             <div className="flex flex-col">
               {label && (
                 <span
-                  className={cn(
-                    'text-text-main dark:text-white font-medium',
-                    labelSizes[size]
-                  )}
+                  className={cn('text-text-main dark:text-white font-medium', labelSizes[size])}
                 >
                   {label}
                 </span>

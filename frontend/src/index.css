@@ -217,3 +217,8 @@ html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
 .animate-slide-in {
   animation: slideIn 0.2s ease-out;
 }
+
+/* Ensure custom text size classes work correctly for Material Symbols */
+.material-symbols-outlined.text-\[50px\] {
+  font-size: 50px !important;
+}

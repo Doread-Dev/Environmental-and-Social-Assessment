@@ -1468,19 +1468,26 @@ function ProjectForm() {
 - [x] Barrel exports for components
 - [x] Component variants via props
 
-#### Phase 3: Layouts & Routing
-- [ ] 3 layout components
-- [ ] 4 navigation components
-- [ ] React Router configured
-- [ ] 25+ routes defined
-- [ ] Route constants file
+#### Phase 3: Layouts & Routing ✅ مكتمل
+- [x] 3 layout components (AuthLayout, MainLayout, ProjectLayout)
+- [x] 4 navigation components (Header, MainSidebar, ProjectSidebar, MobileMenu)
+- [x] React Router v7 configured
+- [x] 25+ routes defined
+- [x] Route constants file
+- [x] ProtectedRoute placeholder
+- [x] useProjectContext hook
+- [x] Project header unified (ESMS System logo on left)
+- [x] Theme toggle moved to user card dropdown
+- [x] All workflow tools unlocked (temporary - TODO for future locking logic)
 
-#### Phase 4: Auth & Dashboard
-- [ ] LoginPage
-- [ ] DashboardPage
-- [ ] ProjectListPage
-- [ ] ProjectCreatePage
-- [ ] Mock data files
+#### Phase 4: Auth & Dashboard ✅ مكتمل
+- [x] LoginPage
+- [x] DashboardPage
+- [x] ProjectListPage
+- [x] ProjectCreatePage
+- [x] Mock data files (5 ملفات متوافقة مع Backend)
+- [x] Utils files (validators.js, formatters.js)
+- [x] Dashboard components (5 مكونات)
 
 #### Phase 5: Screening
 - [ ] ProjectOverviewPage

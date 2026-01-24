@@ -42,7 +42,10 @@ function CardHeader({ className, children, ...props }) {
 
 function CardTitle({ className, children, ...props }) {
   return (
-    <h3 className={cn('text-lg font-semibold text-text-main dark:text-white', className)} {...props}>
+    <h3
+      className={cn('text-lg font-semibold text-text-main dark:text-white', className)}
+      {...props}
+    >
       {children}
     </h3>
   )

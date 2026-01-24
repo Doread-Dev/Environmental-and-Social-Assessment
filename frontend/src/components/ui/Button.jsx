@@ -107,9 +107,9 @@ const Button = forwardRef(
           </>
         ) : (
           <>
-            {leftIcon && <span className="flex-shrink-0">{leftIcon}</span>}
+            {leftIcon && <span className="flex-shrink-0 h-6">{leftIcon}</span>}
             {children && <span>{children}</span>}
-            {rightIcon && <span className="flex-shrink-0">{rightIcon}</span>}
+            {rightIcon && <span className="flex-shrink-0 h-6">{rightIcon}</span>}
           </>
         )}
       </button>

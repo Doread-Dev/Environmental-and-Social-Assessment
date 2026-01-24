@@ -33,9 +33,7 @@ function ComponentShowcase() {
       <div className="max-w-5xl mx-auto space-y-12">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-text-main dark:text-white">
-            Component Library
-          </h1>
+          <h1 className="text-3xl font-bold text-text-main dark:text-white">Component Library</h1>
           <Button variant="ghost" onClick={toggleTheme}>
             <Icon name={isDark ? 'light_mode' : 'dark_mode'} />
           </Button>
@@ -171,9 +169,7 @@ function ComponentShowcase() {
 
         {/* Pagination */}
         <section>
-          <h2 className="text-xl font-semibold mb-4 text-text-main dark:text-white">
-            Pagination
-          </h2>
+          <h2 className="text-xl font-semibold mb-4 text-text-main dark:text-white">Pagination</h2>
           <Pagination currentPage={currentPage} totalPages={20} onPageChange={setCurrentPage} />
         </section>
 
@@ -187,9 +183,7 @@ function ComponentShowcase() {
             title="Confirm Action"
             description="Are you sure you want to proceed?"
           >
-            <p className="text-text-secondary dark:text-gray-400">
-              This action cannot be undone.
-            </p>
+            <p className="text-text-secondary dark:text-gray-400">This action cannot be undone.</p>
             <Modal.Footer>
               <Button variant="ghost" onClick={() => setIsModalOpen(false)}>
                 Cancel
@@ -233,7 +227,12 @@ function ComponentShowcase() {
               }
               items={[
                 { label: 'Edit', icon: 'edit', onClick: () => console.log('Edit') },
-                { label: 'Delete', icon: 'delete', onClick: () => console.log('Delete'), danger: true },
+                {
+                  label: 'Delete',
+                  icon: 'delete',
+                  onClick: () => console.log('Delete'),
+                  danger: true,
+                },
               ]}
             />
           </div>
@@ -241,9 +240,7 @@ function ComponentShowcase() {
 
         {/* Breadcrumb */}
         <section>
-          <h2 className="text-xl font-semibold mb-4 text-text-main dark:text-white">
-            Breadcrumb
-          </h2>
+          <h2 className="text-xl font-semibold mb-4 text-text-main dark:text-white">Breadcrumb</h2>
           <Breadcrumb
             items={[
               { label: 'Dashboard', href: '/app/dashboard' },

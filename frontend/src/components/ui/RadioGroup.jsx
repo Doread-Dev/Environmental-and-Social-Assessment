@@ -136,13 +136,9 @@ function RadioItem({ value, label, description, disabled: itemDisabled = false, 
       {/* Label and description */}
       {(label || description) && (
         <div className="flex flex-col">
-          {label && (
-            <span className="text-text-main dark:text-white font-medium">{label}</span>
-          )}
+          {label && <span className="text-text-main dark:text-white font-medium">{label}</span>}
           {description && (
-            <span className="text-sm text-text-secondary dark:text-gray-400">
-              {description}
-            </span>
+            <span className="text-sm text-text-secondary dark:text-gray-400">{description}</span>
           )}
         </div>
       )}

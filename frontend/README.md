@@ -11,9 +11,9 @@ Aga Khan Foundation – Syria
 
 ### حالة المشروع
 
-**المرحلة الحالية:** ✅ **Phase 2 - مكتمل**  
-**التاريخ:** 23 يناير 2026  
-**الحالة:** جاهز لبدء Phase 3 (Layout Components & Routing)
+**المرحلة الحالية:** ✅ **Phase 4 - مكتمل**  
+**التاريخ:** 24 يناير 2026  
+**الحالة:** جاهز لبدء Phase 5 (Project Workspace — Overview & Screening)
 
 ---
 
@@ -27,7 +27,7 @@ Aga Khan Foundation – Syria
 | **React DOM**    | ^19.0.0 | React DOM renderer               |
 | **Vite**         | ^7.2.4  | Build Tool & Dev Server          |
 | **Tailwind CSS** | ^4.0.0  | Utility-first CSS Framework      |
-| **React Router** | -       | Routing (سيتم إضافته في Phase 3) |
+| **React Router** | ^7.0.0  | Client-side routing (Phase 3 ✅) |
 
 ### Development Tools
 
@@ -144,8 +144,22 @@ frontend/
 │   │   │   ├── Pagination.jsx
 │   │   │   ├── Accordion.jsx
 │   │   │   └── index.js   # Barrel exports
-│   │   ├── layout/        # مكونات التخطيط (Phase 3)
-│   │   │   └── index.js   # Barrel export (فارغ حالياً)
+│   │   ├── layout/        # مكونات التخطيط (Phase 3 ✅)
+│   │   │   ├── AuthLayout.jsx      # Layout لصفحات المصادقة
+│   │   │   ├── MainLayout.jsx      # Layout للـ Dashboard والمشاريع
+│   │   │   ├── ProjectLayout.jsx   # Layout لمساحة عمل المشروع
+│   │   │   ├── Header.jsx          # شريط التنقل العلوي
+│   │   │   ├── MainSidebar.jsx     # الشريط الجانبي الرئيسي
+│   │   │   ├── ProjectSidebar.jsx  # الشريط الجانبي للمشروع
+│   │   │   ├── MobileMenu.jsx      # قائمة الهاتف المحمول
+│   │   │   └── index.js   # Barrel export
+│   │   ├── dashboard/    # مكونات Dashboard (Phase 4 ✅)
+│   │   │   ├── MetricCard.jsx              # بطاقة المقاييس الإحصائية
+│   │   │   ├── ProjectListItem.jsx        # عنصر قائمة المشروع
+│   │   │   ├── WorkflowProgressBar.jsx     # شريط تقدم سير العمل
+│   │   │   ├── ScreeningCategoryBadge.jsx # شارة فئة الفرز
+│   │   │   ├── ProjectStatusBadge.jsx     # شارة حالة المشروع
+│   │   │   └── index.js   # Barrel export
 │   │   ├── project/       # مكونات خاصة بالمشاريع (Phase 5+)
 │   │   │   └── index.js   # Barrel export (فارغ حالياً)
 │   │   ├── forms/         # مكونات النماذج (Phase 5+)
@@ -157,19 +171,26 @@ frontend/
 │   │
 │   ├── pages/             # صفحات التطبيق
 │   │   ├── ComponentShowcase.jsx  # صفحة عرض المكونات (Phase 2)
-│   │   ├── auth/          # صفحات المصادقة (Phase 4)
-│   │   │   └── index.js   # Barrel export (فارغ حالياً)
-│   │   ├── dashboard/     # صفحات لوحة التحكم (Phase 4)
-│   │   │   └── index.js   # Barrel export (فارغ حالياً)
-│   │   └── projects/      # صفحات المشاريع (Phase 4)
-│   │       └── index.js   # Barrel export (فارغ حالياً)
+│   │   ├── auth/          # صفحات المصادقة (Phase 4 ✅)
+│   │   │   ├── LoginPage.jsx      # صفحة تسجيل الدخول
+│   │   │   └── index.js   # Barrel export
+│   │   ├── dashboard/     # صفحات لوحة التحكم (Phase 4 ✅)
+│   │   │   ├── DashboardPage.jsx # صفحة لوحة التحكم الرئيسية
+│   │   │   └── index.js   # Barrel export
+│   │   ├── projects/      # صفحات المشاريع (Phase 4 ✅)
+│   │   │   ├── ProjectListPage.jsx    # صفحة قائمة المشاريع
+│   │   │   ├── ProjectCreatePage.jsx  # صفحة إنشاء مشروع جديد
+│   │   │   └── index.js   # Barrel export
 │   │   # ملاحظة: project-workspace/ سيُضاف في Phase 5-8
 │   │
-│   ├── routes/            # تكوين المسارات (Phase 3)
-│   │                      # سيتم إنشاءها في Phase 3 (غير موجود حالياً)
+│   ├── routes/            # تكوين المسارات (Phase 3 ✅)
+│   │   ├── routes.config.js  # Route constants و navigation items
+│   │   ├── index.jsx         # Router configuration
+│   │   └── ProtectedRoute.jsx # Auth guard (placeholder)
 │   │
-│   ├── hooks/             # Custom React Hooks (مستقبلاً)
-│   │   └── index.js       # Barrel export (فارغ حالياً)
+│   ├── hooks/             # Custom React Hooks (Phase 3 ✅)
+│   │   ├── useProjectContext.js  # Hook للوصول إلى project context
+│   │   └── index.js       # Barrel export
 │   │
 │   ├── contexts/          # React Contexts
 │   │   ├── ThemeContext.jsx  # Context للوضع المظلم (Phase 1 ✅)
@@ -181,12 +202,19 @@ frontend/
 │   ├── utils/             # دوال مساعدة
 │   │   ├── cn.js          # دالة دمج Tailwind classes (Phase 1 ✅)
 │   │   ├── constants.js   # Constants التطبيق (Phase 1 ✅)
+│   │   ├── validators.js  # دوال التحقق من صحة النماذج (Phase 4 ✅)
+│   │   ├── formatters.js  # دوال تنسيق البيانات (Phase 4 ✅)
 │   │   └── index.js       # Barrel export
 │   │
-│   ├── data/              # بيانات وهمية/ثابتة (Phase 4+)
-│   │   └── index.js       # Barrel export (فارغ حالياً)
+│   ├── data/              # بيانات وهمية/ثابتة (Phase 4 ✅)
+│   │   ├── mockProjects.js        # بيانات المشاريع الوهمية
+│   │   ├── mockUsers.js           # بيانات المستخدمين الوهمية
+│   │   ├── screeningCategories.js # فئات الفرز (A-F)
+│   │   ├── workflowStatuses.js   # حالات سير العمل
+│   │   ├── impactCategories.js   # فئات التأثير
+│   │   └── index.js       # Barrel export
 │   │
-│   ├── App.jsx            # المكون الرئيسي (يعرض ComponentShowcase حالياً)
+│   ├── App.jsx            # المكون الرئيسي (مع RouterProvider)
 │   ├── main.jsx           # نقطة الدخول (مع ThemeProvider)
 │   └── index.css          # الأنماط العامة + Tailwind + Design Tokens
 │
@@ -194,7 +222,10 @@ frontend/
 │   ├── MASTER_PLAN.md     # الخطة الرئيسية الشاملة (جميع المراحل)
 │   ├── phase-1-plan.md    # خطة المرحلة الأولى (مكتملة ✅)
 │   ├── phase-2-plan.md    # خطة المرحلة الثانية (مكتملة ✅)
-│   └── phase-3-plan.md    # خطة المرحلة الثالثة (قادمة)
+│   ├── PHASE_2_REVIEW.md  # مراجعة شاملة للمرحلة الثانية
+│   ├── PHASE_3_REVIEW.md  # مراجعة شاملة للمرحلة الثالثة
+│   ├── PHASE_4_PLAN.md    # خطة تفصيلية للمرحلة الرابعة (مكتملة ✅)
+│   └── PHASE_4_REVIEW.md  # مراجعة شاملة للمرحلة الرابعة
 │
 ├── .gitignore             # ملفات مستثناة من Git (dist, node_modules, .env, إلخ)
 ├── .prettierignore        # ملفات مستثناة من Prettier (node_modules, dist, build)
@@ -405,12 +436,69 @@ import { useTheme } from '@/contexts'
 - ✅ Portal usage: Modal و Tooltip يستخدمان createPortal للعرض
 - ✅ Error handling: جميع المكونات تدعم error states و validation
 
-### Phase 3 - قادم
+### Phase 3 - مكتمل ✅
 
-- React Router
-- Layout Components (AuthLayout, MainLayout, ProjectLayout)
-- Navigation Components (Header, Sidebar)
-- صفحات المصادقة واللوحة الرئيسية
+#### Layout Components (7 مكونات)
+- ✅ `AuthLayout` - تخطيط صفحات المصادقة
+- ✅ `MainLayout` - تخطيط Dashboard والمشاريع
+- ✅ `ProjectLayout` - تخطيط مساحة عمل المشروع
+- ✅ `Header` - شريط التنقل العلوي
+- ✅ `MainSidebar` - الشريط الجانبي الرئيسي
+- ✅ `ProjectSidebar` - الشريط الجانبي للمشروع
+- ✅ `MobileMenu` - قائمة الهاتف المحمول
+
+#### Routing System
+- ✅ React Router v7 configured
+- ✅ 25+ routes defined
+- ✅ Route constants file (`routes.config.js`)
+- ✅ ProtectedRoute placeholder
+- ✅ useProjectContext hook
+
+#### Navigation Features
+- ✅ Responsive navigation (mobile menu)
+- ✅ Active state styling
+- ✅ Expandable menus (Assessment, Annex & Attachments)
+- ✅ Step locking logic (temporary disabled - TODO for future)
+- ✅ Theme toggle in user card dropdown
+- ✅ Unified project header
+
+**المعايير المُحققة:**
+- ✅ جميع Layout components تدعم Dark Mode
+- ✅ Responsive design (mobile-first)
+- ✅ Navigation structure matches static UI
+- ✅ Route configuration complete
+- ✅ Build و Lint يعملان بدون أخطاء
+
+### Phase 4 - مكتمل ✅
+
+#### Mock Data & Utilities
+- ✅ `mockProjects.js` - 9 مشاريع وهمية متوافقة مع Backend Models
+- ✅ `mockUsers.js` - 5 مستخدمين + roles + job titles
+- ✅ `screeningCategories.js` - فئات الفرز (A-F) + statuses
+- ✅ `workflowStatuses.js` - workflow tools + statuses
+- ✅ `impactCategories.js` - impact categories + levels
+- ✅ `validators.js` - دوال التحقق من صحة النماذج
+- ✅ `formatters.js` - دوال تنسيق البيانات
+
+#### Dashboard Components (5 مكونات)
+- ✅ `MetricCard` - بطاقة عرض المقاييس الإحصائية
+- ✅ `ProjectListItem` - عنصر قائمة المشروع في Dashboard
+- ✅ `WorkflowProgressBar` - شريط تقدم سير العمل (S/A/M/R)
+- ✅ `ScreeningCategoryBadge` - شارة فئة الفرز (A-F)
+- ✅ `ProjectStatusBadge` - شارة حالة المشروع
+
+#### Pages (4 صفحات)
+- ✅ `LoginPage` - صفحة تسجيل الدخول مع validation
+- ✅ `DashboardPage` - صفحة لوحة التحكم مع Metric Cards و Latest Projects
+- ✅ `ProjectListPage` - صفحة قائمة المشاريع مع Search, Filters, Table, Pagination
+- ✅ `ProjectCreatePage` - صفحة إنشاء مشروع جديد مع Form Validation
+
+**المعايير المُحققة:**
+- ✅ جميع الصفحات تدعم Dark Mode
+- ✅ جميع الصفحات Responsive
+- ✅ Form Validation مطبق بالكامل
+- ✅ Mock Data متوافق مع Backend Models
+- ✅ Build و Lint يعملان بدون أخطاء
 
 ---
 
@@ -487,26 +575,27 @@ import { THEMES } from '@/utils/constants'
 جميع الوثائق موجودة في مجلد `documents/`:
 
 - **MASTER_PLAN.md** - الخطة الرئيسية الشاملة للمشروع (جميع المراحل)
-- **phase-1-plan.md** - خطة تفصيلية للمرحلة الأولى (مكتملة ✅)
-- **phase-2-plan.md** - خطة تفصيلية للمرحلة الثانية (مكتملة ✅)
-- **phase-3-plan.md** - خطة تفصيلية للمرحلة الثالثة (قادمة)
+- **PHASE_2_REVIEW.md** - مراجعة شاملة للمرحلة الثانية (مكتملة ✅)
+- **PHASE_3_REVIEW.md** - مراجعة شاملة للمرحلة الثالثة (مكتملة ✅)
+- **PHASE_4_PLAN.md** - خطة تفصيلية للمرحلة الرابعة (مكتملة ✅)
+- **PHASE_4_REVIEW.md** - مراجعة شاملة للمرحلة الرابعة (مكتملة ✅)
 
 ### محتوى الوثائق
 
 - **MASTER_PLAN.md**: يحتوي على نظرة عامة، Tech Stack، هيكل المجلدات، Routing Plan، Component Architecture، Design System، Phased Execution Breakdown
-- **phase-*-plan.md**: تحتوي على خطط تفصيلية مرتبة لكل مرحلة مع قوائم تحقق ومخرجات نهائية
+- **PHASE_*_PLAN.md**: تحتوي على خطط تفصيلية مرتبة لكل مرحلة مع قوائم تحقق ومخرجات نهائية
+- **PHASE_*_REVIEW.md**: تحتوي على مراجعات شاملة لكل مرحلة مع التحقق من جميع المتطلبات
 
 ---
 
 ## 🔄 الخطوات التالية
 
-### Phase 3: Layout Components & Routing
+### Phase 5: Project Workspace — Overview & Screening
 
-- إعداد React Router
-- بناء Layout Components (AuthLayout, MainLayout, ProjectLayout)
-- إنشاء Navigation Components (Header, Sidebar, MobileMenu)
-- تكوين Routes مع nested layouts
-- إنشاء Route constants file
+- إنشاء ProjectOverviewPage
+- إنشاء ScreeningFormPage
+- إنشاء ScreeningSummaryPage
+- إنشاء مكونات domain-specific (ProjectProgressBar, RiskCategoryBadge, إلخ)
 
 ---
 
@@ -658,16 +747,52 @@ function MyTable() {
 
 ## 📊 إحصائيات المشروع
 
-- **المكونات:** 22 مكون UI كامل
-- **الصفحات:** 1 صفحة (ComponentShowcase)
-- **المراحل المكتملة:** Phase 1 ✅, Phase 2 ✅
-- **المراحل القادمة:** Phase 3 (Layouts & Routing)
+- **المكونات:** 22 مكون UI + 7 مكونات Layout + 5 مكونات Dashboard = 34 مكون
+- **الصفحات:** 1 صفحة showcase + 4 صفحات فعلية (Login, Dashboard, ProjectList, ProjectCreate) + 15 placeholder pages
+- **المسارات:** 25+ route مُعرّف (4 routes نشطة)
+- **ملفات البيانات:** 5 ملفات Mock Data متوافقة مع Backend
+- **ملفات Utils:** 2 ملفات (validators, formatters)
+- **المراحل المكتملة:** Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅
+- **المراحل القادمة:** Phase 5 (Project Workspace — Overview & Screening)
 
 ---
 
-**آخر تحديث:** 23 يناير 2026  
+**آخر تحديث:** 24 يناير 2026  
 **الإصدار:** 0.0.0 (Development)  
-**المرحلة:** Phase 2 - مكتمل ✅  
+**المرحلة:** Phase 4 - مكتمل ✅  
 **Build Status:** ✅ يعمل بدون أخطاء  
-**Lint Status:** ✅ لا أخطاء ESLint  
+**Lint Status:** ✅ لا أخطاء ESLint (warnings فقط)  
 **Format Status:** ✅ جميع الملفات منسقة
+
+---
+
+## 📌 ملاحظات مهمة للمطورين
+
+### ⚠️ قرارات مهمة تم الاتفاق عليها
+
+1. **Step Locking Logic:**
+   - جميع Workflow Tools (Screening, Assessment, SEMP, Monitoring) مفتوحة حالياً
+   - تم تعطيل منطق القفل مؤقتاً مع تعليقات TODO
+   - عند إضافة المنطق التجاري، يجب إعادة تفعيل القفل بناءً على الإكمال المتسلسل
+
+2. **Navigation Structure:**
+   - Assessment يحتوي فقط على: Metadata, Methods, Scoring
+   - Annex & Attachments يحتوي على: Attachments (files), Annex
+   - التوسع التلقائي يحدث فقط عند زيارة صفحات الأطفال يدوياً
+
+3. **Header Structure:**
+   - ProjectLayout له هيدر موحد خاص (ESMS System logo على اليسار)
+   - Theme Toggle موجود في User Card Dropdown (وليس في Header)
+   - كل صفحة project يمكن أن يكون لها هيدر خاص بناءً على المتطلبات
+
+4. **Mobile Menu:**
+   - Project variant يعرض "Back to Dashboard" بدلاً من الشعار
+   - Theme Toggle موجود في User Card Dropdown
+
+### 📚 مراجع مهمة
+
+- **PHASE_4_REVIEW.md** - مراجعة شاملة للمرحلة الرابعة مع جميع التفاصيل
+- **PHASE_4_PLAN.md** - خطة تفصيلية للمرحلة الرابعة (مكتملة ✅)
+- **PHASE_3_REVIEW.md** - مراجعة شاملة مع جميع التعديلات والاتفاقيات
+- **PHASE_2_REVIEW.md** - مراجعة شاملة للمرحلة الثانية
+- **MASTER_PLAN.md** - الخطة الرئيسية الشاملة (محدثة مع Phase 4 ✅)

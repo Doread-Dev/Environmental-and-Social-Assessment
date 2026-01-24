@@ -48,10 +48,7 @@ function TableBody({ className, children, ...props }) {
 function TableFooter({ className, children, ...props }) {
   return (
     <tfoot
-      className={cn(
-        'border-t bg-background/50 dark:bg-background-dark/50 font-medium',
-        className
-      )}
+      className={cn('border-t bg-background/50 dark:bg-background-dark/50 font-medium', className)}
       {...props}
     >
       {children}

@@ -84,9 +84,7 @@ function Alert({
       {/* Content */}
       <div className="flex-1 min-w-0">
         {title && <h4 className={cn('font-semibold', styles.title)}>{title}</h4>}
-        {children && (
-          <p className={cn('text-sm', title && 'mt-1', styles.text)}>{children}</p>
-        )}
+        {children && <p className={cn('text-sm', title && 'mt-1', styles.text)}>{children}</p>}
         {action && <div className="mt-3">{action}</div>}
       </div>
 

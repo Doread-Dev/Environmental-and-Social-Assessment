@@ -111,6 +111,7 @@ html:not(.dark) body {
   --color-text-disabled: #9ca3af;
 
   --color-border-default: #dbe6df;
+  --color-border-color: #dbe6df;
   --color-border-dark: #2a4234;
   --color-input-border: #dbe6df;
   --color-input-border-dark: #2a4234;
@@ -194,6 +195,7 @@ html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -204,6 +206,7 @@ html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -221,4 +224,16 @@ html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
 /* Ensure custom text size classes work correctly for Material Symbols */
 .material-symbols-outlined.text-\[50px\] {
   font-size: 50px !important;
+}
+
+/* Radio Button Styling - مطابق للتصميم الأصلي */
+/* استخدام accent-color يجعل radio button أخضر عند checked */
+input[type="radio"].text-primary,
+input[type="radio"][class*="text-primary"] {
+  accent-color: var(--color-primary);
+}
+
+/* التأكد من أن radio button يظهر باللون الأخضر عند checked */
+input[type="radio"]:checked {
+  accent-color: var(--color-primary);
 }

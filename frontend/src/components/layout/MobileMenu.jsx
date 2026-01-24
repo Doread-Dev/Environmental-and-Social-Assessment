@@ -8,7 +8,7 @@ import {
   PROJECT_SECONDARY_NAV,
   ROUTES,
 } from '@/routes/routes.config'
-import { Avatar } from '@/components/ui'
+import { Avatar, Tooltip } from '@/components/ui'
 
 // User menu items (same as Header)
 const userMenuItems = [
@@ -91,12 +91,9 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
   // Auto-expand items with active children (no manual toggle needed)
   // Expansion happens automatically when a child is active
 
-  // Mock project data
-  const projectData = project || {
-    id: projectId,
-    name: 'Reforestation Initiative Alpha',
-    location: 'Sumatra, Indonesia',
-  }
+  // Get project data (use title or name, prefer title)
+  const projectTitle = project?.title || project?.name || 'Unknown Project'
+  const projectLocation = project?.location || 'N/A'
 
   // Mock user data
   const user = {
@@ -241,11 +238,20 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
           {variant === 'project' && projectId && (
             <div className="px-4 py-3 border-b border-border-default dark:border-border-dark">
               <div className="bg-background dark:bg-background-dark rounded-lg p-3">
-                <h2 className="text-sm font-bold text-text-main dark:text-white">
-                  {projectData.name}
-                </h2>
-                <p className="text-xs text-text-secondary dark:text-gray-400 mt-1">
-                  {projectData.location}
+                {/* Project Title with Tooltip for long names */}
+                <Tooltip content={projectTitle} position="bottom" delay={300}>
+                  <h2
+                    className="text-sm font-bold text-text-main dark:text-white truncate"
+                    title={projectTitle}
+                  >
+                    {projectTitle}
+                  </h2>
+                </Tooltip>
+                <p
+                  className="text-xs text-text-secondary dark:text-gray-400 mt-1 truncate"
+                  title={projectLocation}
+                >
+                  {projectLocation}
                 </p>
               </div>
             </div>
@@ -310,6 +316,22 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                       }
 
                       const isActive = isNavActive(item.path)
+                      
+                      // Check if step is completed (for project variant)
+                      const isCompleted = project?.workflow?.[item.id]?.status === 'approved' || 
+                                        project?.workflow?.[item.id]?.status === 'completed'
+                      
+                      // Determine icon for Screening (Tool 1)
+                      // If screening is not completed → use 'description' (document icon)
+                      // If screening is completed → use 'check_circle' (like other tools)
+                      const getIcon = () => {
+                        if (item.id === 'screening') {
+                          return isCompleted ? 'check_circle' : 'description'
+                        }
+                        // For other tools, use check_circle if completed, otherwise use item.icon
+                        return isCompleted ? 'check_circle' : item.icon
+                      }
+
                       return (
                         <NavLink
                           key={item.id}
@@ -324,7 +346,13 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                               : 'text-text-secondary hover:text-text-main hover:bg-background dark:hover:bg-background-dark'
                           )}
                         >
-                          <span className="material-symbols-outlined">{item.icon}</span>
+                          <span className={cn(
+                            'material-symbols-outlined',
+                            isCompleted && 'text-primary',
+                            isActive && 'text-primary'
+                          )}>
+                            {getIcon()}
+                          </span>
                           {item.label}
                         </NavLink>
                       )

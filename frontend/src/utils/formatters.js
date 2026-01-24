@@ -49,6 +49,36 @@ export function formatDateRange(startDate, endDate) {
 }
 
 /**
+ * تنسيق التاريخ بالصيغة الكاملة (1 January 2023)
+ * @param {string | Date} date
+ * @returns {string}
+ */
+export function formatDateFull(date) {
+  if (!date) return ''
+  const d = new Date(date)
+  return d.toLocaleDateString('en-US', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
+/**
+ * تنسيق التاريخ بصيغة مختصرة (Oct 24, 2023)
+ * @param {string | Date} date
+ * @returns {string}
+ */
+export function formatDateShort(date) {
+  if (!date) return ''
+  const d = new Date(date)
+  return d.toLocaleDateString('en-US', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+/**
  * تنسيق مدة المشروع
  * @param {number} months
  * @returns {string}

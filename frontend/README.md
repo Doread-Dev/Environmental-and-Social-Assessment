@@ -11,9 +11,9 @@ Aga Khan Foundation – Syria
 
 ### حالة المشروع
 
-**المرحلة الحالية:** ✅ **Phase 4 - مكتمل**  
+**المرحلة الحالية:** ✅ **Phase 5 - مكتمل**  
 **التاريخ:** 24 يناير 2026  
-**الحالة:** جاهز لبدء Phase 5 (Project Workspace — Overview & Screening)
+**الحالة:** جاهز لبدء Phase 6 (Project Workspace — Assessment)
 
 ---
 
@@ -160,9 +160,21 @@ frontend/
 │   │   │   ├── ScreeningCategoryBadge.jsx # شارة فئة الفرز
 │   │   │   ├── ProjectStatusBadge.jsx     # شارة حالة المشروع
 │   │   │   └── index.js   # Barrel export
-│   │   ├── project/       # مكونات خاصة بالمشاريع (Phase 5+)
-│   │   │   └── index.js   # Barrel export (فارغ حالياً)
-│   │   ├── forms/         # مكونات النماذج (Phase 5+)
+│   │   ├── project/       # مكونات خاصة بالمشاريع (Phase 5 ✅)
+│   │   │   ├── ProjectHeader.jsx
+│   │   │   ├── ProjectProgressTimeline.jsx
+│   │   │   ├── ProjectMetricCard.jsx
+│   │   │   ├── ProjectCTACard.jsx
+│   │   │   ├── ProjectSiteCard.jsx
+│   │   │   └── index.js   # Barrel export
+│   │   ├── screening/     # مكونات الفرز (Phase 5 ✅)
+│   │   │   ├── ScreeningInfoSection.jsx
+│   │   │   ├── RiskCategorySelector.jsx
+│   │   │   ├── ImpactSection.jsx
+│   │   │   ├── ScreeningSummaryCard.jsx
+│   │   │   ├── ApprovalSection.jsx
+│   │   │   └── index.js   # Barrel export
+│   │   ├── forms/         # مكونات النماذج (Phase 6+)
 │   │   │   └── index.js   # Barrel export (فارغ حالياً)
 │   │   ├── tables/        # مكونات الجداول (Phase 7+)
 │   │   │   └── index.js   # Barrel export (فارغ حالياً)
@@ -181,15 +193,25 @@ frontend/
 │   │   │   ├── ProjectListPage.jsx    # صفحة قائمة المشاريع
 │   │   │   ├── ProjectCreatePage.jsx  # صفحة إنشاء مشروع جديد
 │   │   │   └── index.js   # Barrel export
-│   │   # ملاحظة: project-workspace/ سيُضاف في Phase 5-8
+│   │   ├── project-workspace/  # صفحات مساحة عمل المشروع (Phase 5 ✅)
+│   │   │   ├── overview/      # نظرة عامة على المشروع
+│   │   │   │   ├── ProjectOverviewPage.jsx
+│   │   │   │   └── index.js
+│   │   │   ├── screening/    # الفرز البيئي (Tool 1)
+│   │   │   │   ├── ScreeningFormPage.jsx
+│   │   │   │   ├── ScreeningSummaryPage.jsx
+│   │   │   │   ├── ScreeningRouter.jsx
+│   │   │   │   └── index.js
+│   │   │   └── index.js   # Barrel export
 │   │
 │   ├── routes/            # تكوين المسارات (Phase 3 ✅)
 │   │   ├── routes.config.js  # Route constants و navigation items
 │   │   ├── index.jsx         # Router configuration
 │   │   └── ProtectedRoute.jsx # Auth guard (placeholder)
 │   │
-│   ├── hooks/             # Custom React Hooks (Phase 3 ✅)
+│   ├── hooks/             # Custom React Hooks (Phase 3 ✅, Phase 5 ✅)
 │   │   ├── useProjectContext.js  # Hook للوصول إلى project context
+│   │   ├── useScreening.js        # Hook لإدارة حالة الفرز
 │   │   └── index.js       # Barrel export
 │   │
 │   ├── contexts/          # React Contexts
@@ -206,9 +228,10 @@ frontend/
 │   │   ├── formatters.js  # دوال تنسيق البيانات (Phase 4 ✅)
 │   │   └── index.js       # Barrel export
 │   │
-│   ├── data/              # بيانات وهمية/ثابتة (Phase 4 ✅)
+│   ├── data/              # بيانات وهمية/ثابتة (Phase 4 ✅, Phase 5 ✅)
 │   │   ├── mockProjects.js        # بيانات المشاريع الوهمية
 │   │   ├── mockUsers.js           # بيانات المستخدمين الوهمية
+│   │   ├── mockScreening.js       # بيانات الفرز الوهمية
 │   │   ├── screeningCategories.js # فئات الفرز (A-F)
 │   │   ├── workflowStatuses.js   # حالات سير العمل
 │   │   ├── impactCategories.js   # فئات التأثير
@@ -225,7 +248,9 @@ frontend/
 │   ├── PHASE_2_REVIEW.md  # مراجعة شاملة للمرحلة الثانية
 │   ├── PHASE_3_REVIEW.md  # مراجعة شاملة للمرحلة الثالثة
 │   ├── PHASE_4_PLAN.md    # خطة تفصيلية للمرحلة الرابعة (مكتملة ✅)
-│   └── PHASE_4_REVIEW.md  # مراجعة شاملة للمرحلة الرابعة
+│   ├── PHASE_4_REVIEW.md  # مراجعة شاملة للمرحلة الرابعة
+│   ├── PHASE_5_PLAN.md    # خطة تفصيلية للمرحلة الخامسة (مكتملة ✅)
+│   └── PHASE_5_REVIEW.md  # مراجعة شاملة للمرحلة الخامسة
 │
 ├── .gitignore             # ملفات مستثناة من Git (dist, node_modules, .env, إلخ)
 ├── .prettierignore        # ملفات مستثناة من Prettier (node_modules, dist, build)
@@ -500,6 +525,42 @@ import { useTheme } from '@/contexts'
 - ✅ Mock Data متوافق مع Backend Models
 - ✅ Build و Lint يعملان بدون أخطاء
 
+### Phase 5 - مكتمل ✅
+
+#### Mock Data
+- ✅ `mockScreening.js` - بيانات الفرز الوهمية لـ 6 مشاريع
+
+#### Project Components (5 مكونات)
+- ✅ `ProjectHeader` - رأس المشروع مع العنوان والحالة والفريق
+- ✅ `ProjectProgressTimeline` - الجدول الزمني لتقدم المشروع (4 خطوات)
+- ✅ `ProjectMetricCard` - بطاقة مقياس المشروع
+- ✅ `ProjectCTACard` - بطاقة الدعوة للإجراء
+- ✅ `ProjectSiteCard` - بطاقة موقع المشروع مع الخريطة
+
+#### Screening Components (5 مكونات)
+- ✅ `ScreeningInfoSection` - قسم معلومات الفرز
+- ✅ `RiskCategorySelector` - محدد فئة الخطر مع RadioGroup
+- ✅ `ImpactSection` - قسم التأثيرات المحتملة
+- ✅ `ScreeningSummaryCard` - بطاقة ملخص الفرز
+- ✅ `ApprovalSection` - قسم الموافقة والتوصيات
+
+#### Pages (3 صفحات)
+- ✅ `ProjectOverviewPage` - صفحة نظرة عامة على المشروع
+- ✅ `ScreeningFormPage` - نموذج الفرز البيئي مع Form Validation
+- ✅ `ScreeningSummaryPage` - صفحة ملخص الفرز والموافقة
+- ✅ `ScreeningRouter` - مكون توجيه ذكي بناءً على حالة Screening
+
+#### Hooks
+- ✅ `useScreening` - Hook لإدارة حالة الفرز (saveDraft, submit, approve, reject)
+
+**المعايير المُحققة:**
+- ✅ جميع الصفحات تدعم Dark Mode
+- ✅ جميع الصفحات Responsive
+- ✅ Form Validation مطبق بالكامل
+- ✅ منطق Flow ذكي بناءً على حالة Screening
+- ✅ التصميم مطابق للتصميم الأصلي حرفياً
+- ✅ Build و Lint يعملان بدون أخطاء
+
 ---
 
 ## 📝 Code Style & Conventions
@@ -579,23 +640,60 @@ import { THEMES } from '@/utils/constants'
 - **PHASE_3_REVIEW.md** - مراجعة شاملة للمرحلة الثالثة (مكتملة ✅)
 - **PHASE_4_PLAN.md** - خطة تفصيلية للمرحلة الرابعة (مكتملة ✅)
 - **PHASE_4_REVIEW.md** - مراجعة شاملة للمرحلة الرابعة (مكتملة ✅)
+- **PHASE_5_PLAN.md** - خطة تفصيلية للمرحلة الخامسة (مكتملة ✅)
+- **PHASE_5_REVIEW.md** - مراجعة شاملة للمرحلة الخامسة مع توثيق منطق Flow (مكتملة ✅)
 
 ### محتوى الوثائق
 
 - **MASTER_PLAN.md**: يحتوي على نظرة عامة، Tech Stack، هيكل المجلدات، Routing Plan، Component Architecture، Design System، Phased Execution Breakdown
-- **PHASE_*_PLAN.md**: تحتوي على خطط تفصيلية مرتبة لكل مرحلة مع قوائم تحقق ومخرجات نهائية
+- **PHASE-*-PLAN.md**: تحتوي على خطط تفصيلية مرتبة لكل مرحلة مع قوائم تحقق ومخرجات نهائية
 - **PHASE_*_REVIEW.md**: تحتوي على مراجعات شاملة لكل مرحلة مع التحقق من جميع المتطلبات
+- **PHASE_5_REVIEW.md**: يحتوي على توثيق شامل لمنطق Flow الصفحات (Screening Workflow) مع Flow Diagrams
 
 ---
 
 ## 🔄 الخطوات التالية
 
-### Phase 5: Project Workspace — Overview & Screening
+### Phase 6: Project Workspace — Assessment
 
-- إنشاء ProjectOverviewPage
-- إنشاء ScreeningFormPage
-- إنشاء ScreeningSummaryPage
-- إنشاء مكونات domain-specific (ProjectProgressBar, RiskCategoryBadge, إلخ)
+- إنشاء AssessmentGatewayPage
+- إنشاء AssessmentMetadataPage
+- إنشاء AssessmentMethodsPage
+- إنشاء AssessmentScoringPage
+- إنشاء AssessmentReviewPage
+- إنشاء مكونات Assessment domain-specific
+
+---
+
+## 🔄 Screening Workflow Flow
+
+### منطق التوجيه الذكي
+
+`ScreeningRouter` يحدد الصفحة المناسبة بناءً على حالة Screening:
+
+```
+/app/projects/:projectId/screening
+│
+├─→ [لا يوجد screening أو draft]
+│   └─→ ScreeningFormPage
+│       ├─→ Save Draft → يبقى في Form
+│       └─→ Submit → status = 'submitted' → Summary
+│
+├─→ [status = 'submitted']
+│   └─→ ScreeningSummaryPage
+│       ├─→ Approve → status = 'approved'
+│       └─→ Reject → status = 'rejected'
+│
+├─→ [status = 'rejected']
+│   └─→ ScreeningSummaryPage
+│       └─→ Edit → /screening?edit=true → Form
+│
+└─→ [status = 'approved']
+    └─→ ScreeningSummaryPage (read-only)
+        └─→ Proceed to Assessment
+```
+
+**للمزيد من التفاصيل:** راجع `PHASE_5_REVIEW.md` في مجلد `documents/`
 
 ---
 
@@ -708,6 +806,54 @@ function MyTable() {
 }
 ```
 
+### مثال: استخدام Project Components
+
+```jsx
+import { ProjectHeader, ProjectProgressTimeline, ProjectMetricCard } from '@/components/project'
+
+function ProjectOverview() {
+  const project = { /* project data */ }
+  
+  return (
+    <div>
+      <ProjectHeader project={project} onEdit={handleEdit} />
+      <ProjectProgressTimeline workflow={project.workflow} />
+      <ProjectMetricCard
+        title="Risk Level"
+        value="Category B"
+        subtitle="Medium Risk"
+        icon="warning"
+        iconBgColor="bg-yellow-50"
+        iconColor="text-yellow-600"
+      />
+    </div>
+  )
+}
+```
+
+### مثال: استخدام useScreening Hook
+
+```jsx
+import { useScreening } from '@/hooks'
+import { useParams } from 'react-router-dom'
+
+function ScreeningForm() {
+  const { projectId } = useParams()
+  const { screening, isLoading, submit, saveDraft } = useScreening(projectId)
+  
+  const handleSubmit = async () => {
+    const result = await submit(formData)
+    if (result.success) {
+      // Navigate to summary
+    }
+  }
+  
+  if (isLoading) return <Loading />
+  
+  return <form>...</form>
+}
+```
+
 ---
 
 ## 🤝 المساهمة
@@ -747,21 +893,22 @@ function MyTable() {
 
 ## 📊 إحصائيات المشروع
 
-- **المكونات:** 22 مكون UI + 7 مكونات Layout + 5 مكونات Dashboard = 34 مكون
-- **الصفحات:** 1 صفحة showcase + 4 صفحات فعلية (Login, Dashboard, ProjectList, ProjectCreate) + 15 placeholder pages
-- **المسارات:** 25+ route مُعرّف (4 routes نشطة)
-- **ملفات البيانات:** 5 ملفات Mock Data متوافقة مع Backend
+- **المكونات:** 22 مكون UI + 7 مكونات Layout + 5 مكونات Dashboard + 5 مكونات Project + 5 مكونات Screening = 44 مكون
+- **الصفحات:** 1 صفحة showcase + 7 صفحات فعلية (Login, Dashboard, ProjectList, ProjectCreate, ProjectOverview, ScreeningForm, ScreeningSummary) + 12 placeholder pages
+- **المسارات:** 25+ route مُعرّف (7 routes نشطة)
+- **ملفات البيانات:** 6 ملفات Mock Data متوافقة مع Backend
 - **ملفات Utils:** 2 ملفات (validators, formatters)
-- **المراحل المكتملة:** Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅
-- **المراحل القادمة:** Phase 5 (Project Workspace — Overview & Screening)
+- **Hooks:** 2 hooks (useProjectContext, useScreening)
+- **المراحل المكتملة:** Phase 1 ✅, Phase 2 ✅, Phase 3 ✅, Phase 4 ✅, Phase 5 ✅
+- **المراحل القادمة:** Phase 6 (Project Workspace — Assessment)
 
 ---
 
 **آخر تحديث:** 24 يناير 2026  
 **الإصدار:** 0.0.0 (Development)  
-**المرحلة:** Phase 4 - مكتمل ✅  
+**المرحلة:** Phase 5 - مكتمل ✅  
 **Build Status:** ✅ يعمل بدون أخطاء  
-**Lint Status:** ✅ لا أخطاء ESLint (warnings فقط)  
+**Lint Status:** ✅ لا أخطاء ESLint  
 **Format Status:** ✅ جميع الملفات منسقة
 
 ---
@@ -791,8 +938,10 @@ function MyTable() {
 
 ### 📚 مراجع مهمة
 
+- **PHASE_5_REVIEW.md** - مراجعة شاملة للمرحلة الخامسة مع توثيق منطق Flow الصفحات ⭐
+- **PHASE_5_PLAN.md** - خطة تفصيلية للمرحلة الخامسة (مكتملة ✅)
 - **PHASE_4_REVIEW.md** - مراجعة شاملة للمرحلة الرابعة مع جميع التفاصيل
 - **PHASE_4_PLAN.md** - خطة تفصيلية للمرحلة الرابعة (مكتملة ✅)
 - **PHASE_3_REVIEW.md** - مراجعة شاملة مع جميع التعديلات والاتفاقيات
 - **PHASE_2_REVIEW.md** - مراجعة شاملة للمرحلة الثانية
-- **MASTER_PLAN.md** - الخطة الرئيسية الشاملة (محدثة مع Phase 4 ✅)
+- **MASTER_PLAN.md** - الخطة الرئيسية الشاملة (محدثة مع Phase 5 ✅)

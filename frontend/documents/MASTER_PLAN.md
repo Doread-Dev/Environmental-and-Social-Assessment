@@ -1489,11 +1489,14 @@ function ProjectForm() {
 - [x] Utils files (validators.js, formatters.js)
 - [x] Dashboard components (5 مكونات)
 
-#### Phase 5: Screening
-- [ ] ProjectOverviewPage
-- [ ] ScreeningFormPage
-- [ ] ScreeningSummaryPage
-- [ ] 3 domain components
+#### Phase 5: Screening ✅ مكتمل
+- [x] ProjectOverviewPage
+- [x] ScreeningFormPage
+- [x] ScreeningSummaryPage
+- [x] 5 project components (ProjectHeader, ProjectProgressTimeline, ProjectMetricCard, ProjectCTACard, ProjectSiteCard)
+- [x] 5 screening components (ScreeningInfoSection, RiskCategorySelector, ImpactSection, ScreeningSummaryCard, ApprovalSection)
+- [x] Mock screening data (mockScreening.js)
+- [x] useScreening hook
 
 #### Phase 6: Assessment
 - [ ] AssessmentGatewayPage

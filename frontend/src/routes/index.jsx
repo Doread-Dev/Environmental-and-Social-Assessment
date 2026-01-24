@@ -13,32 +13,9 @@ import * as Dashboard from '@/pages/dashboard'
 import * as Projects from '@/pages/projects'
 
 // Project Workspace Pages
-const ProjectOverviewPage = () => (
-  <div>
-    <h1 className="text-3xl font-bold text-text-main dark:text-white mb-4">Project Overview</h1>
-    <p className="text-text-secondary dark:text-gray-400">
-      Project overview page placeholder - Phase 5
-    </p>
-  </div>
-)
-
-const ScreeningFormPage = () => (
-  <div>
-    <h1 className="text-3xl font-bold text-text-main dark:text-white mb-4">Screening Form</h1>
-    <p className="text-text-secondary dark:text-gray-400">
-      Screening form page placeholder - Phase 5
-    </p>
-  </div>
-)
-
-const ScreeningSummaryPage = () => (
-  <div>
-    <h1 className="text-3xl font-bold text-text-main dark:text-white mb-4">Screening Summary</h1>
-    <p className="text-text-secondary dark:text-gray-400">
-      Screening summary page placeholder - Phase 5
-    </p>
-  </div>
-)
+import { ProjectOverviewPage } from '@/pages/project-workspace/overview'
+import ScreeningRouter from '@/pages/project-workspace/screening/ScreeningRouter'
+import { ScreeningSummaryPage } from '@/pages/project-workspace/screening'
 
 const AssessmentGatewayPage = () => (
   <div>
@@ -242,9 +219,10 @@ export const router = createBrowserRouter([
       },
 
       // Screening (Tool 1)
+      // ScreeningRouter handles routing based on screening status
       {
         path: 'screening',
-        element: <ScreeningFormPage />,
+        element: <ScreeningRouter />,
       },
       {
         path: 'screening/summary',

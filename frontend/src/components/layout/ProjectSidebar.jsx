@@ -3,7 +3,7 @@ import { NavLink, useParams, useNavigate, useLocation } from 'react-router-dom'
 import { cn } from '@/utils'
 import { useTheme } from '@/contexts'
 import { PROJECT_WORKFLOW_NAV, PROJECT_SECONDARY_NAV, ROUTES } from '@/routes/routes.config'
-import { Avatar } from '@/components/ui'
+import { Avatar, Tooltip } from '@/components/ui'
 
 // User menu items (same as Header)
 const userMenuItems = [
@@ -31,14 +31,9 @@ function ProjectSidebar({ project, className }) {
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
-  // Mock project data (will be replaced with real data)
-  const projectData = project || {
-    id: projectId,
-    name: 'Reforestation Initiative Alpha',
-    location: 'Sumatra, Indonesia',
-    status: 'in_progress',
-    completedSteps: ['screening', 'assessment'],
-  }
+  // Get project data (use title or name, prefer title)
+  const projectTitle = project?.title || project?.name || 'Unknown Project'
+  const projectLocation = project?.location || 'N/A'
 
   // Mock user data
   const user = {
@@ -68,7 +63,7 @@ function ProjectSidebar({ project, className }) {
 
   // Check if a step is completed
   const isStepCompleted = (stepId) => {
-    return projectData.completedSteps?.includes(stepId)
+    return project?.workflow?.[stepId]?.status === 'approved' || project?.workflow?.[stepId]?.status === 'completed'
   }
 
   // TODO: Step Locking Logic - To be implemented when business logic is added
@@ -150,7 +145,13 @@ function ProjectSidebar({ project, className }) {
                 (isCompleted || isParentActive) && 'text-primary'
               )}
             >
-              {isCompleted ? 'check_circle' : item.icon}
+              {item.id === 'screening'
+                ? isCompleted
+                  ? 'check_circle'
+                  : 'description'
+                : isCompleted
+                  ? 'check_circle'
+                  : item.icon}
             </span>
             <span>{item.label}</span>
           </NavLink>
@@ -239,12 +240,20 @@ function ProjectSidebar({ project, className }) {
           <div className="absolute top-0 right-0 w-12 h-12 bg-primary/5 rounded-bl-xl" />
 
           <div className="flex flex-col gap-1.5 relative z-10">
-            <h2 className="text-sm font-bold text-text-main dark:text-white leading-tight">
-              {projectData.name}
-            </h2>
+            {/* Project Title with Tooltip for long names */}
+            <Tooltip content={projectTitle} position="right" delay={300}>
+              <h2
+                className="text-sm font-bold text-text-main dark:text-white leading-tight truncate"
+                title={projectTitle}
+              >
+                {projectTitle}
+              </h2>
+            </Tooltip>
             <div className="flex items-center gap-1.5 text-xs text-text-secondary dark:text-gray-400">
               <span className="material-symbols-outlined text-[14px]">location_on</span>
-              <span>{projectData.location}</span>
+              <span className="truncate" title={projectLocation}>
+                {projectLocation}
+              </span>
             </div>
           </div>
         </div>
@@ -312,6 +321,17 @@ function ProjectSidebar({ project, className }) {
             )
           }
 
+          // Determine icon for Screening (Tool 1)
+          // If screening is not completed → use 'description' (document icon)
+          // If screening is completed → use 'check_circle' (like other tools)
+          const getIcon = () => {
+            if (item.id === 'screening') {
+              return isCompleted ? 'check_circle' : 'description'
+            }
+            // For other tools, use check_circle if completed, otherwise use item.icon
+            return isCompleted ? 'check_circle' : item.icon
+          }
+
           return (
             <NavLink
               key={item.id}
@@ -333,7 +353,7 @@ function ProjectSidebar({ project, className }) {
                   isActive && 'text-primary'
                 )}
               >
-                {isCompleted ? 'check_circle' : item.icon}
+                {getIcon()}
               </span>
               <span>{item.label}</span>
             </NavLink>

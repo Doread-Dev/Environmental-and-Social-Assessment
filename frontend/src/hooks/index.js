@@ -1,5 +1,6 @@
 // Custom Hooks Barrel Export
 
 export { useProjectContext } from './useProjectContext'
+export { useScreening } from './useScreening'
 // export { useLocalStorage } from './useLocalStorage'
 // export { useMediaQuery } from './useMediaQuery'

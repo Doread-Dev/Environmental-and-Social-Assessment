@@ -1,6 +1,7 @@
 // Project Components Barrel Export
-// Add exports as components are created
 
-// export { default as ProjectCard } from './ProjectCard'
-// export { default as RiskCategoryBadge } from './RiskCategoryBadge'
-// ... etc
+export { default as ProjectHeader } from './ProjectHeader'
+export { default as ProjectProgressTimeline } from './ProjectProgressTimeline'
+export { default as ProjectMetricCard } from './ProjectMetricCard'
+export { default as ProjectCTACard } from './ProjectCTACard'
+export { default as ProjectSiteCard } from './ProjectSiteCard'

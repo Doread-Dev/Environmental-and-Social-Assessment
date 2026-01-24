@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
-import { Outlet, useParams } from 'react-router-dom'
+import { Outlet, useParams, useLocation } from 'react-router-dom'
 import { cn } from '@/utils'
+import { mockProjects, getScreeningByProjectId } from '@/data'
 import ProjectSidebar from './ProjectSidebar'
 import MobileMenu from './MobileMenu'
 
@@ -11,30 +12,50 @@ import MobileMenu from './MobileMenu'
  */
 function ProjectLayout() {
   const { projectId } = useParams()
+  const location = useLocation()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [project, setProject] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  
+  // Check if we're on screening page and get screening status for Export button
+  const isScreeningPage = location.pathname.includes('/screening')
+  const screening = projectId && isScreeningPage ? getScreeningByProjectId(projectId) : null
+  const showExportButton = isScreeningPage && (screening?.status === 'submitted' || screening?.status === 'approved' || screening?.status === 'rejected')
+  
+  const handleExportClick = () => {
+    // Trigger export event that ScreeningSummaryPage listens to
+    window.dispatchEvent(new CustomEvent('screening-export'))
+  }
 
-  // Mock project data fetching
+  // Fetch project data from mockProjects
   useEffect(() => {
-    // Simulate API call
     const fetchProject = async () => {
       setIsLoading(true)
 
-      // Mock delay
+      // Simulate API call delay
       await new Promise((resolve) => setTimeout(resolve, 300))
 
-      // Mock project data
-      setProject({
-        id: projectId,
-        name: 'Reforestation Initiative Alpha',
-        location: 'Sumatra, Indonesia',
-        status: 'in_progress',
-        riskCategory: 'B',
-        completedSteps: ['screening', 'assessment'],
-        createdAt: '2025-10-15',
-        updatedAt: '2026-01-20',
-      })
+      // Find project from mockProjects
+      const foundProject = mockProjects.find((p) => p._id === projectId)
+
+      if (foundProject) {
+        setProject(foundProject)
+      } else {
+        // Fallback: create minimal project object
+        console.warn('Project not found:', projectId)
+        setProject({
+          _id: projectId,
+          title: 'Unknown Project',
+          location: 'N/A',
+          status: 'draft',
+          workflow: {
+            screening: { status: 'pending', tool: 1 },
+            assessment: { status: 'pending', tool: 2 },
+            semp: { status: 'pending', tools: [3, 4] },
+            monitoring: { status: 'pending', tool: 5 },
+          },
+        })
+      }
 
       setIsLoading(false)
     }
@@ -115,6 +136,16 @@ function ProjectLayout() {
 
           {/* Right Actions */}
           <div className="flex items-center gap-6">
+            {/* Export Excel Button - Only show on Screening Summary page when status is submitted */}
+            {showExportButton && (
+              <button
+                onClick={handleExportClick}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors shadow-sm"
+              >
+                <span className="material-symbols-outlined text-[18px]">download</span>
+                Export Excel
+              </button>
+            )}
             <button
               className="text-text-secondary hover:text-text-main dark:hover:text-white transition-colors"
               aria-label="Help"

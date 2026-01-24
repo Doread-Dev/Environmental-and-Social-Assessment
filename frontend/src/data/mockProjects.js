@@ -65,11 +65,11 @@ export const mockProjects = [
     screening: {
       _id: '507f1f77bcf86cd799439022',
       category_code: 'C',
-      status: 'draft',
-      screening_date: null,
+      status: 'submitted',
+      screening_date: '2024-01-20',
     },
     workflow: {
-      screening: { status: 'draft', tool: 1 },
+      screening: { status: 'submitted', tool: 1 },
       assessment: { status: 'pending', tool: 2 },
       semp: { status: 'pending', tools: [3, 4] },
       monitoring: { status: 'pending', tool: 5 },

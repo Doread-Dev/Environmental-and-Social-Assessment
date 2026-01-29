@@ -4,4 +4,14 @@
 export { ProjectOverviewPage } from './overview'
 
 // Screening
-export { ScreeningFormPage, ScreeningSummaryPage } from './screening'
+export { ScreeningFormPage, ScreeningSummaryPage, ScreeningRouter } from './screening'
+
+// Assessment
+export {
+  AssessmentGatewayPage,
+  AssessmentMetadataPage,
+  AssessmentMethodsPage,
+  AssessmentScoringPage,
+  AssessmentReviewPage,
+  AssessmentRouter
+} from './assessment'

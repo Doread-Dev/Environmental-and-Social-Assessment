@@ -35,6 +35,23 @@ export {
 // Impact Categories (Tool 2)
 export { impactCategories, impactLevels } from './impactCategories'
 
+// Assessment Data
+export * from './assessmentMethods'
+export * from './impactQuestions'
+export * from './impactIndicators'  // للاستخدام في Phase 7
+export * from './jobTitles'
+export {
+  mockAssessments,
+  mockAssessmentMethods,
+  mockConsultations,
+  mockImpactScores,
+  getAssessmentByProjectId,
+  getMethodsByAssessmentId,
+  getConsultationsByAssessmentId,
+  getImpactScoresByAssessmentId,
+  createEmptyAssessment
+} from './mockAssessment'
+
 // Screening Data
 export {
   mockScreenings,

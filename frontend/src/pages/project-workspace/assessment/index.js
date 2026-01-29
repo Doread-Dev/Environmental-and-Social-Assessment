@@ -1,0 +1,6 @@
+export { default as AssessmentGatewayPage } from './AssessmentGatewayPage'
+export { default as AssessmentMetadataPage } from './AssessmentMetadataPage'
+export { default as AssessmentMethodsPage } from './AssessmentMethodsPage'
+export { default as AssessmentScoringPage } from './AssessmentScoringPage'
+export { default as AssessmentReviewPage } from './AssessmentReviewPage'
+export { default as AssessmentRouter } from './AssessmentRouter'

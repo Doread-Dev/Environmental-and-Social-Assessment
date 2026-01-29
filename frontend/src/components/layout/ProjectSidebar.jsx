@@ -166,6 +166,25 @@ function ProjectSidebar({ project, className }) {
               const isChildActive =
                 location.pathname === childPath || location.pathname.startsWith(childPath + '/')
 
+              // For assessment children (metadata, methods, scoring), show as display-only (not clickable)
+              if (item.id === 'assessment' && ['assessment-metadata', 'assessment-methods', 'assessment-scoring'].includes(child.id)) {
+                return (
+                  <div
+                    key={child.id}
+                    className={cn(
+                      'pl-10 pr-3 py-1.5 text-sm block',
+                      'cursor-default',
+                      isChildActive
+                        ? 'font-bold text-primary'
+                        : 'font-medium text-text-secondary'
+                    )}
+                  >
+                    {child.label}
+                  </div>
+                )
+              }
+
+              // For other children (like review), keep as clickable NavLink
               return (
                 <NavLink
                   key={child.id}

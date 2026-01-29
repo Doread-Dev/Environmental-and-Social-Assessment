@@ -45,7 +45,7 @@ function ProjectProgressTimeline({
     const inProgressSteps = stepKeys.filter((step) => {
       const status = workflow[step]?.status
       // For screening & assessment: submitted counts as in_progress
-      if ((step === 'screening' || step === 'assessment') && status === 'submitted') {
+      if ((step === 'screening' || step === 'assessment') && status === 'submitted' || status === 'draft') {
         return true
       }
       return status === 'in_progress'

@@ -16,51 +16,14 @@ import * as Projects from '@/pages/projects'
 import { ProjectOverviewPage } from '@/pages/project-workspace/overview'
 import ScreeningRouter from '@/pages/project-workspace/screening/ScreeningRouter'
 import { ScreeningSummaryPage } from '@/pages/project-workspace/screening'
-
-const AssessmentGatewayPage = () => (
-  <div>
-    <h1 className="text-3xl font-bold text-text-main dark:text-white mb-4">Assessment Gateway</h1>
-    <p className="text-text-secondary dark:text-gray-400">
-      Assessment gateway page placeholder - Phase 6
-    </p>
-  </div>
-)
-
-const AssessmentMetadataPage = () => (
-  <div>
-    <h1 className="text-3xl font-bold text-text-main dark:text-white mb-4">Assessment Metadata</h1>
-    <p className="text-text-secondary dark:text-gray-400">
-      Assessment metadata page placeholder - Phase 6
-    </p>
-  </div>
-)
-
-const AssessmentMethodsPage = () => (
-  <div>
-    <h1 className="text-3xl font-bold text-text-main dark:text-white mb-4">Assessment Methods</h1>
-    <p className="text-text-secondary dark:text-gray-400">
-      Assessment methods page placeholder - Phase 6
-    </p>
-  </div>
-)
-
-const AssessmentScoringPage = () => (
-  <div>
-    <h1 className="text-3xl font-bold text-text-main dark:text-white mb-4">Assessment Scoring</h1>
-    <p className="text-text-secondary dark:text-gray-400">
-      Assessment scoring page placeholder - Phase 6
-    </p>
-  </div>
-)
-
-const AssessmentReviewPage = () => (
-  <div>
-    <h1 className="text-3xl font-bold text-text-main dark:text-white mb-4">Assessment Review</h1>
-    <p className="text-text-secondary dark:text-gray-400">
-      Assessment review page placeholder - Phase 6
-    </p>
-  </div>
-)
+import {
+  AssessmentRouter,
+  AssessmentGatewayPage,
+  AssessmentMetadataPage,
+  AssessmentMethodsPage,
+  AssessmentScoringPage,
+  AssessmentReviewPage
+} from '@/pages/project-workspace/assessment'
 
 const SempOverviewPage = () => (
   <div>
@@ -232,7 +195,7 @@ export const router = createBrowserRouter([
       // Assessment (Tool 2)
       {
         path: 'assessment',
-        element: <AssessmentGatewayPage />,
+        element: <AssessmentRouter />,
       },
       {
         path: 'assessment/metadata',

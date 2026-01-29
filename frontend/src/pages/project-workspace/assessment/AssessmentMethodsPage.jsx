@@ -1,0 +1,241 @@
+/**
+ * AssessmentMethodsPage
+ * صفحة طرق التقييم والاستشارات المجتمعية
+ */
+
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { useAssessment } from '@/hooks'
+import { MethodChecklistItem, ConsultationChecklistItem } from '@/components/assessment'
+import { Button, LoadingSpinner } from '@/components/ui'
+import { assessmentMethods, consultationMethods } from '@/data'
+
+export default function AssessmentMethodsPage() {
+  const { projectId } = useParams()
+  const navigate = useNavigate()
+  const { assessment, methods, consultations, isLoading, isSaving, saveMethods, saveConsultations } = useAssessment(projectId)
+
+  // State for methods
+  const [selectedMethods, setSelectedMethods] = useState(() => {
+    const state = {}
+    assessmentMethods.forEach(method => {
+      const existing = methods.find(m => m.method_type === method.id)
+      state[method.id] = {
+        checked: !!existing,
+        details: existing?.details || ''
+      }
+    })
+    return state
+  })
+
+  // State for consultations
+  const [selectedConsultations, setSelectedConsultations] = useState(() => {
+    const state = {}
+    consultationMethods.forEach(consultation => {
+      const existing = consultations.find(c => c.type === consultation.id)
+      state[consultation.id] = {
+        checked: !!existing,
+        participants: existing?.participants || ''
+      }
+    })
+    return state
+  })
+
+  // Update state when methods/consultations load
+  useEffect(() => {
+    if (!isLoading && methods && consultations) {
+      // Update methods
+      const methodsState = {}
+      assessmentMethods.forEach(method => {
+        const existing = methods.find(m => m.method_type === method.id)
+        methodsState[method.id] = {
+          checked: !!existing,
+          details: existing?.details || ''
+        }
+      })
+      setSelectedMethods(methodsState)
+
+      // Update consultations
+      const consultationsState = {}
+      consultationMethods.forEach(consultation => {
+        const existing = consultations.find(c => c.type === consultation.id)
+        consultationsState[consultation.id] = {
+          checked: !!existing,
+          participants: existing?.participants || ''
+        }
+      })
+      setSelectedConsultations(consultationsState)
+    }
+  }, [methods, consultations, isLoading])
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <LoadingSpinner size="lg" />
+      </div>
+    )
+  }
+
+  const handleMethodChange = (methodId, checked) => {
+    setSelectedMethods(prev => ({
+      ...prev,
+      [methodId]: { ...prev[methodId], checked }
+    }))
+  }
+
+  const handleMethodDetailsChange = (methodId, details) => {
+    setSelectedMethods(prev => ({
+      ...prev,
+      [methodId]: { ...prev[methodId], details }
+    }))
+  }
+
+  const handleConsultationChange = (consultationId, checked) => {
+    setSelectedConsultations(prev => ({
+      ...prev,
+      [consultationId]: { ...prev[consultationId], checked }
+    }))
+  }
+
+  const handleConsultationParticipantsChange = (consultationId, participants) => {
+    setSelectedConsultations(prev => ({
+      ...prev,
+      [consultationId]: { ...prev[consultationId], participants }
+    }))
+  }
+
+
+  const handleSave = async () => {
+    // Prepare methods data
+    const methodsData = assessmentMethods
+      .filter(m => selectedMethods[m.id]?.checked)
+      .map(m => ({
+        method_type: m.id,
+        details: selectedMethods[m.id]?.details || ''
+      }))
+
+    // Prepare consultations data
+    const consultationsData = consultationMethods
+      .filter(c => selectedConsultations[c.id]?.checked)
+      .map(c => ({
+        type: c.id,
+        participants: selectedConsultations[c.id]?.participants || '',
+        notes: '' // Empty notes field (not shown in UI but required by backend model)
+      }))
+
+    // Save both
+    await Promise.all([
+      saveMethods(methodsData),
+      saveConsultations(consultationsData)
+    ])
+
+    navigate(`/app/projects/${projectId}/assessment/scoring`)
+  }
+
+  const handleBack = () => {
+    navigate(`/app/projects/${projectId}/assessment/metadata`)
+  }
+
+  // Allow editing when rejected or draft, but not when approved or submitted
+  // When rejected, user should be able to edit (rejected is not submitted, so it's editable)
+  const readOnly = assessment?.status === 'approved' || assessment?.status === 'submitted'
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Page Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-text-main dark:text-white">
+          Assessment Methods & Consultation
+        </h1>
+        <p className="text-text-secondary mt-1">
+          Document the methods used for environmental assessment and community consultation
+        </p>
+      </div>
+
+      {/* Methods Section */}
+      <div className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
+        <div className="p-6 md:p-8 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
+              <span className="material-symbols-outlined text-primary">science</span>
+            </div>
+            <h2 className="text-lg font-bold text-text-main dark:text-white">
+              Environmental Assessment Methods
+            </h2>
+          </div>
+        </div>
+
+        <div className="p-6 md:p-8 space-y-2">
+          {assessmentMethods.map((method) => (
+            <MethodChecklistItem
+              key={method.id}
+              method={method}
+              checked={selectedMethods[method.id]?.checked || false}
+              details={selectedMethods[method.id]?.details || ''}
+              onCheckedChange={(checked) => handleMethodChange(method.id, checked)}
+              onDetailsChange={(details) => handleMethodDetailsChange(method.id, details)}
+              readOnly={readOnly}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Consultation Section */}
+      <div className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 mb-20">
+        <div className="p-6 md:p-8 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-green-50 dark:bg-green-900/30 flex items-center justify-center">
+              <span className="material-symbols-outlined text-primary">groups</span>
+            </div>
+            <h2 className="text-lg font-bold text-text-main dark:text-white">
+              Public and Community Consultation
+            </h2>
+          </div>
+        </div>
+
+        <div className="p-6 md:p-8 space-y-4">
+          {consultationMethods.map((consultation) => (
+            <ConsultationChecklistItem
+              key={consultation.id}
+              consultation={consultation}
+              checked={selectedConsultations[consultation.id]?.checked || false}
+              participants={selectedConsultations[consultation.id]?.participants || ''}
+              onCheckedChange={(checked) => handleConsultationChange(consultation.id, checked)}
+              onParticipantsChange={(participants) => handleConsultationParticipantsChange(consultation.id, participants)}
+              readOnly={readOnly}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Sticky Footer */}
+      <div className="fixed bottom-0 left-0 right-0 lg:left-[280px] h-20 bg-white dark:bg-surface-dark border-t border-border-default dark:border-gray-700 flex items-center justify-between px-8 z-20">
+        <button
+          onClick={handleBack}
+          disabled={isSaving}
+          className="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border-default dark:border-gray-600 text-text-main dark:text-white font-medium hover:bg-background dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span className="material-symbols-outlined text-sm">arrow_back</span>
+          Back
+        </button>
+        <button
+          onClick={handleSave}
+          disabled={isSaving || readOnly}
+          className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-medium shadow-md transition-colors transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSaving ? (
+            <>
+              <LoadingSpinner size="sm" />
+              Saving...
+            </>
+          ) : (
+            <>
+              Save and Continue
+              <span className="material-symbols-outlined text-sm">arrow_forward</span>
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  )
+}

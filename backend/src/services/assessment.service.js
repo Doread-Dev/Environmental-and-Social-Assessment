@@ -6,12 +6,12 @@ const ApiError = require("../utils/ApiError");
 
 const listAssessments = async () =>
   Assessment.find()
-    .populate("project officer approved_by")
+    .populate("project officer approved_by reject_by")
     .sort({ createdAt: -1 });
 
 const getAssessment = async (id) => {
   const assessment = await Assessment.findById(id).populate(
-    "project officer approved_by"
+    "project officer approved_by reject_by"
   );
   if (!assessment) throw new ApiError(404, "Assessment not found");
   return assessment;
@@ -19,7 +19,7 @@ const getAssessment = async (id) => {
 
 const getByProject = async (projectId) => {
   const assessment = await Assessment.findOne({ project: projectId }).populate(
-    "project officer approved_by"
+    "project officer approved_by reject_by"
   );
   if (!assessment) throw new ApiError(404, "Assessment not found for project");
   return assessment;
@@ -79,84 +79,67 @@ const calculateImpact = async (assessmentId) => {
     }
   });
 
-  // تحديد total_project_impact بناءً على أعلى عدد
-  // أولوية: high > medium > low > negligible
-  // not_applicable لا يُؤخذ بالحسبان إلا إذا كانت كل المستويات الأخرى = 0
-  let maxLevel = null;
-  let maxCount = -1;
+  // اختيار total_project_impact حسب أولوية الفئة (وليس عدد النقاط)
+  // أولوية: high > medium > low > negligible > not_applicable
+  const priorityLevels = ["high", "medium", "low", "negligible", "not_applicable"];
 
-  // فحص المستويات (بدون not_applicable)
-  const levelsToCheck = ["negligible", "low", "medium", "high"];
-  levelsToCheck.forEach((level) => {
-    if (scoreCount[level] > maxCount) {
-      maxCount = scoreCount[level];
-      maxLevel = level;
+  let impactLevel = null;
+
+  for (const level of priorityLevels) {
+    if (scoreCount[level] > 0) {
+      impactLevel = level;
+      break;
     }
-  });
-
-  // إذا كانت كل المستويات = 0، استخدم not_applicable
-  if (maxCount === 0 && scoreCount.not_applicable > 0) {
-    maxLevel = "not_applicable";
-  } else if (maxCount === 0) {
-    // إذا كانت كل المستويات = 0 و not_applicable = 0، استخدم negligible كقيمة افتراضية
-    maxLevel = "negligible";
   }
 
-  // في حالة التعادل، اختر الأعلى حسب الأولوية
-  if (maxCount > 0) {
-    const priority = { high: 4, medium: 3, low: 2, negligible: 1 };
-    let highestPriority = null;
-    let highestPriorityValue = -1;
-
-    levelsToCheck.forEach((level) => {
-      if (
-        scoreCount[level] === maxCount &&
-        priority[level] > highestPriorityValue
-      ) {
-        highestPriorityValue = priority[level];
-        highestPriority = level;
-      }
-    });
-
-    if (highestPriority) {
-      maxLevel = highestPriority;
-    }
+  // إذا لم يوجد أي مستوى له قيمة > 0 (حالة استثنائية جداً)
+  if (!impactLevel) {
+    impactLevel = "negligible"; // قيمة افتراضية
   }
 
   assessment.total_project_score = scoreCount;
-  assessment.total_project_impact = maxLevel;
-  assessment.is_complete = true;
+  assessment.total_project_impact = impactLevel;
   await assessment.save();
 
   return assessment;
 };
 
-const setStatus = async (id, status, approvedBy, recommendations = null) => {
+const setStatus = async (id, status, approvedBy, recommendations = null, rejectReason = null) => {
   const updateData = {
     status,
-    approved_by: approvedBy,
   };
 
-  // إضافة recommendations فقط في حالة الموافقة
-  if (status === "approved" && recommendations) {
-    updateData.recommendations = recommendations;
+  // في حالة الموافقة: تسجيل approved_by و recommendations
+  if (status === "approved") {
+    updateData.approved_by = approvedBy;
+    if (recommendations) {
+      updateData.recommendations = recommendations;
+    }
+  }
+
+  // في حالة الرفض: تسجيل reject_by و reject_reason فقط
+  if (status === "rejected") {
+    updateData.reject_by = approvedBy;
+    if (rejectReason) {
+      updateData.reject_reason = rejectReason;
+    }
   }
 
   const updated = await Assessment.findByIdAndUpdate(id, updateData, {
     new: true,
     runValidators: true,
-  }).populate("project officer approved_by");
+  }).populate("project officer approved_by reject_by");
 
   if (!updated) throw new ApiError(404, "Assessment not found");
   return updated;
 };
 
 const approveAssessment = async (id, approvedBy, recommendations) => {
-  return setStatus(id, "approved", approvedBy, recommendations);
+  return setStatus(id, "approved", approvedBy, recommendations, null);
 };
 
-const rejectAssessment = async (id, approvedBy) => {
-  return setStatus(id, "rejected", approvedBy, null);
+const rejectAssessment = async (id, rejectBy, rejectReason = null) => {
+  return setStatus(id, "rejected", rejectBy, null, rejectReason);
 };
 
 module.exports = {

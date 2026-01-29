@@ -8,6 +8,7 @@ const {
   addConsultationSchema,
   addScoresSchema,
   approveAssessmentSchema,
+  rejectAssessmentSchema,
 } = require("../validators/assessment.validator");
 const { auth, requireRole } = require("../middlewares/auth");
 
@@ -68,6 +69,7 @@ router.patch(
   "/:id/reject",
   auth,
   requireRole("environmental_specialist", "program_manager"),
+  validate(rejectAssessmentSchema),
   controller.reject
 );
 

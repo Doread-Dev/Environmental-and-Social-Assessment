@@ -48,6 +48,10 @@ const approveAssessmentSchema = Joi.object({
   recommendations: Joi.string().allow("", null).optional(),
 });
 
+const rejectAssessmentSchema = Joi.object({
+  reject_reason: Joi.string().allow("", null).optional(),
+});
+
 module.exports = {
   createAssessmentSchema,
   updateAssessmentSchema,
@@ -55,4 +59,5 @@ module.exports = {
   addConsultationSchema,
   addScoresSchema,
   approveAssessmentSchema,
+  rejectAssessmentSchema,
 };

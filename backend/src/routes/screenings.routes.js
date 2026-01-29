@@ -5,6 +5,7 @@ const {
   createScreeningSchema,
   updateScreeningSchema,
   approveScreeningSchema,
+  rejectScreeningSchema,
 } = require("../validators/screening.validator");
 const { auth, requireRole } = require("../middlewares/auth");
 
@@ -38,6 +39,7 @@ router.patch(
   "/:id/reject",
   auth,
   requireRole("environmental_specialist", "program_manager"),
+  validate(rejectScreeningSchema),
   controller.reject
 );
 

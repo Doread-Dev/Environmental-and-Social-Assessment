@@ -33,13 +33,14 @@ const assessmentSchema = new mongoose.Schema(
       type: String,
       enum: ["negligible", "low", "medium", "high", "not_applicable"],
     },
-    is_complete: { type: Boolean, default: false },
 
     potential_negative_impact: { type: String },
     potential_positive_impact: { type: String },
 
     approved_by: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     recommendations: { type: String },
+    reject_reason: { type: String },
+    reject_by: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     status: {
       type: String,
       enum: ["draft", "submitted", "approved", "rejected"],

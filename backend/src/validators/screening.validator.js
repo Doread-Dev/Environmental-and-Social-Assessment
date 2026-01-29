@@ -21,9 +21,14 @@ const approveScreeningSchema = Joi.object({
   recommendations: Joi.string().allow("", null).optional(),
 });
 
+const rejectScreeningSchema = Joi.object({
+  reject_reason: Joi.string().allow("", null).optional(),
+});
+
 module.exports = {
   createScreeningSchema,
   updateScreeningSchema,
   approveScreeningSchema,
+  rejectScreeningSchema,
 };
 

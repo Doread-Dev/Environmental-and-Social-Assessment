@@ -38,7 +38,12 @@ exports.approve = asyncHandler(async (req, res) => {
 });
 
 exports.reject = asyncHandler(async (req, res) => {
-  const approvedBy = req.user._id;
-  const data = await service.rejectScreening(req.params.id, approvedBy);
+  const { reject_reason } = req.body || {};
+  const rejectBy = req.user._id;
+  const data = await service.rejectScreening(
+    req.params.id,
+    rejectBy,
+    reject_reason
+  );
   res.json({ success: true, data });
 });

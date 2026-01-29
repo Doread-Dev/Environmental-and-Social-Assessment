@@ -377,6 +377,8 @@ Lookups: User (for responsible in SEMP_Action)
 | potential_positive | string                | ERD       |
 | approved_by        | ObjectId (FK -> User) | ERD       |
 | recommendations    | string                | ERD       |
+| reject_reason      | string                | **إضافة** |
+| reject_by          | ObjectId (FK -> User) | **إضافة** |
 | screening_date     | date                  | **إضافة** |
 | status             | enum                  | **إضافة** |
 | created_at         | date                  | **إضافة** |
@@ -434,7 +436,7 @@ Lookups: User (for responsible in SEMP_Action)
 enum: ["negligible", "low", "medium", "high", "not_applicable"];
 ```
 
-#### حساب Total Project Score
+#### حساب Total Project Score و Total Project Impact
 
 ```javascript
 // حساب عدد كل مستوى من AssessmentImpactScore
@@ -452,49 +454,35 @@ scores.forEach((score) => {
   }
 });
 
-// تحديد total_project_impact بناءً على أعلى عدد
-// أولوية: high > medium > low > negligible
-// not_applicable لا يُؤخذ بالحسبان إلا إذا كانت كل المستويات الأخرى = 0
-let maxLevel = null;
-let maxCount = -1;
+// تخزين النتيجة في Assessment.total_project_score
+assessment.total_project_score = scoreCount;
 
-const levelsToCheck = ["negligible", "low", "medium", "high"];
-levelsToCheck.forEach((level) => {
-  if (scoreCount[level] > maxCount) {
-    maxCount = scoreCount[level];
-    maxLevel = level;
-  }
-});
+// اختيار total_project_impact حسب أولوية الفئة (وليس عدد النقاط)
+// أولوية: high > medium > low > negligible > not_applicable
+const priorityLevels = ["high", "medium", "low", "negligible", "not_applicable"];
 
-// إذا كانت كل المستويات = 0، استخدم not_applicable
-if (maxCount === 0 && scoreCount.not_applicable > 0) {
-  maxLevel = "not_applicable";
-} else if (maxCount === 0) {
-  // إذا كانت كل المستويات = 0 و not_applicable = 0، استخدم negligible كقيمة افتراضية
-  maxLevel = "negligible";
-}
+let impactLevel = null;
 
-// في حالة التعادل، اختر الأعلى حسب الأولوية
-if (maxCount > 0) {
-  const priority = { high: 4, medium: 3, low: 2, negligible: 1 };
-  let highestPriority = null;
-  let highestPriorityValue = -1;
-
-  levelsToCheck.forEach((level) => {
-    if (
-      scoreCount[level] === maxCount &&
-      priority[level] > highestPriorityValue
-    ) {
-      highestPriorityValue = priority[level];
-      highestPriority = level;
-    }
-  });
-
-  if (highestPriority) {
-    maxLevel = highestPriority;
+for (const level of priorityLevels) {
+  if (scoreCount[level] > 0) {
+    impactLevel = level;
+    break;
   }
 }
+
+// إذا لم يوجد أي مستوى له قيمة > 0 (حالة استثنائية)
+if (!impactLevel) {
+  impactLevel = "negligible"; // قيمة افتراضية
+}
+
+assessment.total_project_impact = impactLevel;
 ```
+
+**توضيح نصي:**
+- يتم تحديد `total_project_impact` بناءً على **وجود** نقاط في مستوى معيّن، وليس على عدد النقاط:
+  - إذا وُجد أي سؤال بمستوى `high`، يعتبر المشروع High impact، حتى لو كانت بقية الأسئلة `low` أو `negligible` بعدد أكبر.
+  - إذا لم يوجد High لكن يوجد Medium، تكون النتيجة Medium، وهكذا.
+  - `not_applicable` لا يُستخدم لتقليل مستوى التأثير، بل يُستخدم فقط إذا لم تُسجّل أي مستويات أخرى.
 
 ---
 
@@ -820,6 +808,8 @@ const screeningSchema = new mongoose.Schema(
     potential_positive: { type: String },
     approved_by: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     recommendations: { type: String },
+    reject_reason: { type: String },
+    reject_by: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     screening_date: { type: Date, default: Date.now },
     status: {
       type: String,
@@ -871,7 +861,6 @@ const assessmentSchema = new mongoose.Schema(
       type: String,
       enum: ["negligible", "low", "medium", "high", "not_applicable"],
     },
-    is_complete: { type: Boolean, default: false },
 
     potential_negative_impact: { type: String },
     potential_positive_impact: { type: String },

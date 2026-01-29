@@ -153,10 +153,10 @@
 
 - نفس أدوار POST.
 
-### PATCH `/api/v1/screenings/:id/approve` | `/reject`
+### PATCH `/api/v1/screenings/:id/approve`
 
 - هيدر: Authorization (environmental_specialist / program_manager).
-- جسم (لـ approve فقط، اختياري):
+- جسم (اختياري):
 
 ```json
 {
@@ -164,7 +164,21 @@
 }
 ```
 
-- ملاحظة: في حالة approve، يمكن إرسال recommendations. في حالة reject، لا body مطلوب.
+### PATCH `/api/v1/screenings/:id/reject`
+
+- هيدر: Authorization (environmental_specialist / program_manager).
+- جسم (اختياري):
+
+```json
+{
+  "reject_reason": "سبب الرفض - معلومات غير كافية"
+}
+```
+
+**ملاحظات**:
+- `reject_reason` اختياري (يمكن إرسال body فارغ)
+- `reject_by` يتم تعبئته تلقائياً من المستخدم الحالي (`req.user._id`)
+- في حالة الرفض، يتم حفظ `status = "rejected"` مع `reject_by` و `reject_reason` (إن وُجد)
 
 ---
 
@@ -213,12 +227,34 @@
 ### PATCH `/api/v1/assessments/:id/calculate`
 
 - هيدر: Authorization (environmental_specialist / program_manager).
-- لا جسم مطلوب؛ يحسب total و impact level.
+- لا جسم مطلوب؛ يحسب عدد النتائج لكل مستوى (`total_project_score`) ويحدد مستوى التأثير الكلي (`total_project_impact`) حسب أولوية الفئات.
+  - المنطق:
+    - يتم عدّ عدد الإجابات في كل مستوى (negligible, low, medium, high, not_applicable).
+    - يتم اختيار `total_project_impact` حسب أولوية المستويات (بغضّ النظر عن عدد النقاط):
+      - إذا وُجد أي سؤال بمستوى `high` → النتيجة = `high`
+      - وإلا إذا وُجد `medium` → النتيجة = `medium`
+      - وإلا إذا وُجد `low` → النتيجة = `low`
+      - وإلا إذا وُجد `negligible` → النتيجة = `negligible`
+      - وإلا إذا وُجد فقط `not_applicable` → النتيجة = `not_applicable`
+  - مثال ناتج مختصر:
 
-### PATCH `/api/v1/assessments/:id/approve` | `/reject`
+```json
+{
+  "total_project_score": {
+    "negligible": 50,
+    "low": 40,
+    "medium": 20,
+    "high": 5,
+    "not_applicable": 70
+  },
+  "total_project_impact": "high"
+}
+```
+
+### PATCH `/api/v1/assessments/:id/approve` 
 
 - هيدر: Authorization (environmental_specialist / program_manager).
-- جسم (لـ approve فقط، اختياري):
+- جسم (لـ approve اختياري):
 
 ```json
 {
@@ -226,7 +262,23 @@
 }
 ```
 
-- ملاحظة: في حالة approve، يمكن إرسال recommendations. في حالة reject، لا body مطلوب.
+- ملاحظة: في حالة approve، يمكن إرسال recommendations.
+
+### PATCH `/api/v1/assessments/:id/reject`
+
+- هيدر: Authorization (environmental_specialist / program_manager).
+- جسم (اختياري):
+
+```json
+{
+  "reject_reason": "سبب الرفض - معلومات غير كافية"
+}
+```
+
+**ملاحظات**:
+- `reject_reason` اختياري (يمكن إرسال body فارغ)
+- `reject_by` يتم تعبئته تلقائياً من المستخدم الحالي (`req.user._id`)
+- في حالة الرفض، يتم حفظ `status = "rejected"` مع `reject_by` و `reject_reason` (إن وُجد)
 
 ### GET `/api/v1/assessments` | `/:id` | `/project/:projectId`
 

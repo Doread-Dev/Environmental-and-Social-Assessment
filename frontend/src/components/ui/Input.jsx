@@ -129,7 +129,7 @@ const Input = forwardRef(
                 ? 'border-error focus:border-error focus:ring-error/20'
                 : 'border-input-border dark:border-input-border-dark',
               // Disabled state
-              disabled && 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-900',
+              disabled && 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-white/5',
               inputClassName
             )}
             {...props}

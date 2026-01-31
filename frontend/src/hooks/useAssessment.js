@@ -11,6 +11,7 @@ import {
   getImpactScoresByAssessmentId,
   createEmptyAssessment
 } from '@/data'
+import { calculateTotalScore, calculateTotalImpact } from '@/utils/impactCalculations'
 
 /**
  * Hook لإدارة حالة التقييم
@@ -146,7 +147,7 @@ export function useAssessment(projectId) {
 
   /**
    * حفظ نتائج التأثير كمسودة (Draft)
-   * يحفظ النتائج بدون تعيين is_complete = true
+   * يحفظ النتائج بدون تغيير الحالة
    */
   const saveImpactScoresDraft = useCallback(async (scores, negativeImpact, positiveImpact) => {
     setIsSaving(true)
@@ -164,7 +165,6 @@ export function useAssessment(projectId) {
         total_project_impact: totalImpact,
         potential_negative_impact: negativeImpact,
         potential_positive_impact: positiveImpact,
-        is_complete: false, // لا يتم تعيين is_complete = true في المسودة
         updatedAt: new Date().toISOString()
       }))
       return { success: true }
@@ -196,7 +196,6 @@ export function useAssessment(projectId) {
         total_project_impact: totalImpact,
         potential_negative_impact: negativeImpact,
         potential_positive_impact: positiveImpact,
-        is_complete: true,
         updatedAt: new Date().toISOString()
       }))
       return { success: true }
@@ -255,14 +254,18 @@ export function useAssessment(projectId) {
   /**
    * رفض التقييم
    */
-  const rejectAssessment = useCallback(async (reason) => {
+  const rejectAssessment = useCallback(async (rejectReason) => {
     setIsSaving(true)
     try {
+      // Simulate API call
+      // في الواقع، سيتم إرسال: { reject_reason: rejectReason }
+      // والباك اند سيحفظ reject_by تلقائياً من req.user._id
       await new Promise(resolve => setTimeout(resolve, 500))
       setAssessment(prev => ({
         ...prev,
         status: 'rejected',
-        recommendations: reason,
+        reject_reason: rejectReason || null,
+        reject_by: 'current_user_id', // سيتم استبداله بـ AuthContext
         updatedAt: new Date().toISOString()
       }))
       return { success: true }
@@ -294,59 +297,3 @@ export function useAssessment(projectId) {
   }
 }
 
-/**
- * حساب النتيجة الإجمالية
- */
-function calculateTotalScore(scores) {
-  const total = {
-    negligible: 0,
-    low: 0,
-    medium: 0,
-    high: 0,
-    not_applicable: 0
-  }
-
-  scores.forEach(score => {
-    if (score.level && total[score.level] !== undefined) {
-      total[score.level]++
-    }
-  })
-
-  return total
-}
-
-/**
- * حساب التأثير الإجمالي
- * ⚠️ الخوارزمية متوافقة مع backend/documents/Overview.md
- * 
- * القاعدة: التأثير الإجمالي = المستوى الذي له أعلى عدد
- * في حالة التعادل: الأولوية high > medium > low > negligible
- * not_applicable: فقط إذا كانت كل المستويات الأخرى = 0
- */
-function calculateTotalImpact(totalScore) {
-  // المستويات المرتبة حسب الأولوية (من الأعلى إلى الأدنى)
-  const levelsToCheck = ['high', 'medium', 'low', 'negligible']
-  
-  // البحث عن أعلى عدد
-  let maxCount = -1
-  levelsToCheck.forEach(level => {
-    if (totalScore[level] > maxCount) {
-      maxCount = totalScore[level]
-    }
-  })
-  
-  // إذا كانت كل المستويات = 0
-  if (maxCount === 0) {
-    return totalScore.not_applicable > 0 ? 'not_applicable' : 'negligible'
-  }
-  
-  // في حالة التعادل، اختر الأعلى حسب الأولوية (high > medium > low > negligible)
-  // نبحث بالترتيب من high إلى negligible ونأخذ أول مستوى له نفس maxCount
-  for (const level of levelsToCheck) {
-    if (totalScore[level] === maxCount) {
-      return level
-    }
-  }
-  
-  return 'negligible'
-}

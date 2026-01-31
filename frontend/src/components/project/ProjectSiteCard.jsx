@@ -34,7 +34,7 @@ function ProjectSiteCard({
   return (
     <div
       className={cn(
-        'bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-gray-800 overflow-hidden flex flex-col',
+        'bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden flex flex-col',
         className
       )}
       {...props}

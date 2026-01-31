@@ -1,6 +1,7 @@
 /**
  * AssessmentApprovalSection Component
  * قسم الموافقة على التقييم
+ * مع دعم reject_reason workflow
  */
 
 import { useState } from 'react'
@@ -10,10 +11,13 @@ import { Button, Textarea, LoadingSpinner } from '@/components/ui'
  * @param {Object} props
  * @param {string} props.approverName - اسم المعتمد
  * @param {string} props.approverPosition - منصب المعتمد
+ * @param {string} props.rejectedBy - اسم من قام بالرفض
+ * @param {string} props.rejectedByPosition - منصب من قام بالرفض
  * @param {string} props.recommendations - التوصيات
+ * @param {string} props.rejectReason - سبب الرفض
  * @param {Function} props.onRecommendationsChange - callback للتوصيات
  * @param {Function} props.onApprove - callback للموافقة
- * @param {Function} props.onReject - callback للرفض
+ * @param {Function} props.onReject - callback للرفض (يستقبل reject_reason)
  * @param {Function} props.onEdit - callback للتعديل
  * @param {string} props.status - حالة التقييم
  * @param {boolean} props.canApprove - هل يمكن الموافقة
@@ -21,7 +25,10 @@ import { Button, Textarea, LoadingSpinner } from '@/components/ui'
 export default function AssessmentApprovalSection({
   approverName,
   approverPosition,
+  rejectedBy,
+  rejectedByPosition,
   recommendations = '',
+  rejectReason,
   onRecommendationsChange,
   onApprove,
   onReject,
@@ -30,16 +37,26 @@ export default function AssessmentApprovalSection({
   canApprove = false,
   isSaving = false
 }) {
-  const [rejectionReason, setRejectionReason] = useState('')
+  const [showRejectInput, setShowRejectInput] = useState(false)
+  const [rejectReasonInput, setRejectReasonInput] = useState('')
 
   const handleApprove = () => {
     onApprove?.(recommendations)
   }
 
-  const handleReject = () => {
-    if (rejectionReason.trim()) {
-      onReject?.(rejectionReason)
-    }
+  const handleRejectClick = () => {
+    setShowRejectInput(true)
+  }
+
+  const handleConfirmReject = () => {
+    onReject?.(rejectReasonInput)
+    setShowRejectInput(false)
+    setRejectReasonInput('')
+  }
+
+  const handleCancelReject = () => {
+    setShowRejectInput(false)
+    setRejectReasonInput('')
   }
 
   if (status === 'approved') {
@@ -75,6 +92,7 @@ export default function AssessmentApprovalSection({
     )
   }
 
+
   if (status === 'rejected') {
     return (
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
@@ -86,13 +104,19 @@ export default function AssessmentApprovalSection({
             <h3 className="text-lg font-bold text-red-800 dark:text-red-300 mb-2">
               Assessment Rejected
             </h3>
-            {recommendations && (
+            {rejectedBy && (
+              <p className="text-sm text-red-700 dark:text-red-400">
+                Rejected by: {rejectedBy}
+                {rejectedByPosition && ` (${rejectedByPosition})`}
+              </p>
+            )}
+            {rejectReason && (
               <div className="mt-4">
                 <p className="text-sm font-semibold text-red-800 dark:text-red-300 mb-2">
                   Reason for Rejection:
                 </p>
                 <p className="text-sm text-red-700 dark:text-red-400 whitespace-pre-wrap">
-                  {recommendations}
+                  {rejectReason}
                 </p>
               </div>
             )}
@@ -109,74 +133,103 @@ export default function AssessmentApprovalSection({
 
   if (status === 'submitted' && canApprove) {
     return (
-      <div className="bg-white dark:bg-surface-dark rounded-xl border border-gray-100 dark:border-gray-800 p-6">
+      <div className="bg-white dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark p-6">
         <h3 className="text-lg font-bold text-text-main dark:text-white mb-4">
           Review & Approval
         </h3>
 
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-semibold text-text-main dark:text-white mb-2">
-              Recommendations (Optional)
-            </label>
-            <Textarea
-              value={recommendations}
-              onChange={(e) => onRecommendationsChange?.(e.target.value)}
-              placeholder="Add any recommendations or notes..."
-              rows={4}
-            />
-          </div>
-
-          <div className="flex gap-4">
-            <Button
-              onClick={handleApprove}
-              disabled={isSaving}
-              className="flex-1"
-            >
-              {isSaving ? (
-                <>
-                  <LoadingSpinner size="sm" />
-                  Approving...
-                </>
-              ) : (
-                <>
-                  <span className="material-symbols-outlined text-sm">check_circle</span>
-                  Approve Assessment
-                </>
-              )}
-            </Button>
-            <Button
-              onClick={handleReject}
-              variant="danger"
-              disabled={isSaving || !rejectionReason.trim()}
-              className="flex-1"
-            >
-              {isSaving ? (
-                <>
-                  <LoadingSpinner size="sm" />
-                  Rejecting...
-                </>
-              ) : (
-                <>
-                  <span className="material-symbols-outlined text-sm">cancel</span>
-                  Reject Assessment
-                </>
-              )}
-            </Button>
-          </div>
-
-          {onReject && (
+          {/* Recommendations for Approval */}
+          {!showRejectInput && (
             <div>
-              <label className="block text-sm font-semibold text-red-600 dark:text-red-400 mb-2">
-                Reason for Rejection (Required)
+              <label className="block text-sm font-semibold text-text-main dark:text-white mb-2">
+                Recommendations (Optional)
               </label>
               <Textarea
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="Please provide a reason for rejection..."
-                rows={3}
-                className="border-red-300 focus:border-red-500 focus:ring-red-500"
+                value={recommendations}
+                onChange={(e) => onRecommendationsChange?.(e.target.value)}
+                placeholder="Add any recommendations or notes..."
+                rows={4}
               />
+            </div>
+          )}
+
+          {/* Reject Reason Input (shown when rejecting) */}
+          {showRejectInput && (
+            <div className="space-y-3 p-4 bg-red-50 dark:bg-red-900/10 rounded-lg border border-red-200 dark:border-red-800">
+              <div>
+                <label className="block text-sm font-semibold text-red-600 dark:text-red-400 mb-2">
+                  Reason for Rejection
+                </label>
+                <Textarea
+                  value={rejectReasonInput}
+                  onChange={(e) => setRejectReasonInput(e.target.value)}
+                  placeholder="Please provide a reason for rejecting this assessment..."
+                  rows={3}
+                  helperText="Explain why this assessment is being rejected (optional but recommended)"
+                />
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleCancelReject}
+                  variant="outline"
+                  disabled={isSaving}
+                  className="flex-1"
+                >
+                  <span className="material-symbols-outlined text-sm">close</span>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleConfirmReject}
+                  variant="danger"
+                  disabled={isSaving}
+                  className="flex-1"
+                >
+                  {isSaving ? (
+                    <>
+                      <LoadingSpinner size="sm" />
+                      Rejecting...
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-sm">check</span>
+                      Confirm Rejection
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          {!showRejectInput && (
+            <div className="flex gap-4">
+              <Button
+                onClick={handleApprove}
+                disabled={isSaving}
+                className="flex-1"
+              >
+                {isSaving ? (
+                  <>
+                    <LoadingSpinner size="sm" />
+                    Approving...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-sm">check_circle</span>
+                    Approve Assessment
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={handleRejectClick}
+                variant="danger"
+                disabled={isSaving}
+                className="flex-1"
+              >
+                <span className="material-symbols-outlined text-sm">cancel</span>
+                Reject Assessment
+              </Button>
             </div>
           )}
         </div>
@@ -186,3 +239,4 @@ export default function AssessmentApprovalSection({
 
   return null
 }
+

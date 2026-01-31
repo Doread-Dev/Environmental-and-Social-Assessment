@@ -5,6 +5,7 @@
 
 import { useState, useMemo } from 'react'
 import { cn } from '@/utils/cn'
+import { calculateTotalImpact } from '@/utils/impactCalculations'
 import { IMPACT_LEVELS, IMPACT_LEVEL_CONFIG } from '@/data/impactQuestions'
 import ImpactScoreRow from './ImpactScoreRow'
 
@@ -35,41 +36,6 @@ function calculateCategoryScore(scores, categoryQuestions) {
   return score
 }
 
-/**
- * الحصول على أعلى مستوى في الفئة
- * ⚠️ الخوارزمية متوافقة مع backend/documents/Overview.md
- * 
- * القاعدة: المستوى الذي له أعلى عدد هو التأثير الإجمالي
- * في حالة التعادل: الأولوية high > medium > low > negligible
- * not_applicable: فقط إذا كانت كل المستويات الأخرى = 0
- */
-function getCategoryHighestLevel(score) {
-  // المستويات المرتبة حسب الأولوية (من الأعلى إلى الأدنى)
-  const levelsToCheck = ['high', 'medium', 'low', 'negligible']
-  
-  // البحث عن أعلى عدد
-  let maxCount = -1
-  levelsToCheck.forEach((level) => {
-    if (score[level] > maxCount) {
-      maxCount = score[level]
-    }
-  })
-  
-  // إذا كانت كل المستويات = 0
-  if (maxCount === 0) {
-    return score.not_applicable > 0 ? 'not_applicable' : 'negligible'
-  }
-  
-  // في حالة التعادل، اختر الأعلى حسب الأولوية (high > medium > low > negligible)
-  // نبحث بالترتيب من high إلى negligible ونأخذ أول مستوى له نفس maxCount
-  for (const level of levelsToCheck) {
-    if (score[level] === maxCount) {
-      return level
-    }
-  }
-  
-  return 'negligible'
-}
 
 /**
  * @param {Object} props
@@ -104,7 +70,7 @@ export default function ImpactCategoryAccordion({
     return calculateCategoryScore(scores, category.questions)
   }, [scores, category])
 
-  const highestLevel = getCategoryHighestLevel(categoryScore)
+  const highestLevel = calculateTotalImpact(categoryScore)
   const highestConfig = highestLevel
     ? IMPACT_LEVEL_CONFIG[highestLevel]
     : null
@@ -118,12 +84,12 @@ export default function ImpactCategoryAccordion({
 
   return (
     <details
-      className="group bg-white dark:bg-slate-900 rounded-xl border border-[#dbe6df] dark:border-slate-700 shadow-sm overflow-hidden"
+      className="group bg-white dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark shadow-sm overflow-hidden"
       open={isOpen}
       onToggle={(e) => setIsOpen(e.target.open)}
     >
       {/* Summary Header */}
-      <summary className="flex cursor-pointer items-center justify-between gap-4 px-6 py-4 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors select-none sticky top-0 z-10 border-b border-transparent group-open:border-[#dbe6df] dark:group-open:border-slate-700">
+      <summary className="flex cursor-pointer items-center justify-between gap-4 px-6 py-4 bg-white dark:bg-surface-dark hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors select-none sticky top-0 z-10 border-b border-transparent group-open:border-border-default dark:group-open:border-border-dark">
         <div className="flex items-center gap-4">
           <div
             className={cn(
@@ -137,7 +103,7 @@ export default function ImpactCategoryAccordion({
               {category.icon}
             </span>
           </div>
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+          <h3 className="text-lg font-bold text-text-main dark:text-white">
             {category.code}. {category.name}
           </h3>
         </div>
@@ -147,12 +113,12 @@ export default function ImpactCategoryAccordion({
               'text-xs font-medium px-2 py-1 rounded border',
               highestConfig
                 ? `${highestConfig.bgClass} ${highestConfig.textClass} border-current/20`
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                : 'bg-gray-100 dark:bg-white/5 text-text-secondary dark:text-white border-border-default dark:border-border-dark'
             )}
           >
             {scoreText}
           </span>
-          <span className="material-symbols-outlined text-slate-400 transition-transform duration-300 group-open:rotate-180">
+          <span className="material-symbols-outlined text-text-secondary transition-transform duration-300 group-open:rotate-180">
             expand_more
           </span>
         </div>
@@ -161,20 +127,20 @@ export default function ImpactCategoryAccordion({
       {/* Content */}
       <div className="p-0 overflow-x-auto">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white">
+          <thead className="bg-gray-50/50 dark:bg-white/5 text-text-main dark:text-white">
             <tr>
-              <th className="py-3 px-6 text-xs font-semibold uppercase tracking-wider w-[35%] border-b border-[#dbe6df] dark:border-slate-700">
+              <th className="py-3 px-6 text-xs font-semibold uppercase tracking-wider w-[35%] border-b border-border-default dark:border-border-dark">
                 Assessment Question
               </th>
-              <th className="py-3 px-6 text-xs font-semibold uppercase tracking-wider text-center w-[15%] border-b border-[#dbe6df] dark:border-slate-700">
+              <th className="py-3 px-6 text-xs font-semibold uppercase tracking-wider text-center w-[15%] border-b border-border-default dark:border-border-dark">
                 Impact Rating
               </th>
-              <th className="py-3 px-6 text-xs font-semibold uppercase tracking-wider w-[50%] border-b border-[#dbe6df] dark:border-slate-700">
+              <th className="py-3 px-6 text-xs font-semibold uppercase tracking-wider w-[50%] border-b border-border-default dark:border-border-dark">
                 Notes / Mitigation
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#dbe6df] dark:divide-slate-700">
+          <tbody className="divide-y divide-border-default dark:divide-border-dark">
             {category?.questions && Array.isArray(category.questions) ? (
               category.questions.map((question) => {
                 const questionScore = scores.find((s) => s.question === question.id)
@@ -198,11 +164,11 @@ export default function ImpactCategoryAccordion({
             )}
           </tbody>
           {/* Footer with Category Score */}
-          <tfoot className="bg-slate-50 dark:bg-slate-800 border-t border-[#dbe6df] dark:border-slate-700">
+          <tfoot className="bg-gray-50/50 dark:bg-white/5 border-t border-border-default dark:border-border-dark">
             <tr>
               <td className="py-3 px-6" colSpan="3">
                 <div className="flex items-center justify-end gap-6 text-sm">
-                  <span className="text-slate-500 dark:text-slate-400">
+                  <span className="text-text-secondary dark:text-gray-400">
                     Category Score:
                   </span>
                   <div className="flex gap-4">
@@ -214,7 +180,7 @@ export default function ImpactCategoryAccordion({
                           key={level}
                           className={cn(
                             'flex items-center gap-2 font-medium',
-                            count > 0 ? config.textClass : 'text-slate-500 dark:text-slate-400',
+                            count > 0 ? config.textClass : 'text-text-secondary dark:text-gray-400',
                             count > 0 && 'font-bold'
                           )}
                         >

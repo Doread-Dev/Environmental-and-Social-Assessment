@@ -30,7 +30,7 @@ export default function MetadataFormSection({
       {/* Project Activity */}
       <div className="flex flex-col gap-2">
         <label className="text-text-main dark:text-white text-sm font-semibold">
-          The project (Activity) component being assessed
+          The project (Activity) component being assessed <span className="text-red-500">*</span>
         </label>
         <Textarea
           value={formData.project_activity || ''}
@@ -45,7 +45,7 @@ export default function MetadataFormSection({
       {/* Description */}
       <div className="flex flex-col gap-2">
         <label className="text-text-main dark:text-white text-sm font-semibold">
-          Brief description of the project (activities) being carried out
+          Brief description of the project (activities) being carried out <span className="text-red-500">*</span>
         </label>
         <p className="text-text-secondary text-xs mb-1">
           Detail the operational activities, construction phases, and expected outputs.
@@ -63,7 +63,7 @@ export default function MetadataFormSection({
       {/* Environmental Setting */}
       <div className="flex flex-col gap-2">
         <label className="text-text-main dark:text-white text-sm font-semibold">
-          Briefly describe the environmental setting of the project (activities)
+          Briefly describe the environmental setting of the project (activities) <span className="text-red-500">*</span>
         </label>
         <p className="text-text-secondary text-xs mb-1">
           Include physical, biological, and socio-economic characteristics of the site.
@@ -82,7 +82,7 @@ export default function MetadataFormSection({
       <div className="flex flex-col gap-2">
         <label className="text-text-main dark:text-white text-sm font-semibold">
           The host country's legal requirements related to the environment or natural resources that
-          apply to the project and how they will be met
+          apply to the project and how they will be met <span className="text-red-500">*</span>
         </label>
         <p className="text-text-secondary text-xs mb-1">
           List relevant laws and how compliance will be achieved.

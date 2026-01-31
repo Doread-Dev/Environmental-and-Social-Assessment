@@ -9,29 +9,18 @@
  * - approved → ScreeningSummaryPage (مع Print button)
  */
 
-import { useMemo } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
-import { useProjectContext, useScreening } from '@/hooks'
-import { mockProjects } from '@/data'
+import { useScreening } from '@/hooks'
 import ScreeningFormPage from './ScreeningFormPage'
 import ScreeningSummaryPage from './ScreeningSummaryPage'
 
 function ScreeningRouter() {
   const { projectId } = useParams()
   const [searchParams] = useSearchParams()
-  const { project: contextProject } = useProjectContext()
   const { screening, isLoading } = useScreening(projectId)
 
   // Check if we're in edit mode (from rejected status)
   const isEditMode = searchParams.get('edit') === 'true'
-
-  // Get project data
-  const project = useMemo(() => {
-    if (contextProject && contextProject._id) {
-      return mockProjects.find((p) => p._id === contextProject._id) || contextProject
-    }
-    return mockProjects.find((p) => p._id === projectId) || contextProject
-  }, [projectId, contextProject])
 
   // Show loading state
   if (isLoading) {
@@ -54,7 +43,7 @@ function ScreeningRouter() {
   }
 
   // If edit mode is requested (from rejected status) → show Form
-  if (isEditMode && status === 'rejected') {
+  if (isEditMode && status === 'rejected' ) {
     return <ScreeningFormPage />
   }
 

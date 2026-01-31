@@ -32,9 +32,9 @@ export default function AssessmentReviewCard({
   const status = statusConfig[assessment?.status] || statusConfig.draft
 
   return (
-    <div className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+    <div className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
       {/* Header */}
-      <div className="bg-gray-50 dark:bg-white/5 border-b border-gray-100 dark:border-gray-800 p-6">
+      <div className="bg-gray-50/50 dark:bg-white/5 border-b border-border-default dark:border-border-dark p-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-text-main dark:text-white">
             Assessment Review
@@ -139,7 +139,7 @@ export default function AssessmentReviewCard({
                     key={level}
                     className={cn(
                       'p-3 rounded-lg text-center',
-                      config?.bgClass || 'bg-gray-100 dark:bg-gray-800'
+                      config?.bgClass || 'bg-gray-100 dark:bg-white/5'
                     )}
                   >
                     <p className={cn('text-2xl font-bold', config?.textClass || 'text-gray-600')}>

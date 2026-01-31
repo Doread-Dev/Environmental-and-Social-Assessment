@@ -33,7 +33,7 @@ function ProjectMetricCard({
   return (
     <div
       className={cn(
-        'bg-white dark:bg-surface-dark p-5 rounded-xl border border-border-default dark:border-gray-800 shadow-sm flex flex-col gap-3',
+        'bg-white dark:bg-surface-dark p-5 rounded-xl border border-border-default dark:border-border-dark shadow-sm flex flex-col gap-3',
         className
       )}
       {...props}

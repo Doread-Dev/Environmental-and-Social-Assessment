@@ -41,7 +41,7 @@ export default function TotalScoreCard({ scores = {} }) {
 
   return (
     <div className="flex-1 flex flex-col gap-4">
-      <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+      <h3 className="text-sm font-bold text-text-secondary dark:text-white uppercase tracking-wider">
         Total Project Score
       </h3>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 h-full">
@@ -61,19 +61,19 @@ export default function TotalScoreCard({ scores = {} }) {
                     ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/30'
                     : item.level === IMPACT_LEVELS.HIGH
                     ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800/30'
-                    : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
-                  : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 opacity-60'
+                    : 'bg-gray-50/50 dark:bg-white/5 border-border-default dark:border-border-dark'
+                  : 'bg-gray-50/50 dark:bg-white/5 border-border-default dark:border-border-dark opacity-60'
               )}
             >
               <span
                 className={cn(
                   'text-2xl font-bold',
-                  isHighlighted && config ? config.textClass : 'text-slate-400'
+                  isHighlighted && config ? config.textClass : 'text-text-secondary'
                 )}
               >
                 {item.count}
               </span>
-              <span className="text-[10px] font-semibold text-slate-400 uppercase mt-1">
+              <span className="text-[10px] font-semibold text-text-secondary uppercase mt-1">
                 {item.label}
               </span>
             </div>

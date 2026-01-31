@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment, useScreening, useProjectContext } from '@/hooks'
 import { MetadataInfoSection, MetadataFormSection } from '@/components/assessment'
-import { Button, LoadingSpinner } from '@/components/ui'
+import { Button, LoadingSpinner, StickyFooter } from '@/components/ui'
 import { currentUser } from '@/data'
 
 /**
@@ -18,12 +18,26 @@ function validateMetadata(data) {
 
   if (!data.project_activity?.trim()) {
     errors.project_activity = 'Project activity is required'
+  } else if (data.project_activity.trim().length < 10) {
+    errors.project_activity = 'Project activity must be at least 10 characters'
   }
 
   if (!data.description?.trim()) {
     errors.description = 'Description is required'
   } else if (data.description.trim().length < 50) {
     errors.description = 'Description must be at least 50 characters'
+  }
+
+  if (!data.environmental_setting?.trim()) {
+    errors.environmental_setting = 'Environmental setting is required'
+  } else if (data.environmental_setting.trim().length < 30) {
+    errors.environmental_setting = 'Environmental setting must be at least 30 characters'
+  }
+
+  if (!data.legal_requirements?.trim()) {
+    errors.legal_requirements = 'Legal requirements are required'
+  } else if (data.legal_requirements.trim().length < 20) {
+    errors.legal_requirements = 'Legal requirements must be at least 20 characters'
   }
 
   return { valid: Object.keys(errors).length === 0, errors }
@@ -59,8 +73,11 @@ export default function AssessmentMetadataPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <LoadingSpinner size="lg" />
+      <div className="flex w-full items-center justify-center py-20">
+        <div className="flex flex-col items-center gap-4">
+          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading metadata...</p>
+        </div>
       </div>
     )
   }
@@ -73,6 +90,12 @@ export default function AssessmentMetadataPage() {
     }
     if (errors.description && newData.description) {
       setErrors((prev) => ({ ...prev, description: null }))
+    }
+    if (errors.environmental_setting && newData.environmental_setting) {
+      setErrors((prev) => ({ ...prev, environmental_setting: null }))
+    }
+    if (errors.legal_requirements && newData.legal_requirements) {
+      setErrors((prev) => ({ ...prev, legal_requirements: null }))
     }
   }
 
@@ -104,7 +127,7 @@ export default function AssessmentMetadataPage() {
       </div>
 
       {/* Form Card */}
-      <div className="bg-white dark:bg-[#1a2e22] rounded-xl shadow-sm border border-border-color dark:border-white/5 overflow-hidden mb-20">
+      <div className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden mb-20">
         {/* Info Section */}
         <MetadataInfoSection
           officer={currentUser}
@@ -122,11 +145,11 @@ export default function AssessmentMetadataPage() {
       </div>
 
       {/* Sticky Footer */}
-      <div className="fixed bottom-0 left-0 right-0 lg:left-[280px] h-20 bg-white dark:bg-surface-dark border-t border-border-default dark:border-gray-700 flex items-center justify-between px-8 z-20">
+      <StickyFooter>
         <button
           onClick={handleBack}
           disabled={isSaving}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border-default dark:border-gray-600 text-text-main dark:text-white font-medium hover:bg-background dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border-default dark:border-border-dark text-text-main dark:text-white font-medium hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span className="material-symbols-outlined text-sm">arrow_back</span>
           Back to Assessment Overview
@@ -148,7 +171,7 @@ export default function AssessmentMetadataPage() {
             </>
           )}
         </button>
-      </div>
+      </StickyFooter>
     </div>
   )
 }

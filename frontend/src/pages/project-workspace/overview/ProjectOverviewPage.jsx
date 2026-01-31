@@ -33,6 +33,7 @@ function getNextAction(workflow) {
     }
   }
 
+  // --- Screening Logic ---
   if (workflow.screening?.status === 'draft' || workflow.screening?.status === 'pending') {
     return {
       tool: 1,
@@ -42,7 +43,16 @@ function getNextAction(workflow) {
     }
   }
 
-  if (workflow.screening?.status === 'needs_action'|| workflow.screening?.status === 'submitted') {
+  if (workflow.screening?.status === 'rejected') {
+    return {
+      tool: 1,
+      path: 'screening',
+      title: 'Revise Screening',
+      description: 'Your screening was rejected. Please review feedback and resubmit.',
+    }
+  }
+
+  if (workflow.screening?.status === 'submitted' || workflow.screening?.status === 'needs_action') {
     return {
       tool: 1,
       path: 'screening',
@@ -51,7 +61,10 @@ function getNextAction(workflow) {
     }
   }
 
-  if (workflow.assessment?.status !== 'approved' && workflow.assessment?.status !== 'completed') {
+  // --- Assessment Logic (after screening is approved) ---
+  const assessmentStatus = workflow.assessment?.status
+
+  if (!assessmentStatus || assessmentStatus === 'pending') {
     return {
       tool: 2,
       path: 'assessment',
@@ -60,6 +73,34 @@ function getNextAction(workflow) {
     }
   }
 
+  if (assessmentStatus === 'draft' || assessmentStatus === 'in_progress') {
+    return {
+      tool: 2,
+      path: 'assessment',
+      title: 'Continue Assessment',
+      description: 'Continue working on the environmental impact assessment.',
+    }
+  }
+
+  if (assessmentStatus === 'rejected') {
+    return {
+      tool: 2,
+      path: 'assessment',
+      title: 'Revise Assessment',
+      description: 'Your assessment was rejected. Please review feedback and resubmit.',
+    }
+  }
+
+  if (assessmentStatus === 'submitted') {
+    return {
+      tool: 2,
+      path: 'assessment',
+      title: 'Review Assessment',
+      description: 'The assessment is pending approval. Review the submitted details.',
+    }
+  }
+
+  // --- SEMP Logic (after assessment is approved) ---
   if (workflow.semp?.status !== 'completed') {
     return {
       tool: 3,
@@ -136,7 +177,7 @@ function ProjectOverviewPage() {
   return (
     <div className="flex flex-col gap-8">
       {/* Project Header Section (includes header + progress timeline) */}
-      <section className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-gray-800 p-6">
+      <section className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark p-6">
         {/* Header Content */}
         <ProjectHeader project={project} onEdit={handleEditProject} />
 

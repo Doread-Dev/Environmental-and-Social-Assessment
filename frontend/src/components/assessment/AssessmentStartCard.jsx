@@ -22,7 +22,7 @@ export default function AssessmentStartCard({
   const statusConfig = {
     not_started: {
       badge: 'Not Started',
-      badgeClass: 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300',
+      badgeClass: 'bg-gray-100 dark:bg-white/5 text-gray-800 dark:text-gray-300',
       title: 'Begin Assessment Process',
       description:
         'Each project requires one comprehensive environmental assessment to evaluate potential impacts. This tool will guide you through identifying risks before management planning can begin.',
@@ -54,12 +54,12 @@ export default function AssessmentStartCard({
   return (
     <div
       className={cn(
-        'bg-white dark:bg-surface-dark rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden relative group',
+        'bg-white dark:bg-surface-dark rounded-2xl border border-border-default dark:border-border-dark shadow-sm overflow-hidden relative group',
         className
       )}
       {...props}
     >
-      <div className="absolute top-0 left-0 w-2 h-full bg-gray-200 dark:bg-gray-700"></div>
+      <div className="absolute top-0 left-0 w-2 h-full bg-border-default dark:bg-border-dark"></div>
       <div className="p-8 lg:p-10 flex flex-col gap-8">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
@@ -77,7 +77,7 @@ export default function AssessmentStartCard({
             </h2>
             <p className="text-text-secondary leading-relaxed max-w-xl">{config.description}</p>
           </div>
-          <div className="hidden sm:flex bg-background-light dark:bg-background-dark p-3 rounded-full shrink-0">
+          <div className="hidden sm:flex bg-gray-50/50 dark:bg-white/5 p-3 rounded-full shrink-0">
             <span className="material-symbols-outlined text-gray-400 text-4xl">
               assignment_add
             </span>
@@ -85,7 +85,7 @@ export default function AssessmentStartCard({
         </div>
 
         {/* Assessment Covers */}
-        <div className="bg-background-light dark:bg-gray-800/50 rounded-xl p-6">
+        <div className="bg-gray-50/50 dark:bg-white/5 rounded-xl p-6">
           <h3 className="text-sm font-semibold text-text-main dark:text-white uppercase tracking-wide mb-4">
             This assessment covers:
           </h3>

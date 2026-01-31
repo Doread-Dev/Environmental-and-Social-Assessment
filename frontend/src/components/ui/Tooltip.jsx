@@ -95,7 +95,7 @@ function Tooltip({ content, position = 'top', delay = 200, className, children }
             className={cn(
               'fixed z-50 pointer-events-none',
               'px-3 py-1.5 rounded-lg',
-              'bg-gray-900 dark:bg-gray-700 text-white',
+              'bg-gray-900 dark:bg-surface-dark text-white',
               'text-sm font-medium shadow-lg',
               'animate-fade-in',
               positionClasses[position],

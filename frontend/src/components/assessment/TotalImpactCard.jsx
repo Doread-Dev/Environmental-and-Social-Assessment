@@ -33,7 +33,7 @@ export default function TotalImpactCard({ impact = 'negligible' }) {
 
   return (
     <div className="w-full lg:w-1/3 flex flex-col gap-4">
-      <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+      <h3 className="text-sm font-bold text-text-secondary dark:text-white uppercase tracking-wider">
         Total Project Impact
       </h3>
       <div

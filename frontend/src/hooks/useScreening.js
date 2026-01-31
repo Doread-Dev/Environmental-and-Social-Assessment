@@ -108,16 +108,19 @@ export function useScreening(projectId) {
 
   // الرفض
   const reject = useCallback(
-    async (reason) => {
+    async (rejectReason) => {
       setIsSaving(true)
       setError(null)
       try {
         // Simulate API call
+        // في الواقع، سيتم إرسال: { reject_reason: rejectReason }
+        // والباك اند سيحفظ reject_by تلقائياً من req.user._id
         await new Promise((resolve) => setTimeout(resolve, 500))
         setScreening((prev) => ({
           ...prev,
           status: 'rejected',
-          recommendations: reason,
+          reject_reason: rejectReason || null,
+          reject_by: 'current_user_id', // سيتم استبداله بـ AuthContext
           updatedAt: new Date().toISOString(),
         }))
         return { success: true }

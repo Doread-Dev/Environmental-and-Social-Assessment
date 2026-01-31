@@ -53,10 +53,27 @@
   --color-info: #3b82f6;
   --color-info-dark: #60a5fa;
 
+  /* Layout Dimensions - Sidebar Width */
+  --sidebar-width: 0px;
+  /* Mobile: no sidebar */
+  --sidebar-width-lg: 280px;
+  /* Desktop (lg): sidebar width */
+  --sidebar-width-xl: 300px;
+  /* XL screens */
+
   /* Font Family */
   --font-display: 'Inter', system-ui, -apple-system, sans-serif;
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
+
+/* Responsive sidebar width */
+@media (min-width: 1024px) {
+  :root {
+    --sidebar-width: 300px;
+  }
+}
+
+
 
 /* ==========================================
    Base Styles

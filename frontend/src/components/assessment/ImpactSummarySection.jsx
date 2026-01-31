@@ -12,19 +12,21 @@ import { Textarea } from '@/components/ui'
  * @param {Function} props.onNegativeChange - callback للسلبية
  * @param {Function} props.onPositiveChange - callback للإيجابية
  * @param {boolean} props.readOnly - وضع القراءة فقط
+ * @param {Object} props.errors - رسائل الخطأ
  */
 export default function ImpactSummarySection({
   negativeImpact = '',
   positiveImpact = '',
   onNegativeChange,
   onPositiveChange,
-  readOnly = false
+  readOnly = false,
+  errors = {}
 }) {
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl border border-[#dbe6df] dark:border-slate-700 shadow-sm p-6 flex flex-col gap-6">
-      <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
-        <span className="material-symbols-outlined text-slate-400">balance</span>
-        <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+    <div className="bg-white dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark shadow-sm p-6 flex flex-col gap-6">
+      <div className="flex items-center gap-2 border-b border-border-default dark:border-border-dark pb-4">
+        <span className="material-symbols-outlined text-text-secondary">balance</span>
+        <h3 className="text-lg font-bold text-text-main dark:text-white">
           Potential Impacts Summary
         </h3>
       </div>
@@ -33,10 +35,10 @@ export default function ImpactSummarySection({
         <div className="flex flex-col gap-2">
           <label className="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400 flex items-center gap-1">
             <span className="material-symbols-outlined text-[16px]">remove_circle</span>
-            Potential Negative Impact
+            Potential Negative Impact {!readOnly && <span className="text-red-500">*</span>}
           </label>
           {readOnly ? (
-            <p className="text-sm text-text-secondary dark:text-gray-400 whitespace-pre-wrap min-h-[120px] p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+            <p className="text-sm text-text-secondary dark:text-gray-400 whitespace-pre-wrap min-h-[120px] p-4 bg-gray-50/50 dark:bg-white/5 rounded-lg">
               {negativeImpact || '-'}
             </p>
           ) : (
@@ -46,6 +48,7 @@ export default function ImpactSummarySection({
               placeholder="Describe the potential negative consequences of the project..."
               rows={5}
               className="min-h-[120px]"
+              error={errors.negativeImpact}
             />
           )}
         </div>
@@ -54,10 +57,10 @@ export default function ImpactSummarySection({
         <div className="flex flex-col gap-2">
           <label className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1">
             <span className="material-symbols-outlined text-[16px]">add_circle</span>
-            Potential Positive Impact
+            Potential Positive Impact {!readOnly && <span className="text-red-500">*</span>}
           </label>
           {readOnly ? (
-            <p className="text-sm text-text-secondary dark:text-gray-400 whitespace-pre-wrap min-h-[120px] p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+            <p className="text-sm text-text-secondary dark:text-gray-400 whitespace-pre-wrap min-h-[120px] p-4 bg-gray-50/50 dark:bg-white/5 rounded-lg">
               {positiveImpact || '-'}
             </p>
           ) : (
@@ -67,6 +70,7 @@ export default function ImpactSummarySection({
               placeholder="Describe the expected positive outcomes and benefits..."
               rows={5}
               className="min-h-[120px]"
+              error={errors.positiveImpact}
             />
           )}
         </div>

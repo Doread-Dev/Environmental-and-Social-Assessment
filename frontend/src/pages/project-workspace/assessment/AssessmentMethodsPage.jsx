@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment } from '@/hooks'
 import { MethodChecklistItem, ConsultationChecklistItem } from '@/components/assessment'
-import { Button, LoadingSpinner } from '@/components/ui'
+import { Button, LoadingSpinner, StickyFooter } from '@/components/ui'
 import { assessmentMethods, consultationMethods } from '@/data'
 
 export default function AssessmentMethodsPage() {
@@ -70,8 +70,11 @@ export default function AssessmentMethodsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <LoadingSpinner size="lg" />
+      <div className="flex w-full items-center justify-center py-20">
+        <div className="flex flex-col items-center gap-4">
+          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading methods...</p>
+        </div>
       </div>
     )
   }
@@ -153,8 +156,8 @@ export default function AssessmentMethodsPage() {
       </div>
 
       {/* Methods Section */}
-      <div className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
-        <div className="p-6 md:p-8 border-b border-gray-100 dark:border-gray-800">
+      <div className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark mb-6">
+        <div className="p-6 md:p-8 border-b border-border-default dark:border-border-dark">
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
               <span className="material-symbols-outlined text-primary">science</span>
@@ -181,8 +184,8 @@ export default function AssessmentMethodsPage() {
       </div>
 
       {/* Consultation Section */}
-      <div className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 mb-20">
-        <div className="p-6 md:p-8 border-b border-gray-100 dark:border-gray-800">
+      <div className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark mb-20">
+        <div className="p-6 md:p-8 border-b border-border-default dark:border-border-dark">
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-lg bg-green-50 dark:bg-green-900/30 flex items-center justify-center">
               <span className="material-symbols-outlined text-primary">groups</span>
@@ -209,11 +212,12 @@ export default function AssessmentMethodsPage() {
       </div>
 
       {/* Sticky Footer */}
-      <div className="fixed bottom-0 left-0 right-0 lg:left-[280px] h-20 bg-white dark:bg-surface-dark border-t border-border-default dark:border-gray-700 flex items-center justify-between px-8 z-20">
+      {/* Sticky Footer */}
+      <StickyFooter>
         <button
           onClick={handleBack}
           disabled={isSaving}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border-default dark:border-gray-600 text-text-main dark:text-white font-medium hover:bg-background dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border-default dark:border-border-dark text-text-main dark:text-white font-medium hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span className="material-symbols-outlined text-sm">arrow_back</span>
           Back
@@ -235,7 +239,7 @@ export default function AssessmentMethodsPage() {
             </>
           )}
         </button>
-      </div>
+      </StickyFooter>
     </div>
   )
 }

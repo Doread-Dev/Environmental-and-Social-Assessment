@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Outlet, useParams, useLocation } from 'react-router-dom'
 import { cn } from '@/utils'
-import { mockProjects, getScreeningByProjectId } from '@/data'
+import { mockProjects, getScreeningByProjectId, getAssessmentByProjectId } from '@/data'
 import ProjectSidebar from './ProjectSidebar'
 import MobileMenu from './MobileMenu'
 
@@ -20,11 +20,23 @@ function ProjectLayout() {
   // Check if we're on screening page and get screening status for Export button
   const isScreeningPage = location.pathname.includes('/screening')
   const screening = projectId && isScreeningPage ? getScreeningByProjectId(projectId) : null
-  const showExportButton = isScreeningPage && (screening?.status === 'submitted' || screening?.status === 'approved' || screening?.status === 'rejected')
+  const showScreeningExport = isScreeningPage && (screening?.status === 'submitted' || screening?.status === 'approved' || screening?.status === 'rejected')
+  
+  // Check if we're on assessment page and get assessment status for Export button
+  const isAssessmentPage = location.pathname.includes('/assessment')
+  const assessment = projectId && isAssessmentPage ? getAssessmentByProjectId(projectId) : null
+  const showAssessmentExport = isAssessmentPage && (assessment?.status === 'submitted' || assessment?.status === 'approved' || assessment?.status === 'rejected')
+  
+  const showExportButton = showScreeningExport || showAssessmentExport
   
   const handleExportClick = () => {
-    // Trigger export event that ScreeningSummaryPage listens to
-    window.dispatchEvent(new CustomEvent('screening-export'))
+    if (isScreeningPage) {
+      // Trigger export event that ScreeningSummaryPage listens to
+      window.dispatchEvent(new CustomEvent('screening-export'))
+    } else if (isAssessmentPage) {
+      // Trigger export event that AssessmentReviewPage listens to
+      window.dispatchEvent(new CustomEvent('assessment-export'))
+    }
   }
 
   // Fetch project data from mockProjects

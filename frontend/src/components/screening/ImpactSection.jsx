@@ -48,7 +48,7 @@ function ImpactSection({
             readOnly && 'cursor-not-allowed opacity-50',
             errors.potentialNegative
               ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-              : 'border-border-color dark:border-gray-600'
+              : 'border-border-default dark:border-border-dark'
           )}
           placeholder="Describe any potential adverse effects on the environment..."
           rows={4}
@@ -81,7 +81,7 @@ function ImpactSection({
             readOnly && 'cursor-not-allowed opacity-50',
             errors.potentialPositive
               ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-              : 'border-border-color dark:border-gray-600'
+              : 'border-border-default dark:border-border-dark'
           )}
           placeholder="Describe any expected environmental benefits..."
           rows={4}

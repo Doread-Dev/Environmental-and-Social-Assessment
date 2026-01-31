@@ -44,9 +44,9 @@ function ProjectProgressTimeline({
 
     const inProgressSteps = stepKeys.filter((step) => {
       const status = workflow[step]?.status
-      // For screening & assessment: submitted counts as in_progress
-      if ((step === 'screening' || step === 'assessment') && status === 'submitted' || status === 'draft') {
-        return true
+      // For screening & assessment: submitted, draft, rejected count as in_progress
+      if (step === 'screening' || step === 'assessment') {
+        return status === 'submitted' || status === 'draft' || status === 'rejected' || status === 'in_progress'
       }
       return status === 'in_progress'
     }).length
@@ -63,11 +63,7 @@ function ProjectProgressTimeline({
     const stepData = workflow[stepId] || {}
     let status = stepData.status || 'pending'
 
-    // For screening & assessment: submitted should be treated as in_progress in timeline
-    if ((stepId === 'screening' || stepId === 'assessment') && status === 'submitted') {
-      status = 'in_progress'
-    }
-
+    // Completed statuses
     if (status === 'approved' || status === 'completed') {
       return {
         bgColor: 'bg-primary',
@@ -81,12 +77,43 @@ function ProjectProgressTimeline({
       }
     }
 
-    if (status === 'in_progress') {
+    // Rejected status (for screening & assessment)
+    if (status === 'rejected') {
+      return {
+        bgColor: 'bg-white dark:bg-surface-dark border-2 border-red-500',
+        icon: 'priority_high',
+        iconColor: 'text-red-500',
+        label: 'Rejected',
+        labelColor: 'text-red-500 dark:text-red-400',
+        subtitleColor: 'text-red-400 dark:text-red-400',
+        showNumber: false,
+        animated: false,
+        opacity: '',
+      }
+    }
+
+    // Submitted or needs_action status (for screening & assessment) - pending approval/action
+    if (status === 'submitted' || status === 'needs_action') {
+      return {
+        bgColor: 'bg-white dark:bg-surface-dark border-2 border-amber-500',
+        icon: status === 'needs_action' ? 'warning' : 'hourglass_top',
+        iconColor: 'text-amber-500',
+        label: status === 'needs_action' ? 'Needs Action' : 'Pending Approval',
+        labelColor: 'text-amber-600 dark:text-amber-400',
+        subtitleColor: 'text-amber-500 dark:text-amber-400',
+        showNumber: false,
+        animated: true,
+        opacity: '',
+      }
+    }
+
+    // In progress or draft status
+    if (status === 'in_progress' || status === 'draft') {
       return {
         bgColor: 'bg-white dark:bg-surface-dark border-2 border-primary',
         icon: 'edit_document',
         iconColor: 'text-primary',
-        label: 'In Progress',
+        label: status === 'draft' ? 'Draft' : 'In Progress',
         labelColor: 'text-primary dark:text-primary',
         subtitleColor: 'text-primary/80 dark:text-primary/80',
         showNumber: false,
@@ -97,7 +124,7 @@ function ProjectProgressTimeline({
 
     // pending
     return {
-      bgColor: 'bg-gray-100 dark:bg-gray-800 border-2 border-border-default dark:border-gray-600',
+      bgColor: 'bg-gray-100 dark:bg-white/5 border-2 border-border-default dark:border-border-dark',
       icon: null,
       iconColor: 'text-text-secondary',
       label: 'Pending',
@@ -110,7 +137,7 @@ function ProjectProgressTimeline({
   }
 
   return (
-    <div className={cn('mt-8 pt-6 border-t border-border-default dark:border-gray-800', className)} {...props}>
+    <div className={cn('mt-8 pt-6 border-t border-border-default dark:border-border-dark', className)} {...props}>
       {/* Header */}
       {showPercentage && (
         <div className="flex items-center justify-between mb-4">
@@ -122,7 +149,7 @@ function ProjectProgressTimeline({
       {/* Timeline */}
       <div className="relative">
         {/* Background Progress Bar - Full width gray bar */}
-        <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-100 dark:bg-gray-800 -translate-y-1/2 rounded-full z-0"></div>
+        <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-100 dark:bg-white/5 -translate-y-1/2 rounded-full z-0"></div>
         {/* Progress Bar - Primary colored portion */}
         <div 
           className="absolute top-1/2 left-0 h-1 bg-primary/30 -translate-y-1/2 rounded-full z-0 transition-all duration-500"

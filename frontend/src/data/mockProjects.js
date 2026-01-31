@@ -33,8 +33,8 @@ export const mockProjects = [
     // ملاحظة: SEMP يجمع Tools 3 & 4 في صفحة واحدة
     workflow: {
       screening: { status: 'approved', tool: 1 }, // من screening.status
-      assessment: { status: 'approved', tool: 2 }, // من assessment.status
-      semp: { status: 'in_progress', tools: [3, 4] }, // محسوب: management + mitigation
+      assessment: { status: 'submitted', tool: 2 }, // من assessment.status
+      semp: { status: 'pending', tools: [3, 4] }, // محسوب: management + mitigation
       monitoring: { status: 'pending', tool: 5 }, // محسوب: Q4 filled?
     },
 
@@ -126,7 +126,7 @@ export const mockProjects = [
       screening_date: '2024-06-10',
     },
     workflow: {
-      screening: { status: 'needs_action', tool: 1 }, // rejected = needs_action
+      screening: { status: 'rejected', tool: 1 }, // rejected = needs_action
       assessment: { status: 'pending', tool: 2 },
       semp: { status: 'pending', tools: [3, 4] },
       monitoring: { status: 'pending', tool: 5 },
@@ -155,7 +155,7 @@ export const mockProjects = [
     },
     workflow: {
       screening: { status: 'approved', tool: 1 },
-      assessment: { status: 'in_progress', tool: 2 },
+      assessment: { status: 'rejected', tool: 2 },
       semp: { status: 'pending', tools: [3, 4] },
       monitoring: { status: 'pending', tool: 5 },
     },

@@ -104,9 +104,11 @@ export const mockAssessments = [
     potential_positive_impact: 'Safe drinking water for 2,500 residents. Reduced waterborne diseases. Lower healthcare costs. Improved quality of life.',
     approved_by: null,
     recommendations: null,
-    status: 'submitted',
+    reject_reason: 'Insufficient detail on water quality testing procedures and monitoring plan. Please provide comprehensive water quality baseline data and post-installation monitoring protocols before resubmission.',
+    reject_by: '507f1f77bcf86cd799439002', // Ahmed Hassan
+    status: 'rejected',
     createdAt: '2024-02-10T07:00:00.000Z',
-    updatedAt: '2024-02-15T12:00:00.000Z'
+    updatedAt: '2024-02-20T10:00:00.000Z'
   }
 ]
 

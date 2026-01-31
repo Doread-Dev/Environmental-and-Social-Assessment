@@ -29,3 +29,7 @@ export { default as ProgressBar } from './ProgressBar'
 export { default as ProgressStepper } from './ProgressStepper'
 export { default as Pagination } from './Pagination'
 export { default as Accordion } from './Accordion'
+
+// Layout Components
+export { default as StickyFooter } from './StickyFooter'
+

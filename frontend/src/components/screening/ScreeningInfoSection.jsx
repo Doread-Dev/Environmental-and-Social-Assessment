@@ -42,7 +42,7 @@ function ScreeningInfoSection({
           Program Officer Name <span className="text-red-500">*</span>
         </label>
         <input
-          className="w-full bg-gray-50 dark:bg-gray-800 border border-border-default dark:border-gray-700 rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
+          className="w-full bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
           readOnly
           type="text"
           value={displayName}
@@ -55,7 +55,7 @@ function ScreeningInfoSection({
           Program Officer Position <span className="text-red-500">*</span>
         </label>
         <input
-          className="w-full bg-gray-50 dark:bg-gray-800 border border-border-default dark:border-gray-700 rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
+          className="w-full bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
           readOnly
           type="text"
           value={displayPosition}
@@ -70,7 +70,7 @@ function ScreeningInfoSection({
         <div className="relative">
           <input
             className={cn(
-              'w-full rounded-lg border border-border-color dark:border-gray-600',
+              'w-full rounded-lg border border-border-default dark:border-border-dark',
               'bg-white dark:bg-[#102216]',
               'text-text-main dark:text-white',
               'focus:ring-primary focus:border-primary',

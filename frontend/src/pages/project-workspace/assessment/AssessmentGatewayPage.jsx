@@ -43,8 +43,11 @@ export default function AssessmentGatewayPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <LoadingSpinner size="lg" />
+      <div className="flex w-full items-center justify-center py-20">
+        <div className="flex flex-col items-center gap-4">
+          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading...</p>
+        </div>
       </div>
     )
   }
@@ -55,7 +58,7 @@ export default function AssessmentGatewayPage() {
   if (status === 'locked') {
     return (
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white dark:bg-surface-dark rounded-xl border border-gray-100 dark:border-gray-800 p-8 shadow-sm">
+        <div className="bg-white dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark p-8 shadow-sm">
           <div className="flex flex-col items-center gap-4 text-center">
             <span className="material-symbols-outlined text-6xl text-gray-400">lock</span>
             <h2 className="text-2xl font-bold text-text-main dark:text-white">

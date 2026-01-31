@@ -72,7 +72,7 @@ function ProjectHeader({ project, showEditButton = true, onEdit, className, ...p
           )}
           {dateRange && (
             <>
-              <span className="w-1 h-1 bg-border-default dark:bg-gray-600 rounded-full"></span>
+              <span className="w-1 h-1 bg-border-default dark:bg-border-dark rounded-full"></span>
               <span className="flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-[18px]">calendar_month</span>
                 {dateRange}
@@ -95,7 +95,7 @@ function ProjectHeader({ project, showEditButton = true, onEdit, className, ...p
             />
           ))}
           {teamMembers.length > 3 && (
-            <div className="h-8 w-8 rounded-full ring-2 ring-white dark:ring-surface-dark bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300">
+            <div className="h-8 w-8 rounded-full ring-2 ring-white dark:ring-surface-dark bg-gray-100 dark:bg-white/5 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300">
               +{teamMembers.length - 3}
             </div>
           )}
@@ -105,7 +105,7 @@ function ProjectHeader({ project, showEditButton = true, onEdit, className, ...p
         {showEditButton && (
           <button
             onClick={onEdit}
-              className="bg-white dark:bg-surface-dark border border-border-default dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-white/5 text-text-main dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+              className="bg-white dark:bg-surface-dark border border-border-default dark:border-border-dark hover:bg-gray-50/50 dark:hover:bg-white/5 text-text-main dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
           >
             Edit Project
           </button>

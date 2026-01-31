@@ -26,7 +26,7 @@ export default function MethodChecklistItem({
   const InputComponent = method.inputType === 'textarea' ? Textarea : Input
 
   return (
-    <div className="checkbox-wrapper flex flex-col gap-3 p-3 rounded-lg hover:bg-background-light dark:hover:bg-gray-800/50">
+    <div className="checkbox-wrapper flex flex-col gap-3 p-3 rounded-lg hover:bg-gray-50/50 dark:hover:bg-white/5">
       <label className="flex flex-start gap-4 cursor-pointer">
         <div className="flex items-center h-6">
           <Checkbox

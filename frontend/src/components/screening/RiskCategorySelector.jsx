@@ -49,7 +49,7 @@ function RiskCategorySelector({
                 key={category.code}
                 className={cn(
                   'relative flex items-start p-4 cursor-pointer rounded-lg',
-                  'border border-gray-200 dark:border-gray-700',
+                  'border border-border-default dark:border-border-dark',
                   'hover:bg-gray-50 dark:hover:bg-[#1a3322]',
                   'transition-all',
                   'has-[:checked]:border-primary has-[:checked]:bg-primary/5 has-[:checked]:ring-1 has-[:checked]:ring-primary',
@@ -58,7 +58,7 @@ function RiskCategorySelector({
               >
                 <div className="flex h-6 items-center">
                   <input
-                    className="h-4 w-4 border-gray-300 text-primary focus:ring-primary accent-primary"
+                    className="h-4 w-4 border-border-default dark:border-border-dark text-primary focus:ring-primary accent-primary"
                     name="risk-category"
                     type="radio"
                     value={category.code}
@@ -89,7 +89,7 @@ function RiskCategorySelector({
 
       {/* Justification Box - مطابق للتصميم الأصلي */}
       {selectedCategory && (
-        <div className="mt-6 p-4 bg-gray-50 dark:bg-[#1a3322] rounded-lg border border-dashed border-border-color dark:border-gray-600">
+        <div className="mt-6 p-4 bg-gray-50/50 dark:bg-white/5 rounded-lg border border-dashed border-border-default dark:border-border-dark">
           <label className="block text-sm font-medium text-text-main dark:text-gray-200 mb-2">
             Category Justification <span className="text-red-500">*</span>
           </label>
@@ -100,7 +100,7 @@ function RiskCategorySelector({
           </p>
           <textarea
             className={cn(
-              'w-full rounded-lg border border-border-color dark:border-gray-600',
+              'w-full rounded-lg border border-border-default dark:border-border-dark',
               'bg-white dark:bg-[#102216]',
               'text-text-main dark:text-white',
               'focus:ring-primary focus:border-primary',

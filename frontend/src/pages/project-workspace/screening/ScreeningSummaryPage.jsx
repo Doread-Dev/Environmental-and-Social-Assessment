@@ -10,7 +10,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useProjectContext, useScreening } from '@/hooks'
-import { getScreeningWithDetails, mockProjects, getScreeningCategory, screeningStatuses } from '@/data'
+import { getScreeningWithDetails, mockProjects, getScreeningCategory } from '@/data'
 import { formatDateShort } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
 
@@ -28,6 +28,8 @@ function ScreeningSummaryPage() {
   // Initialize ALL hooks BEFORE any conditional returns
   const [recommendations, setRecommendations] = useState(screening?.recommendations || '')
   const [isProcessing, setIsProcessing] = useState(false)
+  const [showRejectInput, setShowRejectInput] = useState(false)
+  const [rejectReasonInput, setRejectReasonInput] = useState('')
 
   // Handlers - must be defined before conditional returns
   const handleExport = useCallback(() => {
@@ -46,13 +48,23 @@ function ScreeningSummaryPage() {
   }, [navigate, projectId])
 
   const handleApprove = useCallback(async () => {
+    // Validate recommendations is required
+    if (!recommendations?.trim()) {
+      alert('Please enter recommendations before approving.')
+      return
+    }
+    if (recommendations.trim().length < 20) {
+      alert('Recommendations must be at least 20 characters.')
+      return
+    }
+    
     setIsProcessing(true)
     try {
       const result = await approveScreening(recommendations)
 
       if (result.success) {
-        // After approval, status becomes 'approved' - router will show summary
-        navigate(`/app/projects/${projectId}/screening`, { replace: true })
+        // After approval, status becomes 'approved' - stay on summary page
+        // The useScreening hook updates the state automatically
       } else {
         alert(result.error || 'Failed to approve screening. Please try again.')
       }
@@ -62,18 +74,22 @@ function ScreeningSummaryPage() {
     } finally {
       setIsProcessing(false)
     }
-  }, [approveScreening, recommendations, navigate, projectId])
+  }, [approveScreening, recommendations])
 
-  const handleReject = useCallback(async () => {
-    if (!confirm('Are you sure you want to reject this screening?')) return
+  const handleRejectClick = useCallback(() => {
+    setShowRejectInput(true)
+  }, [])
 
+  const handleConfirmReject = useCallback(async () => {
     setIsProcessing(true)
     try {
-      const result = await rejectScreening('Screening rejected by approver')
+      const result = await rejectScreening(rejectReasonInput)
 
       if (result.success) {
-        // After rejection, status becomes 'rejected' - router will show summary with edit button
-        navigate(`/app/projects/${projectId}/screening`, { replace: true })
+        setShowRejectInput(false)
+        setRejectReasonInput('')
+        // After rejection, status becomes 'rejected' - stay on summary page with edit button
+        // The useScreening hook updates the state automatically
       } else {
         alert(result.error || 'Failed to reject screening. Please try again.')
       }
@@ -83,7 +99,12 @@ function ScreeningSummaryPage() {
     } finally {
       setIsProcessing(false)
     }
-  }, [rejectScreening, navigate, projectId])
+  }, [rejectScreening, rejectReasonInput])
+
+  const handleCancelReject = useCallback(() => {
+    setShowRejectInput(false)
+    setRejectReasonInput('')
+  }, [])
 
   // Expose export handler to parent layout via custom event
   useEffect(() => {
@@ -184,9 +205,9 @@ function ScreeningSummaryPage() {
     },
     draft: {
       label: 'draft',
-      bgColor: 'bg-gray-100 dark:bg-gray-800',
+      bgColor: 'bg-gray-100 dark:bg-white/5',
       textColor: 'text-gray-700 dark:text-gray-400',
-      borderColor: 'border-gray-200 dark:border-gray-700',
+      borderColor: 'border-gray-200 dark:border-border-dark',
     },
   }
 
@@ -205,7 +226,7 @@ function ScreeningSummaryPage() {
       <form className="flex flex-col gap-8 print-container">
         <div className="max-w-[960px] mx-auto bg-white dark:bg-surface-dark shadow-sm rounded-xl overflow-hidden min-h-[800px] flex flex-col print-container">
         {/* Header Section */}
-        <div className="p-8 pb-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="p-8 pb-4 border-b border-border-default dark:border-border-dark">
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
             <div>
               <div className="flex items-center gap-3 mb-2">
@@ -239,14 +260,14 @@ function ScreeningSummaryPage() {
         </div>
 
         {/* Officer Info & Project Components Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-gray-200 dark:bg-gray-800">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-border-default dark:bg-border-dark">
           {/* Program Officer */}
           <div className="bg-surface dark:bg-surface-dark p-6">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-text-secondary dark:text-gray-400 mb-1">
               Program Officer
             </h3>
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center">
                 <span className="material-symbols-outlined text-gray-500 dark:text-gray-400 text-sm">person</span>
               </div>
               <div>
@@ -266,7 +287,7 @@ function ScreeningSummaryPage() {
                 projectComponents.map((component, index) => (
                   <span
                     key={index}
-                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200"
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-50/50 dark:bg-white/5 text-gray-800 dark:text-gray-200"
                   >
                     {component}
                   </span>
@@ -320,7 +341,7 @@ function ScreeningSummaryPage() {
         <div className="px-8 pb-8 grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Negative Impacts */}
           <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-800">
+            <div className="flex items-center gap-2 pb-2 border-b border-border-default dark:border-border-dark">
               <span className="material-symbols-outlined text-orange-500">warning</span>
               <h3 className="text-base font-bold text-text-main dark:text-white">Potential Negative Impacts</h3>
             </div>
@@ -343,7 +364,7 @@ function ScreeningSummaryPage() {
 
           {/* Positive Impacts */}
           <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-800">
+            <div className="flex items-center gap-2 pb-2 border-b border-border-default dark:border-border-dark">
               <span className="material-symbols-outlined text-primary">verified</span>
               <h3 className="text-base font-bold text-text-main dark:text-white">Potential Positive Impacts</h3>
             </div>
@@ -366,22 +387,28 @@ function ScreeningSummaryPage() {
         </div>
 
         {/* Approval Section */}
-        <div className="mt-6 px-8">
-          <section className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
+        <div className="mt-6 mb-6 px-8">
+          <section className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
+            <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-gray-50/50 dark:bg-white/5">
               <h3 className="font-bold text-lg text-text-main dark:text-white">Approval and Recommendations</h3>
             </div>
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Approved By */}
+              {/* Approved/Rejected By */}
               <div className="col-span-1">
                 <label className="block text-sm font-medium text-text-main dark:text-gray-200 mb-2">
-                  Approved By <span className="text-red-500">*</span>
+                  {status === 'approved' ? 'Approved By' : status === 'rejected' ? 'Rejected By' : 'Approved By'} <span className="text-red-500">*</span>
                 </label>
                 <input
-                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
+                  className="w-full bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
                   readOnly
                   type="text"
-                  value={status === 'approved' ? screening.approverDetails?.name || 'James Director' : ''}
+                  value={
+                    status === 'approved' 
+                      ? (screeningDetails?.approverDetails?.name || 'James Director')
+                      : status === 'rejected'
+                      ? (screeningDetails?.rejectorDetails?.name || 'N/A')
+                      : ''
+                  }
                   disabled
                 />
               </div>
@@ -392,56 +419,126 @@ function ScreeningSummaryPage() {
                   Position <span className="text-red-500">*</span>
                 </label>
                 <input
-                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
+                  className="w-full bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
                   readOnly
                   type="text"
-                  value={status === 'approved' ? screening.approverDetails?.job_title?.title_name || 'Regional Manager' : ''}
+                  value={
+                    status === 'approved'
+                      ? (screeningDetails?.approverDetails?.job_title?.title_name || 'Regional Manager')
+                      : status === 'rejected'
+                      ? (screeningDetails?.rejectorDetails?.job_title?.title_name || 'N/A')
+                      : ''
+                  }
                   disabled
                 />
               </div>
 
-              {/* Recommendations */}
-              <div className="col-span-1 md:col-span-2">
-                <label className="block text-sm font-medium text-text-main dark:text-gray-200 mb-2">
-                  Recommendations / Next Steps
-                </label>
-                <textarea
-                  className="w-full rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-background-dark text-text-main dark:text-white focus:ring-primary focus:border-primary px-3 py-2.5 text-sm"
-                  placeholder="Enter any specific recommendations for the project team..."
-                  rows={3}
-                  value={recommendations}
-                  onChange={(e) => setRecommendations(e.target.value)}
-                  disabled={status === 'approved' || status === 'rejected' || !canApprove}
-                />
-              </div>
+              {/* Reject Reason (shown when rejected) */}
+              {status === 'rejected' && screening.reject_reason && (
+                <div className="col-span-1 md:col-span-2">
+                  <label className="block text-sm font-medium text-red-600 dark:text-red-400 mb-2">
+                    Reason for Rejection
+                  </label>
+                  <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                    <p className="text-sm text-red-700 dark:text-red-400 whitespace-pre-wrap">
+                      {screening.reject_reason}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+
+              {/* Recommendations (only shown when not rejected) */}
+              {status !== 'rejected' && (
+                <div className="col-span-1 md:col-span-2">
+                  <label className="block text-sm font-medium text-text-main dark:text-gray-200 mb-2">
+                    Recommendations / Next Steps {status === 'submitted' && canApprove && <span className="text-red-500">*</span>}
+                  </label>
+                  <textarea
+                    className="w-full rounded-lg border border-border-default dark:border-border-dark bg-white dark:bg-background-dark text-text-main dark:text-white focus:ring-primary focus:border-primary px-3 py-2.5 text-sm"
+                    placeholder="Enter any specific recommendations for the project team (required for approval)..."
+                    rows={3}
+                    value={recommendations}
+                    onChange={(e) => setRecommendations(e.target.value)}
+                    disabled={status === 'approved' || status === 'rejected' || !canApprove}
+                  />
+                  {status === 'submitted' && canApprove && (
+                    <p className="text-xs text-text-secondary mt-1">Required: At least 20 characters to approve</p>
+                  )}
+                </div>
+              )}
             </div>
           </section>
         </div>
 
         {/* Footer */}
-        <div className="mt-auto bg-gray-50 dark:bg-white/5 border-t border-gray-200 dark:border-gray-800 p-8">
+        <div className="mt-auto bg-gray-50 dark:bg-white/5 border-t border-border-default dark:border-border-dark p-8">
           <div className="flex flex-col gap-6">
             {/* Action Buttons */}
             {status === 'submitted' && canApprove && (
               <div className="flex justify-end gap-4 no-print">
-                <button
-                  type="button"
-                  onClick={handleReject}
-                  disabled={isProcessing}
-                  className="px-6 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-md transition-colors flex items-center gap-2 disabled:opacity-50"
-                >
-                  <span className="material-symbols-outlined text-lg">close</span>
-                  Reject
-                </button>
-                <button
-                  type="button"
-                  onClick={handleApprove}
-                  disabled={isProcessing}
-                  className="px-6 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-bold text-sm shadow-md transition-colors flex items-center gap-2 disabled:opacity-50"
-                >
-                  <span className="material-symbols-outlined text-lg">verified</span>
-                  {isProcessing ? 'Processing...' : 'Approve & Complete Screening'}
-                </button>
+                {/* Reject Reason Input (shown when rejecting) */}
+                {showRejectInput && (
+                  <div className="w-full space-y-3 p-4 bg-red-50 dark:bg-red-900/10 rounded-lg border border-red-200 dark:border-red-800 mb-4">
+                    <div className="flex flex-col gap-2">
+                      <label className="text-red-600 dark:text-red-400 text-sm font-bold">
+                        Reason for Rejection
+                      </label>
+                      <textarea
+                        value={rejectReasonInput}
+                        onChange={(e) => setRejectReasonInput(e.target.value)}
+                        placeholder="Please provide a reason for rejecting this screening..."
+                        rows={3}
+                        className="w-full rounded-lg border border-red-300 dark:border-red-700 bg-white dark:bg-background-dark text-text-main dark:text-white focus:ring-red-500 focus:border-red-500 px-3 py-2.5 text-sm"
+                      />
+                      <p className="text-xs text-text-secondary">Explain why this screening is being rejected (optional but recommended)</p>
+                    </div>
+                    <div className="flex gap-3 justify-end">
+                      <button
+                        type="button"
+                        onClick={handleCancelReject}
+                        disabled={isProcessing}
+                        className="px-6 py-2.5 rounded-lg border border-border-default dark:border-border-dark hover:bg-gray-50/50 dark:hover:bg-white/5 text-text-main dark:text-white font-bold text-sm transition-colors flex items-center gap-2 disabled:opacity-50"
+                      >
+                        <span className="material-symbols-outlined text-lg">close</span>
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleConfirmReject}
+                        disabled={isProcessing}
+                        className="px-6 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-md transition-colors flex items-center gap-2 disabled:opacity-50"
+                      >
+                        <span className="material-symbols-outlined text-lg">check</span>
+                        {isProcessing ? 'Rejecting...' : 'Confirm Rejection'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                {!showRejectInput && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleRejectClick}
+                      disabled={isProcessing}
+                      className="px-6 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-md transition-colors flex items-center gap-2 disabled:opacity-50"
+                    >
+                      <span className="material-symbols-outlined text-lg">close</span>
+                      Reject
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleApprove}
+                      disabled={isProcessing || !recommendations?.trim() || recommendations.trim().length < 20}
+                      className="px-6 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-bold text-sm shadow-md transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="material-symbols-outlined text-lg">verified</span>
+                      {isProcessing ? 'Processing...' : 'Approve & Complete Screening'}
+                    </button>
+                  </>
+                )}
               </div>
             )}
 

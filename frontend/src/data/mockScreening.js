@@ -61,7 +61,9 @@ export const mockScreenings = [
     potential_negative: '- Odor issues if waste collection is delayed\n- Traffic congestion during collection hours\n- Risk of improper waste handling',
     potential_positive: '- Cleaner urban environment\n- Reduction in landfill waste\n- Revenue from recyclables\n- Health improvements from proper waste management',
     approved_by: null,
-    recommendations: 'Additional information required on waste processing facility location and community consultation results.',
+    recommendations: null,
+    reject_reason: 'Additional information required on waste processing facility location and community consultation results. Please provide detailed site plans and evidence of stakeholder engagement.',
+    reject_by: '507f1f77bcf86cd799439002', // Ahmed Hassan
     screening_date: '2024-06-10T00:00:00.000Z',
     status: 'rejected',
     createdAt: '2024-05-15T11:00:00.000Z',
@@ -119,11 +121,15 @@ export function getScreeningWithDetails(projectId) {
   const approver = screening.approved_by 
     ? mockUsers.find(u => u._id === screening.approved_by)
     : null
+  const rejector = screening.reject_by
+    ? mockUsers.find(u => u._id === screening.reject_by)
+    : null
 
   return {
     ...screening,
     projectDetails: project,
-    approverDetails: approver
+    approverDetails: approver,
+    rejectorDetails: rejector
   }
 }
 

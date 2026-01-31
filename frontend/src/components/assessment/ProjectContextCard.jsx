@@ -29,7 +29,7 @@ export default function ProjectContextCard({
   return (
     <div
       className={cn(
-        'bg-white dark:bg-surface-dark rounded-xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm',
+        'bg-white dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark p-5 shadow-sm',
         className
       )}
       {...props}
@@ -48,28 +48,28 @@ export default function ProjectContextCard({
 
       {/* Project Info */}
       <div className="space-y-3">
-        <div className="flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-800">
+        <div className="flex justify-between items-center py-2 border-b border-border-default dark:border-border-dark">
           <span className="text-sm text-text-secondary">Project Title</span>
           <span className="text-sm font-medium text-text-main dark:text-white">
             {project?.title || 'N/A'}
           </span>
         </div>
 
-        <div className="flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-800">
+        <div className="flex justify-between items-center py-2 border-b border-border-default dark:border-border-dark">
           <span className="text-sm text-text-secondary">Location</span>
           <span className="text-sm font-medium text-text-main dark:text-white">
             {project?.location || 'N/A'}
           </span>
         </div>
 
-        <div className="flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-800">
+        <div className="flex justify-between items-center py-2 border-b border-border-default dark:border-border-dark">
           <span className="text-sm text-text-secondary">Start Date</span>
           <span className="text-sm font-medium text-text-main dark:text-white">
             {project?.start_date ? formatDate(project.start_date) : 'N/A'}
           </span>
         </div>
 
-        <div className="flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-800">
+        <div className="flex justify-between items-center py-2 border-b border-border-default dark:border-border-dark">
           <span className="text-sm text-text-secondary">End Date</span>
           <span className="text-sm font-medium text-text-main dark:text-white">
             {project?.end_date ? formatDate(project.end_date) : 'N/A'}

@@ -82,7 +82,7 @@ function LoginPage() {
   }
 
   return (
-    <div className="w-full max-w-[960px] bg-white dark:bg-card-dark rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row min-h-[600px] border border-gray-100 dark:border-gray-800">
+    <div className="w-full max-w-[960px] bg-white dark:bg-card-dark rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row min-h-[600px] border border-border-default dark:border-border-dark">
       {/* Left Side: Visual Panel */}
       <div className="relative w-full md:w-5/12 bg-emerald-50 dark:bg-emerald-900/20 flex flex-col items-center justify-center p-8 md:p-12 overflow-hidden group">
         {/* Abstract Background Pattern */}

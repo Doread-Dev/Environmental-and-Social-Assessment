@@ -29,7 +29,7 @@ function WorkflowProgressBar({ progress, showLabels = true, size = 'md', classNa
 
   const getStatusColor = (status) => {
     const statusConfig = workflowStepStatuses[status] || workflowStepStatuses.pending
-    return statusConfig.color || 'bg-gray-200 dark:bg-gray-700'
+    return statusConfig.color || 'bg-gray-200 dark:bg-border-dark'
   }
 
   const barHeight = size === 'sm' ? 'h-1.5' : 'h-2'

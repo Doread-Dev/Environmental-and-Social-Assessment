@@ -6,19 +6,22 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment } from '@/hooks'
+import { calculateTotalScore, calculateTotalImpact } from '@/utils/impactCalculations'
 import {
   ImpactCategoryAccordion,
   TotalScoreCard,
   TotalImpactCard,
   ImpactSummarySection
 } from '@/components/assessment'
-import { Button, LoadingSpinner } from '@/components/ui'
+import { Button, LoadingSpinner, StickyFooter } from '@/components/ui'
 import { impactCategories } from '@/data/impactQuestions'
 
 export default function AssessmentScoringPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
   const { assessment, impactScores, isLoading, isSaving, saveImpactScores, saveImpactScoresDraft, submitAssessment } = useAssessment(projectId)
+
+
 
   const [scores, setScores] = useState(() => {
     const scoreMap = {}
@@ -52,6 +55,17 @@ export default function AssessmentScoringPage() {
           }
         })
         setScores(scoreMap)
+      } else {
+        // Auto-fill all questions with N/A for new assessment
+        const allQuestions = impactCategories.flatMap(cat => cat.questions.map(q => q.id))
+        const defaultScores = {}
+        allQuestions.forEach(questionId => {
+          defaultScores[questionId] = {
+            level: 'not_applicable',
+            note: ''
+          }
+        })
+        setScores(defaultScores)
       }
     }
   }, [assessment, impactScores, isLoading])
@@ -79,54 +93,21 @@ export default function AssessmentScoringPage() {
     })).filter(s => s.level) // Only include scores with a level
   }, [scores])
 
-  // Calculate total score
-  const totalScore = useMemo(() => {
-    const total = { negligible: 0, low: 0, medium: 0, high: 0, not_applicable: 0 }
-    scoresArray.forEach(score => {
-      if (score.level && total[score.level] !== undefined) {
-        total[score.level]++
-      }
-    })
-    return total
-  }, [scoresArray])
+  // Calculate total score using utility function
+  const totalScore = useMemo(() => calculateTotalScore(scoresArray), [scoresArray])
 
-  // Calculate total impact (with correct priority: high > medium > low > negligible)
-  const totalImpact = useMemo(() => {
-    // المستويات المرتبة حسب الأولوية (من الأعلى إلى الأدنى)
-    const levelsToCheck = ['high', 'medium', 'low', 'negligible']
-    const priority = { high: 4, medium: 3, low: 2, negligible: 1 }
-    
-    // البحث عن أعلى عدد
-    let maxCount = -1
-    levelsToCheck.forEach(level => {
-      if (totalScore[level] > maxCount) {
-        maxCount = totalScore[level]
-      }
-    })
-    
-    // إذا كانت كل المستويات = 0
-    if (maxCount === 0) {
-      return totalScore.not_applicable > 0 ? 'not_applicable' : 'negligible'
-    }
-    
-    // في حالة التعادل، اختر الأعلى حسب الأولوية (high > medium > low > negligible)
-    // نبحث بالترتيب من high إلى negligible ونأخذ أول مستوى له نفس maxCount
-    for (const level of levelsToCheck) {
-      if (totalScore[level] === maxCount) {
-        return level
-      }
-    }
-    
-    return 'negligible'
-  }, [totalScore])
+  // Calculate total impact using priority-based utility function
+  const totalImpact = useMemo(() => calculateTotalImpact(totalScore), [totalScore])
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <LoadingSpinner size="lg" />
-      </div>
-    )
-  }
+  // Validation errors state
+  const [errors, setErrors] = useState({})
+
+  // Get all question IDs from impact categories
+  const allQuestionIds = useMemo(() => {
+    return impactCategories.flatMap(cat => cat.questions.map(q => q.id))
+  }, [])
+
+
 
   const handleSaveDraft = async () => {
     const result = await saveImpactScoresDraft(scoresArray, negativeImpact, positiveImpact)
@@ -136,7 +117,40 @@ export default function AssessmentScoringPage() {
   }
 
   const handleSubmit = async () => {
-    const result = await saveImpactScores(scoresArray, negativeImpact, positiveImpact)
+    // Validate potential impacts are required
+    const validationErrors = {}
+    if (!negativeImpact?.trim()) {
+      validationErrors.negativeImpact = 'Potential negative impact is required'
+    } else if (negativeImpact.trim().length < 20) {
+      validationErrors.negativeImpact = 'Please provide at least 20 characters'
+    }
+    
+    if (!positiveImpact?.trim()) {
+      validationErrors.positiveImpact = 'Potential positive impact is required'
+    } else if (positiveImpact.trim().length < 20) {
+      validationErrors.positiveImpact = 'Please provide at least 20 characters'
+    }
+    
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors)
+      return
+    }
+
+    // Auto-fill unanswered questions with 'not_applicable'
+    const finalScores = allQuestionIds.map(questionId => {
+      const existingScore = scoresArray.find(s => s.question === questionId)
+      if (existingScore && existingScore.level) {
+        return existingScore
+      }
+      // Auto-fill with N/A
+      return {
+        question: questionId,
+        level: 'not_applicable',
+        note: ''
+      }
+    })
+
+    const result = await saveImpactScores(finalScores, negativeImpact, positiveImpact)
     if (result.success) {
       // After saving, submit the assessment
       await submitAssessment()
@@ -151,6 +165,17 @@ export default function AssessmentScoringPage() {
   // Allow editing when rejected or draft, but not when approved or submitted
   // When rejected, user should be able to edit (rejected is not submitted, so it's editable)
   const readOnly = assessment?.status === 'approved' || assessment?.status === 'submitted'
+
+  if (isLoading) {
+    return (
+      <div className="flex w-full items-center justify-center py-20">
+        <div className="flex flex-col items-center gap-4">
+          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading scoring...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -180,9 +205,9 @@ export default function AssessmentScoringPage() {
       </div>
 
       {/* Total Score & Impact Cards */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-[#dbe6df] dark:border-slate-700 shadow-sm p-6 flex flex-col lg:flex-row gap-8 items-stretch mb-6">
+      <div className="bg-white dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark shadow-sm p-6 flex flex-col lg:flex-row gap-8 items-stretch mb-6">
         <TotalScoreCard scores={totalScore} />
-        <div className="w-px bg-slate-200 dark:bg-slate-700 hidden lg:block"></div>
+        <div className="w-px bg-border-default dark:bg-border-dark hidden lg:block"></div>
         <TotalImpactCard impact={totalImpact} />
       </div>
 
@@ -191,18 +216,26 @@ export default function AssessmentScoringPage() {
         <ImpactSummarySection
           negativeImpact={negativeImpact}
           positiveImpact={positiveImpact}
-          onNegativeChange={setNegativeImpact}
-          onPositiveChange={setPositiveImpact}
+          onNegativeChange={(val) => {
+            setNegativeImpact(val)
+            if (errors.negativeImpact) setErrors(prev => ({ ...prev, negativeImpact: null }))
+          }}
+          onPositiveChange={(val) => {
+            setPositiveImpact(val)
+            if (errors.positiveImpact) setErrors(prev => ({ ...prev, positiveImpact: null }))
+          }}
           readOnly={readOnly}
+          errors={errors}
         />
       </div>
 
       {/* Sticky Footer */}
-      <div className="fixed bottom-0 left-0 right-0 lg:left-[280px] h-20 bg-white dark:bg-surface-dark border-t border-border-default dark:border-gray-700 flex items-center justify-between px-8 z-20">
+      {/* Sticky Footer */}
+      <StickyFooter>
         <button
           onClick={handleBack}
           disabled={isSaving}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border-default dark:border-gray-600 text-text-main dark:text-white font-medium hover:bg-background dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border-default dark:border-border-dark text-text-main dark:text-white font-medium hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span className="material-symbols-outlined text-sm">arrow_back</span>
           Back
@@ -211,7 +244,7 @@ export default function AssessmentScoringPage() {
           <button
             onClick={handleSaveDraft}
             disabled={isSaving || readOnly}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border-default dark:border-gray-600 text-text-main dark:text-white font-medium hover:bg-background dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border-default dark:border-border-dark text-text-main dark:text-white font-medium hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSaving ? (
               <>
@@ -228,7 +261,7 @@ export default function AssessmentScoringPage() {
           <button
             onClick={handleSubmit}
             disabled={isSaving || readOnly}
-            className="flex items-center justify-center gap-2 rounded-lg h-10 px-5 bg-primary text-white text-sm font-bold hover:bg-[#0eca4e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+            className="flex items-center justify-center gap-2 rounded-lg h-10 px-5 bg-primary text-white text-sm font-bold hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
           >
             {isSaving ? (
               <>
@@ -243,7 +276,7 @@ export default function AssessmentScoringPage() {
             )}
           </button>
         </div>
-      </div>
+      </StickyFooter>
     </div>
   )
 }

@@ -7,26 +7,16 @@
  */
 
 import { useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { Alert } from '@/components/ui'
+import { useNavigate, useParams } from 'react-router-dom'
+import { Alert, StickyFooter } from '@/components/ui'
 import {
   ScreeningInfoSection,
   RiskCategorySelector,
   ImpactSection,
 } from '@/components/screening'
-import { useProjectContext, useScreening } from '@/hooks'
+import { useScreening } from '@/hooks'
 import { getScreeningByProjectId, createEmptyScreening } from '@/data'
 import { cn } from '@/utils/cn'
-
-/**
- * التحقق من إمكانية التعديل على Screening
- * لا يمكن التعديل إذا كانت الحالة submitted أو approved
- * يمكن التعديل في حالة draft أو rejected
- */
-function canEditScreening(screening) {
-  if (!screening) return true // لا يوجد screening - يمكن الإنشاء
-  return screening.status === 'draft' || screening.status === 'rejected'
-}
 
 /**
  * التحقق من صحة النموذج
@@ -48,6 +38,18 @@ function validateScreeningForm(data) {
     errors.categoryReason = 'Justification must be at least 50 characters'
   }
 
+  if (!data.potentialNegative?.trim()) {
+    errors.potentialNegative = 'Potential negative impacts are required'
+  } else if (data.potentialNegative.trim().length < 20) {
+    errors.potentialNegative = 'Please provide at least 20 characters'
+  }
+
+  if (!data.potentialPositive?.trim()) {
+    errors.potentialPositive = 'Potential positive impacts are required'
+  } else if (data.potentialPositive.trim().length < 20) {
+    errors.potentialPositive = 'Please provide at least 20 characters'
+  }
+
   return {
     valid: Object.keys(errors).length === 0,
     errors,
@@ -57,12 +59,7 @@ function validateScreeningForm(data) {
 function ScreeningFormPage() {
   const navigate = useNavigate()
   const { projectId } = useParams()
-  const [searchParams] = useSearchParams()
-  const { project: contextProject } = useProjectContext()
   const { screening: hookScreening, isLoading: screeningLoading, submit: submitScreening, saveDraft: saveDraftScreening } = useScreening(projectId)
-
-  // Check if we're in edit mode (from rejected status)
-  const isEditMode = searchParams.get('edit') === 'true'
 
   // Load existing screening or create empty one
   const existingScreening = hookScreening || getScreeningByProjectId(projectId)
@@ -96,15 +93,9 @@ function ScreeningFormPage() {
     )
   }
 
-  // Check if editing is allowed - AFTER loading check
-  // Allow editing if: draft, rejected, or in edit mode (from rejected)
-  // Note: rejected status is already allowed by canEditScreening, but we check isEditMode for extra safety
-  if (existingScreening && !canEditScreening(existingScreening) && !isEditMode) {
-    // Redirect to summary if status is submitted or approved (and not in edit mode)
-    // ScreeningRouter will handle showing the appropriate page
-    navigate(`/app/projects/${projectId}/screening`, { replace: true })
-    return null
-  }
+  // NOTE: We don't redirect here anymore - ScreeningRouter handles the routing logic
+  // This component is ONLY rendered by ScreeningRouter when editing is allowed
+  // So we don't need to check canEditScreening here
 
   // Handlers
   const handleDateChange = (date) => {
@@ -190,9 +181,8 @@ function ScreeningFormPage() {
       })
 
       if (result.success) {
-        // After submit, status becomes 'submitted' - redirect to show summary
-        // The router will automatically show summary page
-        navigate(`/app/projects/${projectId}/screening`, { replace: true })
+        // After submit, status becomes 'submitted' - go directly to summary page
+        navigate(`/app/projects/${projectId}/screening/summary`, { replace: true })
       } else {
         setSubmitError(result.error || 'Failed to submit screening. Please try again.')
       }
@@ -230,12 +220,12 @@ function ScreeningFormPage() {
         {/* Form Sections */}
         <form className="flex flex-col gap-8">
           {/* Section 1: Screening Information */}
-          <section className="bg-white dark:bg-[#152a1d] rounded-xl shadow-sm border border-border-default dark:border-[#1f3526] overflow-hidden">
-            <div className="px-6 py-4 border-b border-border-default dark:border-[#1f3526] bg-gray-50/50 dark:bg-[#1a3322]/50 flex justify-between items-center">
+          <section className="bg-white dark:bg-[#152a1d] rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
+            <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-gray-50/50 dark:bg-white/5 flex justify-between items-center">
               <h3 className="font-bold text-lg text-text-main dark:text-white">
                 1. Screening Information
               </h3>
-              <span className="text-xs text-text-secondary bg-white dark:bg-[#102216] px-2 py-1 rounded border border-gray-200 dark:border-gray-700">
+              <span className="text-xs text-text-secondary bg-white dark:bg-[#102216] px-2 py-1 rounded border border-gray-200 dark:border-border-dark">
                 Required
               </span>
             </div>
@@ -249,8 +239,8 @@ function ScreeningFormPage() {
           </section>
 
           {/* Section 2: Risk Category */}
-          <section className="bg-white dark:bg-[#152a1d] rounded-xl shadow-sm border border-border-default dark:border-[#1f3526] overflow-hidden">
-            <div className="px-6 py-4 border-b border-border-default dark:border-[#1f3526] bg-gray-50/50 dark:bg-[#1a3322]/50">
+          <section className="bg-white dark:bg-[#152a1d] rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
+            <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-gray-50/50 dark:bg-white/5">
               <h3 className="font-bold text-lg text-text-main dark:text-white">
                 2. Project Risk Category
               </h3>
@@ -267,12 +257,12 @@ function ScreeningFormPage() {
           </section>
 
           {/* Section 3: Potential Impacts */}
-          <section className="bg-white dark:bg-[#152a1d] rounded-xl shadow-sm border border-border-default dark:border-[#1f3526] overflow-hidden">
-            <div className="px-6 py-4 border-b border-border-default dark:border-[#1f3526] bg-gray-50/50 dark:bg-[#1a3322]/50 flex justify-between items-center">
+          <section className="bg-white dark:bg-[#152a1d] rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
+            <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-gray-50/50 dark:bg-white/5 flex justify-between items-center">
               <h3 className="font-bold text-lg text-text-main dark:text-white">
                 3. Potential Impacts
               </h3>
-              <span className="text-xs text-text-secondary bg-white dark:bg-[#102216] px-2 py-1 rounded border border-gray-200 dark:border-gray-700">
+              <span className="text-xs text-text-secondary bg-white dark:bg-[#102216] px-2 py-1 rounded border border-gray-200 dark:border-border-dark">
                 Required
               </span>
             </div>
@@ -289,18 +279,8 @@ function ScreeningFormPage() {
         </form>
       </div>
 
-      {/* Footer - Fixed من السايد بار إلى نهاية الصفحة */}
-      <div
-        className={cn(
-          'fixed bottom-0 h-20',
-          'left-0 lg:left-[280px] xl:left-[300px]', // على mobile: left-0، على desktop: بعد السايد بار
-          'right-0',
-          'bg-surface dark:bg-surface-dark',
-          'border-t border-border-default dark:border-gray-700',
-          'flex items-center justify-between px-4 sm:px-6 lg:px-8',
-          'z-20 shadow-lg'
-        )}
-      >
+      {/* Footer - Uses CSS variable for sidebar width */}
+      <StickyFooter>
         <div className="text-xs text-text-secondary">
           <p>By submitting this form, you confirm that all information provided is accurate and complete.</p>
         </div>
@@ -311,9 +291,9 @@ function ScreeningFormPage() {
             disabled={isSavingDraft || isSubmitting}
             className={cn(
               'flex items-center gap-2 px-6 py-2.5 rounded-lg',
-              'border border-border-default dark:border-gray-600',
+              'border border-border-default dark:border-border-dark',
               'text-text-main dark:text-white font-medium',
-              'hover:bg-background-light dark:hover:bg-gray-800',
+              'hover:bg-gray-50/50 dark:hover:bg-white/5',
               'transition-colors',
               (isSavingDraft || isSubmitting) && 'opacity-50 cursor-not-allowed'
             )}
@@ -335,7 +315,7 @@ function ScreeningFormPage() {
             {isSubmitting ? 'Submitting...' : 'Submit Screening'}
           </button>
         </div>
-      </div>
+      </StickyFooter>
     </div>
   )
 }

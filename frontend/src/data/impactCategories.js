@@ -1,7 +1,14 @@
 /**
- * Impact Categories (Tool 2)
+ * Impact Categories (Tool 2) - بيانات فئات التأثير الأساسية
  * متوافق مع backend/src/models/impactCategory.model.js
  * هذه البيانات تُحمّل من API في الإنتاج
+ * 
+ * ⚠️ ملاحظة: هذا الملف يحتوي على فئات التأثير بدون الأسئلة
+ * للفئات مع الأسئلة التفصيلية، استخدم: @/data/impactQuestions.js
+ * 
+ * الاستخدام:
+ * - impactCategories.js: للعرض العام (Overview, Dashboard, SEMP)
+ * - impactQuestions.js: للتقييم التفصيلي (Assessment Scoring)
  */
 export const impactCategories = [
   {

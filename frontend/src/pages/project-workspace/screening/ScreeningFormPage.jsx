@@ -8,7 +8,7 @@
 
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Alert, StickyFooter } from '@/components/ui'
+import { Alert, StickyFooter, Modal, Button } from '@/components/ui'
 import {
   ScreeningInfoSection,
   RiskCategorySelector,
@@ -80,6 +80,7 @@ function ScreeningFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSavingDraft, setIsSavingDraft] = useState(false)
   const [submitError, setSubmitError] = useState(null)
+  const [showSubmitModal, setShowSubmitModal] = useState(false)
 
   // Show loading state FIRST (before any redirects)
   if (screeningLoading) {
@@ -169,6 +170,10 @@ function ScreeningFormPage() {
       return
     }
 
+    setShowSubmitModal(true)
+  }
+
+  const handleConfirmSubmit = async () => {
     setIsSubmitting(true)
 
     try {
@@ -185,9 +190,11 @@ function ScreeningFormPage() {
         navigate(`/app/projects/${projectId}/screening/summary`, { replace: true })
       } else {
         setSubmitError(result.error || 'Failed to submit screening. Please try again.')
+        setShowSubmitModal(false)
       }
     } catch (error) {
       setSubmitError('Failed to submit screening. Please try again.')
+      setShowSubmitModal(false)
     } finally {
       setIsSubmitting(false)
     }
@@ -316,6 +323,33 @@ function ScreeningFormPage() {
           </button>
         </div>
       </StickyFooter>
+
+
+      {/* Submit Confirmation Modal */}
+      <Modal
+        isOpen={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+        title="Confirm Submission"
+        description="Are you sure you want to submit the screening?"
+        sub_description="*Editing will not be possible after submission unless the screening is rejected by an administrator."
+      >
+        <Modal.Footer>
+          <Button
+            variant="outline"
+            onClick={() => setShowSubmitModal(false)}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirmSubmit}
+            isLoading={isSubmitting}
+            disabled={isSubmitting}
+          >
+            Confirm Submit
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   )
 }

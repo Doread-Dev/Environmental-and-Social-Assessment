@@ -13,7 +13,7 @@ import {
   TotalImpactCard,
   ImpactSummarySection
 } from '@/components/assessment'
-import { Button, LoadingSpinner, StickyFooter } from '@/components/ui'
+import { Button, LoadingSpinner, StickyFooter, Modal } from '@/components/ui'
 import { impactCategories } from '@/data/impactQuestions'
 
 export default function AssessmentScoringPage() {
@@ -38,6 +38,7 @@ export default function AssessmentScoringPage() {
 
   const [negativeImpact, setNegativeImpact] = useState('')
   const [positiveImpact, setPositiveImpact] = useState('')
+  const [showSubmitModal, setShowSubmitModal] = useState(false)
 
   // Update state when assessment data loads
   useEffect(() => {
@@ -136,6 +137,10 @@ export default function AssessmentScoringPage() {
       return
     }
 
+    setShowSubmitModal(true)
+  }
+
+  const handleConfirmSubmit = async () => {
     // Auto-fill unanswered questions with 'not_applicable'
     const finalScores = allQuestionIds.map(questionId => {
       const existingScore = scoresArray.find(s => s.question === questionId)
@@ -156,6 +161,7 @@ export default function AssessmentScoringPage() {
       await submitAssessment()
       navigate(`/app/projects/${projectId}/assessment/review`)
     }
+    setShowSubmitModal(false)
   }
 
   const handleBack = () => {
@@ -277,6 +283,34 @@ export default function AssessmentScoringPage() {
           </button>
         </div>
       </StickyFooter>
+
+      {/* Submit Confirmation Modal */}
+      <Modal
+        isOpen={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+        title="Confirm Submission"
+        description="Are you sure you want to submit the assessment?"
+        sub_description="*Editing will not be possible after submission unless the screening is rejected by an administrator."
+
+
+      >
+        <Modal.Footer>
+          <Button
+            variant="outline"
+            onClick={() => setShowSubmitModal(false)}
+            disabled={isSaving}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirmSubmit}
+            isLoading={isSaving}
+            disabled={isSaving}
+          >
+            Confirm Submit
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   )
 }

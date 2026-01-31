@@ -10,6 +10,7 @@ import { cn } from '@/utils/cn'
  * @param {Function} props.onClose - Close handler
  * @param {string} props.title - Modal title
  * @param {string} props.description - Modal description
+ * @param {string} props.sub_description - Modal description
  * @param {'sm'|'md'|'lg'|'xl'|'full'} props.size - Modal size
  * @param {boolean} props.closeOnOverlay - Close when clicking overlay
  * @param {boolean} props.closeOnEscape - Close on Escape key
@@ -29,6 +30,7 @@ function Modal({
   onClose,
   title,
   description,
+  sub_description,
   size = 'md',
   closeOnOverlay = true,
   closeOnEscape = true,
@@ -107,7 +109,7 @@ function Modal({
               {title && (
                 <h2
                   id="modal-title"
-                  className="text-lg font-semibold text-text-main dark:text-white"
+                  className="mt-4 text-xl font-semibold text-text-main dark:text-white"
                 >
                   {title}
                 </h2>
@@ -115,14 +117,22 @@ function Modal({
               {description && (
                 <p
                   id="modal-description"
-                  className="text-sm text-text-secondary dark:text-gray-400 mt-1"
+                  className="mt-6 text-md text-text-main dark:text-white "
                 >
                   {description}
                 </p>
               )}
+              {sub_description && (
+                <p
+                  id="modal-sub_description"
+                  className="mt-1 mb-2 text-sm text-text-secondary dark:text-secondary-dark "
+                >
+                  {sub_description}
+                </p>
+              )}
             </div>
 
-            {showCloseButton && (
+            {/* {showCloseButton && (
               <button
                 type="button"
                 onClick={onClose}
@@ -137,7 +147,7 @@ function Modal({
               >
                 <span className="material-symbols-outlined text-xl">close</span>
               </button>
-            )}
+            )} */}
           </div>
         )}
 
@@ -153,8 +163,8 @@ function ModalFooter({ className, children, ...props }) {
   return (
     <div
       className={cn(
-        'flex items-center justify-end gap-3 mt-4 pt-4',
-        'border-t border-border-default dark:border-border-dark',
+        'flex items-center justify-end gap-3',
+        
         '-mx-6 -mb-4 px-6 pb-4',
         className
       )}

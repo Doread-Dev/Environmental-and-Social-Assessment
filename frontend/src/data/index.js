@@ -59,3 +59,18 @@ export {
   getScreeningWithDetails,
   createEmptyScreening
 } from './mockScreening'
+
+// SEMP Data (Tools 3 & 4)
+export {
+  mockManagementActivities,
+  getManagementActivitiesByProjectId,
+  getNextSerialNumber,
+  createEmptyManagementActivity
+} from './mockManagementActivities'
+
+export {
+  mockMitigationPlans,
+  getMitigationPlansByProjectId,
+  getNextMitigationSerialNumber,
+  createEmptyMitigationPlan
+} from './mockMitigationPlans'

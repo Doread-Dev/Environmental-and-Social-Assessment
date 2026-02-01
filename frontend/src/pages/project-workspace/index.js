@@ -15,3 +15,10 @@ export {
   AssessmentReviewPage,
   AssessmentRouter
 } from './assessment'
+
+// SEMP
+export {
+  SempOverviewPage,
+  ManagementActivitiesPage,
+  MitigationPlanPage
+} from './semp'

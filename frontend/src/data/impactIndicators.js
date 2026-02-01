@@ -2,7 +2,7 @@
  * Impact Indicators for Annual Monitoring
  * مؤشرات المراقبة السنوية للتأثير البيئي
  * ⚠️ هذه البيانات مطابقة لـ backend/src/db/seed.js
- * 🔹 سيتم استخدامها في Phase 7 (SEMP & Monitoring)
+ * 🔹 سيتم استخدامها في Phase 8
  */
 
 export const impactIndicators = [

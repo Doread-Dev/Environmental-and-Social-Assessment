@@ -206,6 +206,99 @@ html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
 }
 
 /* ==========================================
+   Excel/Table Styles (From Static UI)
+   ========================================== */
+
+/* شريط التمرير */
+.excel-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.excel-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+html.dark .excel-scroll::-webkit-scrollbar-track {
+  background: #1a2c20;
+}
+
+.excel-scroll::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 5px;
+  border: 2px solid #f1f1f1;
+}
+
+html.dark .excel-scroll::-webkit-scrollbar-thumb {
+  background: #4a5568;
+  border-color: #1a2c20;
+}
+
+.excel-scroll::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* تنسيق الخلايا (Div contenteditable) */
+.excel-cell {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  text-align: left;
+  padding: 8px;
+  outline: none;
+  word-break: break-word;
+  /* Changed to match original style logic if needed, but break-word is standard */
+  white-space: pre-wrap;
+  background: transparent;
+}
+
+.excel-cell:focus {
+  box-shadow: inset 0 0 0 2px #11d452;
+  background-color: rgba(17, 212, 82, 0.05);
+  /* Using rgba directly as in static */
+  z-index: 10;
+  position: relative;
+}
+
+/* تنسيق القائمة المنسدلة (Select) لتشبه الخلايا */
+select.excel-cell {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  text-align: center;
+  text-align-last: center;
+  padding: 0 8px;
+  cursor: pointer;
+}
+
+select.excel-cell:focus {
+  box-shadow: inset 0 0 0 2px #11d452;
+  outline: none;
+}
+
+/* Placeholder */
+.excel-cell[data-placeholder]:empty:before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+/* Table Lines */
+.excel-table td {
+  height: inherit;
+}
+
+.excel-table tr:hover td {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+html.dark .excel-table tr:hover td {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* ==========================================
    Animation Classes
    ========================================== */
 @keyframes fadeIn {
@@ -244,13 +337,12 @@ html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
 }
 
 /* Radio Button Styling - مطابق للتصميم الأصلي */
-/* استخدام accent-color يجعل radio button أخضر عند checked */
 input[type="radio"].text-primary,
 input[type="radio"][class*="text-primary"] {
   accent-color: var(--color-primary);
 }
 
-/* التأكد من أن radio button يظهر باللون الأخضر عند checked */
 input[type="radio"]:checked {
   accent-color: var(--color-primary);
 }
+

@@ -1554,10 +1554,10 @@ function ProjectForm() {
 - [x] متوافق 100% مع backend/documents/editPlan3.md
 
 #### Phase 7: SEMP
-- [ ] SempOverviewPage
-- [ ] ManagementActivitiesPage
-- [ ] MitigationPlanPage
-- [ ] 2 table components
+- [x] SempOverviewPage
+- [x] ManagementActivitiesPage
+- [x] MitigationPlanPage
+- [x] 2 table components
 
 #### Phase 8: Monitoring & Files
 - [ ] MonitoringOverviewPage

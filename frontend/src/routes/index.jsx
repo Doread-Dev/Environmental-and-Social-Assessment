@@ -6,6 +6,7 @@ import ProtectedRoute from './ProtectedRoute'
 import AuthLayout from '@/components/layout/AuthLayout'
 import MainLayout from '@/components/layout/MainLayout'
 import ProjectLayout from '@/components/layout/ProjectLayout'
+import SempFullWidthLayout from '@/components/layout/SempFullWidthLayout'
 
 // Import actual page components
 import * as Auth from '@/pages/auth'
@@ -25,34 +26,11 @@ import {
   AssessmentReviewPage
 } from '@/pages/project-workspace/assessment'
 
-const SempOverviewPage = () => (
-  <div>
-    <h1 className="text-3xl font-bold text-text-main dark:text-white mb-4">SEMP Overview</h1>
-    <p className="text-text-secondary dark:text-gray-400">
-      SEMP overview page placeholder - Phase 7
-    </p>
-  </div>
-)
-
-const ManagementActivitiesPage = () => (
-  <div>
-    <h1 className="text-3xl font-bold text-text-main dark:text-white mb-4">
-      Management Activities
-    </h1>
-    <p className="text-text-secondary dark:text-gray-400">
-      Management activities page placeholder - Phase 7
-    </p>
-  </div>
-)
-
-const MitigationPlanPage = () => (
-  <div>
-    <h1 className="text-3xl font-bold text-text-main dark:text-white mb-4">Mitigation Plan</h1>
-    <p className="text-text-secondary dark:text-gray-400">
-      Mitigation plan page placeholder - Phase 7
-    </p>
-  </div>
-)
+import {
+  SempOverviewPage,
+  ManagementActivitiesPage,
+  MitigationPlanPage
+} from '@/pages/project-workspace/semp'
 
 const MonitoringOverviewPage = () => (
   <div>
@@ -214,20 +192,12 @@ export const router = createBrowserRouter([
         element: <AssessmentReviewPage />,
       },
 
-      // SEMP (Tools 3 & 4)
+      // SEMP (Overview remains in Project Layout)
       {
         path: 'semp',
         element: <SempOverviewPage />,
       },
-      {
-        path: 'semp/activities',
-        element: <ManagementActivitiesPage />,
-      },
-      {
-        path: 'semp/mitigation',
-        element: <MitigationPlanPage />,
-      },
-
+      
       // Monitoring (Tool 5)
       {
         path: 'monitoring',
@@ -238,6 +208,7 @@ export const router = createBrowserRouter([
         element: <MonitoringDataEntryPage />,
       },
 
+
       // Files & Annex
       {
         path: 'files',
@@ -246,6 +217,28 @@ export const router = createBrowserRouter([
       {
         path: 'annex',
         element: <AnnexOverviewPage />,
+      },
+    ],
+  },
+
+  // ==========================================
+  // SEMP Full Width Tools (Protected)
+  // ==========================================
+  {
+    path: '/app/projects/:projectId/semp',
+    element: (
+      <ProtectedRoute>
+        <SempFullWidthLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        path: 'activities',
+        element: <ManagementActivitiesPage />,
+      },
+      {
+        path: 'mitigation',
+        element: <MitigationPlanPage />,
       },
     ],
   },

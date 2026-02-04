@@ -1,6 +1,9 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { ROUTES } from './routes.config'
 import ProtectedRoute from './ProtectedRoute'
+import MonitoringRouteGuard from './MonitoringRouteGuard'
+import SempRouteGuard from './SempRouteGuard'
+import AssessmentRouteGuard from './AssessmentRouteGuard'
 
 // Layouts
 import AuthLayout from '@/components/layout/AuthLayout'
@@ -145,39 +148,57 @@ export const router = createBrowserRouter([
       // Assessment (Tool 2)
       {
         path: 'assessment',
-        element: <AssessmentRouter />,
-      },
-      {
-        path: 'assessment/metadata',
-        element: <AssessmentMetadataPage />,
-      },
-      {
-        path: 'assessment/methods',
-        element: <AssessmentMethodsPage />,
-      },
-      {
-        path: 'assessment/scoring',
-        element: <AssessmentScoringPage />,
-      },
-      {
-        path: 'assessment/review',
-        element: <AssessmentReviewPage />,
+        element: <AssessmentRouteGuard />,
+        children: [
+          {
+            index: true,
+            element: <AssessmentRouter />,
+          },
+          {
+            path: 'metadata',
+            element: <AssessmentMetadataPage />,
+          },
+          {
+            path: 'methods',
+            element: <AssessmentMethodsPage />,
+          },
+          {
+            path: 'scoring',
+            element: <AssessmentScoringPage />,
+          },
+          {
+            path: 'review',
+            element: <AssessmentReviewPage />,
+          },
+        ],
       },
 
       // SEMP (Overview remains in Project Layout)
       {
         path: 'semp',
-        element: <SempOverviewPage />,
+        element: <SempRouteGuard />,
+        children: [
+          {
+            index: true,
+            element: <SempOverviewPage />,
+          },
+        ],
       },
       
       // Monitoring (Tool 5)
       {
         path: 'monitoring',
-        element: <MonitoringOverviewPage />,
-      },
-      {
-        path: 'monitoring/data-entry',
-        element: <MonitoringDataEntryPage />,
+        element: <MonitoringRouteGuard />,
+        children: [
+          {
+            index: true,
+            element: <MonitoringOverviewPage />,
+          },
+          {
+            path: 'data-entry',
+            element: <MonitoringDataEntryPage />,
+          },
+        ],
       },
 
 
@@ -200,17 +221,22 @@ export const router = createBrowserRouter([
     path: '/app/projects/:projectId/semp',
     element: (
       <ProtectedRoute>
-        <SempFullWidthLayout />
+        <SempRouteGuard />
       </ProtectedRoute>
     ),
     children: [
       {
-        path: 'activities',
-        element: <ManagementActivitiesPage />,
-      },
-      {
-        path: 'mitigation',
-        element: <MitigationPlanPage />,
+        element: <SempFullWidthLayout />,
+        children: [
+          {
+            path: 'activities',
+            element: <ManagementActivitiesPage />,
+          },
+          {
+            path: 'mitigation',
+            element: <MitigationPlanPage />,
+          },
+        ],
       },
     ],
   },

@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
-import { useMonitoring } from '@/hooks'
+import { useMonitoring, useAssessment } from '@/hooks'
 import { MonitoringDataTable } from '@/components/tables'
 import { Alert } from '@/components/ui'
 import { impactCategories, impactLevels } from '@/data/impactCategories'
@@ -17,6 +17,9 @@ export default function MonitoringDataEntryPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const categoryParam = searchParams.get('category')
+  const { assessment, isLoading: isAssessmentLoading } = useAssessment(projectId)
+  const isApproved = assessment?.status === 'approved'
+  const isLocked = !isApproved
 
   const {
     getCategoryData,
@@ -101,7 +104,7 @@ export default function MonitoringDataEntryPage() {
 
   const saveBtn = getSaveButtonContent()
 
-  if (isLoading) {
+  if (isLoading || isAssessmentLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4">
@@ -139,10 +142,12 @@ export default function MonitoringDataEntryPage() {
             <button
               type="button"
               onClick={handleSave}
-              disabled={isSaving || (justSaved && !hasUnsavedChanges)}
+              disabled={isLocked || isSaving || (justSaved && !hasUnsavedChanges)}
               className={cn(
                 'flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-5 gap-2 text-sm font-bold leading-normal tracking-[0.015em] shadow-md transition-all transform',
-                isSaving
+                isLocked
+                  ? 'bg-primary/50 cursor-not-allowed'
+                  : isSaving
                   ? 'bg-primary/70 cursor-wait'
                   : justSaved && !hasUnsavedChanges
                     ? 'bg-green-600 hover:bg-green-700 text-white border border-transparent'
@@ -167,10 +172,37 @@ export default function MonitoringDataEntryPage() {
           </Alert>
         )}
 
+        {/* Lock Warning */}
+        {isLocked && (
+          <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800 rounded-xl p-6 flex flex-col sm:flex-row items-center gap-4">
+            <div className="size-12 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center shrink-0 text-orange-600 dark:text-orange-400">
+              <span className="material-symbols-outlined text-2xl">lock</span>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Monitoring Locked</h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                You must complete and get approval for the <strong>Environmental Assessment (Tool 2)</strong> before entering monitoring data.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate(`/app/projects/${projectId}/assessment`)}
+              className="sm:ml-auto px-4 py-2 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700 transition-colors whitespace-nowrap"
+            >
+              Go to Assessment
+            </button>
+          </div>
+        )}
+
    
 
         {/* Categories Accordion */}
-        <section className="flex flex-col gap-4">
+        <section
+          className={
+            isLocked
+              ? 'flex flex-col gap-4 opacity-50 pointer-events-none grayscale'
+              : 'flex flex-col gap-4'
+          }
+        >
           {impactCategories.map((category) => {
             const isExpanded = expandedCategories.includes(category.code)
             const categoryData = getCategoryData(category.code)

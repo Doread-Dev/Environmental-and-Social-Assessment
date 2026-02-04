@@ -6,15 +6,19 @@
 
 import { useNavigate, useParams } from 'react-router-dom'
 import { MonitoringCategoryCard, MonitoringProgressTimeline } from '@/components/monitoring'
-import { useMonitoring } from '@/hooks'
+import { useMonitoring, useAssessment } from '@/hooks'
 import { impactLevels } from '@/data/impactCategories'
 
 export default function MonitoringOverviewPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
   const { getAllCategoryStats, getCategoryData, isLoading, records } = useMonitoring(projectId)
+  const { assessment, isLoading: isAssessmentLoading } = useAssessment(projectId)
 
-  if (isLoading) {
+  const isApproved = assessment?.status === 'approved'
+  const isLocked = !isApproved
+
+  if (isLoading || isAssessmentLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4">
@@ -56,7 +60,8 @@ export default function MonitoringOverviewPage() {
             <button
               type="button"
               onClick={() => navigate(`/app/projects/${projectId}/monitoring/data-entry`)}
-              className="flex items-center justify-center gap-2 h-10 px-6 rounded-lg bg-primary hover:bg-primary-hover text-white font-bold text-sm shadow-md transition-colors"
+              disabled={isLocked}
+              className="flex items-center justify-center gap-2 h-10 px-6 rounded-lg bg-primary hover:bg-primary-hover text-white font-bold text-sm shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="material-symbols-outlined text-base">add_circle</span>
               Enter / Edit Data
@@ -64,7 +69,8 @@ export default function MonitoringOverviewPage() {
             <button
               type="button"
               onClick={() => alert('Export functionality will be implemented in future phase')}
-              className="flex items-center justify-center gap-2 h-10 px-6 rounded-lg border border-primary text-primary hover:bg-primary/10 dark:hover:bg-primary/20 font-bold text-sm transition-colors"
+              disabled={isLocked}
+              className="flex items-center justify-center gap-2 h-10 px-6 rounded-lg border border-primary text-primary hover:bg-primary/10 dark:hover:bg-primary/20 font-bold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="material-symbols-outlined text-base">download</span>
               Export Excel
@@ -72,8 +78,35 @@ export default function MonitoringOverviewPage() {
           </div>
         </div>
 
+        {/* Lock Warning */}
+        {isLocked && (
+          <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800 rounded-xl p-6 flex flex-col sm:flex-row items-center gap-4">
+            <div className="size-12 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center shrink-0 text-orange-600 dark:text-orange-400">
+              <span className="material-symbols-outlined text-2xl">lock</span>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Monitoring Locked</h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                You must complete and get approval for the <strong>Environmental Assessment (Tool 2)</strong> before starting monitoring.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate(`/app/projects/${projectId}/assessment`)}
+              className="sm:ml-auto px-4 py-2 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700 transition-colors whitespace-nowrap"
+            >
+              Go to Assessment
+            </button>
+          </div>
+        )}
+
         {/* Completion Status */}
-        <section className="bg-white dark:bg-[#152a1d] rounded-xl p-6 shadow-sm border border-border-default dark:border-border-dark">
+        <section
+          className={
+            isLocked
+              ? 'bg-white dark:bg-[#152a1d] rounded-xl p-6 shadow-sm border border-border-default dark:border-border-dark opacity-50 pointer-events-none grayscale'
+              : 'bg-white dark:bg-[#152a1d] rounded-xl p-6 shadow-sm border border-border-default dark:border-border-dark'
+          }
+        >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
             <h3 className="text-xl font-bold text-text-main dark:text-white">Completion Status</h3>
             <div className="flex gap-8">
@@ -114,7 +147,13 @@ export default function MonitoringOverviewPage() {
         </section>
 
         {/* Categories Grid */}
-        <section className="flex flex-col gap-6">
+        <section
+          className={
+            isLocked
+              ? 'flex flex-col gap-6 opacity-50 pointer-events-none grayscale'
+              : 'flex flex-col gap-6'
+          }
+        >
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-text-main dark:text-white">
               Monitoring Scope Summary

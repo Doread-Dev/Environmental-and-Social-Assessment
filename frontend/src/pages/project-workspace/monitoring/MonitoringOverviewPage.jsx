@@ -85,9 +85,12 @@ export default function MonitoringOverviewPage() {
               <span className="material-symbols-outlined text-2xl">lock</span>
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Monitoring Locked</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+                Monitoring Locked
+              </h3>
               <p className="text-gray-600 dark:text-gray-400 text-sm">
-                You must complete and get approval for the <strong>Environmental Assessment (Tool 2)</strong> before starting monitoring.
+                You must complete and get approval for the{' '}
+                <strong>Environmental Assessment (Tool 2)</strong> before starting monitoring.
               </p>
             </div>
             <button
@@ -121,7 +124,9 @@ export default function MonitoringOverviewPage() {
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 font-bold text-lg">
-                    <span className="material-symbols-outlined text-base">radio_button_unchecked</span>
+                    <span className="material-symbols-outlined text-base">
+                      radio_button_unchecked
+                    </span>
                     Not Entered
                   </div>
                 )}

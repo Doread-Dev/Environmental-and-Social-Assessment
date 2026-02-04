@@ -1,7 +1,7 @@
 /**
  * ScreeningSummaryCard Component
  * بطاقة ملخص الفرز (للعرض في Summary Page)
- * 
+ *
  * Features:
  * - Header مع حالة الفرز
  * - معلومات المسؤول
@@ -27,15 +27,17 @@ function ScreeningSummaryCard({ screening, project, className, ...props }) {
   const statusInfo = screeningStatuses[screening.status] || screeningStatuses.draft
 
   // Parse impacts into list items
-  const negativeItems = screening.potential_negative
-    ?.split('\n')
-    .filter((line) => line.trim().startsWith('-'))
-    .map((line) => line.trim().substring(1).trim()) || []
+  const negativeItems =
+    screening.potential_negative
+      ?.split('\n')
+      .filter((line) => line.trim().startsWith('-'))
+      .map((line) => line.trim().substring(1).trim()) || []
 
-  const positiveItems = screening.potential_positive
-    ?.split('\n')
-    .filter((line) => line.trim().startsWith('-'))
-    .map((line) => line.trim().substring(1).trim()) || []
+  const positiveItems =
+    screening.potential_positive
+      ?.split('\n')
+      .filter((line) => line.trim().startsWith('-'))
+      .map((line) => line.trim().substring(1).trim()) || []
 
   return (
     <div className={cn('space-y-6', className)} {...props}>
@@ -106,12 +108,7 @@ function ScreeningSummaryCard({ screening, project, className, ...props }) {
               )}
             >
               <div className="flex items-start gap-4">
-                <div
-                  className={cn(
-                    'flex-shrink-0 p-3 rounded-lg',
-                    'bg-white/50 dark:bg-black/20'
-                  )}
-                >
+                <div className={cn('flex-shrink-0 p-3 rounded-lg', 'bg-white/50 dark:bg-black/20')}>
                   <Icon name="shield" size="xl" className={categoryInfo.textColor} />
                 </div>
                 <div className="flex-1">

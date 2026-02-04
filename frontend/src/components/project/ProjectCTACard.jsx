@@ -2,7 +2,7 @@
  * ProjectCTACard Component
  * بطاقة الدعوة للإجراء (Next Step CTA)
  * مطابق للتصميم الأصلي حرفياً
- * 
+ *
  * Features:
  * - خلفية متدرجة (gradient)
  * - تأثير ضبابي في الزاوية اليمنى العلوية

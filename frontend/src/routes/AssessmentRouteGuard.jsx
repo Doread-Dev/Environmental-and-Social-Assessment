@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useLocation, useParams } from 'react-router-dom'
+import { Navigate, Outlet, useLocation, useOutletContext, useParams } from 'react-router-dom'
 import { useScreening } from '@/hooks'
 
 /**
@@ -8,6 +8,7 @@ import { useScreening } from '@/hooks'
 function AssessmentRouteGuard() {
   const location = useLocation()
   const { projectId } = useParams()
+  const outletContext = useOutletContext()
   const { screening, isLoading } = useScreening(projectId)
 
   if (isLoading) {
@@ -25,15 +26,11 @@ function AssessmentRouteGuard() {
 
   if (screening?.status !== 'approved') {
     return (
-      <Navigate
-        to={`/app/projects/${projectId}/screening`}
-        replace
-        state={{ from: location }}
-      />
+      <Navigate to={`/app/projects/${projectId}/screening`} replace state={{ from: location }} />
     )
   }
 
-  return <Outlet />
+  return <Outlet context={outletContext} />
 }
 
 export default AssessmentRouteGuard

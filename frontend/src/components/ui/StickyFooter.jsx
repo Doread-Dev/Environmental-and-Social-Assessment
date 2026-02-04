@@ -1,10 +1,10 @@
 /**
  * StickyFooter Component
  * Footer ملتصق بالأسفل يعمل مع ProjectLayout
- * 
+ *
  * يستخدم CSS Variable (--sidebar-width) لتحديد المسافة من اليسار تلقائياً
  * مما يجعله يحترم عرض السايد بار بدون hardcoding
- * 
+ *
  * Usage:
  * <StickyFooter>
  *   <div>Left content</div>

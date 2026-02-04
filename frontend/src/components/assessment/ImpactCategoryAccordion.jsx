@@ -36,7 +36,6 @@ function calculateCategoryScore(scores, categoryQuestions) {
   return score
 }
 
-
 /**
  * @param {Object} props
  * @param {Object} props.category - بيانات الفئة
@@ -71,9 +70,7 @@ export default function ImpactCategoryAccordion({
   }, [scores, category])
 
   const highestLevel = calculateTotalImpact(categoryScore)
-  const highestConfig = highestLevel
-    ? IMPACT_LEVEL_CONFIG[highestLevel]
-    : null
+  const highestConfig = highestLevel ? IMPACT_LEVEL_CONFIG[highestLevel] : null
 
   // حساب النص للـ Badge
   const scoreText = useMemo(() => {
@@ -92,14 +89,9 @@ export default function ImpactCategoryAccordion({
       <summary className="flex cursor-pointer items-center justify-between gap-4 px-6 py-4 bg-white dark:bg-surface-dark hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors select-none sticky top-0 z-10 border-b border-transparent group-open:border-border-default dark:group-open:border-border-dark">
         <div className="flex items-center gap-4">
           <div
-            className={cn(
-              'flex items-center justify-center size-8 rounded-full',
-              category.iconBg
-            )}
+            className={cn('flex items-center justify-center size-8 rounded-full', category.iconBg)}
           >
-            <span
-              className={cn('material-symbols-outlined text-[20px]', category.iconColor)}
-            >
+            <span className={cn('material-symbols-outlined text-[20px]', category.iconColor)}>
               {category.icon}
             </span>
           </div>
@@ -168,9 +160,7 @@ export default function ImpactCategoryAccordion({
             <tr>
               <td className="py-3 px-6" colSpan="3">
                 <div className="flex items-center justify-end gap-6 text-sm">
-                  <span className="text-text-secondary dark:text-gray-400">
-                    Category Score:
-                  </span>
+                  <span className="text-text-secondary dark:text-gray-400">Category Score:</span>
                   <div className="flex gap-4">
                     {Object.values(IMPACT_LEVELS).map((level) => {
                       const config = IMPACT_LEVEL_CONFIG[level]

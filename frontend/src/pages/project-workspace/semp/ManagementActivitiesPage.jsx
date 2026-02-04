@@ -12,7 +12,7 @@ import { cn } from '@/utils/cn'
 export default function ManagementActivitiesPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
-  
+
   const {
     managementActivities,
     isLoading,
@@ -20,7 +20,7 @@ export default function ManagementActivitiesPage() {
     addManagementActivity,
     updateManagementActivity,
     deleteManagementActivity,
-    saveManagementActivities
+    saveManagementActivities,
   } = useSemp(projectId)
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
@@ -35,7 +35,7 @@ export default function ManagementActivitiesPage() {
       // We don't set hasUnsavedChanges here to avoid prompting if user leaves immediately
       // knowing it's just an empty auto-generated row.
     } else if (!isLoading && managementActivities.length > 0) {
-        hasInitialized.current = true
+      hasInitialized.current = true
     }
   }, [isLoading, managementActivities, addManagementActivity])
 
@@ -101,7 +101,6 @@ export default function ManagementActivitiesPage() {
 
   return (
     <div className="flex-1 flex flex-col w-full h-full overflow-hidden bg-background dark:bg-background-dark">
-      
       {/* Header Section from Static HTML */}
       <div className="shrink-0 flex flex-wrap justify-between items-end gap-3 px-6 md:px-10 py-6 border-b border-border-default dark:border-border-dark bg-background dark:bg-background-dark">
         <div className="flex min-w-72 flex-col gap-2">
@@ -116,24 +115,26 @@ export default function ManagementActivitiesPage() {
             Operational planning and risk mitigation tracking.
           </p>
         </div>
-        
+
         <div className="gap-2 flex items-center justify-center">
-          <button 
+          <button
             onClick={handleBack}
             className="flex items-center justify-center gap-2 rounded-lg h-10 px-4 bg-white dark:bg-surface-dark border border-border-default dark:border-border-dark hover:bg-gray-50/50 dark:hover:bg-white/3 text-text-main dark:text-white text-sm font-bold transition-all shadow-sm"
           >
             <span className="material-symbols-outlined text-lg">arrow_back</span>
-            <span>Back</span> 
+            <span>Back</span>
           </button>
-          
-          <button 
+
+          <button
             onClick={handleSave}
             disabled={isSaving || (justSaved && !hasUnsavedChanges)} // Disable if already saved to prevent double submitting without changes? Or keep enabled? User said "stays as Saved", implied purely feedback. I'll keep enabled or follow standard UX. Disable on Saved is good UX.
             className={cn(
-              "flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-5 gap-2 text-sm font-bold leading-normal tracking-[0.015em] shadow-md transition-all transform ",
-              isSaving ? "bg-primary/70 cursor-wait" : 
-              justSaved && !hasUnsavedChanges ? "bg-green-600 hover:bg-green-700 text-white border border-transparent" :
-              "bg-primary hover:bg-green-500 text-primary-content"
+              'flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-5 gap-2 text-sm font-bold leading-normal tracking-[0.015em] shadow-md transition-all transform ',
+              isSaving
+                ? 'bg-primary/70 cursor-wait'
+                : justSaved && !hasUnsavedChanges
+                  ? 'bg-green-600 hover:bg-green-700 text-white border border-transparent'
+                  : 'bg-primary hover:bg-green-500 text-primary-content'
             )}
           >
             {saveBtn.spinner ? (
@@ -155,7 +156,6 @@ export default function ManagementActivitiesPage() {
           onAddRow={handleAddRow}
         />
       </div>
-
     </div>
   )
 }

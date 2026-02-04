@@ -2,7 +2,7 @@
  * RiskCategorySelector Component
  * محدد فئة الخطر (القسم 2)
  * مطابق للتصميم الأصلي حرفياً
- * 
+ *
  * Features:
  * - Radio buttons للفئات (A-F) مع تصميم خاص
  * - Textarea للتبرير في box منفصل

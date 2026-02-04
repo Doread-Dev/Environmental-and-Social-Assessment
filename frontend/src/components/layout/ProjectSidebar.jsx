@@ -7,7 +7,6 @@ import { Avatar, Tooltip } from '@/components/ui'
 
 // User menu items (same as Header)
 const userMenuItems = [
-  { id: 'profile', label: 'Profile', icon: 'person' },
   { id: 'settings', label: 'Settings', icon: 'settings' },
   { id: 'divider', type: 'divider' },
   { id: 'theme', label: 'Theme', icon: 'dark_mode', type: 'theme-toggle' },
@@ -39,8 +38,6 @@ function ProjectSidebar({ project, className }) {
   const user = {
     name: 'Alex Morgan',
     role: 'Environmental Officer',
-    avatar:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCtra6pj5M5oTyJp1GdJWuU63rsELKvVKe4fboOS02kUTaVf4ehAD_wchdxbPfoBzsc-L9HdsZm1dlAzW_598IOXygrITkCOb8PhtOGw5WVcDdF3hE96FbESF6OkZ6S4Qg8lCHAcfE56hrcA5qoUEuWFbxCSpY46m1nYJN2KV7pM5SvQP55_nYo7EqBZCnQnwrXRiHUeqB2sW7Jgr27PWEBt_NAf5J93MIG1HUbYa8YpgApira7wAky_Gj0olj2YRpwHmf8JlO4xcid',
   }
 
   // Check if a nav item is active
@@ -61,34 +58,44 @@ function ProjectSidebar({ project, className }) {
   // Auto-expand items with active children (no manual toggle needed)
   // Expansion happens automatically when a child is active
 
+  const getStepStatus = (stepId) => project?.workflow?.[stepId]?.status
+
+  const isApproved = (status) => status === 'approved'
+  const isCompleted = (status) => status === 'completed'
+
   // Check if a step is completed
   const isStepCompleted = (stepId) => {
-    return project?.workflow?.[stepId]?.status === 'approved' || project?.workflow?.[stepId]?.status === 'completed'
+    const status = getStepStatus(stepId)
+    return isApproved(status) || isCompleted(status)
   }
 
-  // TODO: Step Locking Logic - To be implemented when business logic is added
-  // When implementing, steps should be locked (or marked as checked) based on sequential completion.
-  // Users must complete steps in order: Screening → Assessment → SEMP → Monitoring
-  // A step should only be accessible after the previous step is completed.
-  // Example implementation:
-  // const isStepLocked = (stepId) => {
-  //   const stepOrder = ['screening', 'assessment', 'semp', 'monitoring']
-  //   const stepIndex = stepOrder.indexOf(stepId)
-  //   if (stepIndex === 0) return false
-  //   const previousStep = stepOrder[stepIndex - 1]
-  //   return !isStepCompleted(previousStep)
-  // }
-  // For now, all steps are accessible (no locking)
-  // eslint-disable-next-line no-unused-vars
-  const isStepLocked = () => false
+  // Step Locking Logic (Sequential Tools)
+  // Screening → Assessment → SEMP → Monitoring
+  const isStepLocked = (stepId) => {
+    if (!project) return stepId !== 'overview'
+
+    const screeningApproved = isApproved(getStepStatus('screening'))
+    const assessmentApproved = isApproved(getStepStatus('assessment'))
+    const sempCompleted = isCompleted(getStepStatus('semp'))
+
+    switch (stepId) {
+      case 'screening':
+        return false
+      case 'assessment':
+        return !screeningApproved
+      case 'semp':
+        return !screeningApproved || !assessmentApproved
+      case 'monitoring':
+        return !screeningApproved || !assessmentApproved || !sempCompleted
+      default:
+        return false
+    }
+  }
 
   // Render expandable nav item
   const renderExpandableItem = (item) => {
-    // TODO: When step locking logic is implemented, uncomment the following:
     // Annex & Attachments should never be locked
-    // const isLocked = item.id !== 'annex' && isStepLocked(item.id)
-    // For now, all items are accessible (no locking)
-    const isLocked = false
+    const isLocked = item.id !== 'annex' && isStepLocked(item.id)
     const isCompleted = isStepCompleted(item.id)
     const hasActive = hasActiveChild(item.children)
     const isParentActive = isNavActive(item.path)
@@ -167,16 +174,19 @@ function ProjectSidebar({ project, className }) {
                 location.pathname === childPath || location.pathname.startsWith(childPath + '/')
 
               // For assessment children (metadata, methods, scoring), show as display-only (not clickable)
-              if (item.id === 'assessment' && ['assessment-metadata', 'assessment-methods', 'assessment-scoring'].includes(child.id)) {
+              if (
+                item.id === 'assessment' &&
+                ['assessment-metadata', 'assessment-methods', 'assessment-scoring'].includes(
+                  child.id
+                )
+              ) {
                 return (
                   <div
                     key={child.id}
                     className={cn(
                       'pl-10 pr-3 py-1.5 text-sm block',
                       'cursor-default',
-                      isChildActive
-                        ? 'font-bold text-primary'
-                        : 'font-medium text-text-secondary'
+                      isChildActive ? 'font-bold text-primary' : 'font-medium text-text-secondary'
                     )}
                   >
                     {child.label}
@@ -316,10 +326,7 @@ function ProjectSidebar({ project, className }) {
           }
 
           // Render simple items
-          // TODO: When step locking logic is implemented, uncomment the following:
-          // const isLocked = isStepLocked(item.id)
-          // For now, all items are accessible (no locking)
-          const isLocked = false
+          const isLocked = isStepLocked(item.id)
           const isCompleted = isStepCompleted(item.id)
           const isActive = isNavActive(item.path)
 
@@ -417,28 +424,6 @@ function ProjectSidebar({ project, className }) {
 
       {/* Footer - User Info */}
       <div className="mt-auto bg-surface dark:bg-surface-dark border-t border-border-default dark:border-border-dark p-4 shrink-0">
-        {/* Settings Link */}
-        <NavLink
-          to={`/app/projects/${projectId}/settings`}
-          className={({ isActive }) =>
-            cn(
-              'flex items-center gap-3',
-              'px-3 py-2 rounded-lg mb-2',
-              'text-sm font-medium',
-              'transition-colors',
-              isActive
-                ? 'text-text-main dark:text-white bg-background dark:bg-background-dark'
-                : 'text-text-secondary hover:text-text-main dark:hover:text-white hover:bg-background dark:hover:bg-background-dark'
-            )
-          }
-        >
-          <span className="material-symbols-outlined text-[20px]">settings</span>
-          <span>Settings</span>
-        </NavLink>
-
-        {/* Divider */}
-        <div className="h-px bg-border-default dark:bg-border-dark w-full my-3" />
-
         {/* User Info with Dropdown */}
         <div className="relative">
           <button
@@ -450,10 +435,9 @@ function ProjectSidebar({ project, className }) {
             )}
           >
             <Avatar
-              src={user.avatar}
               alt={user.name}
               size="sm"
-              className="ring-2 ring-border-default dark:ring-border-dark"
+              
             />
             <div className="flex flex-col min-w-0 flex-1 text-left">
               <span className="text-sm font-bold text-text-main dark:text-white truncate">

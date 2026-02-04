@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { ROUTES } from './routes.config'
 import ProtectedRoute from './ProtectedRoute'
@@ -5,47 +6,87 @@ import MonitoringRouteGuard from './MonitoringRouteGuard'
 import SempRouteGuard from './SempRouteGuard'
 import AssessmentRouteGuard from './AssessmentRouteGuard'
 
-// Layouts
+// Layouts - Keep these eager loaded as they're always needed
 import AuthLayout from '@/components/layout/AuthLayout'
 import MainLayout from '@/components/layout/MainLayout'
 import ProjectLayout from '@/components/layout/ProjectLayout'
 import SempFullWidthLayout from '@/components/layout/SempFullWidthLayout'
 
-// Import actual page components
-import * as Auth from '@/pages/auth'
-import * as Dashboard from '@/pages/dashboard'
-import * as Projects from '@/pages/projects'
+// Loading Fallback Component
+const PageLoader = () => (
+  <div className="min-h-[400px] flex items-center justify-center">
+    <div className="flex flex-col items-center gap-4">
+      <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <p className="text-text-secondary dark:text-gray-400 text-sm">Loading...</p>
+    </div>
+  </div>
+)
+
+// Lazy wrapper helper
+const lazyLoad = (importFn) => {
+  const LazyComponent = lazy(importFn)
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <LazyComponent />
+    </Suspense>
+  )
+}
+
+// ==========================================
+// Lazy Loaded Pages
+// ==========================================
+
+// Dashboard Pages
+const DashboardPage = lazy(() => import('@/pages/dashboard/DashboardPage'))
+
+// Project Pages
+const ProjectListPage = lazy(() => import('@/pages/projects/ProjectListPage'))
+const ProjectCreatePage = lazy(() => import('@/pages/projects/ProjectCreatePage'))
 
 // Project Workspace Pages
-import { ProjectOverviewPage } from '@/pages/project-workspace/overview'
-import ScreeningRouter from '@/pages/project-workspace/screening/ScreeningRouter'
-import { ScreeningSummaryPage } from '@/pages/project-workspace/screening'
-import {
-  AssessmentRouter,
-  AssessmentGatewayPage,
-  AssessmentMetadataPage,
-  AssessmentMethodsPage,
-  AssessmentScoringPage,
-  AssessmentReviewPage
-} from '@/pages/project-workspace/assessment'
+const ProjectOverviewPage = lazy(
+  () => import('@/pages/project-workspace/overview/ProjectOverviewPage')
+)
+const ScreeningRouter = lazy(() => import('@/pages/project-workspace/screening/ScreeningRouter'))
+const ScreeningSummaryPage = lazy(
+  () => import('@/pages/project-workspace/screening/ScreeningSummaryPage')
+)
 
-import {
-  SempOverviewPage,
-  ManagementActivitiesPage,
-  MitigationPlanPage
-} from '@/pages/project-workspace/semp'
+// Assessment Pages
+const AssessmentRouter = lazy(() => import('@/pages/project-workspace/assessment/AssessmentRouter'))
+const AssessmentMetadataPage = lazy(
+  () => import('@/pages/project-workspace/assessment/AssessmentMetadataPage')
+)
+const AssessmentMethodsPage = lazy(
+  () => import('@/pages/project-workspace/assessment/AssessmentMethodsPage')
+)
+const AssessmentScoringPage = lazy(
+  () => import('@/pages/project-workspace/assessment/AssessmentScoringPage')
+)
+const AssessmentReviewPage = lazy(
+  () => import('@/pages/project-workspace/assessment/AssessmentReviewPage')
+)
 
-import {
-  MonitoringOverviewPage,
-  MonitoringDataEntryPage
-} from '@/pages/project-workspace/monitoring'
+// SEMP Pages
+const SempOverviewPage = lazy(() => import('@/pages/project-workspace/semp/SempOverviewPage'))
+const ManagementActivitiesPage = lazy(
+  () => import('@/pages/project-workspace/semp/ManagementActivitiesPage')
+)
+const MitigationPlanPage = lazy(() => import('@/pages/project-workspace/semp/MitigationPlanPage'))
 
-import {
-  ProjectFilesPage,
-  AnnexOverviewPage
-} from '@/pages/project-workspace/annex'
+// Monitoring Pages
+const MonitoringOverviewPage = lazy(
+  () => import('@/pages/project-workspace/monitoring/MonitoringOverviewPage')
+)
+const MonitoringDataEntryPage = lazy(
+  () => import('@/pages/project-workspace/monitoring/MonitoringDataEntryPage')
+)
 
-// Not Found Page
+// Files & Annex Pages
+const ProjectFilesPage = lazy(() => import('@/pages/project-workspace/annex/ProjectFilesPage'))
+const AnnexOverviewPage = lazy(() => import('@/pages/project-workspace/annex/AnnexOverviewPage'))
+
+// Not Found Page (inline - small component)
 const NotFoundPage = () => (
   <div className="min-h-screen flex items-center justify-center bg-background dark:bg-background-dark">
     <div className="text-center">
@@ -67,6 +108,7 @@ const NotFoundPage = () => (
 
 /**
  * Application Router Configuration
+ * All pages are lazy loaded for optimal performance
  */
 export const router = createBrowserRouter([
   // ==========================================
@@ -77,7 +119,7 @@ export const router = createBrowserRouter([
     children: [
       {
         path: ROUTES.LOGIN,
-        element: <Auth.LoginPage />,
+        element: lazyLoad(() => import('@/pages/auth/LoginPage')),
       },
     ],
   },
@@ -100,15 +142,27 @@ export const router = createBrowserRouter([
       },
       {
         path: 'dashboard',
-        element: <Dashboard.DashboardPage />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <DashboardPage />
+          </Suspense>
+        ),
       },
       {
         path: 'projects',
-        element: <Projects.ProjectListPage />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <ProjectListPage />
+          </Suspense>
+        ),
       },
       {
         path: 'projects/new',
-        element: <Projects.ProjectCreatePage />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <ProjectCreatePage />
+          </Suspense>
+        ),
       },
     ],
   },
@@ -131,18 +185,29 @@ export const router = createBrowserRouter([
       },
       {
         path: 'overview',
-        element: <ProjectOverviewPage />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <ProjectOverviewPage />
+          </Suspense>
+        ),
       },
 
       // Screening (Tool 1)
-      // ScreeningRouter handles routing based on screening status
       {
         path: 'screening',
-        element: <ScreeningRouter />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <ScreeningRouter />
+          </Suspense>
+        ),
       },
       {
         path: 'screening/summary',
-        element: <ScreeningSummaryPage />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <ScreeningSummaryPage />
+          </Suspense>
+        ),
       },
 
       // Assessment (Tool 2)
@@ -152,23 +217,43 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <AssessmentRouter />,
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <AssessmentRouter />
+              </Suspense>
+            ),
           },
           {
             path: 'metadata',
-            element: <AssessmentMetadataPage />,
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <AssessmentMetadataPage />
+              </Suspense>
+            ),
           },
           {
             path: 'methods',
-            element: <AssessmentMethodsPage />,
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <AssessmentMethodsPage />
+              </Suspense>
+            ),
           },
           {
             path: 'scoring',
-            element: <AssessmentScoringPage />,
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <AssessmentScoringPage />
+              </Suspense>
+            ),
           },
           {
             path: 'review',
-            element: <AssessmentReviewPage />,
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <AssessmentReviewPage />
+              </Suspense>
+            ),
           },
         ],
       },
@@ -180,11 +265,15 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <SempOverviewPage />,
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <SempOverviewPage />
+              </Suspense>
+            ),
           },
         ],
       },
-      
+
       // Monitoring (Tool 5)
       {
         path: 'monitoring',
@@ -192,24 +281,39 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <MonitoringOverviewPage />,
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <MonitoringOverviewPage />
+              </Suspense>
+            ),
           },
           {
             path: 'data-entry',
-            element: <MonitoringDataEntryPage />,
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <MonitoringDataEntryPage />
+              </Suspense>
+            ),
           },
         ],
       },
 
-
       // Files & Annex
       {
         path: 'files',
-        element: <ProjectFilesPage />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <ProjectFilesPage />
+          </Suspense>
+        ),
       },
       {
         path: 'annex',
-        element: <AnnexOverviewPage />,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <AnnexOverviewPage />
+          </Suspense>
+        ),
       },
     ],
   },
@@ -230,11 +334,19 @@ export const router = createBrowserRouter([
         children: [
           {
             path: 'activities',
-            element: <ManagementActivitiesPage />,
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <ManagementActivitiesPage />
+              </Suspense>
+            ),
           },
           {
             path: 'mitigation',
-            element: <MitigationPlanPage />,
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <MitigationPlanPage />
+              </Suspense>
+            ),
           },
         ],
       },

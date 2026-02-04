@@ -156,9 +156,9 @@ export const projectStatuses = {
     key: 'draft',
     label: 'Draft',
     labelAr: 'مسودة',
-    bgColor: 'bg-gray-50 dark:bg-gray-800',
+    bgColor: 'bg-gray-50/50 dark:bg-white/5',
     textColor: 'text-gray-600 dark:text-gray-300',
-    borderColor: 'border-gray-200 dark:border-gray-700',
+    borderColor: 'border-border-default dark:border-border-dark',
     dotColor: 'bg-gray-500',
   },
   in_progress: {

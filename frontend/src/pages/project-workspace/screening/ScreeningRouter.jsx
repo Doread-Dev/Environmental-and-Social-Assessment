@@ -1,7 +1,7 @@
 /**
  * ScreeningRouter Component
  * يوجه المستخدم للصفحة المناسبة حسب حالة Screening
- * 
+ *
  * المنطق:
  * - لا يوجد screening أو draft → ScreeningFormPage
  * - submitted → ScreeningSummaryPage (مع Approve/Reject)
@@ -43,7 +43,7 @@ function ScreeningRouter() {
   }
 
   // If edit mode is requested (from rejected status) → show Form
-  if (isEditMode && status === 'rejected' ) {
+  if (isEditMode && status === 'rejected') {
     return <ScreeningFormPage />
   }
 

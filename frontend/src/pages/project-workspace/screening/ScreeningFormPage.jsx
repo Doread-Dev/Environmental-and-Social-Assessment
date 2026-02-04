@@ -1,7 +1,7 @@
 /**
  * ScreeningFormPage
  * صفحة نموذج الفرز البيئي
- * 
+ *
  * Layout: ProjectLayout
  * Route: /app/projects/:projectId/screening
  */
@@ -9,11 +9,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Alert, StickyFooter, Modal, Button } from '@/components/ui'
-import {
-  ScreeningInfoSection,
-  RiskCategorySelector,
-  ImpactSection,
-} from '@/components/screening'
+import { ScreeningInfoSection, RiskCategorySelector, ImpactSection } from '@/components/screening'
 import { useScreening } from '@/hooks'
 import { getScreeningByProjectId, createEmptyScreening } from '@/data'
 import { cn } from '@/utils/cn'
@@ -59,7 +55,12 @@ function validateScreeningForm(data) {
 function ScreeningFormPage() {
   const navigate = useNavigate()
   const { projectId } = useParams()
-  const { screening: hookScreening, isLoading: screeningLoading, submit: submitScreening, saveDraft: saveDraftScreening } = useScreening(projectId)
+  const {
+    screening: hookScreening,
+    isLoading: screeningLoading,
+    submit: submitScreening,
+    saveDraft: saveDraftScreening,
+  } = useScreening(projectId)
 
   // Load existing screening or create empty one
   const existingScreening = hookScreening || getScreeningByProjectId(projectId)
@@ -140,7 +141,9 @@ function ScreeningFormPage() {
 
     try {
       const result = await saveDraftScreening({
-        screening_date: formData.screeningDate ? new Date(formData.screeningDate).toISOString() : null,
+        screening_date: formData.screeningDate
+          ? new Date(formData.screeningDate).toISOString()
+          : null,
         category_code: formData.categoryCode,
         category_reason: formData.categoryReason,
         potential_negative: formData.potentialNegative,
@@ -153,7 +156,7 @@ function ScreeningFormPage() {
       } else {
         setSubmitError(result.error || 'Failed to save draft. Please try again.')
       }
-    } catch (error) {
+    } catch {
       setSubmitError('Failed to save draft. Please try again.')
     } finally {
       setIsSavingDraft(false)
@@ -178,7 +181,9 @@ function ScreeningFormPage() {
 
     try {
       const result = await submitScreening({
-        screening_date: formData.screeningDate ? new Date(formData.screeningDate).toISOString() : null,
+        screening_date: formData.screeningDate
+          ? new Date(formData.screeningDate).toISOString()
+          : null,
         category_code: formData.categoryCode,
         category_reason: formData.categoryReason,
         potential_negative: formData.potentialNegative,
@@ -192,7 +197,7 @@ function ScreeningFormPage() {
         setSubmitError(result.error || 'Failed to submit screening. Please try again.')
         setShowSubmitModal(false)
       }
-    } catch (error) {
+    } catch {
       setSubmitError('Failed to submit screening. Please try again.')
       setShowSubmitModal(false)
     } finally {
@@ -232,7 +237,7 @@ function ScreeningFormPage() {
               <h3 className="font-bold text-lg text-text-main dark:text-white">
                 1. Screening Information
               </h3>
-              <span className="text-xs text-text-secondary bg-white dark:bg-[#102216] px-2 py-1 rounded border border-gray-200 dark:border-border-dark">
+              <span className="text-xs text-text-secondary bg-white dark:bg-[#102216] px-2 py-1 rounded border border-border-default dark:border-border-dark">
                 Required
               </span>
             </div>
@@ -269,7 +274,7 @@ function ScreeningFormPage() {
               <h3 className="font-bold text-lg text-text-main dark:text-white">
                 3. Potential Impacts
               </h3>
-              <span className="text-xs text-text-secondary bg-white dark:bg-[#102216] px-2 py-1 rounded border border-gray-200 dark:border-border-dark">
+              <span className="text-xs text-text-secondary bg-white dark:bg-[#102216] px-2 py-1 rounded border border-border-default dark:border-border-dark">
                 Required
               </span>
             </div>
@@ -289,7 +294,10 @@ function ScreeningFormPage() {
       {/* Footer - Uses CSS variable for sidebar width */}
       <StickyFooter>
         <div className="text-xs text-text-secondary">
-          <p>By submitting this form, you confirm that all information provided is accurate and complete.</p>
+          <p>
+            By submitting this form, you confirm that all information provided is accurate and
+            complete.
+          </p>
         </div>
         <div className="flex gap-4">
           <button
@@ -324,7 +332,6 @@ function ScreeningFormPage() {
         </div>
       </StickyFooter>
 
-
       {/* Submit Confirmation Modal */}
       <Modal
         isOpen={showSubmitModal}
@@ -341,11 +348,7 @@ function ScreeningFormPage() {
           >
             Cancel
           </Button>
-          <Button
-            onClick={handleConfirmSubmit}
-            isLoading={isSubmitting}
-            disabled={isSubmitting}
-          >
+          <Button onClick={handleConfirmSubmit} isLoading={isSubmitting} disabled={isSubmitting}>
             Confirm Submit
           </Button>
         </Modal.Footer>

@@ -2,7 +2,7 @@
  * ProjectHeader Component
  * رأس المشروع مع معلومات أساسية
  * مطابق للتصميم الأصلي حرفياً
- * 
+ *
  * Features:
  * - عنوان المشروع مع badge الحالة في نفس السطر
  * - الموقع والتاريخ مع bullet separator
@@ -10,9 +10,11 @@
  * - زر Edit Project
  */
 
-import { Badge } from '@/components/ui'
+import { useEffect, useState } from 'react'
+import { Alert, Badge, Button, Icon, Input, Modal, Textarea } from '@/components/ui'
 import { formatDateFull } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
+import { validateProjectForm } from '@/utils/validators'
 
 /**
  * @param {Object} props
@@ -21,35 +23,122 @@ import { cn } from '@/utils/cn'
  * @param {Function} props.onEdit - callback عند النقر على التعديل
  */
 function ProjectHeader({ project, showEditButton = true, onEdit, className, ...props }) {
-  if (!project) return null
+  const [isEditOpen, setIsEditOpen] = useState(false)
+  const [formData, setFormData] = useState({
+    title: '',
+    location: '',
+    startDate: '',
+    endDate: '',
+    description: '',
+  })
+  const [errors, setErrors] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [generalError, setGeneralError] = useState('')
 
-  const location = project.location || ''
-  const startDate = project.start_date || project.startDate
-  const endDate = project.end_date || project.endDate
+  const location = project?.location || ''
+  const startDate = project?.start_date || project?.startDate || ''
+  const endDate = project?.end_date || project?.endDate || ''
+  const description = project?.project_component || project?.description || ''
 
   // Format dates
-  const dateRange = startDate && endDate 
-    ? `${formatDateFull(startDate)} – ${formatDateFull(endDate)}`
-    : ''
+  const dateRange =
+    startDate && endDate ? `${formatDateFull(startDate)} – ${formatDateFull(endDate)}` : ''
+
+  useEffect(() => {
+    if (!isEditOpen || !project) return
+    setFormData({
+      title: project.title || project.name || '',
+      location: project.location || '',
+      startDate: startDate || '',
+      endDate: endDate || '',
+      description,
+    })
+    setErrors({})
+    setGeneralError('')
+  }, [description, isEditOpen, project, startDate, endDate])
+
+  // Early return after hooks
+  if (!project) return null
+
+  const handleChange = (field) => (e) => {
+    const value = e.target.value
+    setFormData((prev) => ({ ...prev, [field]: value }))
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: null }))
+    }
+    setGeneralError('')
+  }
+
+  const handleCloseEdit = () => {
+    if (isSubmitting) return
+    setIsEditOpen(false)
+  }
+
+  const handleSave = async (e) => {
+    e.preventDefault()
+    setGeneralError('')
+
+    const validation = validateProjectForm({
+      title: formData.title,
+      location: formData.location,
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      description: formData.description,
+    })
+
+    if (!validation.valid) {
+      setErrors(validation.errors)
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 600))
+
+      const payload = {
+        ...project,
+        title: formData.title,
+        location: formData.location,
+        start_date: formData.startDate,
+        end_date: formData.endDate,
+        project_component: formData.description,
+        updatedAt: new Date().toISOString(),
+      }
+
+      onEdit?.(payload)
+      setIsEditOpen(false)
+    } catch {
+      setGeneralError('An error occurred while updating the project. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   // Mock team members (في الإنتاج سيأتي من API)
-  const teamMembers = [
-    { 
-      name: 'Sarah Jenkins', 
-      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBnJ7KMMEeDrkrClHJvzDA6F8CcyWeJa8Nd_LabfS4-18_aFOo2O2s2yUaT03kx6m4e8QfUO4wYJ7iH2L78msiBa0RTfpYiOVjuhma_yOHR7yEC4zBo4TgGdXENHPk_W195HbHCfn5fg_2LszT0-IsQwAeoseBW1YZ43mf5NLrqgYBKww63_cUbsdw3Wu0q79xyMbsIMkXVoWHvbrHm80q_h9l_oJAVPGap5PVVvuEnzeY7a20xGAmeyAt4oxnP-Qi0MOQq0qJMnneS'
+  const _teamMembers = [
+    {
+      name: 'Sarah Jenkins',
+      avatar: null,
     },
-    { 
-      name: 'Ahmed Hassan', 
-      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBYW0-01iKSUKJx86bx_5HDgCP88w5yx5gl0aF2fi0mBp9qBrefO168ijIsMCigiuenLJv214QsfK0oUkwPnPOFT66tVePqAp70CGbIlCP6Uj41SZDE_S1cL7h1YDIRN8r83repPvy3FBtPeZ-DNX3hSsANHcf4HU3vl6JHuWNnYd4eQ3ezqs8MgRLUjoER4nib-E7XquwSkpibYyvdtaq3tQGJDBJO4GDOzPSS9jUKVC9cFoEm-luc46g5cxKfd65sDFcF9JfcN_r1'
+    {
+      name: 'Ahmed Hassan',
+      avatar: null,
     },
-    { 
-      name: 'Maria Santos', 
-      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCIE2m9hVs07N0VxPXG1vvQJXvdfzA_t2iqOCWMT-6P060FyHsMMLS_X5KILwiRXTF2TEd2k08T98XQSSx8z_TF_Czkv6tTLdu_G5cZ3Lg3yFJrzq0LkG6hm0hSu84AGsJHmCvJetyfZr8xDnX1tCAmR9MuJVn1AcHf5GCEJcUPbyQ8e4UAlk4m1u-3zcU225ieymf8eSFXa0eTL0004DftKCqAvNRzfIhu_QvNoVaY2cNnuZlBeNN--DS63UfgrwY-BtiPp_t5DsQT'
+    {
+      name: 'Maria Santos',
+      avatar: null,
     },
   ]
 
   return (
-    <div className={cn('flex flex-col md:flex-row justify-between items-start md:items-center gap-6', className)} {...props}>
+    <div
+      className={cn(
+        'flex flex-col md:flex-row justify-between items-start md:items-center gap-6',
+        className
+      )}
+      {...props}
+    >
       {/* Left Section */}
       <div className="flex flex-col gap-2">
         {/* Title with Badge */}
@@ -57,7 +146,11 @@ function ProjectHeader({ project, showEditButton = true, onEdit, className, ...p
           <h1 className="text-3xl font-bold text-text-main dark:text-white">
             {project.title || project.name}
           </h1>
-          <Badge variant="success" size="sm" className="bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800">
+          <Badge
+            variant="success"
+            size="sm"
+            className="bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800"
+          >
             Active
           </Badge>
         </div>
@@ -82,35 +175,96 @@ function ProjectHeader({ project, showEditButton = true, onEdit, className, ...p
         </div>
       </div>
 
-      {/* Right Section - Team Avatars and Edit Button */}
+      {/* Right Section - Edit Button */}
       <div className="flex items-center gap-4">
-        {/* Team Avatars */}
-        <div className="flex -space-x-2 overflow-hidden p-1">
-          {teamMembers.slice(0, 3).map((member, index) => (
-            <img
-              key={index}
-              alt={member.name}
-              className="inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-surface-dark object-cover"
-              src={member.avatar}
-            />
-          ))}
-          {teamMembers.length > 3 && (
-            <div className="h-8 w-8 rounded-full ring-2 ring-white dark:ring-surface-dark bg-gray-100 dark:bg-white/5 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300">
-              +{teamMembers.length - 3}
-            </div>
-          )}
-        </div>
-
         {/* Edit Button */}
         {showEditButton && (
           <button
-            onClick={onEdit}
-              className="bg-white dark:bg-surface-dark border border-border-default dark:border-border-dark hover:bg-gray-50/50 dark:hover:bg-white/5 text-text-main dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+            onClick={() => setIsEditOpen(true)}
+            className="bg-white dark:bg-surface-dark border border-border-default dark:border-border-dark hover:bg-gray-50/50 dark:hover:bg-white/5 text-text-main dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
           >
             Edit Project
           </button>
         )}
       </div>
+
+      <Modal
+        isOpen={isEditOpen}
+        onClose={handleCloseEdit}
+        title="Edit Project"
+        description="Update the project details. All fields are required."
+        size="lg"
+      >
+        {generalError && (
+          <Alert variant="error" className="mb-4" dismissible onDismiss={() => setGeneralError('')}>
+            {generalError}
+          </Alert>
+        )}
+        <form onSubmit={handleSave} className="flex flex-col gap-6">
+          <Input
+            label="Project Title"
+            placeholder="e.g., Clean Water Initiative Phase II"
+            value={formData.title}
+            onChange={handleChange('title')}
+            error={errors.title}
+            required
+            disabled={isSubmitting}
+          />
+          <Input
+            label="Project Location"
+            placeholder="Enter city, region, or coordinates"
+            value={formData.location}
+            onChange={handleChange('location')}
+            leftIcon={<Icon name="location_on" />}
+            error={errors.location}
+            required
+            disabled={isSubmitting}
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              label="Start Date"
+              type="date"
+              value={formData.startDate}
+              onChange={handleChange('startDate')}
+              error={errors.startDate}
+              required
+              disabled={isSubmitting}
+            />
+            <Input
+              label="End Date (Estimated)"
+              type="date"
+              value={formData.endDate}
+              onChange={handleChange('endDate')}
+              error={errors.endDate}
+              required
+              disabled={isSubmitting}
+            />
+          </div>
+          <Textarea
+            label="Project Component / Activity Description"
+            placeholder="Briefly describe the main activities, infrastructure components, or interventions..."
+            value={formData.description}
+            onChange={handleChange('description')}
+            error={errors.description}
+            rows={5}
+            required
+            disabled={isSubmitting}
+          />
+          <Modal.Footer>
+            <Button type="button" variant="ghost" onClick={handleCloseEdit} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              isLoading={isSubmitting}
+              leftIcon={<Icon name="save" />}
+            >
+              Save Changes
+            </Button>
+          </Modal.Footer>
+        </form>
+      </Modal>
     </div>
   )
 }

@@ -12,7 +12,6 @@ import { Avatar, Tooltip } from '@/components/ui'
 
 // User menu items (same as Header)
 const userMenuItems = [
-  { id: 'profile', label: 'Profile', icon: 'person' },
   { id: 'settings', label: 'Settings', icon: 'settings' },
   { id: 'divider', type: 'divider' },
   { id: 'theme', label: 'Theme', icon: 'dark_mode', type: 'theme-toggle' },
@@ -91,6 +90,33 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
   // Auto-expand items with active children (no manual toggle needed)
   // Expansion happens automatically when a child is active
 
+  const getStepStatus = (stepId) => project?.workflow?.[stepId]?.status
+  const isApproved = (status) => status === 'approved'
+  const isCompleted = (status) => status === 'completed'
+
+  // Step Locking Logic (Sequential Tools)
+  // Screening → Assessment → SEMP → Monitoring
+  const isStepLocked = (stepId) => {
+    if (!project) return stepId !== 'overview'
+
+    const screeningApproved = isApproved(getStepStatus('screening'))
+    const assessmentApproved = isApproved(getStepStatus('assessment'))
+    const sempCompleted = isCompleted(getStepStatus('semp'))
+
+    switch (stepId) {
+      case 'screening':
+        return false
+      case 'assessment':
+        return !screeningApproved
+      case 'semp':
+        return !screeningApproved || !assessmentApproved
+      case 'monitoring':
+        return !screeningApproved || !assessmentApproved || !sempCompleted
+      default:
+        return false
+    }
+  }
+
   // Get project data (use title or name, prefer title)
   const projectTitle = project?.title || project?.name || 'Unknown Project'
   const projectLocation = project?.location || 'N/A'
@@ -99,8 +125,6 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
   const user = {
     name: 'Alex Morgan',
     role: 'Environmental Officer',
-    avatar:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCtra6pj5M5oTyJp1GdJWuU63rsELKvVKe4fboOS02kUTaVf4ehAD_wchdxbPfoBzsc-L9HdsZm1dlAzW_598IOXygrITkCOb8PhtOGw5WVcDdF3hE96FbESF6OkZ6S4Qg8lCHAcfE56hrcA5qoUEuWFbxCSpY46m1nYJN2KV7pM5SvQP55_nYo7EqBZCnQnwrXRiHUeqB2sW7Jgr27PWEBt_NAf5J93MIG1HUbYa8YpgApira7wAky_Gj0olj2YRpwHmf8JlO4xcid',
   }
 
   // Render expandable nav item (for project variant)
@@ -111,25 +135,41 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
     const isParentActive = isNavActive(item.path)
     // Only expand when a child is active (manual navigation to child pages)
     const isExpanded = hasActive
+    const isLocked = item.id !== 'annex' && isStepLocked(item.id)
 
     return (
       <div key={item.id}>
         {/* Parent Item */}
-        <NavLink
-          to={`/app/projects/${projectId}/${item.path}`}
-          className={cn(
-            'flex items-center gap-3',
-            'px-4 py-3 rounded-lg',
-            'text-base font-medium',
-            'transition-colors',
-            isParentActive
-              ? 'bg-primary/10 text-primary'
-              : 'text-text-secondary hover:text-text-main hover:bg-background dark:hover:bg-background-dark'
-          )}
-        >
-          <span className="material-symbols-outlined">{item.icon}</span>
-          {item.label}
-        </NavLink>
+        {isLocked ? (
+          <div
+            className={cn(
+              'flex items-center gap-3',
+              'px-4 py-3 rounded-lg',
+              'text-base font-medium',
+              'text-text-disabled dark:text-gray-600',
+              'cursor-not-allowed opacity-75'
+            )}
+          >
+            <span className="material-symbols-outlined">lock</span>
+            {item.label}
+          </div>
+        ) : (
+          <NavLink
+            to={`/app/projects/${projectId}/${item.path}`}
+            className={cn(
+              'flex items-center gap-3',
+              'px-4 py-3 rounded-lg',
+              'text-base font-medium',
+              'transition-colors',
+              isParentActive
+                ? 'bg-primary/10 text-primary'
+                : 'text-text-secondary hover:text-text-main hover:bg-background dark:hover:bg-background-dark'
+            )}
+          >
+            <span className="material-symbols-outlined">{item.icon}</span>
+            {item.label}
+          </NavLink>
+        )}
 
         {/* Children Items */}
         {isExpanded && (
@@ -138,6 +178,29 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
               const childPath = `/app/projects/${projectId}/${child.path}`
               const isChildActive =
                 location.pathname === childPath || location.pathname.startsWith(childPath + '/')
+
+              // For assessment children (metadata, methods, scoring), show as display-only (not clickable)
+              if (
+                item.id === 'assessment' &&
+                ['assessment-metadata', 'assessment-methods', 'assessment-scoring'].includes(
+                  child.id
+                )
+              ) {
+                return (
+                  <div
+                    key={child.id}
+                    className={cn(
+                      'block px-4 py-2 rounded-lg text-sm',
+                      'cursor-default',
+                      isChildActive
+                        ? 'font-bold text-primary bg-primary/10'
+                        : 'font-medium text-text-secondary'
+                    )}
+                  >
+                    {child.label}
+                  </div>
+                )
+              }
 
               return (
                 <NavLink
@@ -316,11 +379,13 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                       }
 
                       const isActive = isNavActive(item.path)
-                      
+                      const isLocked = isStepLocked(item.id)
+
                       // Check if step is completed (for project variant)
-                      const isCompleted = project?.workflow?.[item.id]?.status === 'approved' || 
-                                        project?.workflow?.[item.id]?.status === 'completed'
-                      
+                      const isCompleted =
+                        project?.workflow?.[item.id]?.status === 'approved' ||
+                        project?.workflow?.[item.id]?.status === 'completed'
+
                       // Determine icon for Screening (Tool 1)
                       // If screening is not completed → use 'description' (document icon)
                       // If screening is completed → use 'check_circle' (like other tools)
@@ -330,6 +395,24 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                         }
                         // For other tools, use check_circle if completed, otherwise use item.icon
                         return isCompleted ? 'check_circle' : item.icon
+                      }
+
+                      if (isLocked) {
+                        return (
+                          <div
+                            key={item.id}
+                            className={cn(
+                              'flex items-center gap-3',
+                              'px-4 py-3 rounded-lg',
+                              'text-base font-medium',
+                              'text-text-disabled dark:text-gray-600',
+                              'cursor-not-allowed opacity-75'
+                            )}
+                          >
+                            <span className="material-symbols-outlined">lock</span>
+                            {item.label}
+                          </div>
+                        )
                       }
 
                       return (
@@ -346,11 +429,13 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                               : 'text-text-secondary hover:text-text-main hover:bg-background dark:hover:bg-background-dark'
                           )}
                         >
-                          <span className={cn(
-                            'material-symbols-outlined',
-                            isCompleted && 'text-primary',
-                            isActive && 'text-primary'
-                          )}>
+                          <span
+                            className={cn(
+                              'material-symbols-outlined',
+                              isCompleted && 'text-primary',
+                              isActive && 'text-primary'
+                            )}
+                          >
                             {getIcon()}
                           </span>
                           {item.label}
@@ -397,29 +482,9 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
 
           {/* Footer */}
           <div className="border-t border-border-default dark:border-border-dark p-4 space-y-2">
-            {/* Settings */}
-            <NavLink
-              to={variant === 'project' ? `/app/projects/${projectId}/settings` : '/app/settings'}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-3',
-                  'px-4 py-3 rounded-lg',
-                  'text-base font-medium',
-                  'transition-colors',
-                  isActive
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-text-secondary hover:text-text-main hover:bg-background dark:hover:bg-background-dark'
-                )
-              }
-            >
-              <span className="material-symbols-outlined">settings</span>
-              Settings
-            </NavLink>
-
             {/* User Info with Dropdown (for project variant) */}
             {variant === 'project' && (
               <>
-                <div className="h-px bg-border-default dark:bg-border-dark w-full my-2" />
                 <div className="relative">
                   <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
@@ -430,10 +495,9 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                     )}
                   >
                     <Avatar
-                      src={user.avatar}
                       alt={user.name}
                       size="sm"
-                      className="ring-2 ring-border-default dark:ring-border-dark"
+                      
                     />
                     <div className="flex flex-col min-w-0 flex-1 text-left">
                       <span className="text-sm font-bold text-text-main dark:text-white truncate">

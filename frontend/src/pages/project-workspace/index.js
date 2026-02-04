@@ -13,15 +13,11 @@ export {
   AssessmentMethodsPage,
   AssessmentScoringPage,
   AssessmentReviewPage,
-  AssessmentRouter
+  AssessmentRouter,
 } from './assessment'
 
 // SEMP
-export {
-  SempOverviewPage,
-  ManagementActivitiesPage,
-  MitigationPlanPage
-} from './semp'
+export { SempOverviewPage, ManagementActivitiesPage, MitigationPlanPage } from './semp'
 
 // Monitoring
 export { MonitoringOverviewPage, MonitoringDataEntryPage } from './monitoring'

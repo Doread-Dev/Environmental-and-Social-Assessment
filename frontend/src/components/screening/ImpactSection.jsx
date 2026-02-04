@@ -2,7 +2,7 @@
  * ImpactSection Component
  * قسم التأثيرات المحتملة (القسم 3)
  * مطابق للتصميم الأصلي حرفياً
- * 
+ *
  * Features:
  * - Textarea للتأثيرات السلبية مع أيقونة warning
  * - Textarea للتأثيرات الإيجابية مع أيقونة check_circle

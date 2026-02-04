@@ -20,7 +20,7 @@ export default function ImpactScoreRow({
   score,
   onScoreChange,
   onNoteChange,
-  readOnly = false
+  readOnly = false,
 }) {
   const currentLevel = score?.level || ''
 
@@ -38,7 +38,7 @@ export default function ImpactScoreRow({
     { value: IMPACT_LEVELS.LOW, label: 'Low' },
     { value: IMPACT_LEVELS.MEDIUM, label: 'Medium' },
     { value: IMPACT_LEVELS.HIGH, label: 'High' },
-    { value: IMPACT_LEVELS.NOT_APPLICABLE, label: 'N/A' }
+    { value: IMPACT_LEVELS.NOT_APPLICABLE, label: 'N/A' },
   ]
 
   return (
@@ -74,9 +74,7 @@ export default function ImpactScoreRow({
       {/* Notes */}
       <td className="py-4 px-6">
         {readOnly ? (
-          <p className="text-sm text-text-secondary dark:text-gray-400">
-            {score?.note || '-'}
-          </p>
+          <p className="text-sm text-text-secondary dark:text-gray-400">{score?.note || '-'}</p>
         ) : (
           <Textarea
             value={score?.note || ''}

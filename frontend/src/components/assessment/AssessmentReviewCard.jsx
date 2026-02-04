@@ -7,7 +7,6 @@ import { cn } from '@/utils/cn'
 import { Badge } from '@/components/ui'
 import { formatDate } from '@/utils/formatters'
 import { IMPACT_LEVEL_CONFIG } from '@/data/impactQuestions'
-import { impactCategories } from '@/data/impactQuestions'
 
 /**
  * @param {Object} props
@@ -20,13 +19,13 @@ export default function AssessmentReviewCard({
   assessment,
   methods = [],
   consultations = [],
-  impactScores = []
+  impactScores: _impactScores = [],
 }) {
   const statusConfig = {
     draft: { label: 'Draft', variant: 'secondary' },
     submitted: { label: 'Pending Approval', variant: 'warning' },
     approved: { label: 'Approved', variant: 'success' },
-    rejected: { label: 'Rejected', variant: 'error' }
+    rejected: { label: 'Rejected', variant: 'error' },
   }
 
   const status = statusConfig[assessment?.status] || statusConfig.draft
@@ -36,9 +35,7 @@ export default function AssessmentReviewCard({
       {/* Header */}
       <div className="bg-gray-50/50 dark:bg-white/5 border-b border-border-default dark:border-border-dark p-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-text-main dark:text-white">
-            Assessment Review
-          </h2>
+          <h2 className="text-2xl font-bold text-text-main dark:text-white">Assessment Review</h2>
           <Badge variant={status.variant}>{status.label}</Badge>
         </div>
       </div>

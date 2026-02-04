@@ -33,7 +33,7 @@ export const mockMonitoringRecords = [
     _id: 'mr_001',
     project: '507f1f77bcf86cd799439011',
     indicator: 'indicator_A_1',
-      scores: { baseline: '2', Q1: '1', Q2: '1', Q3: '1', Q4: '1' },
+    scores: { baseline: '2', Q1: '1', Q2: '1', Q3: '1', Q4: '1' },
     total: '4',
     final_assessment: '-2',
     ranking: 'low',
@@ -101,4 +101,3 @@ export function createEmptyMonitoringRecord(projectId, indicatorId) {
     isNew: true,
   }
 }
-

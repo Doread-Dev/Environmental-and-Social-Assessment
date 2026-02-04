@@ -2,7 +2,7 @@
  * ProjectMetricCard Component
  * بطاقة مقياس المشروع (Risk Level, Activities, Timeframe)
  * مطابق للتصميم الأصلي حرفياً
- * 
+ *
  * Features:
  * - الأيقونة في الأعلى مع label صغير
  * - القيمة كبيرة (text-2xl)
@@ -52,9 +52,7 @@ function ProjectMetricCard({
       {/* Value and Subtitle */}
       <div>
         <h4 className="text-2xl font-bold text-text-main dark:text-white">{value}</h4>
-        {subtitle && (
-          <p className="text-sm text-text-secondary dark:text-gray-400">{subtitle}</p>
-        )}
+        {subtitle && <p className="text-sm text-text-secondary dark:text-gray-400">{subtitle}</p>}
       </div>
     </div>
   )

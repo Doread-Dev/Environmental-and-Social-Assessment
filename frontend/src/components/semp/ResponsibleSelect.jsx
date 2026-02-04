@@ -6,8 +6,13 @@
 import { cn } from '@/utils/cn'
 import { mockUsers } from '@/data'
 
-export default function ResponsibleSelect({ value, onChange, users = mockUsers, readOnly = false }) {
-  const selectedUser = users.find(u => u._id === value)
+export default function ResponsibleSelect({
+  value,
+  onChange,
+  users = mockUsers,
+  readOnly = false,
+}) {
+  const selectedUser = users.find((u) => u._id === value)
 
   return (
     <div className="h-full flex items-center px-2 py-2">

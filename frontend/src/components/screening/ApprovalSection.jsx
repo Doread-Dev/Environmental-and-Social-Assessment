@@ -1,7 +1,7 @@
 /**
  * ApprovalSection Component
  * قسم الموافقة والتوصيات
- * 
+ *
  * Features:
  * - معلومات المعتمد (اسم + منصب)
  * - Textarea للتوصيات
@@ -77,15 +77,15 @@ function ApprovalSection({
         {/* Approver/Rejector Info */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
-            label={isRejected ? "Rejected By" : "Approved By"}
-            value={isRejected ? (rejectedBy || '') : (isApproved ? displayName : '')}
+            label={isRejected ? 'Rejected By' : 'Approved By'}
+            value={isRejected ? rejectedBy || '' : isApproved ? displayName : ''}
             readOnly
             disabled
             leftIcon={<Icon name="person" size="sm" />}
           />
           <Input
             label="Position"
-            value={isRejected ? (rejectedByPosition || '') : (isApproved ? displayPosition : '')}
+            value={isRejected ? rejectedByPosition || '' : isApproved ? displayPosition : ''}
             readOnly
             disabled
             leftIcon={<Icon name="work" size="sm" />}

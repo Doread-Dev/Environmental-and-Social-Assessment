@@ -2,7 +2,7 @@
  * ProjectOverviewPage
  * صفحة نظرة عامة على المشروع
  * مطابق للتصميم الأصلي حرفياً
- * 
+ *
  * Layout: ProjectLayout (موجود)
  * Route: /app/projects/:projectId/overview
  */
@@ -18,7 +18,7 @@ import {
 } from '@/components/project'
 import { useProjectContext } from '@/hooks'
 import { mockProjects, getScreeningCategory } from '@/data'
-import { calculateDurationMonths, formatDuration, formatDateFull } from '@/utils/formatters'
+import { calculateDurationMonths, formatDuration } from '@/utils/formatters'
 
 /**
  * حساب الإجراء التالي بناءً على workflow
@@ -106,7 +106,8 @@ function getNextAction(workflow) {
       tool: 3,
       path: 'semp',
       title: 'Complete Management Plan (SEMP)',
-      description: 'The environmental assessment has been approved. Please proceed with defining mitigation strategies in Tool 3.',
+      description:
+        'The environmental assessment has been approved. Please proceed with defining mitigation strategies in Tool 3.',
     }
   }
 
@@ -161,8 +162,7 @@ function ProjectOverviewPage() {
 
   // Handlers
   const handleEditProject = () => {
-    // TODO: Navigate to edit project page
-    console.log('Edit project:', project._id)
+    // TODO: Navigate to edit project page - will open modal
   }
 
   const handleNextStep = () => {
@@ -171,7 +171,6 @@ function ProjectOverviewPage() {
 
   const handleMapExpand = () => {
     // TODO: Open map in modal or new page
-    console.log('Expand map')
   }
 
   return (

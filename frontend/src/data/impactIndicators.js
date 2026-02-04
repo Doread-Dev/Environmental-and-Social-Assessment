@@ -10,8 +10,7 @@ export const impactIndicators = [
   {
     code: 'A',
     name: 'Presence of Visible Air Pollution from Project Activities',
-    definition:
-      'Assesses if dust, smoke, or emissions are noticeable in the project area.',
+    definition: 'Assesses if dust, smoke, or emissions are noticeable in the project area.',
     measurement:
       'Observation of visible pollution (e.g., smoke from fuel use, industrial processes, construction dust).',
   },
@@ -20,16 +19,14 @@ export const impactIndicators = [
     name: 'Complaints from the Community About Air Quality Issues',
     definition:
       'Tracks whether residents, workers, or local authorities report air pollution problems',
-    measurement:
-      'Count and nature of complaints (from community meetings, surveys, or records).',
+    measurement: 'Count and nature of complaints (from community meetings, surveys, or records).',
   },
   {
     code: 'A',
     name: 'Change in Soil, Vegetation Condition in the Project Area',
     definition:
       'Assesses whether the soil or the plants show signs of damage (e.g., leaf discoloration, stunted growth) due to air pollution.',
-    measurement:
-      'Visual assessment of the soil degradation or plant health near the project site.',
+    measurement: 'Visual assessment of the soil degradation or plant health near the project site.',
   },
 
   // Category B: Water Quality (3 مؤشرات)
@@ -38,16 +35,14 @@ export const impactIndicators = [
     name: 'Presence of Visible Water Contamination',
     definition:
       'Assesses whether water in local rivers, lakes, or streams near the project appears polluted (e.g., oil, foam, discoloration).',
-    measurement:
-      'Visual inspection of water bodies for signs of contamination.',
+    measurement: 'Visual inspection of water bodies for signs of contamination.',
   },
   {
     code: 'B',
     name: 'Community Reports of Water Issues (Quality or Availability)',
     definition:
       'Monitors whether locals experience water-related problems linked to the project (e.g., bad smell, reduced supply, health concerns).',
-    measurement:
-      'Number and type of complaints from community surveys or meetings.',
+    measurement: 'Number and type of complaints from community surveys or meetings.',
   },
   {
     code: 'B',
@@ -64,8 +59,7 @@ export const impactIndicators = [
     name: 'Number of Community Complaints About Noise',
     definition:
       'Tracks reports from residents, workers, or local institutions (e.g., schools, hospitals) about noise disturbances caused by the project.',
-    measurement:
-      'Review community feedback, complaints, or surveys regarding noise issues.',
+    measurement: 'Review community feedback, complaints, or surveys regarding noise issues.',
   },
   {
     code: 'C',
@@ -80,8 +74,7 @@ export const impactIndicators = [
     name: 'Change in Noise Levels at Different Times of the Day',
     definition:
       'Evaluates whether noise from the project increases significantly during specific times (e.g., early morning, late night).',
-    measurement:
-      'Field observation of noise patterns at various times of the day and week.',
+    measurement: 'Field observation of noise patterns at various times of the day and week.',
   },
 
   // Category D: Solid Waste (3 مؤشرات)
@@ -90,16 +83,14 @@ export const impactIndicators = [
     name: 'Number of Community Complaints About Solid Waste Issues',
     definition:
       'Tracks reports from residents, workers, or local authorities about problems related to waste disposal, accumulation, or pollution caused by the project, Including visual pollution caused by waste.',
-    measurement:
-      'Review community feedback, complaints, or surveys regarding solid waste issues.',
+    measurement: 'Review community feedback, complaints, or surveys regarding solid waste issues.',
   },
   {
     code: 'D',
     name: 'Visibility of Solid Waste Accumulation Near the Project Site',
     definition:
       'Assesses whether solid waste from the project is noticeable and whether proper disposal methods are followed.',
-    measurement:
-      'Visual inspection of waste accumulation in and around the project area.',
+    measurement: 'Visual inspection of waste accumulation in and around the project area.',
   },
   {
     code: 'D',
@@ -115,16 +106,14 @@ export const impactIndicators = [
     name: 'Number of Community Complaints About Radiation Concerns',
     definition:
       'Tracks reports from residents, workers, or local authorities about concerns related to radiation exposure from the project.',
-    measurement:
-      'Review community feedback, complaints, or surveys regarding radiation risks.',
+    measurement: 'Review community feedback, complaints, or surveys regarding radiation risks.',
   },
   {
     code: 'E',
     name: 'Observation of Signs of Radiation-Related Environmental Damage',
     definition:
       'Assesses whether there are visible signs of radiation exposure affecting plants, animals, or soil in the project area.',
-    measurement:
-      'Visual inspection of plant health, wildlife conditions, or unusual soil changes.',
+    measurement: 'Visual inspection of plant health, wildlife conditions, or unusual soil changes.',
   },
   {
     code: 'E',
@@ -167,8 +156,7 @@ export const impactIndicators = [
     name: 'Observation of Changes in Vegetation and Tree Cover',
     definition:
       'Assesses whether the project has led to noticeable changes in plant health, tree cover, or deforestation in the area.',
-    measurement:
-      'Visual assessment of vegetation health and tree coverage near the project site.',
+    measurement: 'Visual assessment of vegetation health and tree coverage near the project site.',
   },
   {
     code: 'J',

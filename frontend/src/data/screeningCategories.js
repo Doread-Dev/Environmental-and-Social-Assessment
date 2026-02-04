@@ -60,9 +60,9 @@ export const screeningCategories = {
     labelAr: 'معلومات غير كافية',
     description: 'Cannot proceed - requires additional information gathering',
     descriptionAr: 'معلومات غير كافية - لا يمكن المتابعة',
-    bgColor: 'bg-gray-100 dark:bg-gray-800',
+    bgColor: 'bg-gray-50/50 dark:bg-white/5',
     textColor: 'text-gray-700 dark:text-gray-400',
-    borderColor: 'border-gray-200 dark:border-gray-700',
+    borderColor: 'border-border-default dark:border-border-dark',
     requiresAssessment: false,
     canProceed: true,
   },
@@ -88,9 +88,9 @@ export const screeningStatuses = {
   draft: {
     label: 'Draft',
     labelAr: 'مسودة',
-    bgColor: 'bg-gray-50 dark:bg-gray-800',
+    bgColor: 'bg-gray-50/50 dark:bg-white/5',
     textColor: 'text-gray-600 dark:text-gray-300',
-    borderColor: 'border-gray-200 dark:border-gray-700',
+    borderColor: 'border-border-default dark:border-border-dark',
   },
   submitted: {
     label: 'Submitted',

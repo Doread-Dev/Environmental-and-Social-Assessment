@@ -8,9 +8,8 @@ import { useAssessment, useScreening, useProjectContext } from '@/hooks'
 import {
   AssessmentProgressIndicator,
   AssessmentStartCard,
-  ProjectContextCard
+  ProjectContextCard,
 } from '@/components/assessment'
-import { LoadingSpinner } from '@/components/ui'
 
 /**
  * تحديد حالة التقييم
@@ -37,7 +36,7 @@ export default function AssessmentGatewayPage() {
   const navigate = useNavigate()
   const { project } = useProjectContext()
   const { screening, isLoading: screeningLoading } = useScreening(projectId)
-  const { assessment, methods, consultations, isLoading: assessmentLoading, startAssessment } = useAssessment(projectId)
+  const { assessment, isLoading: assessmentLoading, startAssessment } = useAssessment(projectId)
 
   const isLoading = screeningLoading || assessmentLoading
 
@@ -61,9 +60,7 @@ export default function AssessmentGatewayPage() {
         <div className="bg-white dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark p-8 shadow-sm">
           <div className="flex flex-col items-center gap-4 text-center">
             <span className="material-symbols-outlined text-6xl text-gray-400">lock</span>
-            <h2 className="text-2xl font-bold text-text-main dark:text-white">
-              Assessment Locked
-            </h2>
+            <h2 className="text-2xl font-bold text-text-main dark:text-white">Assessment Locked</h2>
             <p className="text-text-secondary max-w-md">
               Please complete and approve the Screening process before starting the Environmental
               Assessment.
@@ -101,7 +98,9 @@ export default function AssessmentGatewayPage() {
             <h1 className="text-3xl font-bold text-text-main dark:text-white">
               Environmental Assessment
             </h1>
-            <p className="text-text-secondary mt-1">Tool 2 – Site-specific Environmental Assessment</p>
+            <p className="text-text-secondary mt-1">
+              Tool 2 – Site-specific Environmental Assessment
+            </p>
           </div>
           <AssessmentProgressIndicator
             currentStep={2}
@@ -115,7 +114,13 @@ export default function AssessmentGatewayPage() {
         {/* Main Content (2/3) */}
         <div className="lg:col-span-2 flex flex-col gap-6">
           <AssessmentStartCard
-            status={status === 'not_started' ? 'not_started' : status === 'completed' ? 'completed' : 'in_progress'}
+            status={
+              status === 'not_started'
+                ? 'not_started'
+                : status === 'completed'
+                  ? 'completed'
+                  : 'in_progress'
+            }
             onStart={handleStart}
             onContinue={handleContinue}
           />

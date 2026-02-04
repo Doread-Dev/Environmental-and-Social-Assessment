@@ -7,20 +7,12 @@ import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useFiles } from '@/hooks'
 import { FileCategoryAccordion } from '@/components/files'
-import { FileUpload, Alert, Button, Card } from '@/components/ui'
-import { cn } from '@/utils/cn'
+import { FileUpload, Alert, Card } from '@/components/ui'
 
 export default function ProjectFilesPage() {
   const { projectId } = useParams()
-  const {
-    getFilesByType,
-    uploadFile,
-    deleteFile,
-    downloadFile,
-    isLoading,
-    isUploading,
-    error,
-  } = useFiles(projectId)
+  const { getFilesByType, uploadFile, deleteFile, downloadFile, isLoading, isUploading, error } =
+    useFiles(projectId)
 
   const [showUploadSection, setShowUploadSection] = useState(false)
   const [selectedEntityType, setSelectedEntityType] = useState('project')
@@ -78,9 +70,7 @@ export default function ProjectFilesPage() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4">
           <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">
-            Loading project files...
-          </p>
+          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading project files...</p>
         </div>
       </div>
     )

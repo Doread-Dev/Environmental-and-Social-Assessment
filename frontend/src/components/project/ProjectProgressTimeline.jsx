@@ -2,7 +2,7 @@
  * ProjectProgressTimeline Component
  * الجدول الزمني لتقدم المشروع (الخطوات الأربع)
  * مطابق للتصميم الأصلي حرفياً
- * 
+ *
  * Features:
  * - خط تقدم أفقي في الخلفية
  * - دوائر مع ring-4 ring-white
@@ -46,7 +46,12 @@ function ProjectProgressTimeline({
       const status = workflow[step]?.status
       // For screening & assessment: submitted, draft, rejected count as in_progress
       if (step === 'screening' || step === 'assessment') {
-        return status === 'submitted' || status === 'draft' || status === 'rejected' || status === 'in_progress'
+        return (
+          status === 'submitted' ||
+          status === 'draft' ||
+          status === 'rejected' ||
+          status === 'in_progress'
+        )
       }
       return status === 'in_progress'
     }).length
@@ -137,12 +142,19 @@ function ProjectProgressTimeline({
   }
 
   return (
-    <div className={cn('mt-8 pt-6 border-t border-border-default dark:border-border-dark', className)} {...props}>
+    <div
+      className={cn('mt-8 pt-6 border-t border-border-default dark:border-border-dark', className)}
+      {...props}
+    >
       {/* Header */}
       {showPercentage && (
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-text-main dark:text-white">Completion Progress</h3>
-          <span className="text-sm font-medium text-primary dark:text-primary">{progressPercentage}%</span>
+          <h3 className="text-sm font-semibold text-text-main dark:text-white">
+            Completion Progress
+          </h3>
+          <span className="text-sm font-medium text-primary dark:text-primary">
+            {progressPercentage}%
+          </span>
         </div>
       )}
 
@@ -151,18 +163,21 @@ function ProjectProgressTimeline({
         {/* Background Progress Bar - Full width gray bar */}
         <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-100 dark:bg-white/5 -translate-y-1/2 rounded-full z-0"></div>
         {/* Progress Bar - Primary colored portion */}
-        <div 
+        <div
           className="absolute top-1/2 left-0 h-1 bg-primary/30 -translate-y-1/2 rounded-full z-0 transition-all duration-500"
           style={{ width: `${progressPercentage}%` }}
         ></div>
 
         {/* Steps */}
         <div className="relative z-10 flex justify-between w-full">
-          {steps.map((step, index) => {
+          {steps.map((step) => {
             const config = getStepConfig(step.id, step.tool)
 
             return (
-              <div key={step.id} className={cn('flex flex-col items-center gap-2 group', config.opacity)}>
+              <div
+                key={step.id}
+                className={cn('flex flex-col items-center gap-2 group', config.opacity)}
+              >
                 {/* Step Circle */}
                 <div
                   className={cn(
@@ -185,9 +200,7 @@ function ProjectProgressTimeline({
                 {/* Step Label */}
                 {showLabels && (
                   <div className="flex flex-col items-center">
-                    <span className={cn('text-xs font-bold', config.labelColor)}>
-                      {step.label}
-                    </span>
+                    <span className={cn('text-xs font-bold', config.labelColor)}>{step.label}</span>
                     <span className={cn('text-[10px] font-medium', config.subtitleColor)}>
                       {config.label}
                     </span>

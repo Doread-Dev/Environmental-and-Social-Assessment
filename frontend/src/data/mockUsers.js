@@ -47,8 +47,7 @@ export const mockUsers = [
     createdAt: '2023-01-15T10:00:00.000Z',
     updatedAt: '2024-01-10T08:00:00.000Z',
     // Frontend-only fields for display
-    avatar:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuA52tcJunHAhhNIJhwfqL97jYLTGmUSuxY1_GSq3m2_NitXeBriNHT2vsga1wvUIExbM0f02SY8gqpZMQqipeYkxUMWZpVPdpPyXQFCpmCVqUasUIy7l-LskaJ6NDq8ZD-vkl6Ikc3PIda1PG3cbVPnKhYj05d6Qy0oMqftfSep-hrauSQYJ5kYoxH8i_FqBoh9ksg5hmmZIDcIhA9uMMFZqB1nKU6XMRmJV3XVXfQIDb6kkSH-IJWCnJgbDuKRuD_QCqAnrQHjN2Ik',
+    avatar: null,
   },
   {
     _id: '507f1f77bcf86cd799439002',

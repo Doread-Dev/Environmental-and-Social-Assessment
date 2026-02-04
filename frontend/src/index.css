@@ -206,6 +206,47 @@ html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
 }
 
 /* ==========================================
+   Global Scrollbar Styling
+   Applies to all scrollable containers
+   ========================================== */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+html.dark * {
+  scrollbar-color: var(--color-border-dark) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}
+
+html.dark *::-webkit-scrollbar-thumb {
+  background: var(--color-border-dark);
+}
+
+html.dark *::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}
+
+/* ==========================================
    Excel/Table Styles (From Static UI)
    ========================================== */
 

@@ -7,22 +7,30 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment } from '@/hooks'
 import { MethodChecklistItem, ConsultationChecklistItem } from '@/components/assessment'
-import { Button, LoadingSpinner, StickyFooter } from '@/components/ui'
+import { LoadingSpinner, StickyFooter } from '@/components/ui'
 import { assessmentMethods, consultationMethods } from '@/data'
 
 export default function AssessmentMethodsPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
-  const { assessment, methods, consultations, isLoading, isSaving, saveMethods, saveConsultations } = useAssessment(projectId)
+  const {
+    assessment,
+    methods,
+    consultations,
+    isLoading,
+    isSaving,
+    saveMethods,
+    saveConsultations,
+  } = useAssessment(projectId)
 
   // State for methods
   const [selectedMethods, setSelectedMethods] = useState(() => {
     const state = {}
-    assessmentMethods.forEach(method => {
-      const existing = methods.find(m => m.method_type === method.id)
+    assessmentMethods.forEach((method) => {
+      const existing = methods.find((m) => m.method_type === method.id)
       state[method.id] = {
         checked: !!existing,
-        details: existing?.details || ''
+        details: existing?.details || '',
       }
     })
     return state
@@ -31,11 +39,11 @@ export default function AssessmentMethodsPage() {
   // State for consultations
   const [selectedConsultations, setSelectedConsultations] = useState(() => {
     const state = {}
-    consultationMethods.forEach(consultation => {
-      const existing = consultations.find(c => c.type === consultation.id)
+    consultationMethods.forEach((consultation) => {
+      const existing = consultations.find((c) => c.type === consultation.id)
       state[consultation.id] = {
         checked: !!existing,
-        participants: existing?.participants || ''
+        participants: existing?.participants || '',
       }
     })
     return state
@@ -46,22 +54,22 @@ export default function AssessmentMethodsPage() {
     if (!isLoading && methods && consultations) {
       // Update methods
       const methodsState = {}
-      assessmentMethods.forEach(method => {
-        const existing = methods.find(m => m.method_type === method.id)
+      assessmentMethods.forEach((method) => {
+        const existing = methods.find((m) => m.method_type === method.id)
         methodsState[method.id] = {
           checked: !!existing,
-          details: existing?.details || ''
+          details: existing?.details || '',
         }
       })
       setSelectedMethods(methodsState)
 
       // Update consultations
       const consultationsState = {}
-      consultationMethods.forEach(consultation => {
-        const existing = consultations.find(c => c.type === consultation.id)
+      consultationMethods.forEach((consultation) => {
+        const existing = consultations.find((c) => c.type === consultation.id)
         consultationsState[consultation.id] = {
           checked: !!existing,
-          participants: existing?.participants || ''
+          participants: existing?.participants || '',
         }
       })
       setSelectedConsultations(consultationsState)
@@ -80,57 +88,53 @@ export default function AssessmentMethodsPage() {
   }
 
   const handleMethodChange = (methodId, checked) => {
-    setSelectedMethods(prev => ({
+    setSelectedMethods((prev) => ({
       ...prev,
-      [methodId]: { ...prev[methodId], checked }
+      [methodId]: { ...prev[methodId], checked },
     }))
   }
 
   const handleMethodDetailsChange = (methodId, details) => {
-    setSelectedMethods(prev => ({
+    setSelectedMethods((prev) => ({
       ...prev,
-      [methodId]: { ...prev[methodId], details }
+      [methodId]: { ...prev[methodId], details },
     }))
   }
 
   const handleConsultationChange = (consultationId, checked) => {
-    setSelectedConsultations(prev => ({
+    setSelectedConsultations((prev) => ({
       ...prev,
-      [consultationId]: { ...prev[consultationId], checked }
+      [consultationId]: { ...prev[consultationId], checked },
     }))
   }
 
   const handleConsultationParticipantsChange = (consultationId, participants) => {
-    setSelectedConsultations(prev => ({
+    setSelectedConsultations((prev) => ({
       ...prev,
-      [consultationId]: { ...prev[consultationId], participants }
+      [consultationId]: { ...prev[consultationId], participants },
     }))
   }
-
 
   const handleSave = async () => {
     // Prepare methods data
     const methodsData = assessmentMethods
-      .filter(m => selectedMethods[m.id]?.checked)
-      .map(m => ({
+      .filter((m) => selectedMethods[m.id]?.checked)
+      .map((m) => ({
         method_type: m.id,
-        details: selectedMethods[m.id]?.details || ''
+        details: selectedMethods[m.id]?.details || '',
       }))
 
     // Prepare consultations data
     const consultationsData = consultationMethods
-      .filter(c => selectedConsultations[c.id]?.checked)
-      .map(c => ({
+      .filter((c) => selectedConsultations[c.id]?.checked)
+      .map((c) => ({
         type: c.id,
         participants: selectedConsultations[c.id]?.participants || '',
-        notes: '' // Empty notes field (not shown in UI but required by backend model)
+        notes: '', // Empty notes field (not shown in UI but required by backend model)
       }))
 
     // Save both
-    await Promise.all([
-      saveMethods(methodsData),
-      saveConsultations(consultationsData)
-    ])
+    await Promise.all([saveMethods(methodsData), saveConsultations(consultationsData)])
 
     navigate(`/app/projects/${projectId}/assessment/scoring`)
   }
@@ -204,7 +208,9 @@ export default function AssessmentMethodsPage() {
               checked={selectedConsultations[consultation.id]?.checked || false}
               participants={selectedConsultations[consultation.id]?.participants || ''}
               onCheckedChange={(checked) => handleConsultationChange(consultation.id, checked)}
-              onParticipantsChange={(participants) => handleConsultationParticipantsChange(consultation.id, participants)}
+              onParticipantsChange={(participants) =>
+                handleConsultationParticipantsChange(consultation.id, participants)
+              }
               readOnly={readOnly}
             />
           ))}

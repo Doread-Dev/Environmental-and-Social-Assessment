@@ -34,9 +34,7 @@ export default function MetadataInfoSection({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-4 gap-x-8">
         <div>
           <p className="text-text-secondary text-xs mb-1">Officer Name</p>
-          <p className="text-text-main dark:text-white font-medium">
-            {officer?.name || 'N/A'}
-          </p>
+          <p className="text-text-main dark:text-white font-medium">{officer?.name || 'N/A'}</p>
         </div>
         <div>
           <p className="text-text-secondary text-xs mb-1">Officer Position</p>

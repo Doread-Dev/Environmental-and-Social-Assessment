@@ -132,9 +132,7 @@ export const mockAttachments = [
  * الحصول على المرفقات حسب الكيان
  */
 export function getAttachmentsByEntity(projectId, entityType) {
-  return mockAttachments.filter(
-    (a) => a.entity_id === projectId && a.entity_type === entityType
-  )
+  return mockAttachments.filter((a) => a.entity_id === projectId && a.entity_type === entityType)
 }
 
 /**
@@ -166,5 +164,5 @@ export function formatFileSize(bytes) {
   const k = 1024
   const sizes = ['Bytes', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
 }

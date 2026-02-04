@@ -91,7 +91,13 @@ function MonitoringCategoryCard({
         </div>
         <div className="mb-6" />
       </div>
-      <div className={cn('flex items-center gap-2 px-3 py-2 rounded-lg', currentStatus.bg, currentStatus.text)}>
+      <div
+        className={cn(
+          'flex items-center gap-2 px-3 py-2 rounded-lg',
+          currentStatus.bg,
+          currentStatus.text
+        )}
+      >
         <span className={cn('h-2 w-2 rounded-full', currentStatus.dot)} />
         <span className="text-xs font-bold">{rankingLabel}</span>
       </div>

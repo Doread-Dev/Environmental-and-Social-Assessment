@@ -3,14 +3,10 @@
  * صفحة ملحقات المشروع
  */
 
-import { useParams } from 'react-router-dom'
 import { Card, Alert } from '@/components/ui'
 import { mockAnnexItems } from '@/data'
-import { cn } from '@/utils/cn'
 
 export default function AnnexOverviewPage() {
-  const { projectId } = useParams()
-
   return (
     <div className="flex-1 overflow-y-auto bg-background dark:bg-background-dark p-6 md:p-10 lg:p-12">
       <div className="max-w-[1200px] mx-auto flex flex-col gap-8 pb-20">

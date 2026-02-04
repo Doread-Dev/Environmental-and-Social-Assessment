@@ -12,13 +12,7 @@ import { formatDate } from '@/utils/formatters'
  * @param {Object} props.screening - بيانات الفرز
  * @param {string} props.mapImage - صورة الخريطة
  */
-export default function ProjectContextCard({
-  project,
-  screening,
-  mapImage,
-  className,
-  ...props
-}) {
+export default function ProjectContextCard({ project, screening, mapImage, className, ...props }) {
   // Default map image
   const defaultMapUrl =
     'https://lh3.googleusercontent.com/aida-public/AB6AXuA3PLvg1KO7dlEosUayyEmmgHo4dTFMXGfq2ssXneKSxcbeNVtxLYyHV05WG2eMJAMnna490Cgoz_TmoMpQKOX1xNbpC1q0lb0SlgS2ZWR65-7sR4AesYd9XVMUr72-hRBwaXk4-jVWHAa60xp8QsdYBrTcPg5Myr37ZlyTXtwHzGnyFzmp96BMg2MsvQFS_yMetAPnqIfRtWYjV1MgJrwsn7snhEbD4efy5H5KoyQNf6Iqm4qUNdV6mwe55Ty1whB_dPf_JaNSTNDJ'

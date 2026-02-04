@@ -158,7 +158,8 @@ export function useMonitoring(projectId) {
       // محاكاة API call
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      console.log('Saved monitoring records:', records)
+      // eslint-disable-next-line no-console
+      console.info('Saved monitoring records:', records)
 
       return { success: true }
     } catch (err) {
@@ -193,13 +194,13 @@ export function useMonitoring(projectId) {
       if (record.ranking && record.ranking !== 'not_applicable') return true
       return Boolean(
         record.scores?.baseline ||
-          record.scores?.Q1 ||
-          record.scores?.Q2 ||
-          record.scores?.Q3 ||
-          record.scores?.Q4 ||
-          record.total ||
-          record.final_assessment ||
-          record.note
+        record.scores?.Q1 ||
+        record.scores?.Q2 ||
+        record.scores?.Q3 ||
+        record.scores?.Q4 ||
+        record.total ||
+        record.final_assessment ||
+        record.note
       )
     }
 

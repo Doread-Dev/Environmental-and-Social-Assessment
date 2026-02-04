@@ -38,7 +38,7 @@ export { impactCategories, impactLevels } from './impactCategories'
 // Assessment Data
 export * from './assessmentMethods'
 export * from './impactQuestions'
-export * from './impactIndicators'  // للاستخدام في Phase 7
+export * from './impactIndicators' // للاستخدام في Phase 7
 export * from './jobTitles'
 export {
   mockAssessments,
@@ -49,7 +49,7 @@ export {
   getMethodsByAssessmentId,
   getConsultationsByAssessmentId,
   getImpactScoresByAssessmentId,
-  createEmptyAssessment
+  createEmptyAssessment,
 } from './mockAssessment'
 
 // Screening Data
@@ -57,7 +57,7 @@ export {
   mockScreenings,
   getScreeningByProjectId,
   getScreeningWithDetails,
-  createEmptyScreening
+  createEmptyScreening,
 } from './mockScreening'
 
 // SEMP Data (Tools 3 & 4)
@@ -65,14 +65,14 @@ export {
   mockManagementActivities,
   getManagementActivitiesByProjectId,
   getNextSerialNumber,
-  createEmptyManagementActivity
+  createEmptyManagementActivity,
 } from './mockManagementActivities'
 
 export {
   mockMitigationPlans,
   getMitigationPlansByProjectId,
   getNextMitigationSerialNumber,
-  createEmptyMitigationPlan
+  createEmptyMitigationPlan,
 } from './mockMitigationPlans'
 
 // Monitoring Data (Tool 5)
@@ -81,7 +81,7 @@ export {
   getMonitoringIndicatorsByCategory,
   mockMonitoringRecords,
   getMonitoringRecordsByProjectId,
-  createEmptyMonitoringRecord
+  createEmptyMonitoringRecord,
 } from './mockMonitoringRecords'
 
 // Files & Annex
@@ -90,7 +90,7 @@ export {
   getAttachmentsByEntity,
   getAllProjectAttachments,
   groupAttachmentsByType,
-  formatFileSize
+  formatFileSize,
 } from './mockAttachments'
 
 export { mockAnnexItems, getAnnexItemById } from './mockAnnexItems'

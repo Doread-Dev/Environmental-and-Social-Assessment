@@ -115,10 +115,7 @@ function Modal({
                 </h2>
               )}
               {description && (
-                <p
-                  id="modal-description"
-                  className="mt-6 text-md text-text-main dark:text-white "
-                >
+                <p id="modal-description" className="mt-6 text-md text-text-main dark:text-white ">
                   {description}
                 </p>
               )}
@@ -164,7 +161,7 @@ function ModalFooter({ className, children, ...props }) {
     <div
       className={cn(
         'flex items-center justify-end gap-3',
-        
+
         '-mx-6 -mb-4 px-6 pb-4',
         className
       )}

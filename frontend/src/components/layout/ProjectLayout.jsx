@@ -16,20 +16,28 @@ function ProjectLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [project, setProject] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
-  
+
   // Check if we're on screening page and get screening status for Export button
   const isScreeningPage = location.pathname.includes('/screening')
   const screening = projectId && isScreeningPage ? getScreeningByProjectId(projectId) : null
-  const showScreeningExport = isScreeningPage && (screening?.status === 'submitted' || screening?.status === 'approved' || screening?.status === 'rejected')
-  
+  const showScreeningExport =
+    isScreeningPage &&
+    (screening?.status === 'submitted' ||
+      screening?.status === 'approved' ||
+      screening?.status === 'rejected')
+
   // Check if we're on assessment page and get assessment status for Export button
   const isAssessmentPage = location.pathname.includes('/assessment')
   const assessment = projectId && isAssessmentPage ? getAssessmentByProjectId(projectId) : null
-  const showAssessmentExport = isAssessmentPage && (assessment?.status === 'submitted' || assessment?.status === 'approved' || assessment?.status === 'rejected')
-  
+  const showAssessmentExport =
+    isAssessmentPage &&
+    (assessment?.status === 'submitted' ||
+      assessment?.status === 'approved' ||
+      assessment?.status === 'rejected')
+
   const isMonitoringDataEntryPage = location.pathname.includes('/monitoring/data-entry')
   const showExportButton = showScreeningExport || showAssessmentExport || isMonitoringDataEntryPage
-  
+
   const handleExportClick = () => {
     if (isScreeningPage) {
       // Trigger export event that ScreeningSummaryPage listens to

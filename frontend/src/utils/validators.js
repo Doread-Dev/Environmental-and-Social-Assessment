@@ -68,6 +68,23 @@ export function validateLocation(location) {
 }
 
 /**
+ * التحقق من صحة وصف المشروع
+ * @param {string} description
+ * @returns {{ valid: boolean, error: string | null }}
+ */
+export function validateProjectDescription(description) {
+  if (!description || !description.trim()) {
+    return { valid: false, error: 'Project description is required' }
+  }
+
+  if (description.trim().length < 20) {
+    return { valid: false, error: 'Project description must be at least 20 characters' }
+  }
+
+  return { valid: true, error: null }
+}
+
+/**
  * التحقق من صحة التواريخ
  * @param {string} startDate
  * @param {string} endDate
@@ -78,6 +95,10 @@ export function validateDates(startDate, endDate) {
 
   if (!startDate) {
     errors.startDate = 'Start date is required'
+  }
+
+  if (!endDate) {
+    errors.endDate = 'End date is required'
   }
 
   if (startDate && endDate) {
@@ -116,6 +137,11 @@ export function validateProjectForm(formData) {
   const datesValidation = validateDates(formData.startDate, formData.endDate)
   if (!datesValidation.valid) {
     Object.assign(errors, datesValidation.errors)
+  }
+
+  const descriptionValidation = validateProjectDescription(formData.description)
+  if (!descriptionValidation.valid) {
+    errors.description = descriptionValidation.error
   }
 
   return {

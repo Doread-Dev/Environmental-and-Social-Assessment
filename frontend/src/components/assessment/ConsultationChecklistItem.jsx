@@ -21,7 +21,7 @@ export default function ConsultationChecklistItem({
   participants = '',
   onCheckedChange,
   onParticipantsChange,
-  readOnly = false
+  readOnly = false,
 }) {
   const InputComponent = consultation.inputType === 'textarea' ? Textarea : Input
 
@@ -43,21 +43,16 @@ export default function ConsultationChecklistItem({
           )}
         </div>
       </label>
-      <div
-        className={cn(
-          'input-container pl-9 pr-2 transition-all',
-          checked ? 'block' : 'hidden'
-        )}
-      >
+      <div className={cn('input-container pl-9 pr-2 transition-all', checked ? 'block' : 'hidden')}>
         <div>
           <label className="block text-xs font-semibold text-text-secondary uppercase mb-1">
             {consultation.id === 'village_meetings'
               ? 'Who attended, How many, Where?'
               : consultation.id === 'community_interviews'
-              ? 'Who was interviewed?'
-              : consultation.id === 'committee_consultation'
-              ? 'Committee details'
-              : 'Details'}
+                ? 'Who was interviewed?'
+                : consultation.id === 'committee_consultation'
+                  ? 'Committee details'
+                  : 'Details'}
           </label>
           <InputComponent
             value={participants}

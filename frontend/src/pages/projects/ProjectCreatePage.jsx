@@ -49,6 +49,7 @@ function ProjectCreatePage() {
       location: formData.location,
       startDate: formData.startDate,
       endDate: formData.endDate,
+      description: formData.description,
     })
 
     if (!validation.valid) {
@@ -62,16 +63,11 @@ function ProjectCreatePage() {
       // Mock API call - في الإنتاج سيتم استدعاء API
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      // Mock: إنشاء مشروع جديد
-      const newProject = {
-        _id: `new-${Date.now()}`,
-        ...formData,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
+      // Mock: إنشاء مشروع جديد (في الإنتاج سيتم استخدام API)
+      const _newProjectId = `new-${Date.now()}`
 
-      // Navigate to project overview (في الإنتاج سيتم استخدام ID الحقيقي)
-      // navigate(getProjectRoute(newProject._id, ROUTES.PROJECT_OVERVIEW))
+      // Navigate to project overview (في الإنتاج سيتم استخدام ID الحقيقي من API)
+      // navigate(getProjectRoute(_newProjectId, ROUTES.PROJECT_OVERVIEW))
 
       // For now, navigate to projects list
       navigate(ROUTES.PROJECTS)
@@ -197,7 +193,7 @@ function ProjectCreatePage() {
 
                 {/* End Date */}
                 <Input
-                  label="End Date (Estimated)"
+                  label="End Date"
                   type="date"
                   value={formData.endDate}
                   onChange={handleChange('endDate')}
@@ -221,6 +217,8 @@ function ProjectCreatePage() {
               value={formData.description}
               onChange={handleChange('description')}
               rows={6}
+              required
+              error={errors.description}
               disabled={isSubmitting}
             />
           </div>

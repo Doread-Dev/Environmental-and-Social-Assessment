@@ -88,7 +88,7 @@ function FileListTable({ files = [], onDownload, onDelete }) {
 
                 {/* Type */}
                 <td className="px-4 py-3 text-center">
-                  <span className="px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-800 text-xs font-medium text-text-main dark:text-white uppercase">
+                  <span className="px-2 py-1 rounded-md bg-gray-50/50 dark:bg-white/5 text-xs font-medium text-text-main dark:text-white uppercase">
                     {file.file_type}
                   </span>
                 </td>

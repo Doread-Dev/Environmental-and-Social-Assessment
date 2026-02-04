@@ -15,28 +15,28 @@ export default function TotalScoreCard({ scores = {} }) {
     {
       level: IMPACT_LEVELS.NEGLIGIBLE,
       count: scores.negligible || 0,
-      label: 'Negligible'
+      label: 'Negligible',
     },
     {
       level: IMPACT_LEVELS.LOW,
       count: scores.low || 0,
-      label: 'Low'
+      label: 'Low',
     },
     {
       level: IMPACT_LEVELS.MEDIUM,
       count: scores.medium || 0,
-      label: 'Medium'
+      label: 'Medium',
     },
     {
       level: IMPACT_LEVELS.HIGH,
       count: scores.high || 0,
-      label: 'High'
+      label: 'High',
     },
     {
       level: IMPACT_LEVELS.NOT_APPLICABLE,
       count: scores.not_applicable || 0,
-      label: 'N/A'
-    }
+      label: 'N/A',
+    },
   ]
 
   return (
@@ -58,10 +58,10 @@ export default function TotalScoreCard({ scores = {} }) {
                   ? item.level === IMPACT_LEVELS.LOW
                     ? 'bg-primary/5 border-primary/20'
                     : item.level === IMPACT_LEVELS.MEDIUM
-                    ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/30'
-                    : item.level === IMPACT_LEVELS.HIGH
-                    ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800/30'
-                    : 'bg-gray-50/50 dark:bg-white/5 border-border-default dark:border-border-dark'
+                      ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/30'
+                      : item.level === IMPACT_LEVELS.HIGH
+                        ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800/30'
+                        : 'bg-gray-50/50 dark:bg-white/5 border-border-default dark:border-border-dark'
                   : 'bg-gray-50/50 dark:bg-white/5 border-border-default dark:border-border-dark opacity-60'
               )}
             >

@@ -20,12 +20,9 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
   const user = {
     name: 'Sarah Jenkins',
     role: 'Programme Manager',
-    avatar:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuA52tcJunHAhhNIJhwfqL97jYLTGmUSuxY1_GSq3m2_NitXeBriNHT2vsga1wvUIExbM0f02SY8gqpZMQqipeYkxUMWZpVPdpPyXQFCpmCVqUasUIy7l-LskaJ6NDq8ZD-vkl6Ikc3PIda1PG3cbVPnKhYj05d6Qy0oMqftfSep-hrauSQYJ5kYoxH8i_FqBoh9ksg5hmmZIDcIhA9uMMFZqB1nKU6XMRmJV3XVXfQIDb6kkSH-IJWCnJgbDuKRuD_QCqAnrQHjN2Ik',
   }
 
   const userMenuItems = [
-    { id: 'profile', label: 'Profile', icon: 'person' },
     { id: 'settings', label: 'Settings', icon: 'settings' },
     { id: 'divider', type: 'divider' },
     { id: 'logout', label: 'Sign Out', icon: 'logout' },
@@ -88,22 +85,6 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
           <span className="material-symbols-outlined">{isDark ? 'light_mode' : 'dark_mode'}</span>
         </button>
 
-        {/* Notifications (placeholder) */}
-        <button
-          className={cn(
-            'p-2 rounded-lg relative',
-            'text-text-secondary dark:text-gray-400',
-            'hover:text-text-main dark:hover:text-white',
-            'hover:bg-background dark:hover:bg-background-dark',
-            'transition-colors'
-          )}
-          aria-label="Notifications"
-        >
-          <span className="material-symbols-outlined">notifications</span>
-          {/* Notification Badge */}
-          <span className="absolute top-1.5 right-1.5 size-2 bg-error rounded-full" />
-        </button>
-
         {/* Divider */}
         <div className="hidden sm:block h-8 w-px bg-border-default dark:bg-border-dark" />
 
@@ -128,12 +109,7 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
             </div>
 
             {/* Avatar */}
-            <Avatar
-              src={user.avatar}
-              alt={user.name}
-              size="md"
-              className="ring-2 ring-white dark:ring-surface-dark"
-            />
+            <Avatar alt={user.name} size="md" className="ring-2 ring-white dark:ring-surface-dark" />
           </button>
 
           {/* User Dropdown Menu */}

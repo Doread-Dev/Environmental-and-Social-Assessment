@@ -35,7 +35,7 @@ export default function AssessmentApprovalSection({
   onEdit,
   status,
   canApprove = false,
-  isSaving = false
+  isSaving = false,
 }) {
   const [showRejectInput, setShowRejectInput] = useState(false)
   const [rejectReasonInput, setRejectReasonInput] = useState('')
@@ -92,7 +92,6 @@ export default function AssessmentApprovalSection({
     )
   }
 
-
   if (status === 'rejected') {
     return (
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
@@ -134,9 +133,7 @@ export default function AssessmentApprovalSection({
   if (status === 'submitted' && canApprove) {
     return (
       <div className="bg-white dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark p-6">
-        <h3 className="text-lg font-bold text-text-main dark:text-white mb-4">
-          Review & Approval
-        </h3>
+        <h3 className="text-lg font-bold text-text-main dark:text-white mb-4">Review & Approval</h3>
 
         <div className="space-y-4">
           {/* Recommendations for Approval */}
@@ -204,11 +201,7 @@ export default function AssessmentApprovalSection({
           {/* Action Buttons */}
           {!showRejectInput && (
             <div className="flex gap-4">
-              <Button
-                onClick={handleApprove}
-                disabled={isSaving}
-                className="flex-1"
-              >
+              <Button onClick={handleApprove} disabled={isSaving} className="flex-1">
                 {isSaving ? (
                   <>
                     <LoadingSpinner size="sm" />
@@ -239,4 +232,3 @@ export default function AssessmentApprovalSection({
 
   return null
 }
-

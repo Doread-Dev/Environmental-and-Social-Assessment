@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useLocation, useParams } from 'react-router-dom'
+import { Navigate, Outlet, useLocation, useOutletContext, useParams } from 'react-router-dom'
 import { useAssessment, useScreening } from '@/hooks'
 
 /**
@@ -8,6 +8,7 @@ import { useAssessment, useScreening } from '@/hooks'
 function SempRouteGuard() {
   const location = useLocation()
   const { projectId } = useParams()
+  const outletContext = useOutletContext()
   const { assessment, isLoading: isAssessmentLoading } = useAssessment(projectId)
   const { screening, isLoading: isScreeningLoading } = useScreening(projectId)
 
@@ -24,25 +25,17 @@ function SempRouteGuard() {
 
   if (screening?.status !== 'approved') {
     return (
-      <Navigate
-        to={`/app/projects/${projectId}/screening`}
-        replace
-        state={{ from: location }}
-      />
+      <Navigate to={`/app/projects/${projectId}/screening`} replace state={{ from: location }} />
     )
   }
 
   if (assessment?.status !== 'approved') {
     return (
-      <Navigate
-        to={`/app/projects/${projectId}/assessment`}
-        replace
-        state={{ from: location }}
-      />
+      <Navigate to={`/app/projects/${projectId}/assessment`} replace state={{ from: location }} />
     )
   }
 
-  return <Outlet />
+  return <Outlet context={outletContext} />
 }
 
 export default SempRouteGuard

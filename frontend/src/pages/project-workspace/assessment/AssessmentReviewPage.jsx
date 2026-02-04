@@ -7,9 +7,8 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment, useScreening, useProjectContext } from '@/hooks'
-import { Button, LoadingSpinner, Textarea } from '@/components/ui'
+import { Button, Textarea } from '@/components/ui'
 import { cn } from '@/utils/cn'
-import { formatDate, formatDateRange } from '@/utils/formatters'
 import { IMPACT_LEVEL_CONFIG } from '@/data/impactQuestions'
 import { impactCategories } from '@/data/impactQuestions'
 import { assessmentMethods, consultationMethods } from '@/data'
@@ -18,7 +17,7 @@ import { currentUser, mockUsers } from '@/data'
 /**
  * حساب أعلى مستوى تأثير في فئة
  * ⚠️ الخوارزمية متوافقة مع backend/documents/editPlan3.md
- * 
+ *
  * القاعدة الجديدة: التأثير الإجمالي = أولوية الفئة (وليس عدد النقاط)
  * أولوية: high > medium > low > negligible > not_applicable
  * إذا وُجد أي سؤال بمستوى high، يعتبر High impact (بغض النظر عن العدد)
@@ -29,7 +28,7 @@ function getCategoryHighestLevel(scores, categoryQuestions) {
     low: 0,
     medium: 0,
     high: 0,
-    not_applicable: 0
+    not_applicable: 0,
   }
 
   categoryQuestions.forEach((q) => {
@@ -41,14 +40,14 @@ function getCategoryHighestLevel(scores, categoryQuestions) {
 
   // المستويات المرتبة حسب الأولوية (من الأعلى إلى الأدنى)
   const priorityLevels = ['high', 'medium', 'low', 'negligible', 'not_applicable']
-  
+
   // أول مستوى يجد له عدّاد > 0 هو الفائز
   for (const level of priorityLevels) {
     if (categoryScore[level] > 0) {
       return level
     }
   }
-  
+
   // إذا لم يوجد أي مستوى له قيمة > 0 (حالة نادرة جداً)
   return 'not_applicable'
 }
@@ -66,7 +65,7 @@ export default function AssessmentReviewPage() {
     isLoading,
     isSaving,
     approveAssessment,
-    rejectAssessment
+    rejectAssessment,
   } = useAssessment(projectId)
 
   const [recommendations, setRecommendations] = useState(assessment?.recommendations || '')
@@ -76,7 +75,8 @@ export default function AssessmentReviewPage() {
   // Export handler - must be defined before any conditional returns
   const handleExport = useCallback(() => {
     // TODO: Implement Excel export
-    console.log('Exporting assessment to Excel...')
+    // eslint-disable-next-line no-console
+    console.info('Exporting assessment to Excel...')
     alert('Export functionality will be implemented in future phase')
   }, [])
 
@@ -101,7 +101,7 @@ export default function AssessmentReviewPage() {
       low: 0,
       medium: 0,
       high: 0,
-      not_applicable: 0
+      not_applicable: 0,
     }
 
     impactScores.forEach((s) => {
@@ -116,23 +116,29 @@ export default function AssessmentReviewPage() {
   // Calculate total project impact using priority-based algorithm (editPlan3)
   const calculatedTotalImpact = useMemo(() => {
     const priorityLevels = ['high', 'medium', 'low', 'negligible', 'not applicable']
-    
+
     for (const level of priorityLevels) {
       if (totalScore[level] > 0) {
         return level
       }
     }
-    
+
     return 'not applicable'
   }, [totalScore])
 
   // Calculate percentages for progress bars
-  const totalAnswered = totalScore.negligible + totalScore.low + totalScore.medium + totalScore.high + totalScore.not_applicable
+  const totalAnswered =
+    totalScore.negligible +
+    totalScore.low +
+    totalScore.medium +
+    totalScore.high +
+    totalScore.not_applicable
   const negligiblePercent = totalAnswered > 0 ? (totalScore.negligible / totalAnswered) * 100 : 0
   const lowPercent = totalAnswered > 0 ? (totalScore.low / totalAnswered) * 100 : 0
   const mediumPercent = totalAnswered > 0 ? (totalScore.medium / totalAnswered) * 100 : 0
   const highPercent = totalAnswered > 0 ? (totalScore.high / totalAnswered) * 100 : 0
-  const notApplicablePercent = totalAnswered > 0 ? (totalScore.not_applicable / totalAnswered) * 100 : 0
+  const notApplicablePercent =
+    totalAnswered > 0 ? (totalScore.not_applicable / totalAnswered) * 100 : 0
 
   // Impact messages based on level
   const impactMessages = {
@@ -140,7 +146,7 @@ export default function AssessmentReviewPage() {
     low: 'Low environmental impact expected',
     medium: 'Moderate environmental impact expected',
     high: 'Requires immediate mitigation plan',
-    'not applicable': 'Not applicable to this project'
+    'not applicable': 'Not applicable to this project',
   }
 
   // Get officer info
@@ -171,7 +177,10 @@ export default function AssessmentReviewPage() {
       <div className="max-w-4xl mx-auto p-8">
         <div className="bg-white dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark p-8 text-center">
           <p className="text-text-secondary">No assessment found</p>
-          <Button onClick={() => navigate(`/app/projects/${projectId}/assessment`)} className="mt-4">
+          <Button
+            onClick={() => navigate(`/app/projects/${projectId}/assessment`)}
+            className="mt-4"
+          >
             Go to Assessment Gateway
           </Button>
         </div>
@@ -216,31 +225,30 @@ export default function AssessmentReviewPage() {
     navigate(`/app/projects/${projectId}/semp`)
   }
 
-
-
   const canApprove = true // TODO: Replace with actual permission check from AuthContext
 
   // Status badge config
   const statusConfig = {
     draft: {
       label: 'Draft',
-      className: 'bg-gray-100 text-gray-800 dark:bg-white/5 dark:text-gray-300 border-gray-200 dark:border-border-dark'
+      className:
+        'bg-gray-50/50 text-text-main dark:bg-white/5 dark:text-gray-300 border-border-default dark:border-border-dark',
     },
     submitted: {
       label: 'Pending Approval',
       className:
-        'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 border-amber-200 dark:border-amber-800'
+        'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 border-amber-200 dark:border-amber-800',
     },
     approved: {
       label: 'Approved',
       className:
-        'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200 border-green-200 dark:border-green-800'
+        'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200 border-green-200 dark:border-green-800',
     },
     rejected: {
       label: 'Rejected',
       className:
-        'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200 border-red-200 dark:border-red-800'
-    }
+        'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200 border-red-200 dark:border-red-800',
+    },
   }
 
   const status = statusConfig[assessment.status] || statusConfig.draft
@@ -332,8 +340,8 @@ export default function AssessmentReviewPage() {
               <p className="text-text-main dark:text-gray-200 text-sm font-medium">
                 {project?.start_date && project?.end_date ? (
                   <>
-                    {project.start_date}{' '}
-                    <span className="text-text-secondary px-1">to</span> {project.end_date}
+                    {project.start_date} <span className="text-text-secondary px-1">to</span>{' '}
+                    {project.end_date}
                   </>
                 ) : (
                   'N/A'
@@ -448,7 +456,9 @@ export default function AssessmentReviewPage() {
                         >
                           check_box
                         </span>
-                        <span className="font-medium">{getConsultationLabel(consultation.type)}</span>
+                        <span className="font-medium">
+                          {getConsultationLabel(consultation.type)}
+                        </span>
                       </div>
                       {consultation.participants && (
                         <input
@@ -483,20 +493,13 @@ export default function AssessmentReviewPage() {
           {/* Impact Categories */}
           <div className="space-y-8">
             {impactCategories.map((category) => {
-              const categoryScores = impactScores.filter((s) =>
-                category.questions.some((q) => q.id === s.question)
-              )
               const highestLevel = getCategoryHighestLevel(impactScores, category.questions)
               const config = IMPACT_LEVEL_CONFIG[highestLevel]
 
               // Check if all questions are negligible or not_applicable
               const allNegligibleOrNA = category.questions.every((q) => {
                 const score = impactScores.find((s) => s.question === q.id)
-                return (
-                  !score ||
-                  score.level === 'negligible' ||
-                  score.level === 'not_applicable'
-                )
+                return !score || score.level === 'negligible' || score.level === 'not_applicable'
               })
 
               return (
@@ -514,9 +517,12 @@ export default function AssessmentReviewPage() {
                         'text-xs font-bold px-2 py-0.5 rounded border',
                         config?.bgClass || 'bg-gray-200 dark:bg-white/5',
                         config?.textClass || 'text-gray-700 dark:text-gray-300',
-                        config?.textClass?.includes('yellow') && 'border-yellow-200 dark:border-yellow-900/40',
-                        config?.textClass?.includes('orange') && 'border-orange-200 dark:border-orange-900/40',
-                        config?.textClass?.includes('gray') && 'border-border-default dark:border-border-dark'
+                        config?.textClass?.includes('yellow') &&
+                          'border-yellow-200 dark:border-yellow-900/40',
+                        config?.textClass?.includes('orange') &&
+                          'border-orange-200 dark:border-orange-900/40',
+                        config?.textClass?.includes('gray') &&
+                          'border-border-default dark:border-border-dark'
                       )}
                     >
                       {config?.label || 'Negligible'}
@@ -590,10 +596,11 @@ export default function AssessmentReviewPage() {
                 Total Project Score
               </p>
               <div className="w-full space-y-2.5 bg-gray-50/50 dark:bg-white/5 p-4 rounded-lg">
-                   
-                    {/* Not Applicable */}
+                {/* Not Applicable */}
                 <div className="flex justify-between items-center text-xs pt-1">
-                  <span className="text-gray-600 dark:text-gray-500 font-medium">Not Applicable</span>
+                  <span className="text-gray-600 dark:text-gray-500 font-medium">
+                    Not Applicable
+                  </span>
                   <span className="font-bold text-text-main dark:text-white">
                     {totalScore.not_applicable} pts
                   </span>
@@ -605,10 +612,11 @@ export default function AssessmentReviewPage() {
                   ></div>
                 </div>
 
-                
                 {/* Negligible Impact */}
                 <div className="flex justify-between items-center text-xs pt-1">
-                  <span className="text-gray-700 dark:text-gray-400 font-medium">Negligible Impact</span>
+                  <span className="text-gray-700 dark:text-gray-400 font-medium">
+                    Negligible Impact
+                  </span>
                   <span className="font-bold text-text-main dark:text-white">
                     {totalScore.negligible} pts
                   </span>
@@ -620,21 +628,15 @@ export default function AssessmentReviewPage() {
                   ></div>
                 </div>
 
-                
                 {/* Low Impact */}
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-green-700 dark:text-green-500 font-medium">
-                    Low Impact
-                  </span>
+                  <span className="text-green-700 dark:text-green-500 font-medium">Low Impact</span>
                   <span className="font-bold text-text-main dark:text-white">
                     {totalScore.low} pts
                   </span>
                 </div>
                 <div className="w-full h-1.5 bg-gray-200 dark:bg-border-dark rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-green-400"
-                    style={{ width: `${lowPercent}%` }}
-                  ></div>
+                  <div className="h-full bg-green-400" style={{ width: `${lowPercent}%` }}></div>
                 </div>
 
                 {/* Medium Impact */}
@@ -661,12 +663,8 @@ export default function AssessmentReviewPage() {
                   </span>
                 </div>
                 <div className="w-full h-1.5 bg-gray-200 dark:bg-border-dark rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-red-500"
-                    style={{ width: `${highPercent}%` }}
-                  ></div>
+                  <div className="h-full bg-red-500" style={{ width: `${highPercent}%` }}></div>
                 </div>
-            
               </div>
             </div>
 
@@ -678,10 +676,10 @@ export default function AssessmentReviewPage() {
                   calculatedTotalImpact === 'high'
                     ? 'bg-red-500'
                     : calculatedTotalImpact === 'medium'
-                    ? 'bg-orange-500'
-                    : calculatedTotalImpact === 'low'
-                    ? 'bg-green-400'
-                    : 'bg-gray-400'
+                      ? 'bg-orange-500'
+                      : calculatedTotalImpact === 'low'
+                        ? 'bg-green-400'
+                        : 'bg-gray-400'
                 )}
               ></div>
               <p className="text-text-secondary text-xs font-bold uppercase tracking-wider mb-4">
@@ -693,10 +691,10 @@ export default function AssessmentReviewPage() {
                   calculatedTotalImpact === 'high'
                     ? 'text-red-600 dark:text-red-400'
                     : calculatedTotalImpact === 'medium'
-                    ? 'text-orange-600 dark:text-orange-400'
-                    : calculatedTotalImpact === 'low'
-                    ? 'text-green-600 dark:text-green-400'
-                    : 'text-gray-600 dark:text-gray-400'
+                      ? 'text-orange-600 dark:text-orange-400'
+                      : calculatedTotalImpact === 'low'
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-gray-600 dark:text-gray-400'
                 )}
               >
                 {calculatedTotalImpact?.toUpperCase() || 'N/A'}
@@ -790,7 +788,7 @@ export default function AssessmentReviewPage() {
                       className="w-full bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
                       readOnly
                       type="text"
-                      value={mockUsers.find(u => u._id === assessment.reject_by)?.name || 'N/A'}
+                      value={mockUsers.find((u) => u._id === assessment.reject_by)?.name || 'N/A'}
                     />
                   </div>
                   <div className="flex flex-col gap-2">
@@ -801,7 +799,10 @@ export default function AssessmentReviewPage() {
                       className="w-full bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
                       readOnly
                       type="text"
-                      value={mockUsers.find(u => u._id === assessment.reject_by)?.job_title?.title_name || 'N/A'}
+                      value={
+                        mockUsers.find((u) => u._id === assessment.reject_by)?.job_title
+                          ?.title_name || 'N/A'
+                      }
                     />
                   </div>
                 </div>
@@ -856,10 +857,15 @@ export default function AssessmentReviewPage() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 mb-8">
-                  <label className="text-text-main dark:text-white text-sm font-bold" htmlFor="recommendations">
-                    Reviewer Recommendations{' '}
-                    <span className="text-red-500 font-normal">*</span>
-                    <span className="text-text-secondary font-normal"> (Required for approval)</span>
+                  <label
+                    className="text-text-main dark:text-white text-sm font-bold"
+                    htmlFor="recommendations"
+                  >
+                    Reviewer Recommendations <span className="text-red-500 font-normal">*</span>
+                    <span className="text-text-secondary font-normal">
+                      {' '}
+                      (Required for approval)
+                    </span>
                   </label>
                   <Textarea
                     id="recommendations"
@@ -869,7 +875,8 @@ export default function AssessmentReviewPage() {
                     rows={4}
                     className={cn(
                       'text-sm',
-                      !recommendations.trim() && 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                      !recommendations.trim() &&
+                        'border-red-300 focus:border-red-500 focus:ring-red-500'
                     )}
                   />
                   {!recommendations.trim() && (
@@ -893,7 +900,9 @@ export default function AssessmentReviewPage() {
                         rows={3}
                         className="text-sm"
                       />
-                      <p className="text-xs text-text-secondary">Explain why this assessment is being rejected (optional but recommended)</p>
+                      <p className="text-xs text-text-secondary">
+                        Explain why this assessment is being rejected (optional but recommended)
+                      </p>
                     </div>
                     <div className="flex gap-3">
                       <button
@@ -967,7 +976,6 @@ export default function AssessmentReviewPage() {
                 </button>
               </div>
             )}
-
           </div>
         </section>
       </div>

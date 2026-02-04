@@ -8,22 +8,22 @@ import { cn } from '@/utils/cn'
 const statusConfig = {
   not_started: {
     label: 'Not Started',
-    bgClass: 'bg-gray-100 dark:bg-gray-800',
+    bgClass: 'bg-gray-50/50 dark:bg-white/5',
     textClass: 'text-gray-600 dark:text-gray-400',
-    hasIndicator: false
+    hasIndicator: false,
   },
   in_progress: {
     label: 'In Progress',
     bgClass: 'bg-green-50 dark:bg-green-900/30',
     textClass: 'text-green-700 dark:text-green-400',
-    hasIndicator: true // النقطة النابضة
+    hasIndicator: true, // النقطة النابضة
   },
   completed: {
     label: 'Completed',
     bgClass: 'bg-primary/10',
     textClass: 'text-primary',
-    hasIndicator: false
-  }
+    hasIndicator: false,
+  },
 }
 
 export default function SempStatusBadge({ status, size = 'md' }) {
@@ -31,7 +31,7 @@ export default function SempStatusBadge({ status, size = 'md' }) {
 
   const sizeClasses = {
     sm: 'px-2 py-0.5 text-xs',
-    md: 'px-3 py-1 text-xs'
+    md: 'px-3 py-1 text-xs',
   }
 
   return (

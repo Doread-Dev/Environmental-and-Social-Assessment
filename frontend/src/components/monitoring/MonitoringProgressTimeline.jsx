@@ -52,10 +52,9 @@ function MonitoringProgressTimeline({
 
         {/* Quarters */}
         <div className="relative flex justify-around">
-          {quarters.map((quarter, index) => {
+          {quarters.map((quarter) => {
             const isCompleted = completedQuarters[quarter.key]
             const isCurrent = currentQuarter === quarter.key
-            const isPast = index < quarters.findIndex((q) => q.key === currentQuarter)
 
             return (
               <div key={quarter.key} className="flex flex-col items-center gap-2">
@@ -63,12 +62,11 @@ function MonitoringProgressTimeline({
                 <div
                   className={cn(
                     'flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all',
-                    isCompleted 
+                    isCompleted
                       ? 'bg-primary border-primary text-white'
-                     : isCurrent
-                      ?
-                      'bg-info border-info text-white'
-                      : 'bg-surface dark:bg-surface-dark border-border-default dark:border-border-dark text-text-secondary dark:text-gray-500'
+                      : isCurrent
+                        ? 'bg-info border-info text-white'
+                        : 'bg-surface dark:bg-surface-dark border-border-default dark:border-border-dark text-text-secondary dark:text-gray-500'
                   )}
                 >
                   <span className="flex items-center justify-center material-symbols-outlined text-xl">
@@ -81,16 +79,15 @@ function MonitoringProgressTimeline({
                   <p
                     className={cn(
                       'text-xs font-bold',
-                      isCompleted 
+                      isCompleted
                         ? 'text-primary'
                         : isCurrent
-                        ? 'text-info'
-                        : 'text-text-secondary dark:text-gray-400'
+                          ? 'text-info'
+                          : 'text-text-secondary dark:text-gray-400'
                     )}
                   >
                     {quarter.label}
                   </p>
-              
                 </div>
               </div>
             )

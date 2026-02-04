@@ -9,7 +9,7 @@ import {
   getMethodsByAssessmentId,
   getConsultationsByAssessmentId,
   getImpactScoresByAssessmentId,
-  createEmptyAssessment
+  createEmptyAssessment,
 } from '@/data'
 import { calculateTotalScore, calculateTotalImpact } from '@/utils/impactCalculations'
 
@@ -36,7 +36,7 @@ export function useAssessment(projectId) {
     // Simulate API call
     setTimeout(() => {
       const existingAssessment = getAssessmentByProjectId(projectId)
-      
+
       if (existingAssessment) {
         setAssessment(existingAssessment)
         setMethods(getMethodsByAssessmentId(existingAssessment._id))
@@ -49,7 +49,7 @@ export function useAssessment(projectId) {
         setConsultations([])
         setImpactScores([])
       }
-      
+
       setIsLoading(false)
     }, 300)
   }, [projectId])
@@ -60,12 +60,12 @@ export function useAssessment(projectId) {
   const startAssessment = useCallback(async () => {
     setIsSaving(true)
     try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setAssessment(prev => ({
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      setAssessment((prev) => ({
         ...prev,
         _id: `assessment_${Date.now()}`,
         status: 'draft',
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       }))
       return { success: true }
     } catch (err) {
@@ -82,11 +82,11 @@ export function useAssessment(projectId) {
   const saveMetadata = useCallback(async (data) => {
     setIsSaving(true)
     try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setAssessment(prev => ({
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      setAssessment((prev) => ({
         ...prev,
         ...data,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       }))
       return { success: true }
     } catch (err) {
@@ -105,11 +105,11 @@ export function useAssessment(projectId) {
   const saveMethods = useCallback(async (newMethods) => {
     setIsSaving(true)
     try {
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await new Promise((resolve) => setTimeout(resolve, 500))
       setMethods(newMethods)
-      setAssessment(prev => ({
+      setAssessment((prev) => ({
         ...prev,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       }))
       return { success: true }
     } catch (err) {
@@ -129,11 +129,11 @@ export function useAssessment(projectId) {
   const saveConsultations = useCallback(async (newConsultations) => {
     setIsSaving(true)
     try {
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await new Promise((resolve) => setTimeout(resolve, 500))
       setConsultations(newConsultations)
-      setAssessment(prev => ({
+      setAssessment((prev) => ({
         ...prev,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       }))
       return { success: true }
     } catch (err) {
@@ -144,7 +144,6 @@ export function useAssessment(projectId) {
     }
   }, [])
 
-
   /**
    * حفظ نتائج التأثير كمسودة (Draft)
    * يحفظ النتائج بدون تغيير الحالة
@@ -152,20 +151,20 @@ export function useAssessment(projectId) {
   const saveImpactScoresDraft = useCallback(async (scores, negativeImpact, positiveImpact) => {
     setIsSaving(true)
     try {
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await new Promise((resolve) => setTimeout(resolve, 500))
       setImpactScores(scores)
-      
+
       // حساب النتيجة الإجمالية
       const totalScore = calculateTotalScore(scores)
       const totalImpact = calculateTotalImpact(totalScore)
-      
-      setAssessment(prev => ({
+
+      setAssessment((prev) => ({
         ...prev,
         total_project_score: totalScore,
         total_project_impact: totalImpact,
         potential_negative_impact: negativeImpact,
         potential_positive_impact: positiveImpact,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       }))
       return { success: true }
     } catch (err) {
@@ -183,20 +182,20 @@ export function useAssessment(projectId) {
   const saveImpactScores = useCallback(async (scores, negativeImpact, positiveImpact) => {
     setIsSaving(true)
     try {
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await new Promise((resolve) => setTimeout(resolve, 500))
       setImpactScores(scores)
-      
+
       // حساب النتيجة الإجمالية
       const totalScore = calculateTotalScore(scores)
       const totalImpact = calculateTotalImpact(totalScore)
-      
-      setAssessment(prev => ({
+
+      setAssessment((prev) => ({
         ...prev,
         total_project_score: totalScore,
         total_project_impact: totalImpact,
         potential_negative_impact: negativeImpact,
         potential_positive_impact: positiveImpact,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       }))
       return { success: true }
     } catch (err) {
@@ -213,11 +212,11 @@ export function useAssessment(projectId) {
   const submitAssessment = useCallback(async () => {
     setIsSaving(true)
     try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setAssessment(prev => ({
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      setAssessment((prev) => ({
         ...prev,
         status: 'submitted',
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       }))
       return { success: true }
     } catch (err) {
@@ -234,13 +233,13 @@ export function useAssessment(projectId) {
   const approveAssessment = useCallback(async (recommendations) => {
     setIsSaving(true)
     try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setAssessment(prev => ({
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      setAssessment((prev) => ({
         ...prev,
         status: 'approved',
         recommendations,
         approved_by: 'current_user_id',
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       }))
       return { success: true }
     } catch (err) {
@@ -260,13 +259,13 @@ export function useAssessment(projectId) {
       // Simulate API call
       // في الواقع، سيتم إرسال: { reject_reason: rejectReason }
       // والباك اند سيحفظ reject_by تلقائياً من req.user._id
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setAssessment(prev => ({
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      setAssessment((prev) => ({
         ...prev,
         status: 'rejected',
         reject_reason: rejectReason || null,
         reject_by: 'current_user_id', // سيتم استبداله بـ AuthContext
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       }))
       return { success: true }
     } catch (err) {
@@ -293,7 +292,6 @@ export function useAssessment(projectId) {
     saveImpactScoresDraft,
     submitAssessment,
     approveAssessment,
-    rejectAssessment
+    rejectAssessment,
   }
 }
-

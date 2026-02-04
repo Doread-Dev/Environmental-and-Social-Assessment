@@ -20,7 +20,7 @@ export default function ImpactSummarySection({
   onNegativeChange,
   onPositiveChange,
   readOnly = false,
-  errors = {}
+  errors = {},
 }) {
   return (
     <div className="bg-white dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark shadow-sm p-6 flex flex-col gap-6">

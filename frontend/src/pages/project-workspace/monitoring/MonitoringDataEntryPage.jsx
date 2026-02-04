@@ -37,14 +37,35 @@ export default function MonitoringDataEntryPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [justSaved, setJustSaved] = useState(false)
   const categoryIconMap = {
-    A: { icon: 'air', className: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' },
-    B: { icon: 'water_drop', className: 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400' },
-    C: { icon: 'graphic_eq', className: 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400' },
-    D: { icon: 'delete', className: 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400' },
+    A: {
+      icon: 'air',
+      className: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
+    },
+    B: {
+      icon: 'water_drop',
+      className: 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400',
+    },
+    C: {
+      icon: 'graphic_eq',
+      className: 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400',
+    },
+    D: {
+      icon: 'delete',
+      className: 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400',
+    },
     E: { icon: 'speed', className: 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400' },
-    F: { icon: 'science', className: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' },
-    J: { icon: 'forest', className: 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' },
-    H: { icon: 'landscape', className: 'bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400' },
+    F: {
+      icon: 'science',
+      className: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400',
+    },
+    J: {
+      icon: 'forest',
+      className: 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400',
+    },
+    H: {
+      icon: 'landscape',
+      className: 'bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400',
+    },
   }
 
   // Auto-expand category from URL
@@ -148,10 +169,10 @@ export default function MonitoringDataEntryPage() {
                 isLocked
                   ? 'bg-primary/50 cursor-not-allowed'
                   : isSaving
-                  ? 'bg-primary/70 cursor-wait'
-                  : justSaved && !hasUnsavedChanges
-                    ? 'bg-green-600 hover:bg-green-700 text-white border border-transparent'
-                    : 'bg-primary hover:bg-green-500 text-primary-content'
+                    ? 'bg-primary/70 cursor-wait'
+                    : justSaved && !hasUnsavedChanges
+                      ? 'bg-green-600 hover:bg-green-700 text-white border border-transparent'
+                      : 'bg-primary hover:bg-green-500 text-primary-content'
               )}
             >
               {saveBtn.spinner ? (
@@ -163,7 +184,6 @@ export default function MonitoringDataEntryPage() {
             </button>
           </div>
         </div>
-
 
         {/* Error Alert */}
         {error && (
@@ -179,9 +199,12 @@ export default function MonitoringDataEntryPage() {
               <span className="material-symbols-outlined text-2xl">lock</span>
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Monitoring Locked</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+                Monitoring Locked
+              </h3>
               <p className="text-gray-600 dark:text-gray-400 text-sm">
-                You must complete and get approval for the <strong>Environmental Assessment (Tool 2)</strong> before entering monitoring data.
+                You must complete and get approval for the{' '}
+                <strong>Environmental Assessment (Tool 2)</strong> before entering monitoring data.
               </p>
             </div>
             <button
@@ -192,8 +215,6 @@ export default function MonitoringDataEntryPage() {
             </button>
           </div>
         )}
-
-   
 
         {/* Categories Accordion */}
         <section
@@ -298,7 +319,6 @@ export default function MonitoringDataEntryPage() {
             )
           })}
         </section>
-
       </div>
     </div>
   )

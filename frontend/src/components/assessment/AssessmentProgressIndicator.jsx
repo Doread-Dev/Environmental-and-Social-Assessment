@@ -8,7 +8,7 @@ import { cn } from '@/utils/cn'
 const STEPS = [
   { id: 1, label: 'Screening', icon: 'fact_check' },
   { id: 2, label: 'Assessment', icon: 'assignment' },
-  { id: 3, label: 'SEMP', icon: 'task_alt' }
+  { id: 3, label: 'SEMP', icon: 'task_alt' },
 ]
 
 /**
@@ -41,7 +41,10 @@ export default function AssessmentProgressIndicator({
       <div className="flex items-center gap-2">
         {STEPS.map((step, index) => {
           const status = getStepStatus(step.id)
-          const isCompleted = status === 'completed' || (step.id === 1 && screeningComplete) || (step.id === 2 && assessmentComplete)
+          const isCompleted =
+            status === 'completed' ||
+            (step.id === 1 && screeningComplete) ||
+            (step.id === 2 && assessmentComplete)
           const isCurrent = status === 'current'
           const isPending = status === 'pending' && !isCompleted
 
@@ -50,7 +53,9 @@ export default function AssessmentProgressIndicator({
               {/* Step */}
               <div className={cn('flex items-center gap-2', isPending && 'opacity-40')}>
                 {isCompleted ? (
-                  <span className="material-symbols-outlined text-primary text-lg">check_circle</span>
+                  <span className="material-symbols-outlined text-primary text-lg">
+                    check_circle
+                  </span>
                 ) : isCurrent ? (
                   <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary text-white text-[10px] font-bold">
                     {step.id}
@@ -82,4 +87,3 @@ export default function AssessmentProgressIndicator({
     </div>
   )
 }
-

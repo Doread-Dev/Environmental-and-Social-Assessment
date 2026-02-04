@@ -41,7 +41,6 @@ export default function SempOverviewPage() {
   return (
     <div className="flex-1 overflow-y-auto bg-background dark:bg-background-dark p-6 md:p-10 lg:p-12">
       <div className="max-w-[1200px] mx-auto flex flex-col gap-8 pb-20">
-        
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4 border-b border-border-default dark:border-border-dark pb-6">
           <div className="flex flex-col gap-2">
@@ -56,34 +55,41 @@ export default function SempOverviewPage() {
 
         {/* Lock Warning */}
         {isLocked && (
-            <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800 rounded-xl p-6 flex flex-col sm:flex-row items-center gap-4 mb-2">
-                <div className="size-12 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center shrink-0 text-orange-600 dark:text-orange-400">
-                    <span className="material-symbols-outlined text-2xl">lock</span>
-                </div>
-                <div>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Tools Locked</h3>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">
-                        You must complete and get approval for the <strong>Environmental Assessment (Tool 2)</strong> before starting the management plans.
-                    </p>
-                </div>
-                <button
-                    onClick={() => navigate(`/app/projects/${projectId}/assessment`)}
-                    className="sm:ml-auto px-4 py-2 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700 transition-colors whitespace-nowrap"
-                >
-                    Go to Assessment
-                </button>
+          <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800 rounded-xl p-6 flex flex-col sm:flex-row items-center gap-4 mb-2">
+            <div className="size-12 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center shrink-0 text-orange-600 dark:text-orange-400">
+              <span className="material-symbols-outlined text-2xl">lock</span>
             </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Tools Locked</h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                You must complete and get approval for the{' '}
+                <strong>Environmental Assessment (Tool 2)</strong> before starting the management
+                plans.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate(`/app/projects/${projectId}/assessment`)}
+              className="sm:ml-auto px-4 py-2 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700 transition-colors whitespace-nowrap"
+            >
+              Go to Assessment
+            </button>
+          </div>
         )}
 
         {/* Management Tools Section */}
-        <section className={isLocked ? "flex flex-col gap-4 opacity-50 pointer-events-none grayscale" : "flex flex-col gap-4"}>
+        <section
+          className={
+            isLocked
+              ? 'flex flex-col gap-4 opacity-50 pointer-events-none grayscale'
+              : 'flex flex-col gap-4'
+          }
+        >
           <h2 className="text-lg font-bold text-text-main dark:text-white flex items-center gap-2">
             <span className="material-symbols-outlined text-primary">handyman</span>
             Management Tools
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
             {/* Tool 3 Card */}
             <SempToolCard
               toolNumber={3}
@@ -103,21 +109,17 @@ export default function SempOverviewPage() {
               onAction={() => handleNavigate('mitigation')}
               pulse={!isLocked && tool4Status === 'not_started' && tool3Status !== 'not_started'}
             />
-
           </div>
         </section>
-                     {/* CTA Banner Area */}
-{!isLocked && (
-
-        <div className="mt-auto pt-6">
-          <SempCTABanner
-            title="Develop the Social and Environmental Management Plan (SEMP)"
-            description="Outline management activities and mitigation measures based on assessment findings. High-risk impacts require immediate action planning and prioritization."
-          />
-        </div>
+        {/* CTA Banner Area */}
+        {!isLocked && (
+          <div className="mt-auto pt-6">
+            <SempCTABanner
+              title="Develop the Social and Environmental Management Plan (SEMP)"
+              description="Outline management activities and mitigation measures based on assessment findings. High-risk impacts require immediate action planning and prioritization."
+            />
+          </div>
         )}
-       
-
       </div>
     </div>
   )

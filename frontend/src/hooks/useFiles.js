@@ -4,12 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import {
-  mockAttachments,
-  getAttachmentsByEntity,
-  getAllProjectAttachments,
-  groupAttachmentsByType,
-} from '@/data'
+import { getAllProjectAttachments, groupAttachmentsByType } from '@/data'
 
 /**
  * Hook لإدارة الملفات والمرفقات
@@ -128,7 +123,8 @@ export function useFiles(projectId) {
   const downloadFile = useCallback(async (attachment) => {
     try {
       // محاكاة تحميل الملف
-      console.log('Downloading file:', attachment.file_name)
+      // eslint-disable-next-line no-console
+      console.info('Downloading file:', attachment.file_name)
 
       // في الإنتاج: window.open(attachment.file_path, '_blank')
       alert(`Downloading: ${attachment.file_name}\nPath: ${attachment.file_path}`)

@@ -12,7 +12,7 @@ import { cn } from '@/utils/cn'
 export default function MitigationPlanPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
-  
+
   const {
     mitigationPlans,
     isLoading,
@@ -20,7 +20,7 @@ export default function MitigationPlanPage() {
     addMitigationPlan,
     updateMitigationPlan,
     deleteMitigationPlan,
-    saveMitigationPlans
+    saveMitigationPlans,
   } = useSemp(projectId)
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
@@ -30,10 +30,10 @@ export default function MitigationPlanPage() {
   // Auto-create first row if empty on load
   useEffect(() => {
     if (!isLoading && mitigationPlans.length === 0 && !hasInitialized.current) {
-        addMitigationPlan()
-        hasInitialized.current = true
+      addMitigationPlan()
+      hasInitialized.current = true
     } else if (!isLoading && mitigationPlans.length > 0) {
-        hasInitialized.current = true
+      hasInitialized.current = true
     }
   }, [isLoading, mitigationPlans, addMitigationPlan])
 
@@ -91,7 +91,9 @@ export default function MitigationPlanPage() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4">
           <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading mitigation plans...</p>
+          <p className="text-text-secondary dark:text-gray-400 text-sm">
+            Loading mitigation plans...
+          </p>
         </div>
       </div>
     )
@@ -99,7 +101,6 @@ export default function MitigationPlanPage() {
 
   return (
     <div className="flex-1 flex flex-col w-full h-full overflow-hidden bg-background dark:bg-background-dark">
-      
       {/* Header Section from Static HTML */}
       <div className="shrink-0 flex flex-wrap justify-between items-end gap-3 px-6 md:px-10 py-6 border-b border-border-default dark:border-border-dark bg-background dark:bg-background-dark">
         <div className="flex min-w-72 flex-col gap-2">
@@ -114,24 +115,26 @@ export default function MitigationPlanPage() {
             Mitigation, monitoring, and responsibilities tracking.
           </p>
         </div>
-        
+
         <div className="gap-2 flex items-center justify-center">
-          <button 
+          <button
             onClick={handleBack}
             className="flex items-center justify-center gap-2 rounded-lg h-10 px-4 bg-white dark:bg-surface-dark border border-border-default dark:border-border-dark hover:bg-gray-50/50 dark:hover:bg-white/3 text-text-main dark:text-white text-sm font-bold transition-all shadow-sm"
           >
             <span className="material-symbols-outlined text-lg">arrow_back</span>
             <span>Back</span>
           </button>
-          
-          <button 
+
+          <button
             onClick={handleSave}
             disabled={isSaving || (justSaved && !hasUnsavedChanges)}
             className={cn(
-              "flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-5 gap-2 text-sm font-bold leading-normal tracking-[0.015em] shadow-md transition-all transform",
-              isSaving ? "bg-primary/70 cursor-wait" : 
-              justSaved && !hasUnsavedChanges ? "bg-green-600 hover:bg-green-700 text-white border border-transparent" :
-              "bg-primary hover:bg-green-500 text-primary-content"
+              'flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-5 gap-2 text-sm font-bold leading-normal tracking-[0.015em] shadow-md transition-all transform',
+              isSaving
+                ? 'bg-primary/70 cursor-wait'
+                : justSaved && !hasUnsavedChanges
+                  ? 'bg-green-600 hover:bg-green-700 text-white border border-transparent'
+                  : 'bg-primary hover:bg-green-500 text-primary-content'
             )}
           >
             {saveBtn.spinner ? (
@@ -153,7 +156,6 @@ export default function MitigationPlanPage() {
           onAddRow={handleAddRow}
         />
       </div>
-
     </div>
   )
 }

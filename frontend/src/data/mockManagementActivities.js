@@ -16,7 +16,7 @@ export const mockManagementActivities = [
     responsible: '507f1f77bcf86cd799439001', // Sarah Jenkins
     notes: 'Pending permit',
     createdAt: '2024-01-25T10:00:00.000Z',
-    updatedAt: '2024-01-25T10:00:00.000Z'
+    updatedAt: '2024-01-25T10:00:00.000Z',
   },
   {
     _id: 'ma_002',
@@ -29,7 +29,7 @@ export const mockManagementActivities = [
     responsible: '507f1f77bcf86cd799439003', // Maria Santos
     notes: '',
     createdAt: '2024-01-26T10:00:00.000Z',
-    updatedAt: '2024-01-26T10:00:00.000Z'
+    updatedAt: '2024-01-26T10:00:00.000Z',
   },
   // Project: Reforestation Initiative (507f1f77bcf86cd799439013)
   {
@@ -38,12 +38,13 @@ export const mockManagementActivities = [
     serial_number: 1,
     activity_description: 'Site preparation and vegetation clearing',
     potential_impact: 'Temporary habitat disruption (High)',
-    recommended_actions: '1. Mark boundaries clearly\n2. Schedule clearing during dry season\n3. Preserve mature trees where possible',
+    recommended_actions:
+      '1. Mark boundaries clearly\n2. Schedule clearing during dry season\n3. Preserve mature trees where possible',
     monitoring_requirements: 'Daily supervision by environmental officer',
     responsible: '507f1f77bcf86cd799439001',
     notes: 'Phase 1 area only',
     createdAt: '2023-02-01T10:00:00.000Z',
-    updatedAt: '2023-02-01T10:00:00.000Z'
+    updatedAt: '2023-02-01T10:00:00.000Z',
   },
   {
     _id: 'ma_004',
@@ -56,7 +57,7 @@ export const mockManagementActivities = [
     responsible: '507f1f77bcf86cd799439002',
     notes: '',
     createdAt: '2023-02-05T10:00:00.000Z',
-    updatedAt: '2023-02-05T10:00:00.000Z'
+    updatedAt: '2023-02-05T10:00:00.000Z',
   },
   {
     _id: 'ma_005',
@@ -64,13 +65,14 @@ export const mockManagementActivities = [
     serial_number: 3,
     activity_description: 'Fire break establishment',
     potential_impact: 'Vegetation removal (Low)',
-    recommended_actions: 'Maintain minimum width standards. Re-vegetate with fire-resistant species.',
+    recommended_actions:
+      'Maintain minimum width standards. Re-vegetate with fire-resistant species.',
     monitoring_requirements: 'Quarterly inspection of fire break condition',
     responsible: '507f1f77bcf86cd799439001',
     notes: 'Critical for dry season',
     createdAt: '2023-02-10T10:00:00.000Z',
-    updatedAt: '2023-02-10T10:00:00.000Z'
-  }
+    updatedAt: '2023-02-10T10:00:00.000Z',
+  },
 ]
 
 /**
@@ -80,7 +82,7 @@ export const mockManagementActivities = [
  */
 export function getManagementActivitiesByProjectId(projectId) {
   return mockManagementActivities
-    .filter(a => a.project === projectId)
+    .filter((a) => a.project === projectId)
     .sort((a, b) => a.serial_number - b.serial_number)
 }
 
@@ -92,7 +94,7 @@ export function getManagementActivitiesByProjectId(projectId) {
 export function getNextSerialNumber(projectId) {
   const activities = getManagementActivitiesByProjectId(projectId)
   if (activities.length === 0) return 1
-  return Math.max(...activities.map(a => a.serial_number)) + 1
+  return Math.max(...activities.map((a) => a.serial_number)) + 1
 }
 
 /**
@@ -111,6 +113,6 @@ export function createEmptyManagementActivity(projectId) {
     monitoring_requirements: '',
     responsible: null,
     notes: '',
-    isNew: true // علامة للصفوف الجديدة
+    isNew: true, // علامة للصفوف الجديدة
   }
 }

@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback } from 'react'
 import { cn } from '@/utils/cn'
-import Button from './Button'
 
 /**
  * File Upload component with drag and drop

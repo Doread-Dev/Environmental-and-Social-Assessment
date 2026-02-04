@@ -12,7 +12,7 @@ export default function EditableCell({
   placeholder = '',
   readOnly = false,
   multiline = false,
-  className = ''
+  className = '',
 }) {
   const cellRef = useRef(null)
 
@@ -44,7 +44,7 @@ export default function EditableCell({
       onKeyDown={handleKeyDown}
       suppressContentEditableWarning
       data-placeholder={placeholder}
-      dir="ltr" 
+      dir="ltr"
       className={cn(
         'excel-cell',
         'w-full h-full min-h-[40px] flex items-center justify-start text-left',

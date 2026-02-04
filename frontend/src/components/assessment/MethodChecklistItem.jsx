@@ -21,7 +21,7 @@ export default function MethodChecklistItem({
   details = '',
   onCheckedChange,
   onDetailsChange,
-  readOnly = false
+  readOnly = false,
 }) {
   const InputComponent = method.inputType === 'textarea' ? Textarea : Input
 
@@ -43,12 +43,7 @@ export default function MethodChecklistItem({
           )}
         </div>
       </label>
-      <div
-        className={cn(
-          'input-container pl-9 pr-2 transition-all',
-          checked ? 'block' : 'hidden'
-        )}
-      >
+      <div className={cn('input-container pl-9 pr-2 transition-all', checked ? 'block' : 'hidden')}>
         <label className="block text-xs font-semibold text-text-secondary uppercase mb-1">
           {method.inputType === 'textarea'
             ? `Details of ${method.label.toLowerCase()}`

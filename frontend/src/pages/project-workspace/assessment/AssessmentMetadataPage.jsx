@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment, useScreening, useProjectContext } from '@/hooks'
 import { MetadataInfoSection, MetadataFormSection } from '@/components/assessment'
-import { Button, LoadingSpinner, StickyFooter } from '@/components/ui'
+import { LoadingSpinner, StickyFooter } from '@/components/ui'
 import { currentUser } from '@/data'
 
 /**
@@ -54,7 +54,7 @@ export default function AssessmentMetadataPage() {
     project_activity: assessment?.project_activity || '',
     description: assessment?.description || '',
     environmental_setting: assessment?.environmental_setting || '',
-    legal_requirements: assessment?.legal_requirements || ''
+    legal_requirements: assessment?.legal_requirements || '',
   })
 
   const [errors, setErrors] = useState({})
@@ -66,7 +66,7 @@ export default function AssessmentMetadataPage() {
         project_activity: assessment.project_activity || '',
         description: assessment.description || '',
         environmental_setting: assessment.environmental_setting || '',
-        legal_requirements: assessment.legal_requirements || ''
+        legal_requirements: assessment.legal_requirements || '',
       })
     }
   }, [assessment, isLoading])
@@ -156,7 +156,9 @@ export default function AssessmentMetadataPage() {
         </button>
         <button
           onClick={handleSave}
-          disabled={isSaving || assessment?.status === 'approved' || assessment?.status === 'submitted'}
+          disabled={
+            isSaving || assessment?.status === 'approved' || assessment?.status === 'submitted'
+          }
           className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-medium shadow-md transition-colors transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSaving ? (

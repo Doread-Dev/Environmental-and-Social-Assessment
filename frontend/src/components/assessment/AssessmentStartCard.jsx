@@ -27,7 +27,7 @@ export default function AssessmentStartCard({
       description:
         'Each project requires one comprehensive environmental assessment to evaluate potential impacts. This tool will guide you through identifying risks before management planning can begin.',
       buttonText: 'Start Environmental Assessment',
-      buttonAction: onStart
+      buttonAction: onStart,
     },
     in_progress: {
       badge: 'In Progress',
@@ -36,7 +36,7 @@ export default function AssessmentStartCard({
       description:
         'Your environmental assessment is in progress. Continue where you left off to complete the evaluation.',
       buttonText: 'Continue Assessment',
-      buttonAction: onContinue
+      buttonAction: onContinue,
     },
     completed: {
       badge: 'Completed',
@@ -45,8 +45,8 @@ export default function AssessmentStartCard({
       description:
         'Your environmental assessment has been completed and approved. You can review the results or proceed to SEMP planning.',
       buttonText: 'Review Assessment',
-      buttonAction: onContinue
-    }
+      buttonAction: onContinue,
+    },
   }
 
   const config = statusConfig[status] || statusConfig.not_started
@@ -72,15 +72,11 @@ export default function AssessmentStartCard({
             >
               {config.badge}
             </span>
-            <h2 className="text-2xl font-bold text-text-main dark:text-white">
-              {config.title}
-            </h2>
+            <h2 className="text-2xl font-bold text-text-main dark:text-white">{config.title}</h2>
             <p className="text-text-secondary leading-relaxed max-w-xl">{config.description}</p>
           </div>
           <div className="hidden sm:flex bg-gray-50/50 dark:bg-white/5 p-3 rounded-full shrink-0">
-            <span className="material-symbols-outlined text-gray-400 text-4xl">
-              assignment_add
-            </span>
+            <span className="material-symbols-outlined text-gray-400 text-4xl">assignment_add</span>
           </div>
         </div>
 

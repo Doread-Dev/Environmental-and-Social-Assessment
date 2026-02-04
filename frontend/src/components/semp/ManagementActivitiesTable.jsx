@@ -4,7 +4,6 @@
  */
 
 import { useState, useRef } from 'react'
-import { cn } from '@/utils/cn'
 import EditableCell from './EditableCell'
 import ResponsibleSelect from './ResponsibleSelect'
 import { mockUsers } from '@/data'
@@ -15,7 +14,7 @@ export default function ManagementActivitiesTable({
   onDelete,
   onAddRow,
   users = mockUsers,
-  readOnly = false
+  readOnly = false,
 }) {
   const [hoveredRowId, setHoveredRowId] = useState(null)
   const [hoveredRowRect, setHoveredRowRect] = useState(null)
@@ -25,11 +24,11 @@ export default function ManagementActivitiesTable({
     if (readOnly) return
     const rect = e.currentTarget.getBoundingClientRect()
     const containerRect = tableContainerRef.current.getBoundingClientRect()
-    
+
     // Calculate relative position
     setHoveredRowRect({
       top: rect.top - containerRect.top,
-      height: rect.height
+      height: rect.height,
     })
     setHoveredRowId(rowId)
   }
@@ -39,19 +38,18 @@ export default function ManagementActivitiesTable({
   }
 
   return (
-    <div 
+    <div
       className="relative flex-1 flex flex-col w-full h-full pr-12" // Added padding-right to make space for the button
       ref={tableContainerRef}
       onMouseLeave={handleMouseLeaveContainer}
     >
-      
       {/* Floating Delete Button */}
       {hoveredRowId && hoveredRowRect && !readOnly && (
         <button
           onClick={() => onDelete(hoveredRowId)}
           className="absolute z-50 right-2 flex items-center justify-center size-8 rounded-full bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-700 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 shadow-sm border border-red-200 dark:border-red-800 transition-all active:scale-95"
           style={{
-            top: hoveredRowRect.top + (hoveredRowRect.height / 2) - 16 // Center vertically
+            top: hoveredRowRect.top + hoveredRowRect.height / 2 - 16, // Center vertically
           }}
           title="Delete Row"
         >
@@ -59,25 +57,38 @@ export default function ManagementActivitiesTable({
         </button>
       )}
 
-      <div className="border border-border-default dark:border-border-dark rounded-lg bg-white dark:bg-surface-dark shadow-sm flex flex-col overflow-hidden w-full h-full"> 
-        
+      <div className="border border-border-default dark:border-border-dark rounded-lg bg-white dark:bg-surface-dark shadow-sm flex flex-col overflow-hidden w-full h-full">
         {/* Scrollable Table Area */}
         <div className="flex-1 overflow-auto excel-scroll w-full">
           <table className="w-full border-collapse table-fixed min-w-[1200px]">
-            <thead className="sticky top-0 z-30 shadow-sm bg-gray-100 dark:bg-[#15231a]">
+            <thead className="sticky top-0 z-30 shadow-sm bg-gray-50/50 dark:bg-[#15231a]">
               <tr className="border-b border-border-default dark:border-border-dark">
-                <th className="w-12 px-2 py-3 text-xs font-bold text-text-secondary dark:text-gray-300 uppercase tracking-wider text-center border-r border-border-default dark:border-border-dark relative group">#</th>
-                <th className="w-[30%] px-3 py-3 text-xs font-bold text-text-secondary dark:text-gray-300 uppercase tracking-wider text-center border-r border-border-default dark:border-border-dark relative group">Activity Description</th>
-                <th className="w-[20%] px-3 py-3 text-xs font-bold text-text-secondary dark:text-gray-300 uppercase tracking-wider text-center border-r border-border-default dark:border-border-dark relative group">Potential Impact / Risk</th>
-                <th className="w-[20%] px-3 py-3 text-xs font-bold text-text-secondary dark:text-gray-300 uppercase tracking-wider text-center border-r border-border-default dark:border-border-dark relative group">Recommended Action Items</th>
-                <th className="w-[15%] px-3 py-3 text-xs font-bold text-text-secondary dark:text-gray-300 uppercase tracking-wider text-center border-r border-border-default dark:border-border-dark relative group">Monitoring Requirements</th>
-                <th className="w-[150px] px-3 py-3 text-xs font-bold text-text-secondary dark:text-gray-300 uppercase tracking-wider text-center border-r border-border-default dark:border-border-dark relative group">Responsibility</th>
-                <th className="w-[150px] px-3 py-3 text-xs font-bold text-text-secondary dark:text-gray-300 uppercase tracking-wider text-center border-r border-border-default dark:border-border-dark relative group">Notes</th>
+                <th className="w-12 px-2 py-3 text-xs font-bold text-text-secondary dark:text-gray-300 uppercase tracking-wider text-center border-r border-border-default dark:border-border-dark relative group">
+                  #
+                </th>
+                <th className="w-[30%] px-3 py-3 text-xs font-bold text-text-secondary dark:text-gray-300 uppercase tracking-wider text-center border-r border-border-default dark:border-border-dark relative group">
+                  Activity Description
+                </th>
+                <th className="w-[20%] px-3 py-3 text-xs font-bold text-text-secondary dark:text-gray-300 uppercase tracking-wider text-center border-r border-border-default dark:border-border-dark relative group">
+                  Potential Impact / Risk
+                </th>
+                <th className="w-[20%] px-3 py-3 text-xs font-bold text-text-secondary dark:text-gray-300 uppercase tracking-wider text-center border-r border-border-default dark:border-border-dark relative group">
+                  Recommended Action Items
+                </th>
+                <th className="w-[15%] px-3 py-3 text-xs font-bold text-text-secondary dark:text-gray-300 uppercase tracking-wider text-center border-r border-border-default dark:border-border-dark relative group">
+                  Monitoring Requirements
+                </th>
+                <th className="w-[150px] px-3 py-3 text-xs font-bold text-text-secondary dark:text-gray-300 uppercase tracking-wider text-center border-r border-border-default dark:border-border-dark relative group">
+                  Responsibility
+                </th>
+                <th className="w-[150px] px-3 py-3 text-xs font-bold text-text-secondary dark:text-gray-300 uppercase tracking-wider text-center border-r border-border-default dark:border-border-dark relative group">
+                  Notes
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border-default dark:divide-border-dark bg-white dark:bg-surface-dark">
               {activities.map((activity, index) => (
-                <tr 
+                <tr
                   key={activity._id}
                   className="group transition-colors hover:bg-gray-50/30 dark:hover:bg-white/5"
                   onMouseEnter={(e) => handleMouseEnterRow(e, activity._id)}

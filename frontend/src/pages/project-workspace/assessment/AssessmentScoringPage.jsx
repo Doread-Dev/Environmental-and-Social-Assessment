@@ -11,7 +11,7 @@ import {
   ImpactCategoryAccordion,
   TotalScoreCard,
   TotalImpactCard,
-  ImpactSummarySection
+  ImpactSummarySection,
 } from '@/components/assessment'
 import { Button, LoadingSpinner, StickyFooter, Modal } from '@/components/ui'
 import { impactCategories } from '@/data/impactQuestions'
@@ -19,17 +19,23 @@ import { impactCategories } from '@/data/impactQuestions'
 export default function AssessmentScoringPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
-  const { assessment, impactScores, isLoading, isSaving, saveImpactScores, saveImpactScoresDraft, submitAssessment } = useAssessment(projectId)
-
-
+  const {
+    assessment,
+    impactScores,
+    isLoading,
+    isSaving,
+    saveImpactScores,
+    saveImpactScoresDraft,
+    submitAssessment,
+  } = useAssessment(projectId)
 
   const [scores, setScores] = useState(() => {
     const scoreMap = {}
     if (impactScores && impactScores.length > 0) {
-      impactScores.forEach(score => {
+      impactScores.forEach((score) => {
         scoreMap[score.question] = {
           level: score.level,
-          note: score.note || ''
+          note: score.note || '',
         }
       })
     }
@@ -45,25 +51,25 @@ export default function AssessmentScoringPage() {
     if (assessment && !isLoading) {
       setNegativeImpact(assessment.potential_negative_impact || '')
       setPositiveImpact(assessment.potential_positive_impact || '')
-      
+
       // Update scores from impactScores
       if (impactScores && impactScores.length > 0) {
         const scoreMap = {}
-        impactScores.forEach(score => {
+        impactScores.forEach((score) => {
           scoreMap[score.question] = {
             level: score.level,
-            note: score.note || ''
+            note: score.note || '',
           }
         })
         setScores(scoreMap)
       } else {
         // Auto-fill all questions with N/A for new assessment
-        const allQuestions = impactCategories.flatMap(cat => cat.questions.map(q => q.id))
+        const allQuestions = impactCategories.flatMap((cat) => cat.questions.map((q) => q.id))
         const defaultScores = {}
-        allQuestions.forEach(questionId => {
+        allQuestions.forEach((questionId) => {
           defaultScores[questionId] = {
             level: 'not_applicable',
-            note: ''
+            note: '',
           }
         })
         setScores(defaultScores)
@@ -72,26 +78,28 @@ export default function AssessmentScoringPage() {
   }, [assessment, impactScores, isLoading])
 
   const handleScoreChange = (questionId, level) => {
-    setScores(prev => ({
+    setScores((prev) => ({
       ...prev,
-      [questionId]: { ...prev[questionId], level, note: prev[questionId]?.note || '' }
+      [questionId]: { ...prev[questionId], level, note: prev[questionId]?.note || '' },
     }))
   }
 
   const handleNoteChange = (questionId, note) => {
-    setScores(prev => ({
+    setScores((prev) => ({
       ...prev,
-      [questionId]: { ...prev[questionId], note, level: prev[questionId]?.level || '' }
+      [questionId]: { ...prev[questionId], note, level: prev[questionId]?.level || '' },
     }))
   }
 
   // Convert scores to array format
   const scoresArray = useMemo(() => {
-    return Object.entries(scores).map(([question, data]) => ({
-      question,
-      level: data.level,
-      note: data.note
-    })).filter(s => s.level) // Only include scores with a level
+    return Object.entries(scores)
+      .map(([question, data]) => ({
+        question,
+        level: data.level,
+        note: data.note,
+      }))
+      .filter((s) => s.level) // Only include scores with a level
   }, [scores])
 
   // Calculate total score using utility function
@@ -105,10 +113,8 @@ export default function AssessmentScoringPage() {
 
   // Get all question IDs from impact categories
   const allQuestionIds = useMemo(() => {
-    return impactCategories.flatMap(cat => cat.questions.map(q => q.id))
+    return impactCategories.flatMap((cat) => cat.questions.map((q) => q.id))
   }, [])
-
-
 
   const handleSaveDraft = async () => {
     const result = await saveImpactScoresDraft(scoresArray, negativeImpact, positiveImpact)
@@ -125,13 +131,13 @@ export default function AssessmentScoringPage() {
     } else if (negativeImpact.trim().length < 20) {
       validationErrors.negativeImpact = 'Please provide at least 20 characters'
     }
-    
+
     if (!positiveImpact?.trim()) {
       validationErrors.positiveImpact = 'Potential positive impact is required'
     } else if (positiveImpact.trim().length < 20) {
       validationErrors.positiveImpact = 'Please provide at least 20 characters'
     }
-    
+
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
       return
@@ -142,8 +148,8 @@ export default function AssessmentScoringPage() {
 
   const handleConfirmSubmit = async () => {
     // Auto-fill unanswered questions with 'not_applicable'
-    const finalScores = allQuestionIds.map(questionId => {
-      const existingScore = scoresArray.find(s => s.question === questionId)
+    const finalScores = allQuestionIds.map((questionId) => {
+      const existingScore = scoresArray.find((s) => s.question === questionId)
       if (existingScore && existingScore.level) {
         return existingScore
       }
@@ -151,7 +157,7 @@ export default function AssessmentScoringPage() {
       return {
         question: questionId,
         level: 'not_applicable',
-        note: ''
+        note: '',
       }
     })
 
@@ -224,11 +230,11 @@ export default function AssessmentScoringPage() {
           positiveImpact={positiveImpact}
           onNegativeChange={(val) => {
             setNegativeImpact(val)
-            if (errors.negativeImpact) setErrors(prev => ({ ...prev, negativeImpact: null }))
+            if (errors.negativeImpact) setErrors((prev) => ({ ...prev, negativeImpact: null }))
           }}
           onPositiveChange={(val) => {
             setPositiveImpact(val)
-            if (errors.positiveImpact) setErrors(prev => ({ ...prev, positiveImpact: null }))
+            if (errors.positiveImpact) setErrors((prev) => ({ ...prev, positiveImpact: null }))
           }}
           readOnly={readOnly}
           errors={errors}
@@ -291,22 +297,12 @@ export default function AssessmentScoringPage() {
         title="Confirm Submission"
         description="Are you sure you want to submit the assessment?"
         sub_description="*Editing will not be possible after submission unless the screening is rejected by an administrator."
-
-
       >
         <Modal.Footer>
-          <Button
-            variant="outline"
-            onClick={() => setShowSubmitModal(false)}
-            disabled={isSaving}
-          >
+          <Button variant="outline" onClick={() => setShowSubmitModal(false)} disabled={isSaving}>
             Cancel
           </Button>
-          <Button
-            onClick={handleConfirmSubmit}
-            isLoading={isSaving}
-            disabled={isSaving}
-          >
+          <Button onClick={handleConfirmSubmit} isLoading={isSaving} disabled={isSaving}>
             Confirm Submit
           </Button>
         </Modal.Footer>

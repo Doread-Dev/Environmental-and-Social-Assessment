@@ -45,9 +45,7 @@ function IndicatorDataRow({
         <div className="flex flex-col gap-1">
           <p className="font-medium">{indicator.name}</p>
           {indicator.definition && (
-            <p className="text-xs text-text-secondary dark:text-gray-400">
-              {indicator.definition}
-            </p>
+            <p className="text-xs text-text-secondary dark:text-gray-400">{indicator.definition}</p>
           )}
         </div>
       </td>

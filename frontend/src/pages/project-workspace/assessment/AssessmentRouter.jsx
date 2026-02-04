@@ -5,19 +5,18 @@
 
 import { useParams } from 'react-router-dom'
 import { useAssessment, useScreening } from '@/hooks'
-import { LoadingSpinner } from '@/components/ui'
 import AssessmentGatewayPage from './AssessmentGatewayPage'
 import AssessmentReviewPage from './AssessmentReviewPage'
 
 /**
  * Assessment Workflow Flow:
- * 
+ *
  * 1. /assessment → AssessmentRouter يفحص الحالة:
  *    - screening.status !== 'approved' → يعرض رسالة "Complete Screening First"
  *    - لا يوجد assessment → AssessmentGatewayPage
  *    - status = 'draft' → AssessmentGatewayPage (يعرض Continue button)
  *    - status = 'submitted' أو 'rejected' أو 'approved' → AssessmentReviewPage
- * 
+ *
  * 2. /assessment/metadata → AssessmentMetadataPage
  * 3. /assessment/methods → AssessmentMethodsPage
  * 4. /assessment/scoring → AssessmentScoringPage

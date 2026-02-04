@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Input, Button, Table, Pagination, Icon, Dropdown } from '@/components/ui'
+import { Input, Button, Table, Pagination, Icon, Dropdown, Select } from '@/components/ui'
 import {
   WorkflowProgressBar,
   ScreeningCategoryBadge,
@@ -23,7 +23,7 @@ function ProjectListPage() {
   const [riskFilter, setRiskFilter] = useState('all')
   const [sortBy, setSortBy] = useState('updatedAt')
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage] = useState(10)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   // Filter and sort projects
   const filteredAndSortedProjects = useMemo(() => {
@@ -115,6 +115,14 @@ function ProjectListPage() {
     { value: 'updatedAt', label: 'Last Updated' },
     { value: 'title', label: 'Title' },
     { value: 'startDate', label: 'Start Date' },
+  ]
+
+  const itemsPerPageOptions = [
+    { value: '5', label: '5 per page' },
+    { value: '10', label: '10 per page' },
+    { value: '20', label: '20 per page' },
+    { value: '30', label: '30 per page' },
+    { value: '50', label: '50 per page' },
   ]
 
   return (
@@ -314,18 +322,33 @@ function ProjectListPage() {
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-text-secondary">
-            Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-            {Math.min(currentPage * itemsPerPage, filteredAndSortedProjects.length)} of{' '}
-            {filteredAndSortedProjects.length} results
-          </p>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
+      {(totalPages > 1 || filteredAndSortedProjects.length > 0) && (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <p className="text-sm text-text-secondary">
+              Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
+              {Math.min(currentPage * itemsPerPage, filteredAndSortedProjects.length)} of{' '}
+              {filteredAndSortedProjects.length} results
+            </p>
+            <Select
+              value={String(itemsPerPage)}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value))
+                setCurrentPage(1)
+              }}
+              options={itemsPerPageOptions}
+              size="sm"
+              className="w-[160px]"
+              selectClassName="h-9 text-sm pl-3 pr-8"
+            />
+          </div>
+          {totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          )}
         </div>
       )}
     </div>

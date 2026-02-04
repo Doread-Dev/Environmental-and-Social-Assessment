@@ -74,3 +74,23 @@ export {
   getNextMitigationSerialNumber,
   createEmptyMitigationPlan
 } from './mockMitigationPlans'
+
+// Monitoring Data (Tool 5)
+export {
+  monitoringIndicators,
+  getMonitoringIndicatorsByCategory,
+  mockMonitoringRecords,
+  getMonitoringRecordsByProjectId,
+  createEmptyMonitoringRecord
+} from './mockMonitoringRecords'
+
+// Files & Annex
+export {
+  mockAttachments,
+  getAttachmentsByEntity,
+  getAllProjectAttachments,
+  groupAttachmentsByType,
+  formatFileSize
+} from './mockAttachments'
+
+export { mockAnnexItems, getAnnexItemById } from './mockAnnexItems'

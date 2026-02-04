@@ -126,7 +126,7 @@ src/
 │   ├── mockAssessment.js                     ← جديد (بيانات التقييم الوهمية)
 │   ├── assessmentMethods.js                  ← جديد (طرق التقييم)
 │   ├── impactQuestions.js                    ← جديد (50 سؤال - من seed.js)
-│   ├── impactIndicators.js                   ← جديد (24 مؤشر - للـ SEMP)
+│   ├── impactIndicators.js                   ← جديد (24 مؤشر - لل Phase 8)
 │   └── jobTitles.js                          ← جديد (المسميات الوظيفية - من seed.js)
 │
 └── hooks/
@@ -965,7 +965,7 @@ export function createEmptyAssessment(projectId, officerId) {
 }
 ```
 
-### 6.1.4 إنشاء ملف `src/data/impactIndicators.js` (للاستخدام في Phase 7 - SEMP)
+### 6.1.4 إنشاء ملف `src/data/impactIndicators.js` (للاستخدام في Phase 8)
 
 **الوصف:** مؤشرات المراقبة السنوية - **متوافقة مع `seed.js`**
 
@@ -974,7 +974,7 @@ export function createEmptyAssessment(projectId, officerId) {
  * Impact Indicators for Annual Monitoring
  * مؤشرات المراقبة السنوية للتأثير البيئي
  * ⚠️ هذه البيانات مطابقة لـ backend/src/db/seed.js
- * 🔹 سيتم استخدامها في Phase 7 (SEMP & Monitoring)
+ * 🔹 سيتم استخدامها في Phase 8
  */
 
 export const impactIndicators = [
@@ -2371,7 +2371,7 @@ export {
 ### ملفات البيانات (من seed.js)
 - [ ] `src/data/assessmentMethods.js`
 - [ ] `src/data/impactQuestions.js` (8 فئات، 50 سؤال)
-- [ ] `src/data/impactIndicators.js` (24 مؤشر - للـ SEMP)
+- [ ] `src/data/impactIndicators.js` (24 مؤشر - للـ phase 8)
 - [ ] `src/data/jobTitles.js` (5 مسميات وظيفية)
 - [ ] `src/data/mockAssessment.js`
 - [ ] `src/data/index.js` (تحديث)
@@ -2503,21 +2503,6 @@ total_project_score = {
 }
 // المجموع يجب أن يساوي 50
 
-// الخطوة 2: حساب التأثير الإجمالي
-// القاعدة: المستوى الذي له أعلى عدد هو التأثير الإجمالي
-// في حالة التعادل: الأولوية high > medium > low > negligible
-
-// مثال 1: { negligible: 18, low: 15, medium: 5, high: 0, not_applicable: 12 }
-// أعلى عدد = 18 (negligible) → total_project_impact = 'negligible'
-
-// مثال 2: { negligible: 10, low: 15, medium: 15, high: 5, not_applicable: 5 }
-// أعلى عدد = 15 (تعادل بين low و medium)
-// الأولوية: medium > low → total_project_impact = 'medium'
-
-// مثال 3: { negligible: 5, low: 10, medium: 10, high: 10, not_applicable: 15 }
-// أعلى عدد = 15 (not_applicable)... لكن! not_applicable لا يُؤخذ بالحسبان
-// من المستويات الأخرى: أعلى = 10 (تعادل بين low, medium, high)
-// الأولوية: high > medium > low → total_project_impact = 'high'
 ```
 
 **⚠️ ملاحظة مهمة:** `not_applicable` لا يُؤخذ بالحسبان إلا إذا كانت جميع المستويات الأخرى = 0

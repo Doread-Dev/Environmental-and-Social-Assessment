@@ -346,3 +346,80 @@ input[type="radio"]:checked {
   accent-color: var(--color-primary);
 }
 
+/* ==========================================
+   Monitoring Table Styles
+   ========================================== */
+
+/* Monitoring Data Table */
+.monitoring-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* Sticky Header */
+.monitoring-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--color-surface);
+  z-index: 20;
+}
+
+html.dark .monitoring-table thead th {
+  background: var(--color-surface-dark);
+}
+
+/* Ensure sticky first column stays above row hover */
+.monitoring-table thead th:first-child {
+  left: 0;
+  z-index: 30;
+}
+
+/* Row Hover Effect */
+.monitoring-table tbody tr:hover {
+  background-color: rgba(17, 212, 82, 0.03);
+}
+
+html.dark .monitoring-table tbody tr:hover {
+  background-color: rgba(17, 212, 82, 0.05);
+}
+
+/* Cell Borders */
+.monitoring-table td,
+.monitoring-table th {
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+html.dark .monitoring-table td,
+html.dark .monitoring-table th {
+  border-bottom-color: var(--color-border-dark);
+}
+
+/* Horizontal Scroll Support */
+.monitoring-table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Scrollbar for Monitoring Tables */
+.monitoring-table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.monitoring-table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+html.dark .monitoring-table-container::-webkit-scrollbar-track {
+  background: #1a2c20;
+}
+
+.monitoring-table-container::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 4px;
+}
+
+.monitoring-table-container::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary-hover);
+}

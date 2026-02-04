@@ -32,43 +32,15 @@ import {
   MitigationPlanPage
 } from '@/pages/project-workspace/semp'
 
-const MonitoringOverviewPage = () => (
-  <div>
-    <h1 className="text-3xl font-bold text-text-main dark:text-white mb-4">Monitoring Overview</h1>
-    <p className="text-text-secondary dark:text-gray-400">
-      Monitoring overview page placeholder - Phase 8
-    </p>
-  </div>
-)
+import {
+  MonitoringOverviewPage,
+  MonitoringDataEntryPage
+} from '@/pages/project-workspace/monitoring'
 
-const MonitoringDataEntryPage = () => (
-  <div>
-    <h1 className="text-3xl font-bold text-text-main dark:text-white mb-4">
-      Monitoring Data Entry
-    </h1>
-    <p className="text-text-secondary dark:text-gray-400">
-      Monitoring data entry page placeholder - Phase 8
-    </p>
-  </div>
-)
-
-const ProjectFilesPage = () => (
-  <div>
-    <h1 className="text-3xl font-bold text-text-main dark:text-white mb-4">Project Files</h1>
-    <p className="text-text-secondary dark:text-gray-400">
-      Project files page placeholder - Phase 8
-    </p>
-  </div>
-)
-
-const AnnexOverviewPage = () => (
-  <div>
-    <h1 className="text-3xl font-bold text-text-main dark:text-white mb-4">Annex & Attachments</h1>
-    <p className="text-text-secondary dark:text-gray-400">
-      Annex overview page placeholder - Phase 8
-    </p>
-  </div>
-)
+import {
+  ProjectFilesPage,
+  AnnexOverviewPage
+} from '@/pages/project-workspace/annex'
 
 // Not Found Page
 const NotFoundPage = () => (

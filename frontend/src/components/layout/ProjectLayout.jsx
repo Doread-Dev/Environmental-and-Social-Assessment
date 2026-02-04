@@ -27,7 +27,8 @@ function ProjectLayout() {
   const assessment = projectId && isAssessmentPage ? getAssessmentByProjectId(projectId) : null
   const showAssessmentExport = isAssessmentPage && (assessment?.status === 'submitted' || assessment?.status === 'approved' || assessment?.status === 'rejected')
   
-  const showExportButton = showScreeningExport || showAssessmentExport
+  const isMonitoringDataEntryPage = location.pathname.includes('/monitoring/data-entry')
+  const showExportButton = showScreeningExport || showAssessmentExport || isMonitoringDataEntryPage
   
   const handleExportClick = () => {
     if (isScreeningPage) {
@@ -36,6 +37,8 @@ function ProjectLayout() {
     } else if (isAssessmentPage) {
       // Trigger export event that AssessmentReviewPage listens to
       window.dispatchEvent(new CustomEvent('assessment-export'))
+    } else if (isMonitoringDataEntryPage) {
+      window.dispatchEvent(new CustomEvent('monitoring-export'))
     }
   }
 

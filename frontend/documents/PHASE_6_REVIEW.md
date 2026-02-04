@@ -750,7 +750,6 @@ import { ImpactCategoryAccordion } from '@/components/assessment'
 
 - ✅ البنية الأساسية جاهزة
 - ✅ Assessment approved = شرط لبدء SEMP
-- ✅ impactIndicators.js جاهز للاستخدام في SEMP
 - ✅ Routing system جاهز
 
 ---

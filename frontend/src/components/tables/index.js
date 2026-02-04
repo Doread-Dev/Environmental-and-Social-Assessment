@@ -1,2 +1,3 @@
 // Table Components Barrel Export
-// Add exports as components are created
+
+export { default as MonitoringDataTable } from './MonitoringDataTable'

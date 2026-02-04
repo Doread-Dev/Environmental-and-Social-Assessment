@@ -937,7 +937,6 @@ export { default as ScreeningSummaryPage } from './ScreeningSummaryPage'
 | Positive Impacts List | قائمة التأثيرات الإيجابية | [ ] |
 | Approval Section | قسم الموافقة | [ ] |
 | Export Button | زر تصدير Excel | [ ] |
-| Print Support | دعم الطباعة | [ ] |
 | Dark Mode | دعم الوضع المظلم | [ ] |
 | Responsive | تصميم متجاوب | [ ] |
 

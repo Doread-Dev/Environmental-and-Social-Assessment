@@ -556,7 +556,7 @@ export const router = createBrowserRouter([
 |-----------|-------------|
 | `ProjectCard` | Card displaying project info with status badge |
 | `ProjectProgressBar` | Visual progress through S/A/M/R stages |
-| `RiskCategoryBadge` | Risk category indicator (A, B, B+, C, D, E, F) |
+| `RiskCategoryBadge` | Risk category indicator (A, B, C, D, E, F) |
 | `WorkflowStepIndicator` | Shows current step in workflow |
 | `ProjectInfoPanel` | Sidebar panel with project details |
 
@@ -779,7 +779,6 @@ export default {
         // Risk Categories
         risk: {
           'a': { bg: '#fee2e2', text: '#b91c1c' },
-          'b-plus': { bg: '#ffedd5', text: '#c2410c' },
           'b': { bg: '#fef3c7', text: '#b45309' },
           'c': { bg: '#dcfce7', text: '#15803d' },
           'd': { bg: '#dbeafe', text: '#1d4ed8' },
@@ -797,7 +796,7 @@ export default {
         DEFAULT: '0.25rem',
         lg: '0.5rem',
         xl: '0.75rem',
-        '2xl': '1rem',
+        2xl: '1rem',
       },
       
       boxShadow: {

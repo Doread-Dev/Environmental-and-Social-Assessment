@@ -1,4 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom'
+import { useAuth } from '@/contexts'
 import { ROUTES } from './routes.config'
 
 /**
@@ -14,11 +15,19 @@ import { ROUTES } from './routes.config'
  */
 function ProtectedRoute({ children, allowedRoles }) {
   const location = useLocation()
+  const { isAuthenticated, isLoading, hasAnyRole } = useAuth()
 
-  // TODO: Replace with actual auth check
-  // const { isAuthenticated, user } = useAuth()
-  const isAuthenticated = true // Placeholder - always authenticated
-  const user = { role: 'admin' } // Placeholder user
+  // Show loading state while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background dark:bg-background-dark">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-text-secondary dark:text-gray-400 text-sm">Verifying authentication...</p>
+        </div>
+      </div>
+    )
+  }
 
   // Check if user is authenticated
   if (!isAuthenticated) {
@@ -28,7 +37,7 @@ function ProtectedRoute({ children, allowedRoles }) {
 
   // Check if user has required role (if roles are specified)
   if (allowedRoles && allowedRoles.length > 0) {
-    const hasRequiredRole = allowedRoles.includes(user?.role)
+    const hasRequiredRole = hasAnyRole(allowedRoles)
 
     if (!hasRequiredRole) {
       // Redirect to dashboard or unauthorized page

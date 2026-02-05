@@ -51,8 +51,12 @@ export default defineConfig({
           if (id.includes('node_modules/react-router')) {
             return 'router'
           }
-          // Utility libraries
-          if (id.includes('node_modules/clsx') || id.includes('node_modules/tailwind-merge')) {
+          // Utility libraries (including Axios for API calls)
+          if (
+            id.includes('node_modules/clsx') ||
+            id.includes('node_modules/tailwind-merge') ||
+            id.includes('node_modules/axios')
+          ) {
             return 'utils'
           }
           // UI Components - shared across all pages

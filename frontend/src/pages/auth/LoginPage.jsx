@@ -1,7 +1,9 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Button, Input, Alert, Icon } from '@/components/ui'
 import { validateEmail, validatePassword } from '@/utils/validators'
+import { useAuth } from '@/contexts'
+import { ROUTES } from '@/routes/routes.config'
 
 /**
  * LoginPage - صفحة تسجيل الدخول
@@ -9,14 +11,33 @@ import { validateEmail, validatePassword } from '@/utils/validators'
  */
 function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { login, isAuthenticated, isLoading: authLoading, error: authError, clearError } = useAuth()
+
+  // Get redirect path from location state or default to dashboard
+  const from = location.state?.from?.pathname || ROUTES.DASHBOARD
 
   // State
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState({})
-  const [isLoading, setIsLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [generalError, setGeneralError] = useState('')
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      navigate(from, { replace: true })
+    }
+  }, [isAuthenticated, authLoading, navigate, from])
+
+  // Sync auth error to local error state
+  useEffect(() => {
+    if (authError) {
+      setGeneralError(authError)
+    }
+  }, [authError])
 
   // Handlers
   const handleEmailChange = (e) => {
@@ -25,6 +46,7 @@ function LoginPage() {
       setErrors((prev) => ({ ...prev, email: null }))
     }
     setGeneralError('')
+    clearError()
   }
 
   const handlePasswordChange = (e) => {
@@ -33,6 +55,7 @@ function LoginPage() {
       setErrors((prev) => ({ ...prev, password: null }))
     }
     setGeneralError('')
+    clearError()
   }
 
   const togglePasswordVisibility = () => {
@@ -42,6 +65,7 @@ function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setGeneralError('')
+    clearError()
 
     // Validation
     const emailValidation = validateEmail(email)
@@ -60,26 +84,38 @@ function LoginPage() {
       return
     }
 
-    setIsLoading(true)
+    setIsSubmitting(true)
 
-    // Mock login - في الإنتاج سيتم استدعاء API
+    // Real API login via AuthContext
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const result = await login(email, password)
 
-      // Mock: قبول أي بريد وكلمة مرور (في الإنتاج سيتم التحقق من API)
-      if (email && password) {
-        // Navigate to dashboard
-        navigate('/app/dashboard')
+      if (result.success) {
+        // Navigation handled by useEffect watching isAuthenticated
+        navigate(from, { replace: true })
       } else {
-        setGeneralError('Invalid email or password. Please try again.')
+        setGeneralError(result.error || 'Login failed. Please try again.')
       }
     } catch {
       setGeneralError('An error occurred. Please try again.')
     } finally {
-      setIsLoading(false)
+      setIsSubmitting(false)
     }
   }
+
+  // Show loading if checking auth status
+  if (authLoading) {
+    return (
+      <div className="w-full max-w-[960px] bg-white dark:bg-card-dark rounded-2xl shadow-xl overflow-hidden flex items-center justify-center min-h-[600px]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  const isLoading = isSubmitting || authLoading
 
   return (
     <div className="w-full max-w-[960px] bg-white dark:bg-card-dark rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row min-h-[600px] border border-border-default dark:border-border-dark">

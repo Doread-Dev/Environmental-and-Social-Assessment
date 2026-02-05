@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { cn } from '@/utils'
-import { useTheme } from '@/contexts'
+import { useTheme, useAuth, ROLE_LABELS } from '@/contexts'
 import { Avatar } from '@/components/ui'
+import { ROUTES } from '@/routes/routes.config'
 
 /**
  * Header Component
@@ -14,19 +16,24 @@ import { Avatar } from '@/components/ui'
  */
 function Header({ onMenuClick, showMobileMenu = true, className }) {
   const { isDark, toggleTheme } = useTheme()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
-  // Mock user data (will be replaced with real auth data)
-  const user = {
-    name: 'Sarah Jenkins',
-    role: 'Programme Manager',
-  }
+  const userName = user?.name || user?.email || 'User'
+  const userRoleLabel = user?.role ? ROLE_LABELS[user.role] || user.role : ''
 
   const userMenuItems = [
     { id: 'settings', label: 'Settings', icon: 'settings' },
     { id: 'divider', type: 'divider' },
     { id: 'logout', label: 'Sign Out', icon: 'logout' },
   ]
+
+  const handleLogout = () => {
+    logout()
+    setIsUserMenuOpen(false)
+    navigate(ROUTES.LOGIN, { replace: true })
+  }
 
   return (
     <header
@@ -103,13 +110,17 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
             {/* User Info - Hidden on mobile */}
             <div className="text-right hidden sm:block">
               <p className="text-sm font-semibold text-text-main dark:text-white leading-none">
-                {user.name}
+                {userName}
               </p>
-              <p className="text-xs text-text-secondary dark:text-gray-400 mt-1">{user.role}</p>
+              <p className="text-xs text-text-secondary dark:text-gray-400 mt-1">{userRoleLabel}</p>
             </div>
 
             {/* Avatar */}
-            <Avatar alt={user.name} size="md" className="ring-2 ring-white dark:ring-surface-dark" />
+            <Avatar
+              alt={userName}
+              size="md"
+              className="ring-2 ring-white dark:ring-surface-dark"
+            />
           </button>
 
           {/* User Dropdown Menu */}
@@ -132,10 +143,10 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
                 {/* User Info in Menu */}
                 <div className="px-4 py-3 border-b border-border-default dark:border-border-dark sm:hidden">
                   <p className="text-sm font-semibold text-text-main dark:text-white">
-                    {user.name}
+                    {userName}
                   </p>
                   <p className="text-xs text-text-secondary dark:text-gray-400 mt-0.5">
-                    {user.role}
+                    {userRoleLabel}
                   </p>
                 </div>
 
@@ -154,7 +165,9 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
                       key={item.id}
                       onClick={() => {
                         setIsUserMenuOpen(false)
-                        // Handle action
+                        if (item.id === 'logout') {
+                          handleLogout()
+                        }
                       }}
                       className={cn(
                         'w-full flex items-center gap-3',

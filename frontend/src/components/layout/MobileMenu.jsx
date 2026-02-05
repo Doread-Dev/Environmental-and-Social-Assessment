@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NavLink, useLocation, useParams, useNavigate } from 'react-router-dom'
 import { cn } from '@/utils'
-import { useTheme } from '@/contexts'
+import { useTheme, useAuth, ROLE_LABELS } from '@/contexts'
 import {
   MAIN_NAV_ITEMS,
   PROJECT_WORKFLOW_NAV,
@@ -34,6 +34,7 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
   const { projectId } = useParams()
   const navigate = useNavigate()
   const { isDark, toggleTheme } = useTheme()
+  const { user, logout } = useAuth()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
   // Close menu on route change
@@ -121,10 +122,14 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
   const projectTitle = project?.title || project?.name || 'Unknown Project'
   const projectLocation = project?.location || 'N/A'
 
-  // Mock user data
-  const user = {
-    name: 'Alex Morgan',
-    role: 'Environmental Officer',
+  const userName = user?.name || user?.email || 'User'
+  const userRoleLabel = user?.role ? ROLE_LABELS[user.role] || user.role : ''
+
+  const handleLogout = () => {
+    logout()
+    setIsUserMenuOpen(false)
+    onClose()
+    navigate(ROUTES.LOGIN, { replace: true })
   }
 
   // Render expandable nav item (for project variant)
@@ -495,16 +500,16 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                     )}
                   >
                     <Avatar
-                      alt={user.name}
+                      alt={userName}
                       size="sm"
                       
                     />
                     <div className="flex flex-col min-w-0 flex-1 text-left">
                       <span className="text-sm font-bold text-text-main dark:text-white truncate">
-                        {user.name}
+                        {userName}
                       </span>
                       <span className="text-xs text-text-secondary dark:text-gray-400 truncate">
-                        {user.role}
+                        {userRoleLabel}
                       </span>
                     </div>
                     <span
@@ -587,6 +592,9 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                                 if (item.id === 'settings') {
                                   navigate(`/app/projects/${projectId}/settings`)
                                   onClose()
+                              }
+                              if (item.id === 'logout') {
+                                handleLogout()
                                 }
                               }}
                               className={cn(

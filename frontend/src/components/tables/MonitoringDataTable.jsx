@@ -94,26 +94,30 @@ function MonitoringDataTable({
             </tr>
           </thead>
           <tbody>
-            {data.map((item, index) => (
-              <IndicatorDataRow
-                key={item.indicator._id}
+            {data.map((item, index) => {
+              const indicatorId = item.indicator.id || item.indicator._id
+
+              return (
+                <IndicatorDataRow
+                  key={indicatorId}
                 indicator={item.indicator}
                 record={item.record}
                 categoryCode={item.indicator.categoryCode || item.indicator.code}
                 questionNumber={index + 1}
                 onUpdateScore={(quarter, value) => {
                   if (onUpdateScore) {
-                    onUpdateScore(item.record._id, quarter, value, item.indicator._id)
+                    onUpdateScore(item.record._id, quarter, value, indicatorId)
                   }
                 }}
                 onUpdateField={(field, value) => {
                   if (onUpdateField) {
-                    onUpdateField(item.record._id, field, value, item.indicator._id)
+                    onUpdateField(item.record._id, field, value, indicatorId)
                   }
                 }}
                 isEditable={isEditable}
-              />
-            ))}
+                />
+              )
+            })}
           </tbody>
         </table>
       </div>

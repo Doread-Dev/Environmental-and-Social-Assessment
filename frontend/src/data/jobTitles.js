@@ -1,7 +1,6 @@
 /**
  * Job Titles
- * المسميات الوظيفية
- * ⚠️ هذه البيانات مطابقة لـ backend/src/db/seed.js
+ * Deprecated: use useLookups() for live data
  */
 
 export const JOB_TITLES = {
@@ -12,17 +11,15 @@ export const JOB_TITLES = {
   VIEWER: 'Viewer',
 }
 
-export const jobTitles = [
-  { id: 'env_specialist', title_name: JOB_TITLES.ENVIRONMENTAL_SPECIALIST },
-  { id: 'prog_manager', title_name: JOB_TITLES.PROGRAM_MANAGER },
-  { id: 'proj_manager', title_name: JOB_TITLES.PROJECT_MANAGER },
-  { id: 'env_focal', title_name: JOB_TITLES.ENVIRONMENTAL_FOCAL_POINT },
-  { id: 'viewer', title_name: JOB_TITLES.VIEWER },
-]
+/**
+ * @deprecated Use useLookups().jobTitles instead
+ */
+export const jobTitles = []
 
 /**
- * الحصول على المسمى الوظيفي بالمعرف
+ * @deprecated Use useLookups().getJobTitleById() instead
  */
-export function getJobTitleById(id) {
-  return jobTitles.find((j) => j.id === id)
+export function getJobTitleById() {
+  console.warn('getJobTitleById is deprecated. Use useLookups() hook instead.')
+  return null
 }

@@ -5,6 +5,9 @@ export { default as api, extractErrorMessage, isNetworkError, isAuthError } from
 // Auth service
 export { authService } from './authService'
 
+// Lookup service
+export { lookupService } from './lookupService'
+
 // Service modules (uncomment as implemented)
 // export { projectService } from './projectService'
 // export { screeningService } from './screeningService'
@@ -12,5 +15,4 @@ export { authService } from './authService'
 // export { sempService } from './sempService'
 // export { monitoringService } from './monitoringService'
 // export { fileService } from './fileService'
-// export { lookupService } from './lookupService'
 // export { reportService } from './reportService'

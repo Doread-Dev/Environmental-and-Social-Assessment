@@ -7,18 +7,20 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { MonitoringCategoryCard, MonitoringProgressTimeline } from '@/components/monitoring'
 import { useMonitoring, useAssessment } from '@/hooks'
+import { useLookups } from '@/contexts'
 import { impactLevels } from '@/data/impactCategories'
 
 export default function MonitoringOverviewPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
+  const { isLoading: lookupsLoading } = useLookups()
   const { getAllCategoryStats, getCategoryData, isLoading, records } = useMonitoring(projectId)
   const { assessment, isLoading: isAssessmentLoading } = useAssessment(projectId)
 
   const isApproved = assessment?.status === 'approved'
   const isLocked = !isApproved
 
-  if (isLoading || isAssessmentLoading) {
+  if (isLoading || isAssessmentLoading || lookupsLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4">

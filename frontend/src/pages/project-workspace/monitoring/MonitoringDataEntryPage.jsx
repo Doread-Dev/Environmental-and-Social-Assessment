@@ -7,9 +7,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useMonitoring, useAssessment } from '@/hooks'
+import { useLookups } from '@/contexts'
 import { MonitoringDataTable } from '@/components/tables'
 import { Alert } from '@/components/ui'
-import { impactCategories, impactLevels } from '@/data/impactCategories'
+import { impactLevels } from '@/data/impactCategories'
 import { cn } from '@/utils/cn'
 
 export default function MonitoringDataEntryPage() {
@@ -17,6 +18,7 @@ export default function MonitoringDataEntryPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const categoryParam = searchParams.get('category')
+  const { impactCategories, isLoading: lookupsLoading } = useLookups()
   const { assessment, isLoading: isAssessmentLoading } = useAssessment(projectId)
   const isApproved = assessment?.status === 'approved'
   const isLocked = !isApproved
@@ -125,7 +127,7 @@ export default function MonitoringDataEntryPage() {
 
   const saveBtn = getSaveButtonContent()
 
-  if (isLoading || isAssessmentLoading) {
+  if (isLoading || isAssessmentLoading || lookupsLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4">

@@ -7,10 +7,10 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment, useScreening, useProjectContext } from '@/hooks'
+import { useLookups } from '@/contexts'
 import { Button, Textarea } from '@/components/ui'
 import { cn } from '@/utils/cn'
 import { IMPACT_LEVEL_CONFIG } from '@/data/impactQuestions'
-import { impactCategories } from '@/data/impactQuestions'
 import { assessmentMethods, consultationMethods } from '@/data'
 import { currentUser, mockUsers } from '@/data'
 
@@ -56,6 +56,7 @@ export default function AssessmentReviewPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
   const { project } = useProjectContext()
+  const { categoriesWithQuestions, isLoading: lookupsLoading } = useLookups()
   const { screening } = useScreening(projectId)
   const {
     assessment,
@@ -161,7 +162,7 @@ export default function AssessmentReviewPage() {
     return mockUsers.find((u) => u._id === assessment.approved_by) || null
   }, [assessment])
 
-  if (isLoading) {
+  if (isLoading || lookupsLoading) {
     return (
       <div className="flex w-full items-center justify-center py-20">
         <div className="flex flex-col items-center gap-4">
@@ -492,7 +493,7 @@ export default function AssessmentReviewPage() {
 
           {/* Impact Categories */}
           <div className="space-y-8">
-            {impactCategories.map((category) => {
+            {categoriesWithQuestions.map((category) => {
               const highestLevel = getCategoryHighestLevel(impactScores, category.questions)
               const config = IMPACT_LEVEL_CONFIG[highestLevel]
 

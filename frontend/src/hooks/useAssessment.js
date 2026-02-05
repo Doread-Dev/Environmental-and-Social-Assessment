@@ -12,12 +12,14 @@ import {
   createEmptyAssessment,
 } from '@/data'
 import { calculateTotalScore, calculateTotalImpact } from '@/utils/impactCalculations'
+import { useLookups } from '@/contexts'
 
 /**
  * Hook لإدارة حالة التقييم
  * @param {string} projectId - معرف المشروع
  */
 export function useAssessment(projectId) {
+  const { categoriesWithQuestions, isLoading: lookupsLoading } = useLookups()
   const [assessment, setAssessment] = useState(null)
   const [methods, setMethods] = useState([])
   const [consultations, setConsultations] = useState([])
@@ -281,6 +283,8 @@ export function useAssessment(projectId) {
     methods,
     consultations,
     impactScores,
+    categoriesWithQuestions,
+    lookupsLoading,
     isLoading,
     isSaving,
     error,

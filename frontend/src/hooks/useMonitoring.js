@@ -4,17 +4,18 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import {
-  getMonitoringIndicatorsByCategory,
-  getMonitoringRecordsByProjectId,
-  createEmptyMonitoringRecord,
-} from '@/data'
-import { impactCategories } from '@/data/impactCategories'
+import { getMonitoringRecordsByProjectId, createEmptyMonitoringRecord } from '@/data'
+import { useLookups } from '@/contexts'
 
 /**
  * Hook لإدارة بيانات المراقبة
  */
 export function useMonitoring(projectId) {
+  const {
+    impactCategories,
+    categoriesWithIndicators,
+    isLoading: lookupsLoading,
+  } = useLookups()
   const [records, setRecords] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -176,16 +177,20 @@ export function useMonitoring(projectId) {
    */
   const getCategoryDataInternal = useCallback(
     (categoryCode) => {
-      const indicators = getMonitoringIndicatorsByCategory(categoryCode)
+      const category = categoriesWithIndicators.find(
+        (cat) => cat.code === categoryCode || cat.id === categoryCode
+      )
+      const indicators = category?.indicators || []
+
       return indicators.map((indicator) => {
-        const record = recordMap.get(indicator._id)
+        const record = recordMap.get(indicator.id)
         return {
           indicator,
-          record: record || createEmptyMonitoringRecord(projectId, indicator._id),
+          record: record || createEmptyMonitoringRecord(projectId, indicator.id),
         }
       })
     },
-    [projectId, recordMap]
+    [categoriesWithIndicators, projectId, recordMap]
   )
 
   const getAllCategoryStats = useCallback(() => {
@@ -224,7 +229,7 @@ export function useMonitoring(projectId) {
         },
       }
     })
-  }, [getCategoryDataInternal])
+  }, [impactCategories, getCategoryDataInternal])
 
   /**
    * الحصول على بيانات فئة معينة مع السجلات
@@ -236,7 +241,7 @@ export function useMonitoring(projectId) {
 
   return {
     records,
-    isLoading,
+    isLoading: isLoading || lookupsLoading,
     isSaving,
     error,
     updateQuarterScore,

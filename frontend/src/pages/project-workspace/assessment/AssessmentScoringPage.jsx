@@ -6,6 +6,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment } from '@/hooks'
+import { useLookups } from '@/contexts'
 import { calculateTotalScore, calculateTotalImpact } from '@/utils/impactCalculations'
 import {
   ImpactCategoryAccordion,
@@ -14,11 +15,11 @@ import {
   ImpactSummarySection,
 } from '@/components/assessment'
 import { Button, LoadingSpinner, StickyFooter, Modal } from '@/components/ui'
-import { impactCategories } from '@/data/impactQuestions'
 
 export default function AssessmentScoringPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
+  const { categoriesWithQuestions, isLoading: lookupsLoading } = useLookups()
   const {
     assessment,
     impactScores,
@@ -64,7 +65,9 @@ export default function AssessmentScoringPage() {
         setScores(scoreMap)
       } else {
         // Auto-fill all questions with N/A for new assessment
-        const allQuestions = impactCategories.flatMap((cat) => cat.questions.map((q) => q.id))
+        const allQuestions = categoriesWithQuestions.flatMap((cat) =>
+          cat.questions.map((q) => q.id)
+        )
         const defaultScores = {}
         allQuestions.forEach((questionId) => {
           defaultScores[questionId] = {
@@ -113,8 +116,8 @@ export default function AssessmentScoringPage() {
 
   // Get all question IDs from impact categories
   const allQuestionIds = useMemo(() => {
-    return impactCategories.flatMap((cat) => cat.questions.map((q) => q.id))
-  }, [])
+    return categoriesWithQuestions.flatMap((cat) => cat.questions.map((q) => q.id))
+  }, [categoriesWithQuestions])
 
   const handleSaveDraft = async () => {
     const result = await saveImpactScoresDraft(scoresArray, negativeImpact, positiveImpact)
@@ -178,7 +181,7 @@ export default function AssessmentScoringPage() {
   // When rejected, user should be able to edit (rejected is not submitted, so it's editable)
   const readOnly = assessment?.status === 'approved' || assessment?.status === 'submitted'
 
-  if (isLoading) {
+  if (isLoading || lookupsLoading) {
     return (
       <div className="flex w-full items-center justify-center py-20">
         <div className="flex flex-col items-center gap-4">
@@ -203,7 +206,7 @@ export default function AssessmentScoringPage() {
 
       {/* Impact Categories */}
       <div className="space-y-4 mb-6">
-        {impactCategories.map((category) => (
+        {categoriesWithQuestions.map((category) => (
           <ImpactCategoryAccordion
             key={category.id}
             category={category}

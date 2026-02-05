@@ -2,10 +2,18 @@
  * Lookup Context
  * Provides static/reference data throughout the application
  * Fetches data once on mount and caches it
+ *
+ * Features:
+ * - Fetches impact categories, questions, indicators, job titles, and users
+ * - Caches data and clears on logout
+ * - Provides helper functions for data access
+ * - Supports retry on failure
  */
-import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { lookupService } from '@/services/lookupService'
+import { userService } from '@/services/userService'
 import { extractErrorMessage } from '@/services/api'
+import { CATEGORY_ICONS } from '@/utils/categoryIcons'
 import { useAuth } from './AuthContext'
 
 // Create context
@@ -71,32 +79,23 @@ export const IMPACT_LEVEL_CONFIG = {
   },
 }
 
-/**
- * Category icon configuration (static, for UI display)
- */
-const CATEGORY_ICONS = {
-  A: { icon: 'air', iconColor: 'text-sky-500', iconBg: 'bg-sky-500/10' },
-  B: { icon: 'water_drop', iconColor: 'text-blue-500', iconBg: 'bg-blue-500/10' },
-  C: { icon: 'volume_up', iconColor: 'text-purple-500', iconBg: 'bg-purple-500/10' },
-  D: { icon: 'delete', iconColor: 'text-amber-600', iconBg: 'bg-amber-500/10' },
-  E: { icon: 'radio_button_checked', iconColor: 'text-yellow-500', iconBg: 'bg-yellow-500/10' },
-  F: { icon: 'warning', iconColor: 'text-red-600', iconBg: 'bg-red-600/10' },
-  J: { icon: 'forest', iconColor: 'text-green-600', iconBg: 'bg-green-600/10' },
-  H: { icon: 'landscape', iconColor: 'text-orange-600', iconBg: 'bg-orange-600/10' },
-}
 
 /**
  * LookupProvider Component
  * Wraps the application to provide lookup data
  */
 export function LookupProvider({ children }) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, canEdit } = useAuth()
+
+  // Prevent duplicate fetches during rapid auth state changes
+  const fetchingRef = useRef(false)
 
   // State
   const [impactCategories, setImpactCategories] = useState([])
   const [impactQuestions, setImpactQuestions] = useState([])
   const [indicators, setIndicators] = useState([])
   const [jobTitles, setJobTitles] = useState([])
+  const [users, setUsers] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isLoaded, setIsLoaded] = useState(false)
@@ -105,18 +104,24 @@ export function LookupProvider({ children }) {
    * Fetch all lookup data
    */
   const fetchLookups = useCallback(async () => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || fetchingRef.current) {
       setIsLoading(false)
       return
     }
 
+    fetchingRef.current = true
     setIsLoading(true)
     setError(null)
 
     try {
-      const data = await lookupService.getAllLookups()
+      // Fetch lookups and users in parallel
+      const [lookupData, usersData] = await Promise.all([
+        lookupService.getAllLookups(),
+        // Only fetch users if user has permission (not viewer)
+        canEdit ? userService.getAll().catch(() => []) : Promise.resolve([]),
+      ])
 
-      const sortedCategories = [...data.impactCategories].sort((a, b) =>
+      const sortedCategories = [...lookupData.impactCategories].sort((a, b) =>
         String(a.code || '').localeCompare(String(b.code || ''))
       )
 
@@ -127,9 +132,10 @@ export function LookupProvider({ children }) {
       }))
 
       setImpactCategories(enhancedCategories)
-      setImpactQuestions(data.impactQuestions)
-      setIndicators(data.indicators)
-      setJobTitles(data.jobTitles)
+      setImpactQuestions(lookupData.impactQuestions)
+      setIndicators(lookupData.indicators)
+      setJobTitles(lookupData.jobTitles)
+      setUsers(usersData)
       setIsLoaded(true)
     } catch (err) {
       const errorMessage = extractErrorMessage(err)
@@ -138,14 +144,24 @@ export function LookupProvider({ children }) {
       console.error('Failed to load lookup data:', errorMessage)
     } finally {
       setIsLoading(false)
+      fetchingRef.current = false
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, canEdit])
+
+  /**
+   * Retry fetching lookups (for error recovery)
+   */
+  const retry = useCallback(() => {
+    setIsLoaded(false)
+    setError(null)
+    fetchLookups()
+  }, [fetchLookups])
 
   /**
    * Fetch lookups when authenticated
    */
   useEffect(() => {
-    if (isAuthenticated && !isLoaded) {
+    if (isAuthenticated && !isLoaded && !fetchingRef.current) {
       fetchLookups()
     }
   }, [isAuthenticated, isLoaded, fetchLookups])
@@ -159,7 +175,10 @@ export function LookupProvider({ children }) {
       setImpactQuestions([])
       setIndicators([])
       setJobTitles([])
+      setUsers([])
       setIsLoaded(false)
+      setError(null)
+      fetchingRef.current = false
     }
   }, [isAuthenticated])
 
@@ -220,6 +239,26 @@ export function LookupProvider({ children }) {
     },
     [jobTitles]
   )
+
+  /**
+   * Get user by ID
+   * @param {string} id - User _id
+   * @returns {Object|undefined}
+   */
+  const getUserById = useCallback(
+    (id) => {
+      return users.find((u) => u._id === id)
+    },
+    [users]
+  )
+
+  /**
+   * Get active users
+   * @returns {Array}
+   */
+  const activeUsers = useMemo(() => {
+    return users.filter((u) => u.is_active)
+  }, [users])
 
   /**
    * Get total question count
@@ -293,6 +332,8 @@ export function LookupProvider({ children }) {
       impactQuestions,
       indicators,
       jobTitles,
+      users,
+      activeUsers,
 
       // Derived data
       categoriesWithQuestions,
@@ -305,12 +346,14 @@ export function LookupProvider({ children }) {
 
       // Actions
       refetch: fetchLookups,
+      retry,
 
       // Helpers
       getCategoryById,
       getQuestionsByCategory,
       getIndicatorsByCategory,
       getJobTitleById,
+      getUserById,
       getTotalQuestionCount,
       getTotalIndicatorCount,
 
@@ -323,16 +366,20 @@ export function LookupProvider({ children }) {
       impactQuestions,
       indicators,
       jobTitles,
+      users,
+      activeUsers,
       categoriesWithQuestions,
       categoriesWithIndicators,
       isLoading,
       error,
       isLoaded,
       fetchLookups,
+      retry,
       getCategoryById,
       getQuestionsByCategory,
       getIndicatorsByCategory,
       getJobTitleById,
+      getUserById,
       getTotalQuestionCount,
       getTotalIndicatorCount,
     ]

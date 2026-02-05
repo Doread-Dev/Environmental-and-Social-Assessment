@@ -8,6 +8,9 @@ export { authService } from './authService'
 // Lookup service
 export { lookupService } from './lookupService'
 
+// User service
+export { userService } from './userService'
+
 // Service modules (uncomment as implemented)
 // export { projectService } from './projectService'
 // export { screeningService } from './screeningService'

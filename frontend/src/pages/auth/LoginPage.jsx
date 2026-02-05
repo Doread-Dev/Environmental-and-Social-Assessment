@@ -90,12 +90,10 @@ function LoginPage() {
     try {
       const result = await login(email, password)
 
-      if (result.success) {
-        // Navigation handled by useEffect watching isAuthenticated
-        navigate(from, { replace: true })
-      } else {
+      if (!result.success) {
         setGeneralError(result.error || 'Login failed. Please try again.')
       }
+      // Navigation is handled by useEffect watching isAuthenticated
     } catch {
       setGeneralError('An error occurred. Please try again.')
     } finally {

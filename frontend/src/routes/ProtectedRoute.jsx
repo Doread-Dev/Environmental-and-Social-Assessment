@@ -6,8 +6,11 @@ import { ROUTES } from './routes.config'
  * ProtectedRoute Component
  * Wrapper component that protects routes requiring authentication
  *
- * Note: This is a placeholder for future authentication implementation.
- * Currently allows all access.
+ * Features:
+ * - Validates user authentication via AuthContext
+ * - Supports role-based access control via allowedRoles prop
+ * - Redirects to login with return URL preservation
+ * - Shows loading state while verifying auth status
  *
  * @param {Object} props
  * @param {React.ReactNode} props.children - Child components to render if authenticated

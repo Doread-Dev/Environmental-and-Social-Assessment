@@ -1,25 +1,11 @@
 /**
- * User Roles - متوافق مع Backend
- * backend/src/models/user.model.js
+ * User Roles - Re-exported from AuthContext for backward compatibility
+ * @deprecated Import from '@/contexts' instead
  */
-export const USER_ROLES = {
-  ENVIRONMENTAL_SPECIALIST: 'environmental_specialist',
-  PROGRAM_MANAGER: 'program_manager',
-  PROJECT_MANAGER: 'project_manager',
-  ENVIRONMENTAL_FOCAL_POINT: 'environmental_focal_point',
-  VIEWER: 'viewer',
-}
+export { USER_ROLES, ROLE_LABELS } from '@/contexts/AuthContext'
 
-/**
- * Role Labels للعرض في UI
- */
-export const ROLE_LABELS = {
-  environmental_specialist: 'Environmental Specialist',
-  program_manager: 'Program Manager',
-  project_manager: 'Project Manager',
-  environmental_focal_point: 'Environmental Focal Point',
-  viewer: 'Viewer',
-}
+// Import for local use
+import { USER_ROLES, ROLE_LABELS } from '@/contexts/AuthContext'
 
 /**
  * Job Titles - متوافق مع backend/src/models/jobTitle.model.js

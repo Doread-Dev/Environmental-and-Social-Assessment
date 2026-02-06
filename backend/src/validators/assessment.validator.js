@@ -26,11 +26,15 @@ const addMethodSchema = Joi.object({
   details: Joi.string().allow("", null),
 });
 
+const replaceMethodsSchema = Joi.array().items(addMethodSchema).min(0);
+
 const addConsultationSchema = Joi.object({
   type: Joi.string().required(),
   participants: Joi.string().allow("", null),
   notes: Joi.string().allow("", null),
 });
+
+const replaceConsultationsSchema = Joi.array().items(addConsultationSchema).min(0);
 
 const addScoresSchema = Joi.array()
   .items(
@@ -56,7 +60,9 @@ module.exports = {
   createAssessmentSchema,
   updateAssessmentSchema,
   addMethodSchema,
+  replaceMethodsSchema,
   addConsultationSchema,
+  replaceConsultationsSchema,
   addScoresSchema,
   approveAssessmentSchema,
   rejectAssessmentSchema,

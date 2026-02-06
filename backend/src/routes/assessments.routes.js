@@ -5,7 +5,9 @@ const {
   createAssessmentSchema,
   updateAssessmentSchema,
   addMethodSchema,
+  replaceMethodsSchema,
   addConsultationSchema,
+  replaceConsultationsSchema,
   addScoresSchema,
   approveAssessmentSchema,
   rejectAssessmentSchema,
@@ -38,12 +40,28 @@ router.post(
   validate(addMethodSchema),
   controller.addMethod
 );
+router.get("/:id/methods", controller.getMethods);
+router.put(
+  "/:id/methods",
+  auth,
+  requireRole("environmental_specialist", "program_manager", "project_manager"),
+  validate(replaceMethodsSchema),
+  controller.replaceMethods
+);
 router.post(
   "/:id/consultations",
   auth,
   requireRole("environmental_specialist", "program_manager", "project_manager"),
   validate(addConsultationSchema),
   controller.addConsultation
+);
+router.get("/:id/consultations", controller.getConsultations);
+router.put(
+  "/:id/consultations",
+  auth,
+  requireRole("environmental_specialist", "program_manager", "project_manager"),
+  validate(replaceConsultationsSchema),
+  controller.replaceConsultations
 );
 router.post(
   "/:id/scores",
@@ -52,6 +70,7 @@ router.post(
   validate(addScoresSchema),
   controller.addScores
 );
+router.get("/:id/scores", controller.getScores);
 router.patch(
   "/:id/calculate",
   auth,

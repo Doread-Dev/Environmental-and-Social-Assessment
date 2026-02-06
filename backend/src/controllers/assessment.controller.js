@@ -33,14 +33,39 @@ exports.addMethod = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, data });
 });
 
+exports.getMethods = asyncHandler(async (req, res) => {
+  const data = await service.listMethods(req.params.id);
+  res.json({ success: true, data });
+});
+
+exports.replaceMethods = asyncHandler(async (req, res) => {
+  const data = await service.replaceMethods(req.params.id, req.body);
+  res.json({ success: true, data });
+});
+
 exports.addConsultation = asyncHandler(async (req, res) => {
   const data = await service.addConsultation(req.params.id, req.body);
   res.status(201).json({ success: true, data });
 });
 
+exports.getConsultations = asyncHandler(async (req, res) => {
+  const data = await service.listConsultations(req.params.id);
+  res.json({ success: true, data });
+});
+
+exports.replaceConsultations = asyncHandler(async (req, res) => {
+  const data = await service.replaceConsultations(req.params.id, req.body);
+  res.json({ success: true, data });
+});
+
 exports.addScores = asyncHandler(async (req, res) => {
   const data = await service.addScores(req.params.id, req.body);
   res.status(201).json({ success: true, data });
+});
+
+exports.getScores = asyncHandler(async (req, res) => {
+  const data = await service.listScores(req.params.id);
+  res.json({ success: true, data });
 });
 
 exports.calculate = asyncHandler(async (req, res) => {

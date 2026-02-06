@@ -133,8 +133,25 @@ export default function AssessmentMethodsPage() {
         notes: '', // Empty notes field (not shown in UI but required by backend model)
       }))
 
-    // Save both
-    await Promise.all([saveMethods(methodsData), saveConsultations(consultationsData)])
+    // Save both with proper error handling
+    const [methodsResult, consultationsResult] = await Promise.allSettled([
+      saveMethods(methodsData),
+      saveConsultations(consultationsData),
+    ])
+
+    // Check for failures
+    const errors = []
+    if (methodsResult.status === 'rejected' || !methodsResult.value?.success) {
+      errors.push('Failed to save methods')
+    }
+    if (consultationsResult.status === 'rejected' || !consultationsResult.value?.success) {
+      errors.push('Failed to save consultations')
+    }
+
+    if (errors.length > 0) {
+      alert(errors.join('. ') + '. Please try again.')
+      return
+    }
 
     navigate(`/app/projects/${projectId}/assessment/scoring`)
   }

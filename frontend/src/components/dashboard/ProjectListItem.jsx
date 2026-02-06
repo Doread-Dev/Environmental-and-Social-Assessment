@@ -2,7 +2,6 @@ import { useNavigate } from 'react-router-dom'
 import { Icon } from '@/components/ui'
 import { ScreeningCategoryBadge, ProjectStatusBadge } from './index'
 import { cn } from '@/utils'
-import { calculateProjectStatus } from '@/data'
 import { getProjectRoute } from '@/routes/routes.config'
 
 /**
@@ -26,7 +25,8 @@ function ProjectListItem({ project, onClick, className, ...props }) {
     }
   }
 
-  const projectStatus = calculateProjectStatus(project.workflow)
+  // projectStatus is pre-computed by useProjects
+  const projectStatus = project.projectStatus || 'draft'
   const categoryCode = project.screening?.category_code
 
   return (

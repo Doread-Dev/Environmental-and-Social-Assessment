@@ -4,15 +4,10 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import {
-  getAssessmentByProjectId,
-  getMethodsByAssessmentId,
-  getConsultationsByAssessmentId,
-  getImpactScoresByAssessmentId,
-  createEmptyAssessment,
-} from '@/data'
-import { calculateTotalScore, calculateTotalImpact } from '@/utils/impactCalculations'
-import { useLookups } from '@/contexts'
+import { createEmptyAssessment } from '@/data'
+import { useLookups, useAuth } from '@/contexts'
+import { assessmentService } from '@/services'
+import { extractErrorMessage } from '@/services/api'
 
 /**
  * Hook لإدارة حالة التقييم
@@ -20,10 +15,21 @@ import { useLookups } from '@/contexts'
  */
 export function useAssessment(projectId) {
   const { categoriesWithQuestions, isLoading: lookupsLoading } = useLookups()
+  const { user } = useAuth()
   const [assessment, setAssessment] = useState(null)
   const [methods, setMethods] = useState([])
   const [consultations, setConsultations] = useState([])
   const [impactScores, setImpactScores] = useState([])
+  const normalizeImpactScores = useCallback((scores) => {
+    if (!Array.isArray(scores)) return []
+    return scores.map((score) => ({
+      ...score,
+      question:
+        score?.question && typeof score.question === 'object'
+          ? score.question._id
+          : score.question,
+    }))
+  }, [])
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState(null)
@@ -32,29 +38,51 @@ export function useAssessment(projectId) {
   useEffect(() => {
     if (!projectId) return
 
+    let isMounted = true
     setIsLoading(true)
     setError(null)
 
-    // Simulate API call
-    setTimeout(() => {
-      const existingAssessment = getAssessmentByProjectId(projectId)
+    assessmentService
+      .getByProjectId(projectId)
+      .then(async (data) => {
+        if (!isMounted) return
+        setAssessment(data)
 
-      if (existingAssessment) {
-        setAssessment(existingAssessment)
-        setMethods(getMethodsByAssessmentId(existingAssessment._id))
-        setConsultations(getConsultationsByAssessmentId(existingAssessment._id))
-        setImpactScores(getImpactScoresByAssessmentId(existingAssessment._id))
-      } else {
-        // إنشاء تقييم جديد فارغ
-        setAssessment(createEmptyAssessment(projectId, 'current_user_id'))
-        setMethods([])
-        setConsultations([])
-        setImpactScores([])
-      }
+        const [methodsResult, consultationsResult, scoresResult] = await Promise.allSettled([
+          assessmentService.getMethods(data._id),
+          assessmentService.getConsultations(data._id),
+          assessmentService.getScores(data._id),
+        ])
 
-      setIsLoading(false)
-    }, 300)
-  }, [projectId])
+        if (!isMounted) return
+        setMethods(methodsResult.status === 'fulfilled' ? methodsResult.value : [])
+        setConsultations(
+          consultationsResult.status === 'fulfilled' ? consultationsResult.value : []
+        )
+        setImpactScores(
+          scoresResult.status === 'fulfilled' ? normalizeImpactScores(scoresResult.value) : []
+        )
+      })
+      .catch((err) => {
+        if (!isMounted) return
+        if (err.response?.status === 404) {
+          setAssessment(createEmptyAssessment(projectId, user?._id || null))
+          setMethods([])
+          setConsultations([])
+          setImpactScores([])
+          return
+        }
+        setError(extractErrorMessage(err))
+      })
+      .finally(() => {
+        if (!isMounted) return
+        setIsLoading(false)
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [projectId, user?._id])
 
   /**
    * بدء تقييم جديد
@@ -62,21 +90,19 @@ export function useAssessment(projectId) {
   const startAssessment = useCallback(async () => {
     setIsSaving(true)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      setAssessment((prev) => ({
-        ...prev,
-        _id: `assessment_${Date.now()}`,
-        status: 'draft',
-        createdAt: new Date().toISOString(),
-      }))
+      if (assessment?._id) {
+        return { success: true }
+      }
+      setAssessment(createEmptyAssessment(projectId, user?._id || null))
       return { success: true }
     } catch (err) {
-      setError(err.message)
-      return { success: false, error: err.message }
+      const errorMessage = extractErrorMessage(err)
+      setError(errorMessage)
+      return { success: false, error: errorMessage }
     } finally {
       setIsSaving(false)
     }
-  }, [])
+  }, [assessment?._id, projectId, user?._id])
 
   /**
    * حفظ البيانات الوصفية (Metadata)
@@ -84,20 +110,33 @@ export function useAssessment(projectId) {
   const saveMetadata = useCallback(async (data) => {
     setIsSaving(true)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      setAssessment((prev) => ({
-        ...prev,
-        ...data,
-        updatedAt: new Date().toISOString(),
-      }))
-      return { success: true }
+      if (!projectId) {
+        const message = 'Missing project id.'
+        setError(message)
+        return { success: false, error: message }
+      }
+
+      if (!assessment?._id) {
+        const created = await assessmentService.create({
+          project: projectId,
+          status: 'draft',
+          ...data,
+        })
+        setAssessment(created)
+        return { success: true, data: created }
+      }
+
+      const updated = await assessmentService.update(assessment._id, data)
+      setAssessment(updated)
+      return { success: true, data: updated }
     } catch (err) {
-      setError(err.message)
-      return { success: false, error: err.message }
+      const errorMessage = extractErrorMessage(err)
+      setError(errorMessage)
+      return { success: false, error: errorMessage }
     } finally {
       setIsSaving(false)
     }
-  }, [])
+  }, [assessment?._id, projectId])
 
   /**
    * حفظ طرق التقييم (AssessmentMethod)
@@ -107,20 +146,22 @@ export function useAssessment(projectId) {
   const saveMethods = useCallback(async (newMethods) => {
     setIsSaving(true)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      setMethods(newMethods)
-      setAssessment((prev) => ({
-        ...prev,
-        updatedAt: new Date().toISOString(),
-      }))
-      return { success: true }
+      if (!assessment?._id) {
+        const message = 'Assessment record not found.'
+        setError(message)
+        return { success: false, error: message }
+      }
+      const updatedMethods = await assessmentService.setMethods(assessment._id, newMethods)
+      setMethods(updatedMethods)
+      return { success: true, data: updatedMethods }
     } catch (err) {
-      setError(err.message)
-      return { success: false, error: err.message }
+      const errorMessage = extractErrorMessage(err)
+      setError(errorMessage)
+      return { success: false, error: errorMessage }
     } finally {
       setIsSaving(false)
     }
-  }, [])
+  }, [assessment?._id])
 
   /**
    * حفظ الاستشارات المجتمعية (CommunityConsultation)
@@ -131,20 +172,56 @@ export function useAssessment(projectId) {
   const saveConsultations = useCallback(async (newConsultations) => {
     setIsSaving(true)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      setConsultations(newConsultations)
-      setAssessment((prev) => ({
-        ...prev,
-        updatedAt: new Date().toISOString(),
-      }))
-      return { success: true }
+      if (!assessment?._id) {
+        const message = 'Assessment record not found.'
+        setError(message)
+        return { success: false, error: message }
+      }
+      const updatedConsultations = await assessmentService.setConsultations(
+        assessment._id,
+        newConsultations
+      )
+      setConsultations(updatedConsultations)
+      return { success: true, data: updatedConsultations }
     } catch (err) {
-      setError(err.message)
-      return { success: false, error: err.message }
+      const errorMessage = extractErrorMessage(err)
+      setError(errorMessage)
+      return { success: false, error: errorMessage }
     } finally {
       setIsSaving(false)
     }
-  }, [])
+  }, [assessment?._id])
+
+  /**
+   * دالة داخلية مشتركة لحفظ النتائج
+   * @private
+   */
+  const saveScoresInternal = useCallback(async (scores, negativeImpact, positiveImpact) => {
+    if (!assessment?._id) {
+      const message = 'Assessment record not found.'
+      setError(message)
+      return { success: false, error: message }
+    }
+
+    const savedScores = await assessmentService.addScores(assessment._id, scores)
+    setImpactScores(normalizeImpactScores(savedScores))
+
+    const updated = await assessmentService.update(assessment._id, {
+      potential_negative_impact: negativeImpact,
+      potential_positive_impact: positiveImpact,
+    })
+
+    setAssessment(updated)
+
+    // Try to calculate, but don't fail if calculation fails
+    try {
+      const calculated = await assessmentService.calculate(assessment._id)
+      setAssessment(calculated)
+      return { success: true, data: calculated }
+    } catch {
+      return { success: true, data: updated }
+    }
+  }, [assessment?._id, normalizeImpactScores])
 
   /**
    * حفظ نتائج التأثير كمسودة (Draft)
@@ -152,30 +229,17 @@ export function useAssessment(projectId) {
    */
   const saveImpactScoresDraft = useCallback(async (scores, negativeImpact, positiveImpact) => {
     setIsSaving(true)
+    setError(null)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      setImpactScores(scores)
-
-      // حساب النتيجة الإجمالية
-      const totalScore = calculateTotalScore(scores)
-      const totalImpact = calculateTotalImpact(totalScore)
-
-      setAssessment((prev) => ({
-        ...prev,
-        total_project_score: totalScore,
-        total_project_impact: totalImpact,
-        potential_negative_impact: negativeImpact,
-        potential_positive_impact: positiveImpact,
-        updatedAt: new Date().toISOString(),
-      }))
-      return { success: true }
+      return await saveScoresInternal(scores, negativeImpact, positiveImpact)
     } catch (err) {
-      setError(err.message)
-      return { success: false, error: err.message }
+      const errorMessage = extractErrorMessage(err)
+      setError(errorMessage)
+      return { success: false, error: errorMessage }
     } finally {
       setIsSaving(false)
     }
-  }, [])
+  }, [saveScoresInternal])
 
   /**
    * حفظ نتائج التأثير
@@ -183,30 +247,17 @@ export function useAssessment(projectId) {
    */
   const saveImpactScores = useCallback(async (scores, negativeImpact, positiveImpact) => {
     setIsSaving(true)
+    setError(null)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      setImpactScores(scores)
-
-      // حساب النتيجة الإجمالية
-      const totalScore = calculateTotalScore(scores)
-      const totalImpact = calculateTotalImpact(totalScore)
-
-      setAssessment((prev) => ({
-        ...prev,
-        total_project_score: totalScore,
-        total_project_impact: totalImpact,
-        potential_negative_impact: negativeImpact,
-        potential_positive_impact: positiveImpact,
-        updatedAt: new Date().toISOString(),
-      }))
-      return { success: true }
+      return await saveScoresInternal(scores, negativeImpact, positiveImpact)
     } catch (err) {
-      setError(err.message)
-      return { success: false, error: err.message }
+      const errorMessage = extractErrorMessage(err)
+      setError(errorMessage)
+      return { success: false, error: errorMessage }
     } finally {
       setIsSaving(false)
     }
-  }, [])
+  }, [saveScoresInternal])
 
   /**
    * إرسال التقييم للموافقة
@@ -214,20 +265,22 @@ export function useAssessment(projectId) {
   const submitAssessment = useCallback(async () => {
     setIsSaving(true)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      setAssessment((prev) => ({
-        ...prev,
-        status: 'submitted',
-        updatedAt: new Date().toISOString(),
-      }))
-      return { success: true }
+      if (!assessment?._id) {
+        const message = 'Assessment record not found.'
+        setError(message)
+        return { success: false, error: message }
+      }
+      const updated = await assessmentService.update(assessment._id, { status: 'submitted' })
+      setAssessment(updated)
+      return { success: true, data: updated }
     } catch (err) {
-      setError(err.message)
-      return { success: false, error: err.message }
+      const errorMessage = extractErrorMessage(err)
+      setError(errorMessage)
+      return { success: false, error: errorMessage }
     } finally {
       setIsSaving(false)
     }
-  }, [])
+  }, [assessment?._id])
 
   /**
    * الموافقة على التقييم
@@ -235,22 +288,22 @@ export function useAssessment(projectId) {
   const approveAssessment = useCallback(async (recommendations) => {
     setIsSaving(true)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      setAssessment((prev) => ({
-        ...prev,
-        status: 'approved',
-        recommendations,
-        approved_by: 'current_user_id',
-        updatedAt: new Date().toISOString(),
-      }))
-      return { success: true }
+      if (!assessment?._id) {
+        const message = 'Assessment record not found.'
+        setError(message)
+        return { success: false, error: message }
+      }
+      const updated = await assessmentService.approve(assessment._id, recommendations)
+      setAssessment(updated)
+      return { success: true, data: updated }
     } catch (err) {
-      setError(err.message)
-      return { success: false, error: err.message }
+      const errorMessage = extractErrorMessage(err)
+      setError(errorMessage)
+      return { success: false, error: errorMessage }
     } finally {
       setIsSaving(false)
     }
-  }, [])
+  }, [assessment?._id])
 
   /**
    * رفض التقييم
@@ -258,25 +311,25 @@ export function useAssessment(projectId) {
   const rejectAssessment = useCallback(async (rejectReason) => {
     setIsSaving(true)
     try {
-      // Simulate API call
-      // في الواقع، سيتم إرسال: { reject_reason: rejectReason }
-      // والباك اند سيحفظ reject_by تلقائياً من req.user._id
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      setAssessment((prev) => ({
-        ...prev,
-        status: 'rejected',
-        reject_reason: rejectReason || null,
-        reject_by: 'current_user_id', // سيتم استبداله بـ AuthContext
-        updatedAt: new Date().toISOString(),
-      }))
-      return { success: true }
+      if (!assessment?._id) {
+        const message = 'Assessment record not found.'
+        setError(message)
+        return { success: false, error: message }
+      }
+      const updated = await assessmentService.reject(
+        assessment._id,
+        rejectReason === undefined ? '' : rejectReason
+      )
+      setAssessment(updated)
+      return { success: true, data: updated }
     } catch (err) {
-      setError(err.message)
-      return { success: false, error: err.message }
+      const errorMessage = extractErrorMessage(err)
+      setError(errorMessage)
+      return { success: false, error: errorMessage }
     } finally {
       setIsSaving(false)
     }
-  }, [])
+  }, [assessment?._id])
 
   return {
     assessment,

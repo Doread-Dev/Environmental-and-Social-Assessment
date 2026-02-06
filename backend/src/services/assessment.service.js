@@ -4,22 +4,26 @@ const CommunityConsultation = require("../models/communityConsultation.model");
 const AssessmentImpactScore = require("../models/assessmentImpactScore.model");
 const ApiError = require("../utils/ApiError");
 
+const populateAssessment = (query) =>
+  query.populate([
+    { path: "project" },
+    { path: "officer", populate: { path: "job_title" } },
+    { path: "approved_by", populate: { path: "job_title" } },
+    { path: "reject_by", populate: { path: "job_title" } },
+  ]);
+
 const listAssessments = async () =>
-  Assessment.find()
-    .populate("project officer approved_by reject_by")
-    .sort({ createdAt: -1 });
+  populateAssessment(Assessment.find().sort({ createdAt: -1 }));
 
 const getAssessment = async (id) => {
-  const assessment = await Assessment.findById(id).populate(
-    "project officer approved_by reject_by"
-  );
+  const assessment = await populateAssessment(Assessment.findById(id));
   if (!assessment) throw new ApiError(404, "Assessment not found");
   return assessment;
 };
 
 const getByProject = async (projectId) => {
-  const assessment = await Assessment.findOne({ project: projectId }).populate(
-    "project officer approved_by reject_by"
+  const assessment = await populateAssessment(
+    Assessment.findOne({ project: projectId })
   );
   if (!assessment) throw new ApiError(404, "Assessment not found for project");
   return assessment;
@@ -30,7 +34,8 @@ const createAssessment = async (payload, createdBy) => {
   if (createdBy) {
     assessmentData.officer = createdBy;
   }
-  return Assessment.create(assessmentData);
+  const created = await Assessment.create(assessmentData);
+  return populateAssessment(Assessment.findById(created._id));
 };
 
 const updateAssessment = async (id, payload, updatedBy) => {
@@ -45,10 +50,12 @@ const updateAssessment = async (id, payload, updatedBy) => {
     updateData.officer = updatedBy;
   }
   
-  const updated = await Assessment.findByIdAndUpdate(id, updateData, {
-    new: true,
-    runValidators: true,
-  });
+  const updated = await populateAssessment(
+    Assessment.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    })
+  );
   if (!updated) throw new ApiError(404, "Assessment not found");
   return updated;
 };
@@ -118,7 +125,7 @@ const calculateImpact = async (assessmentId) => {
   assessment.total_project_impact = impactLevel;
   await assessment.save();
 
-  return assessment;
+  return populateAssessment(Assessment.findById(assessmentId));
 };
 
 const setStatus = async (id, status, approvedBy, recommendations = null, rejectReason = null) => {
@@ -137,15 +144,15 @@ const setStatus = async (id, status, approvedBy, recommendations = null, rejectR
   // في حالة الرفض: تسجيل reject_by و reject_reason فقط
   if (status === "rejected") {
     updateData.reject_by = approvedBy;
-    if (rejectReason) {
-      updateData.reject_reason = rejectReason;
-    }
+    updateData.reject_reason = rejectReason ?? "";
   }
 
-  const updated = await Assessment.findByIdAndUpdate(id, updateData, {
-    new: true,
-    runValidators: true,
-  }).populate("project officer approved_by reject_by");
+  const updated = await populateAssessment(
+    Assessment.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    })
+  );
 
   if (!updated) throw new ApiError(404, "Assessment not found");
   return updated;
@@ -157,6 +164,32 @@ const approveAssessment = async (id, approvedBy, recommendations) => {
 
 const rejectAssessment = async (id, rejectBy, rejectReason = null) => {
   return setStatus(id, "rejected", rejectBy, null, rejectReason);
+};
+
+const listMethods = async (assessmentId) => {
+  return AssessmentMethod.find({ assessment: assessmentId });
+};
+
+const replaceMethods = async (assessmentId, payload) => {
+  await AssessmentMethod.deleteMany({ assessment: assessmentId });
+  if (!payload.length) return [];
+  const docs = payload.map((item) => ({ ...item, assessment: assessmentId }));
+  return AssessmentMethod.insertMany(docs);
+};
+
+const listConsultations = async (assessmentId) => {
+  return CommunityConsultation.find({ assessment: assessmentId });
+};
+
+const replaceConsultations = async (assessmentId, payload) => {
+  await CommunityConsultation.deleteMany({ assessment: assessmentId });
+  if (!payload.length) return [];
+  const docs = payload.map((item) => ({ ...item, assessment: assessmentId }));
+  return CommunityConsultation.insertMany(docs);
+};
+
+const listScores = async (assessmentId) => {
+  return AssessmentImpactScore.find({ assessment: assessmentId });
 };
 
 module.exports = {
@@ -171,4 +204,9 @@ module.exports = {
   calculateImpact,
   approveAssessment,
   rejectAssessment,
+  listMethods,
+  replaceMethods,
+  listConsultations,
+  replaceConsultations,
+  listScores,
 };

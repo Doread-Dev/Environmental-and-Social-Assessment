@@ -16,116 +16,17 @@ import {
   ProjectCTACard,
   ProjectSiteCard,
 } from '@/components/project'
-import { useProjectContext, useScreening } from '@/hooks'
+import { useProjectContext } from '@/hooks'
 import { getScreeningCategory } from '@/data'
 import { calculateDurationMonths, formatDuration } from '@/utils/formatters'
+import { getNextAction } from '@/utils/workflowDerivation'
 import { projectService } from '@/services/projectService'
 import { extractErrorMessage } from '@/services/api'
-
-/**
- * حساب الإجراء التالي بناءً على workflow
- */
-function getNextAction(workflow) {
-  if (!workflow) {
-    return {
-      tool: 1,
-      path: 'screening',
-      title: 'Start Screening',
-      description: 'Begin the environmental screening process for this project.',
-    }
-  }
-
-  // --- Screening Logic ---
-  if (workflow.screening?.status === 'draft' || workflow.screening?.status === 'pending') {
-    return {
-      tool: 1,
-      path: 'screening',
-      title: 'Complete Screening',
-      description: 'Complete the environmental screening form to categorize project risk.',
-    }
-  }
-
-  if (workflow.screening?.status === 'rejected') {
-    return {
-      tool: 1,
-      path: 'screening',
-      title: 'Revise Screening',
-      description: 'Your screening was rejected. Please review feedback and resubmit.',
-    }
-  }
-
-  if (workflow.screening?.status === 'submitted' || workflow.screening?.status === 'needs_action') {
-    return {
-      tool: 1,
-      path: 'screening',
-      title: 'Review Screening',
-      description: 'The screening requires your attention. Please review and update.',
-    }
-  }
-
-  // --- Assessment Logic (after screening is approved) ---
-  const assessmentStatus = workflow.assessment?.status
-
-  if (!assessmentStatus || assessmentStatus === 'pending') {
-    return {
-      tool: 2,
-      path: 'assessment',
-      title: 'Start Assessment',
-      description: 'Begin the environmental impact assessment process.',
-    }
-  }
-
-  if (assessmentStatus === 'draft' || assessmentStatus === 'in_progress') {
-    return {
-      tool: 2,
-      path: 'assessment',
-      title: 'Continue Assessment',
-      description: 'Continue working on the environmental impact assessment.',
-    }
-  }
-
-  if (assessmentStatus === 'rejected') {
-    return {
-      tool: 2,
-      path: 'assessment',
-      title: 'Revise Assessment',
-      description: 'Your assessment was rejected. Please review feedback and resubmit.',
-    }
-  }
-
-  if (assessmentStatus === 'submitted') {
-    return {
-      tool: 2,
-      path: 'assessment',
-      title: 'Review Assessment',
-      description: 'The assessment is pending approval. Review the submitted details.',
-    }
-  }
-
-  // --- SEMP Logic (after assessment is approved) ---
-  if (workflow.semp?.status !== 'completed') {
-    return {
-      tool: 3,
-      path: 'semp',
-      title: 'Complete Management Plan (SEMP)',
-      description:
-        'The environmental assessment has been approved. Please proceed with defining mitigation strategies in Tool 3.',
-    }
-  }
-
-  return {
-    tool: 5,
-    path: 'monitoring',
-    title: 'Start Monitoring',
-    description: 'Begin monitoring and reporting environmental indicators.',
-  }
-}
 
 function ProjectOverviewPage() {
   const navigate = useNavigate()
   const { projectId } = useParams()
-  const { project: contextProject, setProject: setContextProject } = useProjectContext()
-  const { screening: screeningData } = useScreening(projectId)
+  const { project: contextProject, setProject: setContextProject, workflow } = useProjectContext()
   const [project, setProject] = useState(contextProject)
 
   useEffect(() => {
@@ -144,9 +45,10 @@ function ProjectOverviewPage() {
     )
   }
 
-  const workflow = project.workflow || {}
-  const screening = screeningData || project.screening || {}
-  const nextAction = getNextAction(workflow)
+  // workflow is derived from actual entity data (passed from ProjectLayout)
+  const currentWorkflow = workflow || project.workflow || {}
+  const screening = project.screening || {}
+  const nextAction = getNextAction(currentWorkflow)
 
   // Calculate metrics
   const riskCategory = screening.category_code || 'N/A'
@@ -194,7 +96,7 @@ function ProjectOverviewPage() {
         <ProjectHeader project={project} onEdit={handleEditProject} />
 
         {/* Progress Timeline */}
-        <ProjectProgressTimeline workflow={workflow} />
+        <ProjectProgressTimeline workflow={currentWorkflow} />
       </section>
 
       {/* Main Content Grid */}

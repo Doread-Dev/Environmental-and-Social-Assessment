@@ -73,7 +73,7 @@ export const workflowStepStatuses = {
     key: 'draft',
     label: 'Draft',
     labelAr: 'مسودة',
-    color: 'bg-gray-300 dark:bg-gray-600',
+    color: 'bg-gray-400 dark:bg-gray-400',
     textColor: 'text-gray-600 dark:text-gray-300',
     isComplete: false,
   },

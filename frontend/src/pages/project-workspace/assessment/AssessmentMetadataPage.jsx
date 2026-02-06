@@ -6,9 +6,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment, useScreening, useProjectContext } from '@/hooks'
+import { useAuth } from '@/contexts'
 import { MetadataInfoSection, MetadataFormSection } from '@/components/assessment'
 import { LoadingSpinner, StickyFooter } from '@/components/ui'
-import { currentUser } from '@/data'
 
 /**
  * التحقق من صحة البيانات الوصفية
@@ -49,6 +49,7 @@ export default function AssessmentMetadataPage() {
   const { project } = useProjectContext()
   const { screening } = useScreening(projectId)
   const { assessment, isLoading, isSaving, saveMetadata } = useAssessment(projectId)
+  const { user } = useAuth()
 
   const [formData, setFormData] = useState({
     project_activity: assessment?.project_activity || '',
@@ -130,7 +131,8 @@ export default function AssessmentMetadataPage() {
       <div className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden mb-20">
         {/* Info Section */}
         <MetadataInfoSection
-          officer={currentUser}
+          officer={assessment?.officer && typeof assessment.officer === 'object' ? assessment.officer : user}
+          currentUser={user}
           project={project}
           screeningCategory={screening?.category_code}
         />

@@ -37,7 +37,7 @@ export function useScreening(projectId) {
       })
       .finally(() => {
         if (!isMounted) return
-        setIsLoading(false)
+      setIsLoading(false)
       })
 
     return () => {

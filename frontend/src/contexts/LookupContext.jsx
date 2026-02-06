@@ -291,7 +291,7 @@ export function LookupProvider({ children }) {
         ...category,
         id: category.code, // Backward compatibility
         questions: categoryQuestions.map((q, index) => ({
-          id: `${category.code}_q${index + 1}`,
+          id: q._id,
           legacyId: `${category.code}_q${index + 1}`,
           _id: q._id,
           question: q.question_text,

@@ -7,7 +7,7 @@ import {
   ProjectStatusBadge,
 } from '@/components/dashboard'
 import { useProjects } from '@/hooks'
-import { formatDateRange, formatDuration, calculateDurationMonths, calculateProjectStatus } from '@/utils'
+import { formatDateRange, formatDuration, calculateDurationMonths } from '@/utils'
 import { ROUTES, getProjectRoute } from '@/routes/routes.config'
 
 /**
@@ -38,12 +38,9 @@ function ProjectListPage() {
       )
     }
 
-    // Status filter
+    // Status filter (projectStatus is pre-computed by useProjects)
     if (statusFilter !== 'all') {
-      filtered = filtered.filter((p) => {
-        const status = calculateProjectStatus(p.workflow)
-        return status === statusFilter
-      })
+      filtered = filtered.filter((p) => p.projectStatus === statusFilter)
     }
 
     // Risk filter
@@ -274,7 +271,6 @@ function ProjectListPage() {
               </Table.Row>
             ) : (
               paginatedProjects.map((project) => {
-                const projectStatus = calculateProjectStatus(project.workflow)
                 const duration = calculateDurationMonths(project.start_date, project.end_date)
 
                 return (
@@ -322,7 +318,7 @@ function ProjectListPage() {
                       </div>
                     </Table.Cell>
                     <Table.Cell>
-                      <ProjectStatusBadge status={projectStatus} size="sm" />
+                      <ProjectStatusBadge status={project.projectStatus} size="sm" />
                     </Table.Cell>
                     <Table.Cell className="text-right">
                       <button

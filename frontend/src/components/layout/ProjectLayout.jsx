@@ -1,9 +1,10 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { Outlet, useParams, useLocation, useNavigate } from 'react-router-dom'
 import { cn } from '@/utils'
 import { projectService } from '@/services/projectService'
 import { extractErrorMessage } from '@/services/api'
 import { ROUTES } from '@/routes/routes.config'
+import { useWorkflow } from '@/hooks'
 import ProjectSidebar from './ProjectSidebar'
 import MobileMenu from './MobileMenu'
 
@@ -12,12 +13,6 @@ import MobileMenu from './MobileMenu'
  * Project workspace layout with project sidebar and content area
  * Used for all project-specific pages (Overview, Screening, Assessment, etc.)
  */
-const DEFAULT_WORKFLOW = {
-  screening: { status: 'pending', tool: 1 },
-  assessment: { status: 'pending', tool: 2 },
-  semp: { status: 'pending', tools: [3, 4] },
-  monitoring: { status: 'pending', tool: 5 },
-}
 
 function ProjectLayout() {
   const { projectId } = useParams()
@@ -28,15 +23,27 @@ function ProjectLayout() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  // Get workflow data from hook (derives from actual entities)
+  const {
+    workflow,
+    screening,
+    assessment,
+    isLoading: workflowLoading,
+  } = useWorkflow(projectId)
+
   // Check if we're on screening page and get screening status for Export button
   const isScreeningPage = location.pathname.includes('/screening')
-  const screening = null
-  const showScreeningExport = false
+  const showScreeningExport =
+    isScreeningPage &&
+    screening &&
+    (screening.status === 'submitted' || screening.status === 'approved')
 
   // Check if we're on assessment page and get assessment status for Export button
   const isAssessmentPage = location.pathname.includes('/assessment')
-  const assessment = null
-  const showAssessmentExport = false
+  const showAssessmentExport =
+    isAssessmentPage &&
+    assessment &&
+    (assessment.status === 'submitted' || assessment.status === 'approved')
 
   const isMonitoringDataEntryPage = location.pathname.includes('/monitoring/data-entry')
   const showExportButton = showScreeningExport || showAssessmentExport || isMonitoringDataEntryPage
@@ -62,16 +69,7 @@ function ProjectLayout() {
 
       try {
         const projectData = await projectService.getById(projectId)
-        setProject({
-          ...projectData,
-          workflow: DEFAULT_WORKFLOW,
-          screening: null,
-          _computed: {
-            hasManagementActivities: false,
-            hasMitigationPlans: false,
-            monitoringQuarters: { Q1: false, Q2: false, Q3: false, Q4: false },
-          },
-        })
+        setProject(projectData)
       } catch (err) {
         const errorMessage = extractErrorMessage(err)
         setError(errorMessage)
@@ -84,6 +82,17 @@ function ProjectLayout() {
 
     fetchProject()
   }, [projectId])
+
+  // Enhanced project with workflow (memoized)
+  const enhancedProject = useMemo(() => {
+    if (!project) return null
+    return {
+      ...project,
+      workflow,
+      screening,
+      assessment,
+    }
+  }, [project, workflow, screening, assessment])
 
   const handleMenuToggle = useCallback(() => {
     setIsMobileMenuOpen((prev) => !prev)
@@ -126,8 +135,8 @@ function ProjectLayout() {
     )
   }
 
-  // Loading state
-  if (isLoading) {
+  // Loading state (project loading or workflow loading)
+  if (isLoading || (project && workflowLoading)) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background dark:bg-background-dark">
         <div className="flex flex-col items-center gap-4">
@@ -141,14 +150,14 @@ function ProjectLayout() {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background dark:bg-background-dark">
       {/* Desktop Project Sidebar */}
-      <ProjectSidebar project={project} />
+      <ProjectSidebar project={enhancedProject} />
 
       {/* Mobile Menu - Project Variant */}
       <MobileMenu
         isOpen={isMobileMenuOpen}
         onClose={handleMenuClose}
         variant="project"
-        project={project}
+        project={enhancedProject}
       />
 
       {/* Main Content Area */}
@@ -220,7 +229,7 @@ function ProjectLayout() {
           )}
         >
           <div className="max-w-7xl mx-auto">
-            <Outlet context={{ project, setProject }} />
+            <Outlet context={{ project: enhancedProject, setProject, workflow }} />
           </div>
         </main>
       </div>

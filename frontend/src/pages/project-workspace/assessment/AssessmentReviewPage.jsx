@@ -7,56 +7,19 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment, useScreening, useProjectContext } from '@/hooks'
-import { useLookups } from '@/contexts'
+import { useLookups, useAuth, ROLE_LABELS, IMPACT_LEVEL_CONFIG } from '@/contexts'
 import { Button, Textarea } from '@/components/ui'
 import { cn } from '@/utils/cn'
-import { IMPACT_LEVEL_CONFIG } from '@/data/impactQuestions'
+import { formatDateRange } from '@/utils/formatters'
+import { getCategoryHighestLevel } from '@/utils/impactCalculations'
 import { assessmentMethods, consultationMethods } from '@/data'
-import { currentUser, mockUsers } from '@/data'
-
-/**
- * حساب أعلى مستوى تأثير في فئة
- * ⚠️ الخوارزمية متوافقة مع backend/documents/editPlan3.md
- *
- * القاعدة الجديدة: التأثير الإجمالي = أولوية الفئة (وليس عدد النقاط)
- * أولوية: high > medium > low > negligible > not_applicable
- * إذا وُجد أي سؤال بمستوى high، يعتبر High impact (بغض النظر عن العدد)
- */
-function getCategoryHighestLevel(scores, categoryQuestions) {
-  const categoryScore = {
-    negligible: 0,
-    low: 0,
-    medium: 0,
-    high: 0,
-    not_applicable: 0,
-  }
-
-  categoryQuestions.forEach((q) => {
-    const questionScore = scores.find((s) => s.question === q.id)
-    if (questionScore?.level && categoryScore[questionScore.level] !== undefined) {
-      categoryScore[questionScore.level]++
-    }
-  })
-
-  // المستويات المرتبة حسب الأولوية (من الأعلى إلى الأدنى)
-  const priorityLevels = ['high', 'medium', 'low', 'negligible', 'not_applicable']
-
-  // أول مستوى يجد له عدّاد > 0 هو الفائز
-  for (const level of priorityLevels) {
-    if (categoryScore[level] > 0) {
-      return level
-    }
-  }
-
-  // إذا لم يوجد أي مستوى له قيمة > 0 (حالة نادرة جداً)
-  return 'not_applicable'
-}
 
 export default function AssessmentReviewPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
   const { project } = useProjectContext()
   const { categoriesWithQuestions, isLoading: lookupsLoading } = useLookups()
+  const { user, canApprove } = useAuth()
   const { screening } = useScreening(projectId)
   const {
     assessment,
@@ -150,17 +113,14 @@ export default function AssessmentReviewPage() {
     'not applicable': 'Not applicable to this project',
   }
 
-  // Get officer info
-  const officer = useMemo(() => {
-    if (!assessment?.officer) return currentUser
-    return mockUsers.find((u) => u._id === assessment.officer) || currentUser
-  }, [assessment])
-
-  // Get approver info
-  const approver = useMemo(() => {
-    if (!assessment?.approved_by) return null
-    return mockUsers.find((u) => u._id === assessment.approved_by) || null
-  }, [assessment])
+  const officer =
+    assessment?.officer && typeof assessment.officer === 'object' ? assessment.officer : null
+  const approver =
+    assessment?.approved_by && typeof assessment.approved_by === 'object'
+      ? assessment.approved_by
+      : null
+  const rejector =
+    assessment?.reject_by && typeof assessment.reject_by === 'object' ? assessment.reject_by : null
 
   if (isLoading || lookupsLoading) {
     return (
@@ -226,7 +186,7 @@ export default function AssessmentReviewPage() {
     navigate(`/app/projects/${projectId}/semp`)
   }
 
-  const canApprove = true // TODO: Replace with actual permission check from AuthContext
+  const canApproveAssessment = canApprove && assessment?.status === 'submitted'
 
   // Status badge config
   const statusConfig = {
@@ -315,7 +275,9 @@ export default function AssessmentReviewPage() {
                 Officer Position
               </p>
               <p className="text-text-main dark:text-gray-200 text-sm font-medium">
-                {officer?.job_title?.title_name || 'N/A'}
+                {officer?.job_title?.title_name ||
+                  (officer?.role ? ROLE_LABELS[officer.role] : null) ||
+                  'N/A'}
               </p>
             </div>
             <div className="flex flex-col gap-1">
@@ -339,14 +301,9 @@ export default function AssessmentReviewPage() {
                 Activity Timeline
               </p>
               <p className="text-text-main dark:text-gray-200 text-sm font-medium">
-                {project?.start_date && project?.end_date ? (
-                  <>
-                    {project.start_date} <span className="text-text-secondary px-1">to</span>{' '}
-                    {project.end_date}
-                  </>
-                ) : (
-                  'N/A'
-                )}
+                {project?.start_date && project?.end_date
+                  ? formatDateRange(project.start_date, project.end_date)
+                  : 'N/A'}
               </p>
             </div>
             <div className="flex flex-col gap-1">
@@ -772,7 +729,11 @@ export default function AssessmentReviewPage() {
                     className="w-full bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
                     readOnly
                     type="text"
-                    value={approver.job_title?.title_name || 'N/A'}
+                    value={
+                      approver.job_title?.title_name ||
+                      (approver.role ? ROLE_LABELS[approver.role] : null) ||
+                      'N/A'
+                    }
                   />
                 </div>
               </div>
@@ -789,7 +750,7 @@ export default function AssessmentReviewPage() {
                       className="w-full bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
                       readOnly
                       type="text"
-                      value={mockUsers.find((u) => u._id === assessment.reject_by)?.name || 'N/A'}
+                      value={rejector?.name || 'N/A'}
                     />
                   </div>
                   <div className="flex flex-col gap-2">
@@ -801,8 +762,9 @@ export default function AssessmentReviewPage() {
                       readOnly
                       type="text"
                       value={
-                        mockUsers.find((u) => u._id === assessment.reject_by)?.job_title
-                          ?.title_name || 'N/A'
+                        rejector?.job_title?.title_name ||
+                        (rejector?.role ? ROLE_LABELS[rejector.role] : null) ||
+                        'N/A'
                       }
                     />
                   </div>
@@ -831,7 +793,7 @@ export default function AssessmentReviewPage() {
             )}
 
             {/* Recommendations Textarea */}
-            {assessment.status === 'submitted' && canApprove && (
+            {assessment.status === 'submitted' && canApproveAssessment && (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <div className="flex flex-col gap-2">
@@ -842,7 +804,7 @@ export default function AssessmentReviewPage() {
                       className="w-full bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
                       readOnly
                       type="text"
-                      value={currentUser.name}
+                      value={user?.name || 'N/A'}
                     />
                   </div>
                   <div className="flex flex-col gap-2">
@@ -853,7 +815,11 @@ export default function AssessmentReviewPage() {
                       className="w-full bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
                       readOnly
                       type="text"
-                      value={currentUser.job_title?.title_name || 'N/A'}
+                      value={
+                        user?.job_title?.title_name ||
+                        (user?.role ? ROLE_LABELS[user.role] : null) ||
+                        'N/A'
+                      }
                     />
                   </div>
                 </div>

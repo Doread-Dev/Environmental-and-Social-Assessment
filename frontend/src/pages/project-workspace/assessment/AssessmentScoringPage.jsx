@@ -57,7 +57,11 @@ export default function AssessmentScoringPage() {
       if (impactScores && impactScores.length > 0) {
         const scoreMap = {}
         impactScores.forEach((score) => {
-          scoreMap[score.question] = {
+          const questionId =
+            score?.question && typeof score.question === 'object'
+              ? score.question._id
+              : score.question
+          scoreMap[questionId] = {
             level: score.level,
             note: score.note || '',
           }
@@ -78,7 +82,7 @@ export default function AssessmentScoringPage() {
         setScores(defaultScores)
       }
     }
-  }, [assessment, impactScores, isLoading])
+  }, [assessment, impactScores, isLoading, categoriesWithQuestions])
 
   const handleScoreChange = (questionId, level) => {
     setScores((prev) => ({
@@ -120,13 +124,38 @@ export default function AssessmentScoringPage() {
   }, [categoriesWithQuestions])
 
   const handleSaveDraft = async () => {
-    const result = await saveImpactScoresDraft(scoresArray, negativeImpact, positiveImpact)
-    if (result.success) {
-      // Stay on the same page after saving draft
+    if (!assessment?._id) {
+      alert('Please complete and save the metadata step first.')
+      return
+    }
+    if (!allQuestionIds.length) {
+      alert('Scoring questions are still loading. Please try again.')
+      return
+    }
+
+    const finalScores = allQuestionIds.map((questionId) => {
+      const existingScore = scoresArray.find((s) => s.question === questionId)
+      if (existingScore && existingScore.level) {
+        return existingScore
+      }
+      return {
+        question: questionId,
+        level: 'not_applicable',
+        note: '',
+      }
+    })
+
+    const result = await saveImpactScoresDraft(finalScores, negativeImpact, positiveImpact)
+    if (!result.success) {
+      alert(result.error || 'Failed to save draft. Please try again.')
     }
   }
 
   const handleSubmit = async () => {
+    if (!assessment?._id) {
+      alert('Please complete and save the metadata step first.')
+      return
+    }
     // Validate potential impacts are required
     const validationErrors = {}
     if (!negativeImpact?.trim()) {
@@ -150,6 +179,11 @@ export default function AssessmentScoringPage() {
   }
 
   const handleConfirmSubmit = async () => {
+    if (!allQuestionIds.length) {
+      alert('Scoring questions are still loading. Please try again.')
+      setShowSubmitModal(false)
+      return
+    }
     // Auto-fill unanswered questions with 'not_applicable'
     const finalScores = allQuestionIds.map((questionId) => {
       const existingScore = scoresArray.find((s) => s.question === questionId)
@@ -165,10 +199,17 @@ export default function AssessmentScoringPage() {
     })
 
     const result = await saveImpactScores(finalScores, negativeImpact, positiveImpact)
-    if (result.success) {
-      // After saving, submit the assessment
-      await submitAssessment()
+    if (!result.success) {
+      alert(result.error || 'Failed to save scores. Please try again.')
+      setShowSubmitModal(false)
+      return
+    }
+
+    const submitResult = await submitAssessment()
+    if (submitResult.success) {
       navigate(`/app/projects/${projectId}/assessment/review`)
+    } else {
+      alert(submitResult.error || 'Failed to submit assessment. Please try again.')
     }
     setShowSubmitModal(false)
   }
@@ -244,7 +285,6 @@ export default function AssessmentScoringPage() {
         />
       </div>
 
-      {/* Sticky Footer */}
       {/* Sticky Footer */}
       <StickyFooter>
         <button

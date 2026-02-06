@@ -4,6 +4,7 @@
  */
 
 import { cn } from '@/utils/cn'
+import { ROLE_LABELS } from '@/contexts'
 import { formatDate } from '@/utils/formatters'
 import { Badge } from '@/components/ui'
 
@@ -15,11 +16,23 @@ import { Badge } from '@/components/ui'
  */
 export default function MetadataInfoSection({
   officer,
+  currentUser,
   project,
   screeningCategory,
   className,
   ...props
 }) {
+  const officerName = officer?.name || 'N/A'
+  const officerRoleLabel = officer?.role ? ROLE_LABELS[officer.role] : null
+  const officerPosition = officer?.job_title?.title_name || officer?.position || officerRoleLabel || 'N/A'
+
+  const currentName = currentUser?.name || 'N/A'
+  const currentRoleLabel = currentUser?.role ? ROLE_LABELS[currentUser.role] : null
+  const currentPosition =
+    currentUser?.job_title?.title_name || currentUser?.position || currentRoleLabel || 'N/A'
+
+  const showReassignHint =
+    officer?._id && currentUser?._id && officer._id !== currentUser._id
   return (
     <div
       className={cn(
@@ -34,13 +47,35 @@ export default function MetadataInfoSection({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-4 gap-x-8">
         <div>
           <p className="text-text-secondary text-xs mb-1">Officer Name</p>
-          <p className="text-text-main dark:text-white font-medium">{officer?.name || 'N/A'}</p>
+          {showReassignHint ? (
+            <div className="flex flex-col">
+              <span className="text-text-secondary line-through">{officerName}</span>
+              <span className="text-text-main dark:text-white font-medium">
+                {currentName}{' '}
+                <span className="text-text-secondary text-xs">(في حال الحفظ)</span>
+              </span>
+            </div>
+          ) : (
+            <p className="text-text-main dark:text-white font-medium">
+              {currentUser?.name || officerName}
+            </p>
+          )}
         </div>
         <div>
           <p className="text-text-secondary text-xs mb-1">Officer Position</p>
-          <p className="text-text-main dark:text-white font-medium">
-            {officer?.job_title?.title_name || officer?.position || 'N/A'}
-          </p>
+          {showReassignHint ? (
+            <div className="flex flex-col">
+              <span className="text-text-secondary line-through">{officerPosition}</span>
+              <span className="text-text-main dark:text-white font-medium">
+                {currentPosition}{' '}
+                <span className="text-text-secondary text-xs">(في حال الحفظ)</span>
+              </span>
+            </div>
+          ) : (
+            <p className="text-text-main dark:text-white font-medium">
+              {currentUser ? currentPosition : officerPosition}
+            </p>
+          )}
         </div>
         <div>
           <p className="text-text-secondary text-xs mb-1">Category</p>

@@ -98,7 +98,7 @@ function MonitoringDataTable({
               const indicatorId = item.indicator.id || item.indicator._id
 
               return (
-                <IndicatorDataRow
+              <IndicatorDataRow
                   key={indicatorId}
                 indicator={item.indicator}
                 record={item.record}
@@ -115,7 +115,7 @@ function MonitoringDataTable({
                   }
                 }}
                 isEditable={isEditable}
-                />
+              />
               )
             })}
           </tbody>

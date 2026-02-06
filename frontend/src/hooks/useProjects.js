@@ -4,20 +4,31 @@
  */
 import { useState, useEffect, useCallback } from 'react'
 import { projectService } from '@/services/projectService'
-import { screeningService } from '@/services'
+import { screeningService, assessmentService } from '@/services'
 import { extractErrorMessage } from '@/services/api'
-import { createDefaultWorkflow } from '@/utils/projectStatus'
+import { deriveWorkflowStatus, calculateProjectStatusFromWorkflow } from '@/utils/workflowDerivation'
 
-const enhanceProject = (project) => ({
-  ...project,
-  workflow: project.workflow || createDefaultWorkflow(),
-  screening: project.screening || null,
-  _computed: project._computed || {
-    hasManagementActivities: false,
-    hasMitigationPlans: false,
-    monitoringQuarters: { Q1: false, Q2: false, Q3: false, Q4: false },
-  },
-})
+/**
+ * Enhance project with derived workflow from screening and assessment
+ * For list view, we only have screening and assessment data
+ */
+const enhanceProjectWithWorkflow = (project, screening, assessment) => {
+  const workflow = deriveWorkflowStatus({
+    screening,
+    assessment,
+    managementActivities: [],
+    mitigationPlans: [],
+    monitoringRecords: [],
+  })
+
+  return {
+    ...project,
+    screening: screening || null,
+    assessment: assessment || null,
+    workflow, // Derived workflow
+    projectStatus: calculateProjectStatusFromWorkflow(workflow),
+  }
+}
 
 /**
  * Custom hook for managing projects
@@ -29,23 +40,31 @@ export function useProjects() {
   const [error, setError] = useState(null)
 
   /**
-   * Fetch all projects
+   * Fetch all projects with screenings and assessments for workflow derivation
    */
   const fetchProjects = useCallback(async () => {
     setIsLoading(true)
     setError(null)
 
     try {
-      const data = await projectService.getAll()
-      let screenings = []
+      // Fetch projects, screenings, and assessments in parallel
+      const [projectsData, screeningsResult, assessmentsResult] = await Promise.allSettled([
+        projectService.getAll(),
+        screeningService.getAll(),
+        assessmentService.getAll(),
+      ])
 
-      try {
-        screenings = await screeningService.getAll()
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.warn('Failed to load screenings for risk category:', extractErrorMessage(err))
+      if (projectsData.status === 'rejected') {
+        throw new Error(extractErrorMessage(projectsData.reason))
       }
 
+      const projects = projectsData.value
+      const screenings =
+        screeningsResult.status === 'fulfilled' ? screeningsResult.value : []
+      const assessments =
+        assessmentsResult.status === 'fulfilled' ? assessmentsResult.value : []
+
+      // Create lookup maps by project ID
       const screeningByProjectId = new Map(
         screenings.map((screening) => {
           const projectId =
@@ -54,9 +73,19 @@ export function useProjects() {
         })
       )
 
-      const merged = data.map((project) => {
-        const screening = screeningByProjectId.get(project._id) || project.screening || null
-        return enhanceProject({ ...project, screening })
+      const assessmentByProjectId = new Map(
+        assessments.map((assessment) => {
+          const projectId =
+            typeof assessment.project === 'object' ? assessment.project?._id : assessment.project
+          return [projectId, assessment]
+        })
+      )
+
+      // Merge projects with derived workflow
+      const merged = projects.map((project) => {
+        const screening = screeningByProjectId.get(project._id) || null
+        const assessment = assessmentByProjectId.get(project._id) || null
+        return enhanceProjectWithWorkflow(project, screening, assessment)
       })
 
       setProjects(merged)
@@ -85,7 +114,9 @@ export function useProjects() {
   const createProject = useCallback(async (data) => {
     try {
       const newProject = await projectService.create(data)
-      setProjects((prev) => [enhanceProject(newProject), ...prev])
+      // New project has no screening/assessment yet
+      const enhanced = enhanceProjectWithWorkflow(newProject, null, null)
+      setProjects((prev) => [enhanced, ...prev])
       return { success: true, data: newProject }
     } catch (err) {
       const errorMessage = extractErrorMessage(err)
@@ -103,7 +134,15 @@ export function useProjects() {
     try {
       const updatedProject = await projectService.update(id, data)
       setProjects((prev) =>
-        prev.map((p) => (p._id === id ? enhanceProject({ ...p, ...updatedProject }) : p))
+        prev.map((p) => {
+          if (p._id !== id) return p
+          // Preserve existing screening/assessment when updating project details
+          return enhanceProjectWithWorkflow(
+            { ...p, ...updatedProject },
+            p.screening,
+            p.assessment
+          )
+        })
       )
       return { success: true, data: updatedProject }
     } catch (err) {

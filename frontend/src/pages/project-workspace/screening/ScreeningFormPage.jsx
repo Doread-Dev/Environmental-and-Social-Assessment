@@ -6,12 +6,12 @@
  * Route: /app/projects/:projectId/screening
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Alert, StickyFooter, Modal, Button } from '@/components/ui'
+import { Alert, StickyFooter, Modal, Button, useToast } from '@/components/ui'
 import { ScreeningInfoSection, RiskCategorySelector, ImpactSection } from '@/components/screening'
 import { useScreening } from '@/hooks'
-import { getScreeningByProjectId, createEmptyScreening } from '@/data'
+import { createEmptyScreening } from '@/data'
 import { cn } from '@/utils/cn'
 
 /**
@@ -55,6 +55,7 @@ function validateScreeningForm(data) {
 function ScreeningFormPage() {
   const navigate = useNavigate()
   const { projectId } = useParams()
+  const toast = useToast()
   const {
     screening: hookScreening,
     isLoading: screeningLoading,
@@ -62,19 +63,13 @@ function ScreeningFormPage() {
     saveDraft: saveDraftScreening,
   } = useScreening(projectId)
 
-  // Load existing screening or create empty one
-  const existingScreening = hookScreening || getScreeningByProjectId(projectId)
-  const initialData = existingScreening || createEmptyScreening(projectId)
-
   // Initialize all hooks BEFORE any conditional returns
   const [formData, setFormData] = useState({
-    screeningDate: initialData.screening_date
-      ? new Date(initialData.screening_date).toISOString().split('T')[0]
-      : '',
-    categoryCode: initialData.category_code || null,
-    categoryReason: initialData.category_reason || '',
-    potentialNegative: initialData.potential_negative || '',
-    potentialPositive: initialData.potential_positive || '',
+    screeningDate: '',
+    categoryCode: null,
+    categoryReason: '',
+    potentialNegative: '',
+    potentialPositive: '',
   })
 
   const [errors, setErrors] = useState({})
@@ -82,6 +77,19 @@ function ScreeningFormPage() {
   const [isSavingDraft, setIsSavingDraft] = useState(false)
   const [submitError, setSubmitError] = useState(null)
   const [showSubmitModal, setShowSubmitModal] = useState(false)
+
+  useEffect(() => {
+    const source = hookScreening || createEmptyScreening(projectId)
+    setFormData({
+      screeningDate: source.screening_date
+        ? new Date(source.screening_date).toISOString().split('T')[0]
+        : '',
+      categoryCode: source.category_code || null,
+      categoryReason: source.category_reason || '',
+      potentialNegative: source.potential_negative || '',
+      potentialPositive: source.potential_positive || '',
+    })
+  }, [hookScreening, projectId])
 
   // Show loading state FIRST (before any redirects)
   if (screeningLoading) {
@@ -151,10 +159,9 @@ function ScreeningFormPage() {
       })
 
       if (result.success) {
-        // Show success message
-        alert('Draft saved successfully')
+        toast.success('Draft saved successfully')
       } else {
-        setSubmitError(result.error || 'Failed to save draft. Please try again.')
+        toast.error(result.error || 'Failed to save draft. Please try again.')
       }
     } catch {
       setSubmitError('Failed to save draft. Please try again.')

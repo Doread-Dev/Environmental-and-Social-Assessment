@@ -25,10 +25,27 @@ const getByProject = async (projectId) => {
   return assessment;
 };
 
-const createAssessment = async (payload) => Assessment.create(payload);
+const createAssessment = async (payload, createdBy) => {
+  const assessmentData = { ...payload };
+  if (createdBy) {
+    assessmentData.officer = createdBy;
+  }
+  return Assessment.create(assessmentData);
+};
 
-const updateAssessment = async (id, payload) => {
-  const updated = await Assessment.findByIdAndUpdate(id, payload, {
+const updateAssessment = async (id, payload, updatedBy) => {
+  // إذا كان status يتغير إلى submitted أو لم يكن officer موجوداً، نحدّث officer
+  const assessment = await Assessment.findById(id);
+  if (!assessment) throw new ApiError(404, "Assessment not found");
+  
+  const updateData = { ...payload };
+  
+  // إذا تغير status إلى submitted أو لم يكن officer موجوداً، نحدّث officer
+  if (updatedBy && (payload.status === "submitted" || !assessment.officer)) {
+    updateData.officer = updatedBy;
+  }
+  
+  const updated = await Assessment.findByIdAndUpdate(id, updateData, {
     new: true,
     runValidators: true,
   });

@@ -2,7 +2,6 @@ const Joi = require("joi");
 
 const createAssessmentSchema = Joi.object({
   project: Joi.string().required(),
-  officer: Joi.string().required(),
   project_activity: Joi.string().required(),
   description: Joi.string().required(),
   environmental_setting: Joi.string().allow("", null),
@@ -14,10 +13,11 @@ const createAssessmentSchema = Joi.object({
   status: Joi.string()
     .valid("draft", "submitted", "approved", "rejected")
     .optional(),
+  // officer is set automatically by the service, not from client (will be stripped by stripUnknown)
 });
 
 const updateAssessmentSchema = createAssessmentSchema.fork(
-  ["project", "officer", "project_activity", "description"],
+  ["project", "project_activity", "description"],
   (schema) => schema.optional()
 );
 

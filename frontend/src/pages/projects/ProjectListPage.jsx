@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Input, Button, Table, Pagination, Icon, Dropdown, Select } from '@/components/ui'
+import { Input, Button, Table, Pagination, Icon, Dropdown, Select, Alert } from '@/components/ui'
 import {
   WorkflowProgressBar,
   ScreeningCategoryBadge,
   ProjectStatusBadge,
 } from '@/components/dashboard'
-import { mockProjects, calculateProjectStatus } from '@/data'
-import { formatDateRange, formatDuration, calculateDurationMonths } from '@/utils'
+import { useProjects } from '@/hooks'
+import { formatDateRange, formatDuration, calculateDurationMonths, calculateProjectStatus } from '@/utils'
 import { ROUTES, getProjectRoute } from '@/routes/routes.config'
 
 /**
@@ -16,6 +16,7 @@ import { ROUTES, getProjectRoute } from '@/routes/routes.config'
  */
 function ProjectListPage() {
   const navigate = useNavigate()
+  const { projects, isLoading, error, fetchProjects } = useProjects()
 
   // State
   const [searchQuery, setSearchQuery] = useState('')
@@ -27,7 +28,7 @@ function ProjectListPage() {
 
   // Filter and sort projects
   const filteredAndSortedProjects = useMemo(() => {
-    let filtered = [...mockProjects]
+    let filtered = [...projects]
 
     // Search filter
     if (searchQuery.trim()) {
@@ -68,7 +69,7 @@ function ProjectListPage() {
     })
 
     return filtered
-  }, [searchQuery, statusFilter, riskFilter, sortBy])
+  }, [projects, searchQuery, statusFilter, riskFilter, sortBy])
 
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedProjects.length / itemsPerPage)
@@ -124,6 +125,28 @@ function ProjectListPage() {
     { value: '30', label: '30 per page' },
     { value: '50', label: '50 per page' },
   ]
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading projects...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col gap-4 max-w-md mx-auto mt-12">
+        <Alert variant="error">Failed to load projects: {error}</Alert>
+        <Button onClick={fetchProjects} variant="primary">
+          Try Again
+        </Button>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-8">

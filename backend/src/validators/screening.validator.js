@@ -10,6 +10,7 @@ const createScreeningSchema = Joi.object({
   recommendations: Joi.string().allow("", null),
   screening_date: Joi.date().optional(),
   status: Joi.string().valid("draft", "submitted", "approved", "rejected").optional(),
+  // officer is set automatically by the service, not from client (will be stripped by stripUnknown)
 });
 
 const updateScreeningSchema = createScreeningSchema.fork(

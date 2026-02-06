@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getScreeningByProjectId, createEmptyScreening } from '@/data'
+import { screeningService } from '@/services'
+import { extractErrorMessage } from '@/services/api'
 
 /**
  * Hook لإدارة حالة الفرز
@@ -18,12 +19,30 @@ export function useScreening(projectId) {
     setIsLoading(true)
     setError(null)
 
-    // Simulate API call
-    setTimeout(() => {
-      const existingScreening = getScreeningByProjectId(projectId)
-      setScreening(existingScreening || createEmptyScreening(projectId))
-      setIsLoading(false)
-    }, 300)
+    let isMounted = true
+
+    screeningService
+      .getByProjectId(projectId)
+      .then((data) => {
+        if (!isMounted) return
+        setScreening(data)
+      })
+      .catch((err) => {
+        if (!isMounted) return
+        if (err.response?.status === 404) {
+          setScreening(null)
+          return
+        }
+        setError(extractErrorMessage(err))
+      })
+      .finally(() => {
+        if (!isMounted) return
+        setIsLoading(false)
+      })
+
+    return () => {
+      isMounted = false
+    }
   }, [projectId])
 
   // حفظ كمسودة
@@ -31,97 +50,110 @@ export function useScreening(projectId) {
     setIsSaving(true)
     setError(null)
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      setScreening((prev) => ({
-        ...prev,
+      const payload = {
+        project: projectId,
         ...data,
         status: 'draft',
-        updatedAt: new Date().toISOString(),
-      }))
-      return { success: true }
+      }
+
+      if (!screening?._id) {
+        if (!payload.category_code || !payload.category_reason?.trim()) {
+          const message = 'Please select a category and provide justification before saving.'
+          setError(message)
+          return { success: false, error: message }
+        }
+        const created = await screeningService.create(payload)
+        setScreening(created)
+        return { success: true, data: created }
+      }
+
+      const updated = await screeningService.update(screening._id, payload)
+      setScreening(updated)
+      return { success: true, data: updated }
     } catch (err) {
-      const errorMessage = err.message || 'Failed to save draft'
+      const errorMessage = extractErrorMessage(err)
       setError(errorMessage)
       return { success: false, error: errorMessage }
     } finally {
       setIsSaving(false)
     }
-  }, [])
+  }, [projectId, screening?._id])
 
   // إرسال للموافقة
   const submit = useCallback(async (data) => {
     setIsSaving(true)
     setError(null)
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      setScreening((prev) => ({
-        ...prev,
+      const payload = {
+        project: projectId,
         ...data,
         status: 'submitted',
-        screening_date: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }))
-      return { success: true }
+      }
+
+      if (!screening?._id) {
+        const created = await screeningService.create(payload)
+        setScreening(created)
+        return { success: true, data: created }
+      }
+
+      const updated = await screeningService.update(screening._id, payload)
+      setScreening(updated)
+      return { success: true, data: updated }
     } catch (err) {
-      const errorMessage = err.message || 'Failed to submit screening'
+      const errorMessage = extractErrorMessage(err)
       setError(errorMessage)
       return { success: false, error: errorMessage }
     } finally {
       setIsSaving(false)
     }
-  }, [])
+  }, [projectId, screening?._id])
 
   // الموافقة
   const approve = useCallback(async (recommendations) => {
     setIsSaving(true)
     setError(null)
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      setScreening((prev) => ({
-        ...prev,
-        status: 'approved',
-        recommendations,
-        approved_by: 'current_user_id', // سيتم استبداله بـ AuthContext
-        updatedAt: new Date().toISOString(),
-      }))
-      return { success: true }
+      if (!screening?._id) {
+        const message = 'Screening record not found.'
+        setError(message)
+        return { success: false, error: message }
+      }
+      const updated = await screeningService.approve(screening._id, recommendations)
+      setScreening(updated)
+      return { success: true, data: updated }
     } catch (err) {
-      const errorMessage = err.message || 'Failed to approve screening'
+      const errorMessage = extractErrorMessage(err)
       setError(errorMessage)
       return { success: false, error: errorMessage }
     } finally {
       setIsSaving(false)
     }
-  }, [])
+  }, [screening?._id])
 
   // الرفض
   const reject = useCallback(async (rejectReason) => {
     setIsSaving(true)
     setError(null)
     try {
-      // Simulate API call
-      // في الواقع، سيتم إرسال: { reject_reason: rejectReason }
-      // والباك اند سيحفظ reject_by تلقائياً من req.user._id
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      setScreening((prev) => ({
-        ...prev,
-        status: 'rejected',
-        reject_reason: rejectReason || null,
-        reject_by: 'current_user_id', // سيتم استبداله بـ AuthContext
-        updatedAt: new Date().toISOString(),
-      }))
-      return { success: true }
+      if (!screening?._id) {
+        const message = 'Screening record not found.'
+        setError(message)
+        return { success: false, error: message }
+      }
+      const updated = await screeningService.reject(
+        screening._id,
+        rejectReason === undefined ? '' : rejectReason
+      )
+      setScreening(updated)
+      return { success: true, data: updated }
     } catch (err) {
-      const errorMessage = err.message || 'Failed to reject screening'
+      const errorMessage = extractErrorMessage(err)
       setError(errorMessage)
       return { success: false, error: errorMessage }
     } finally {
       setIsSaving(false)
     }
-  }, [])
+  }, [screening?._id])
 
   return {
     screening,

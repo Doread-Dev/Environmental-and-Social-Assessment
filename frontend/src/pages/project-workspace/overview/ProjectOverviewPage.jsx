@@ -7,7 +7,7 @@
  * Route: /app/projects/:projectId/overview
  */
 
-import { useMemo } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   ProjectHeader,
@@ -16,9 +16,11 @@ import {
   ProjectCTACard,
   ProjectSiteCard,
 } from '@/components/project'
-import { useProjectContext } from '@/hooks'
-import { mockProjects, getScreeningCategory } from '@/data'
+import { useProjectContext, useScreening } from '@/hooks'
+import { getScreeningCategory } from '@/data'
 import { calculateDurationMonths, formatDuration } from '@/utils/formatters'
+import { projectService } from '@/services/projectService'
+import { extractErrorMessage } from '@/services/api'
 
 /**
  * حساب الإجراء التالي بناءً على workflow
@@ -122,15 +124,15 @@ function getNextAction(workflow) {
 function ProjectOverviewPage() {
   const navigate = useNavigate()
   const { projectId } = useParams()
-  const { project: contextProject } = useProjectContext()
+  const { project: contextProject, setProject: setContextProject } = useProjectContext()
+  const { screening: screeningData } = useScreening(projectId)
+  const [project, setProject] = useState(contextProject)
 
-  // Get project data from mockProjects
-  const project = useMemo(() => {
-    if (contextProject && contextProject._id) {
-      return mockProjects.find((p) => p._id === contextProject._id) || contextProject
+  useEffect(() => {
+    if (contextProject) {
+      setProject(contextProject)
     }
-    return mockProjects.find((p) => p._id === projectId) || contextProject
-  }, [projectId, contextProject])
+  }, [contextProject])
 
   if (!project) {
     return (
@@ -143,7 +145,7 @@ function ProjectOverviewPage() {
   }
 
   const workflow = project.workflow || {}
-  const screening = project.screening || {}
+  const screening = screeningData || project.screening || {}
   const nextAction = getNextAction(workflow)
 
   // Calculate metrics
@@ -161,8 +163,19 @@ function ProjectOverviewPage() {
   const timeframe = formatDuration(durationMonths)
 
   // Handlers
-  const handleEditProject = () => {
-    // TODO: Navigate to edit project page - will open modal
+  const handleEditProject = async (updates) => {
+    if (!projectId) return { success: false, error: 'Missing project id.' }
+    try {
+      const updatedProject = await projectService.update(projectId, updates)
+      setProject((prev) => (prev ? { ...prev, ...updatedProject } : updatedProject))
+      if (setContextProject) {
+        setContextProject((prev) => (prev ? { ...prev, ...updatedProject } : updatedProject))
+      }
+      return { success: true }
+    } catch (err) {
+      const message = extractErrorMessage(err)
+      return { success: false, error: message }
+    }
   }
 
   const handleNextStep = () => {

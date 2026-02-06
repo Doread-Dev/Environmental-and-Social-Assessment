@@ -17,12 +17,14 @@ exports.getByProject = asyncHandler(async (req, res) => {
 });
 
 exports.create = asyncHandler(async (req, res) => {
-  const data = await service.createAssessment(req.body);
+  const createdBy = req.user._id;
+  const data = await service.createAssessment(req.body, createdBy);
   res.status(201).json({ success: true, data });
 });
 
 exports.update = asyncHandler(async (req, res) => {
-  const data = await service.updateAssessment(req.params.id, req.body);
+  const updatedBy = req.user._id;
+  const data = await service.updateAssessment(req.params.id, req.body, updatedBy);
   res.json({ success: true, data });
 });
 

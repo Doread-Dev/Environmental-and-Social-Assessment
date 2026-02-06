@@ -11,6 +11,7 @@ const screeningSchema = new mongoose.Schema(
     recommendations: { type: String },
     reject_reason: { type: String },
     reject_by: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    officer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     screening_date: { type: Date, default: Date.now },
     status: {
       type: String,

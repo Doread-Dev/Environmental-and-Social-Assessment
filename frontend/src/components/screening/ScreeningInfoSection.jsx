@@ -8,7 +8,7 @@
  * - تاريخ الفرز (قابل للتعديل)
  */
 
-import { currentUser } from '@/data'
+import { useAuth, ROLE_LABELS } from '@/contexts'
 import { cn } from '@/utils/cn'
 
 /**
@@ -30,9 +30,15 @@ function ScreeningInfoSection({
   className,
   ...props
 }) {
+  const { user } = useAuth()
+
   // Use current user if not provided
-  const displayName = officerName || currentUser.name
-  const displayPosition = officerPosition || currentUser.job_title?.title_name || 'Program Officer'
+  const displayName = officerName || user?.name || 'N/A'
+  const displayPosition =
+    officerPosition ||
+    user?.job_title?.title_name ||
+    (user?.role ? ROLE_LABELS[user.role] : null) ||
+    'Program Officer'
 
   return (
     <div className={cn('grid grid-cols-1 md:grid-cols-2 gap-6', className)} {...props}>

@@ -1,10 +1,24 @@
 /**
  * Mock Projects Data
- * متوافق مع backend/src/models/project.model.js
+ * ⚠️ DEPRECATED: Projects are now fetched from API
  *
- * الحقول الإضافية (icon, screening, workflow) هي للعرض في Frontend فقط
- * وستُحسب من العلاقات مع الجداول الأخرى عند التكامل مع API
+ * This file is kept for:
+ * - Reference during development
+ *
+ * Do NOT import mockProjects directly - use useProjects() hook instead.
+ *
+ * Utility functions have been moved to @/utils/projectStatus.js:
+ * - calculateProjectStatus
+ * - calculateSempStatus
+ * - calculateMonitoringStatus
  */
+
+// Re-export utility functions from shared location for backward compatibility
+export {
+  calculateProjectStatus,
+  calculateSempStatus,
+  calculateMonitoringStatus,
+} from '@/utils/projectStatus'
 export const mockProjects = [
   {
     // === الحقول الأساسية (من Backend) ===
@@ -278,63 +292,3 @@ export const mockProjects = [
     },
   },
 ]
-
-/**
- * === دوال حساب حالة Workflow ===
- */
-
-/**
- * حساب حالة SEMP (Tools 3 & 4)
- * @param {boolean} hasManagement - هل توجد سجلات ManagementActivity
- * @param {boolean} hasMitigation - هل توجد سجلات MitigationPlan
- * @returns {string} - pending | in_progress | completed
- */
-export function calculateSempStatus(hasManagement, hasMitigation) {
-  if (hasMitigation) return 'completed'
-  if (hasManagement) return 'in_progress'
-  return 'pending'
-}
-
-/**
- * حساب حالة Monitoring (Tool 5)
- * @param {Object} quarters - { Q1: bool, Q2: bool, Q3: bool, Q4: bool }
- * @returns {string} - pending | in_progress | completed
- */
-export function calculateMonitoringStatus(quarters) {
-  if (!quarters) return 'pending'
-
-  // إذا تم ملء Q4 = مكتمل
-  if (quarters.Q4) return 'completed'
-
-  // إذا تم ملء أي quarter آخر = قيد التنفيذ
-  if (quarters.Q1 || quarters.Q2 || quarters.Q3) return 'in_progress'
-
-  return 'pending'
-}
-
-/**
- * حساب حالة المشروع العامة من workflow
- * @param {Object} workflow - كائن workflow من المشروع
- * @returns {string} - حالة المشروع
- */
-export function calculateProjectStatus(workflow) {
-  // إذا كان هناك أي tool يحتاج إجراء
-  const hasNeedsAction = Object.values(workflow).some((w) => w.status === 'needs_action')
-  if (hasNeedsAction) return 'needs_action'
-
-  // إذا اكتملت جميع الأدوات
-  const allCompleted = Object.values(workflow).every(
-    (w) => w.status === 'approved' || w.status === 'completed'
-  )
-  if (allCompleted) return 'completed'
-
-  // إذا كان Monitoring قيد التنفيذ
-  if (workflow.monitoring.status === 'in_progress') return 'monitoring'
-
-  // إذا لم يبدأ Screening بعد
-  if (workflow.screening.status === 'draft' || workflow.screening.status === 'pending')
-    return 'draft'
-
-  // أي حالة أخرى = قيد التنفيذ
-  return 'in_progress'
-}

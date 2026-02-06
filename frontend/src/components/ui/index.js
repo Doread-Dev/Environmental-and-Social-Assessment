@@ -22,6 +22,7 @@ export { default as Table } from './Table'
 export { default as Modal } from './Modal'
 export { default as Tooltip } from './Tooltip'
 export { default as Dropdown } from './Dropdown'
+export { ToastProvider, useToast } from './Toast'
 
 // Navigation Components
 export { default as Breadcrumb } from './Breadcrumb'

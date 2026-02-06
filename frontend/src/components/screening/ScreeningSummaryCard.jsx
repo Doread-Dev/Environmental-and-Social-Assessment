@@ -11,6 +11,7 @@
  */
 
 import { Card, Badge, Icon } from '@/components/ui'
+import { ROLE_LABELS } from '@/contexts'
 import { getScreeningCategory, screeningStatuses } from '@/data'
 import { formatDate } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
@@ -23,6 +24,9 @@ import { cn } from '@/utils/cn'
 function ScreeningSummaryCard({ screening, project, className, ...props }) {
   if (!screening) return null
 
+  const officer =
+    screening?.officer && typeof screening.officer === 'object' ? screening.officer : null
+
   const categoryInfo = getScreeningCategory(screening.category_code)
   const statusInfo = screeningStatuses[screening.status] || screeningStatuses.draft
 
@@ -30,14 +34,16 @@ function ScreeningSummaryCard({ screening, project, className, ...props }) {
   const negativeItems =
     screening.potential_negative
       ?.split('\n')
-      .filter((line) => line.trim().startsWith('-'))
-      .map((line) => line.trim().substring(1).trim()) || []
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => line.replace(/^[-*]\s*/, '')) || []
 
   const positiveItems =
     screening.potential_positive
       ?.split('\n')
-      .filter((line) => line.trim().startsWith('-'))
-      .map((line) => line.trim().substring(1).trim()) || []
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => line.replace(/^[-*]\s*/, '')) || []
 
   return (
     <div className={cn('space-y-6', className)} {...props}>
@@ -76,8 +82,12 @@ function ScreeningSummaryCard({ screening, project, className, ...props }) {
           <p className="text-sm font-semibold text-text-secondary dark:text-gray-400 mb-2">
             Program Officer
           </p>
-          <p className="text-text-main dark:text-white">Jane Doe</p>
-          <p className="text-sm text-text-secondary dark:text-gray-400">Senior Field Officer</p>
+          <p className="text-text-main dark:text-white">{officer?.name || 'N/A'}</p>
+          <p className="text-sm text-text-secondary dark:text-gray-400">
+            {officer?.job_title?.title_name ||
+              (officer?.role ? ROLE_LABELS[officer.role] : null) ||
+              'Program Officer'}
+          </p>
         </div>
         <div>
           <p className="text-sm font-semibold text-text-secondary dark:text-gray-400 mb-2">

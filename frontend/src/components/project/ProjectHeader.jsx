@@ -16,6 +16,16 @@ import { formatDateFull } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
 import { validateProjectForm } from '@/utils/validators'
 
+const normalizeDateInput = (value) => {
+  if (!value) return ''
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value
+  }
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return date.toISOString().slice(0, 10)
+}
+
 /**
  * @param {Object} props
  * @param {Object} props.project - بيانات المشروع
@@ -49,8 +59,8 @@ function ProjectHeader({ project, showEditButton = true, onEdit, className, ...p
     setFormData({
       title: project.title || project.name || '',
       location: project.location || '',
-      startDate: startDate || '',
-      endDate: endDate || '',
+      startDate: normalizeDateInput(startDate),
+      endDate: normalizeDateInput(endDate),
       description,
     })
     setErrors({})
@@ -94,19 +104,22 @@ function ProjectHeader({ project, showEditButton = true, onEdit, className, ...p
     setIsSubmitting(true)
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 600))
-
       const payload = {
-        ...project,
-        title: formData.title,
-        location: formData.location,
+        title: formData.title.trim(),
+        location: formData.location.trim(),
         start_date: formData.startDate,
         end_date: formData.endDate,
-        project_component: formData.description,
-        updatedAt: new Date().toISOString(),
+        project_component: formData.description.trim(),
       }
 
-      onEdit?.(payload)
+      if (onEdit) {
+        const result = await onEdit(payload)
+        if (result && result.success === false) {
+          setGeneralError(result.error || 'Failed to update project.')
+          return
+        }
+      }
+
       setIsEditOpen(false)
     } catch {
       setGeneralError('An error occurred while updating the project. Please try again.')
@@ -224,7 +237,7 @@ function ProjectHeader({ project, showEditButton = true, onEdit, className, ...p
             <Input
               label="Start Date"
               type="date"
-              value={formData.startDate}
+              value={normalizeDateInput(formData.startDate)}
               onChange={handleChange('startDate')}
               error={errors.startDate}
               required
@@ -233,7 +246,7 @@ function ProjectHeader({ project, showEditButton = true, onEdit, className, ...p
             <Input
               label="End Date (Estimated)"
               type="date"
-              value={formData.endDate}
+              value={normalizeDateInput(formData.endDate)}
               onChange={handleChange('endDate')}
               error={errors.endDate}
               required

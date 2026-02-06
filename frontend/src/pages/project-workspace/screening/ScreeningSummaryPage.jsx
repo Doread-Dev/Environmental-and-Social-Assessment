@@ -9,15 +9,19 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useToast } from '@/components/ui'
 import { useProjectContext, useScreening } from '@/hooks'
-import { getScreeningWithDetails, mockProjects, getScreeningCategory } from '@/data'
+import { useAuth, ROLE_LABELS } from '@/contexts'
+import { getScreeningCategory } from '@/data'
 import { formatDateShort } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
 
 function ScreeningSummaryPage() {
   const navigate = useNavigate()
   const { projectId } = useParams()
+  const toast = useToast()
   const { project: contextProject } = useProjectContext()
+  const { canApprove } = useAuth()
   const {
     screening: hookScreening,
     isLoading: screeningLoading,
@@ -25,13 +29,9 @@ function ScreeningSummaryPage() {
     reject: rejectScreening,
   } = useScreening(projectId)
 
-  // Get screening with details
-  const screeningDetails = hookScreening ? getScreeningWithDetails(projectId) : null
+  const screening = hookScreening || null
   const project =
-    screeningDetails?.projectDetails ||
-    mockProjects.find((p) => p._id === projectId) ||
-    contextProject
-  const screening = hookScreening || screeningDetails || null
+    screening?.project && typeof screening.project === 'object' ? screening.project : contextProject
 
   // Initialize ALL hooks BEFORE any conditional returns
   const [recommendations, setRecommendations] = useState(screening?.recommendations || '')
@@ -42,8 +42,8 @@ function ScreeningSummaryPage() {
   // Handlers - must be defined before conditional returns
   const handleExport = useCallback(() => {
     // TODO: Implement Excel export
-    alert('Export functionality will be implemented in future phase')
-  }, [])
+    toast.info('Export functionality will be implemented in future phase')
+  }, [toast])
 
   const handleEdit = useCallback(() => {
     // Navigate to form with edit mode - router will show form for rejected status
@@ -57,11 +57,11 @@ function ScreeningSummaryPage() {
   const handleApprove = useCallback(async () => {
     // Validate recommendations is required
     if (!recommendations?.trim()) {
-      alert('Please enter recommendations before approving.')
+      toast.warning('Please enter recommendations before approving.')
       return
     }
     if (recommendations.trim().length < 20) {
-      alert('Recommendations must be at least 20 characters.')
+      toast.warning('Recommendations must be at least 20 characters.')
       return
     }
 
@@ -70,18 +70,16 @@ function ScreeningSummaryPage() {
       const result = await approveScreening(recommendations)
 
       if (result.success) {
-        // After approval, status becomes 'approved' - stay on summary page
-        // The useScreening hook updates the state automatically
+        toast.success('Screening approved successfully!')
       } else {
-        alert(result.error || 'Failed to approve screening. Please try again.')
+        toast.error(result.error || 'Failed to approve screening. Please try again.')
       }
-    } catch (error) {
-      console.error('Failed to approve screening:', error)
-      alert('Failed to approve screening. Please try again.')
+    } catch {
+      toast.error('Failed to approve screening. Please try again.')
     } finally {
       setIsProcessing(false)
     }
-  }, [approveScreening, recommendations])
+  }, [approveScreening, recommendations, toast])
 
   const handleRejectClick = useCallback(() => {
     setShowRejectInput(true)
@@ -95,18 +93,16 @@ function ScreeningSummaryPage() {
       if (result.success) {
         setShowRejectInput(false)
         setRejectReasonInput('')
-        // After rejection, status becomes 'rejected' - stay on summary page with edit button
-        // The useScreening hook updates the state automatically
+        toast.success('Screening rejected.')
       } else {
-        alert(result.error || 'Failed to reject screening. Please try again.')
+        toast.error(result.error || 'Failed to reject screening. Please try again.')
       }
-    } catch (error) {
-      console.error('Failed to reject screening:', error)
-      alert('Failed to reject screening. Please try again.')
+    } catch {
+      toast.error('Failed to reject screening. Please try again.')
     } finally {
       setIsProcessing(false)
     }
-  }, [rejectScreening, rejectReasonInput])
+  }, [rejectScreening, rejectReasonInput, toast])
 
   const handleCancelReject = useCallback(() => {
     setShowRejectInput(false)
@@ -129,9 +125,7 @@ function ScreeningSummaryPage() {
 
   // Update recommendations when screening changes
   useEffect(() => {
-    if (screening?.recommendations) {
-      setRecommendations(screening.recommendations)
-    }
+    setRecommendations(screening?.recommendations || '')
   }, [screening?.recommendations])
 
   // Show loading state - AFTER all hooks
@@ -168,23 +162,27 @@ function ScreeningSummaryPage() {
   const status = screening.status || 'draft'
   const categoryInfo = getScreeningCategory(screening.category_code)
 
-  // Check if user can approve (only admins/managers can approve)
-  // TODO: Replace with actual user role check from AuthContext
-  const isAdmin = true // Mock: assume user is admin for now
-  const canApprove = isAdmin && status === 'submitted'
+  const canApproveScreening = canApprove && status === 'submitted'
+
+  const officer =
+    screening?.officer && typeof screening.officer === 'object' ? screening.officer : null
+  const approvalUser =
+    status === 'approved' ? screening?.approved_by : status === 'rejected' ? screening?.reject_by : officer
 
   // Parse impacts into list items
   const negativeItems =
     screening.potential_negative
       ?.split('\n')
-      .filter((line) => line.trim().startsWith('-'))
-      .map((line) => line.trim().substring(1).trim()) || []
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => line.replace(/^[-*]\s*/, '')) || []
 
   const positiveItems =
     screening.potential_positive
       ?.split('\n')
-      .filter((line) => line.trim().startsWith('-'))
-      .map((line) => line.trim().substring(1).trim()) || []
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => line.replace(/^[-*]\s*/, '')) || []
 
   // Format screening date - لا يظهر في حالة submitted
   const screeningDateFormatted =
@@ -285,9 +283,13 @@ function ScreeningSummaryPage() {
                   </span>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-text-main dark:text-white">Jane Doe</p>
+                  <p className="text-sm font-semibold text-text-main dark:text-white">
+                    {officer?.name || 'N/A'}
+                  </p>
                   <p className="text-xs text-text-secondary dark:text-gray-400">
-                    Senior Field Officer, East Region
+                    {officer?.job_title?.title_name ||
+                      (officer?.role ? ROLE_LABELS[officer.role] : null) ||
+                      'Program Officer'}
                   </p>
                 </div>
               </div>
@@ -435,13 +437,7 @@ function ScreeningSummaryPage() {
                     className="w-full bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
                     readOnly
                     type="text"
-                    value={
-                      status === 'approved'
-                        ? screeningDetails?.approverDetails?.name || 'James Director'
-                        : status === 'rejected'
-                          ? screeningDetails?.rejectorDetails?.name || 'N/A'
-                          : ''
-                    }
+                    value={approvalUser?.name || 'N/A'}
                     disabled
                   />
                 </div>
@@ -456,12 +452,9 @@ function ScreeningSummaryPage() {
                     readOnly
                     type="text"
                     value={
-                      status === 'approved'
-                        ? screeningDetails?.approverDetails?.job_title?.title_name ||
-                          'Regional Manager'
-                        : status === 'rejected'
-                          ? screeningDetails?.rejectorDetails?.job_title?.title_name || 'N/A'
-                          : ''
+                      approvalUser?.job_title?.title_name ||
+                      (approvalUser?.role ? ROLE_LABELS[approvalUser.role] : null) ||
+                      'N/A'
                     }
                     disabled
                   />
@@ -486,7 +479,7 @@ function ScreeningSummaryPage() {
                   <div className="col-span-1 md:col-span-2">
                     <label className="block text-sm font-medium text-text-main dark:text-gray-200 mb-2">
                       Recommendations / Next Steps{' '}
-                      {status === 'submitted' && canApprove && (
+                      {status === 'submitted' && canApproveScreening && (
                         <span className="text-red-500">*</span>
                       )}
                     </label>
@@ -496,9 +489,9 @@ function ScreeningSummaryPage() {
                       rows={3}
                       value={recommendations}
                       onChange={(e) => setRecommendations(e.target.value)}
-                      disabled={status === 'approved' || status === 'rejected' || !canApprove}
+                      disabled={status === 'approved' || status === 'rejected' || !canApproveScreening}
                     />
-                    {status === 'submitted' && canApprove && (
+                    {status === 'submitted' && canApproveScreening && (
                       <p className="text-xs text-text-secondary mt-1">
                         Required: At least 20 characters to approve
                       </p>
@@ -513,7 +506,7 @@ function ScreeningSummaryPage() {
           <div className="mt-auto bg-gray-50 dark:bg-white/5 border-t border-border-default dark:border-border-dark p-8">
             <div className="flex flex-col gap-6">
               {/* Action Buttons */}
-              {status === 'submitted' && canApprove && (
+              {status === 'submitted' && canApproveScreening && (
                 <div className="flex justify-end gap-4 no-print">
                   {/* Reject Reason Input (shown when rejecting) */}
                   {showRejectInput && (

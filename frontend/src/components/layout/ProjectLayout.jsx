@@ -1,7 +1,9 @@
 import { useState, useCallback, useEffect } from 'react'
-import { Outlet, useParams, useLocation } from 'react-router-dom'
+import { Outlet, useParams, useLocation, useNavigate } from 'react-router-dom'
 import { cn } from '@/utils'
-import { mockProjects, getScreeningByProjectId, getAssessmentByProjectId } from '@/data'
+import { projectService } from '@/services/projectService'
+import { extractErrorMessage } from '@/services/api'
+import { ROUTES } from '@/routes/routes.config'
 import ProjectSidebar from './ProjectSidebar'
 import MobileMenu from './MobileMenu'
 
@@ -10,30 +12,31 @@ import MobileMenu from './MobileMenu'
  * Project workspace layout with project sidebar and content area
  * Used for all project-specific pages (Overview, Screening, Assessment, etc.)
  */
+const DEFAULT_WORKFLOW = {
+  screening: { status: 'pending', tool: 1 },
+  assessment: { status: 'pending', tool: 2 },
+  semp: { status: 'pending', tools: [3, 4] },
+  monitoring: { status: 'pending', tool: 5 },
+}
+
 function ProjectLayout() {
   const { projectId } = useParams()
   const location = useLocation()
+  const navigate = useNavigate()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [project, setProject] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   // Check if we're on screening page and get screening status for Export button
   const isScreeningPage = location.pathname.includes('/screening')
-  const screening = projectId && isScreeningPage ? getScreeningByProjectId(projectId) : null
-  const showScreeningExport =
-    isScreeningPage &&
-    (screening?.status === 'submitted' ||
-      screening?.status === 'approved' ||
-      screening?.status === 'rejected')
+  const screening = null
+  const showScreeningExport = false
 
   // Check if we're on assessment page and get assessment status for Export button
   const isAssessmentPage = location.pathname.includes('/assessment')
-  const assessment = projectId && isAssessmentPage ? getAssessmentByProjectId(projectId) : null
-  const showAssessmentExport =
-    isAssessmentPage &&
-    (assessment?.status === 'submitted' ||
-      assessment?.status === 'approved' ||
-      assessment?.status === 'rejected')
+  const assessment = null
+  const showAssessmentExport = false
 
   const isMonitoringDataEntryPage = location.pathname.includes('/monitoring/data-entry')
   const showExportButton = showScreeningExport || showAssessmentExport || isMonitoringDataEntryPage
@@ -50,34 +53,30 @@ function ProjectLayout() {
     }
   }
 
-  // Fetch project data from mockProjects
+  // Fetch project data from API
   useEffect(() => {
     const fetchProject = async () => {
+      if (!projectId) return
       setIsLoading(true)
+      setError(null)
 
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 300))
-
-      // Find project from mockProjects
-      const foundProject = mockProjects.find((p) => p._id === projectId)
-
-      if (foundProject) {
-        setProject(foundProject)
-      } else {
-        // Fallback: create minimal project object
-        console.warn('Project not found:', projectId)
+      try {
+        const projectData = await projectService.getById(projectId)
         setProject({
-          _id: projectId,
-          title: 'Unknown Project',
-          location: 'N/A',
-          status: 'draft',
-          workflow: {
-            screening: { status: 'pending', tool: 1 },
-            assessment: { status: 'pending', tool: 2 },
-            semp: { status: 'pending', tools: [3, 4] },
-            monitoring: { status: 'pending', tool: 5 },
+          ...projectData,
+          workflow: DEFAULT_WORKFLOW,
+          screening: null,
+          _computed: {
+            hasManagementActivities: false,
+            hasMitigationPlans: false,
+            monitoringQuarters: { Q1: false, Q2: false, Q3: false, Q4: false },
           },
         })
+      } catch (err) {
+        const errorMessage = extractErrorMessage(err)
+        setError(errorMessage)
+        // eslint-disable-next-line no-console
+        console.error('Failed to load project:', errorMessage)
       }
 
       setIsLoading(false)
@@ -93,6 +92,39 @@ function ProjectLayout() {
   const handleMenuClose = useCallback(() => {
     setIsMobileMenuOpen(false)
   }, [])
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background dark:bg-background-dark">
+        <div className="flex flex-col items-center gap-4 max-w-md text-center p-8">
+          <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+            <span className="material-symbols-outlined text-3xl text-red-600 dark:text-red-400">
+              error
+            </span>
+          </div>
+          <h2 className="text-xl font-bold text-text-main dark:text-white">
+            Failed to Load Project
+          </h2>
+          <p className="text-text-secondary dark:text-gray-400">{error}</p>
+          <div className="flex gap-3 mt-2">
+            <button
+              onClick={() => navigate(ROUTES.PROJECTS)}
+              className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-main dark:hover:text-white transition-colors"
+            >
+              Back to Projects
+            </button>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary-hover text-white rounded-lg transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   // Loading state
   if (isLoading) {
@@ -188,7 +220,7 @@ function ProjectLayout() {
           )}
         >
           <div className="max-w-7xl mx-auto">
-            <Outlet context={{ project }} />
+            <Outlet context={{ project, setProject }} />
           </div>
         </main>
       </div>

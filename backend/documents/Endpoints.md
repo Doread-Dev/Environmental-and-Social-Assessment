@@ -19,6 +19,14 @@
   "role": "environmental_specialist"
 }
 ```
+```json
+{
+  "name": "Admin 2",
+  "email": "admin2@example.com",
+  "password": "password123",
+  "role": "environmental_specialist"
+}
+```
 
 - في بوست مان:
   - Method: POST
@@ -192,13 +200,15 @@
 ```json
 {
   "project": "<PROJECT_ID>",
-  "officer": "<USER_ID>",
   "project_activity": "Water pipeline",
   "description": "Assess environmental impact",
   "environmental_setting": "Urban",
   "legal_requirements": "Local EIA rules"
 }
 ```
+
+**ملاحظات**:
+- `officer` يتم تعيينه تلقائياً من المستخدم الحالي (`req.user._id`) ولا يمكن تمريره من الـ client
 
 ### POST `/api/v1/assessments/:id/methods`
 

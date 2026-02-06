@@ -1,10 +1,10 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Card, Icon } from '@/components/ui'
+import { Button, Card, Icon, Alert } from '@/components/ui'
 import { MetricCard, ProjectListItem } from '@/components/dashboard'
-import { mockProjects } from '@/data'
 import { ROUTES } from '@/routes/routes.config'
-import { calculateProjectStatus } from '@/data'
+import { useProjects } from '@/hooks'
+import { calculateProjectStatus } from '@/utils'
 
 /**
  * DashboardPage - صفحة لوحة التحكم الرئيسية
@@ -12,21 +12,22 @@ import { calculateProjectStatus } from '@/data'
  */
 function DashboardPage() {
   const navigate = useNavigate()
+  const { projects, isLoading, error, fetchProjects } = useProjects()
 
   // Calculate statistics
   const stats = useMemo(() => {
-    const totalProjects = mockProjects.length
-    const inProgressProjects = mockProjects.filter((p) => {
+    const totalProjects = projects.length
+    const inProgressProjects = projects.filter((p) => {
       const status = calculateProjectStatus(p.workflow)
       return status === 'in_progress'
     }).length
 
-    const highRiskProjects = mockProjects.filter((p) => {
+    const highRiskProjects = projects.filter((p) => {
       const category = p.screening?.category_code
       return category === 'A' || category === 'B'
     }).length
 
-    const monitoringProjects = mockProjects.filter((p) => {
+    const monitoringProjects = projects.filter((p) => {
       const status = calculateProjectStatus(p.workflow)
       return status === 'monitoring'
     }).length
@@ -37,12 +38,12 @@ function DashboardPage() {
       highRiskProjects,
       monitoringProjects,
     }
-  }, [])
+  }, [projects])
 
   // Get latest 5 projects
   const latestProjects = useMemo(() => {
-    return mockProjects.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 5)
-  }, [])
+    return [...projects].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 5)
+  }, [projects])
 
   // Handlers
   const handleNewProject = () => {
@@ -55,6 +56,28 @@ function DashboardPage() {
 
   const handleProjectClick = (project) => {
     navigate(`/app/projects/${project._id}/overview`)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col gap-4 max-w-md mx-auto mt-12">
+        <Alert variant="error">Failed to load projects: {error}</Alert>
+        <Button onClick={fetchProjects} variant="primary">
+          Try Again
+        </Button>
+      </div>
+    )
   }
 
   return (

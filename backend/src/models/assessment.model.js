@@ -18,11 +18,6 @@ const assessmentSchema = new mongoose.Schema(
       ref: "Project",
       required: true,
     },
-    officer: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
     project_activity: { type: String, required: true },
     description: { type: String, required: true },
     environmental_setting: { type: String },
@@ -41,6 +36,7 @@ const assessmentSchema = new mongoose.Schema(
     recommendations: { type: String },
     reject_reason: { type: String },
     reject_by: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    officer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     status: {
       type: String,
       enum: ["draft", "submitted", "approved", "rejected"],

@@ -188,7 +188,8 @@ backend/
 ├───────────────┤      ├────────────────┤   ├────────────────────┤   ├────────────────────┤
 │ _id PK        │      │ _id PK         │   │ _id PK             │   │ _id PK             │
 │ project FK    │      │ project FK     │   │ project FK         │   │ project FK         │
-│ category_code │      │ officer FK     │   │ indicator FK       │   │ serial_number      │
+│ officer FK    │      │ officer FK     │   │ indicator FK       │   │ serial_number      │
+│ category_code │      │ project_activity│  │ scores (object)    │   │ activity_description│
 │ category_reason│     │ project_activity│  │ scores (object)    │   │ activity_description│
 │ potential_negative│   │ description   │   │   baseline, Q1-Q4  │   │ potential_impact   │
 │ potential_positive│   │ environmental_setting│ total (String) │   │ recommended_actions│
@@ -308,8 +309,11 @@ ImpactCategory; JobTitle for User; AnnexItem (lookup).
 
 ```
 Entities: Project + Screening
-Lookups: User (for approved_by)
+Lookups: User (for officer, approved_by)
 ```
+
+**ملاحظات**:
+- `officer` يتم تعيينه تلقائياً من المستخدم الحالي (`req.user._id`) عند الإنشاء أو التحديث (عند تغيير status إلى "submitted")
 
 ### Tool 2: Assessment (التقييم التفصيلي)
 
@@ -317,6 +321,10 @@ Lookups: User (for approved_by)
 Entities: Assessment + AssessmentMethod + CommunityConsultation + AssessmentImpactScore
 Lookups: ImpactCategory + ImpactQuestion + User (for officer, approved_by)
 ```
+
+**ملاحظات**:
+- `officer` يتم تعيينه تلقائياً من المستخدم الحالي (`req.user._id`) عند الإنشاء أو التحديث (عند تغيير status إلى "submitted")
+- `officer` لا يمكن تمريره من الـ client (يتم تجاهله)
 
 ### Tool 3: Management Activities (إجراءات الإدارة)
 
@@ -415,7 +423,7 @@ Lookups: User (for responsible in SEMP_Action)
 - **Lookups**:
   - `ImpactCategory` (للمحاور A-H)
   - `ImpactQuestion` (الأسئلة لكل محور)
-  - `User` (officer, approved_by)
+  - `User` (officer - يتم تعيينه تلقائياً, approved_by)
 
 #### المحاور الثمانية (ImpactCategory)
 
@@ -810,6 +818,7 @@ const screeningSchema = new mongoose.Schema(
     recommendations: { type: String },
     reject_reason: { type: String },
     reject_by: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    officer: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // يتم تعيينه تلقائياً من req.user._id
     screening_date: { type: Date, default: Date.now },
     status: {
       type: String,
@@ -848,7 +857,8 @@ const assessmentSchema = new mongoose.Schema(
     officer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      // يتم تعيينه تلقائياً من req.user._id عند الإنشاء أو التحديث (عند تغيير status إلى "submitted")
+      // لا يمكن تمريره من الـ client (يتم تجاهله)
     },
     project_activity: { type: String, required: true },
     description: { type: String, required: true },

@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Breadcrumb, Card, Input, Textarea, Button, Alert, Icon } from '@/components/ui'
 import { validateProjectForm } from '@/utils/validators'
-import { ROUTES } from '@/routes/routes.config'
+import { projectService } from '@/services/projectService'
+import { extractErrorMessage } from '@/services/api'
+import { ROUTES, getProjectRoute } from '@/routes/routes.config'
 
 /**
  * ProjectCreatePage - صفحة إنشاء مشروع جديد
@@ -60,19 +62,22 @@ function ProjectCreatePage() {
     setIsSubmitting(true)
 
     try {
-      // Mock API call - في الإنتاج سيتم استدعاء API
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const projectData = {
+        title: formData.title.trim(),
+        location: formData.location.trim(),
+        start_date: formData.startDate,
+        end_date: formData.endDate,
+        project_component: formData.description.trim(),
+      }
 
-      // Mock: إنشاء مشروع جديد (في الإنتاج سيتم استخدام API)
-      const _newProjectId = `new-${Date.now()}`
+      const newProject = await projectService.create(projectData)
 
-      // Navigate to project overview (في الإنتاج سيتم استخدام ID الحقيقي من API)
-      // navigate(getProjectRoute(_newProjectId, ROUTES.PROJECT_OVERVIEW))
-
-      // For now, navigate to projects list
-      navigate(ROUTES.PROJECTS)
-    } catch {
-      setGeneralError('An error occurred while creating the project. Please try again.')
+      navigate(getProjectRoute(newProject._id, ROUTES.PROJECT_OVERVIEW))
+    } catch (err) {
+      const errorMessage = extractErrorMessage(err)
+      setGeneralError(
+        errorMessage || 'An error occurred while creating the project. Please try again.'
+      )
     } finally {
       setIsSubmitting(false)
     }

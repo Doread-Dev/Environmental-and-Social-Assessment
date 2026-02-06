@@ -13,6 +13,7 @@ import IndicatorDataRow from '@/components/monitoring/IndicatorDataRow'
  * @param {boolean} [props.isEditable] - قابل للتعديل
  * @param {string} [props.categoryCode] - كود الفئة
  * @param {string} [props.categoryName] - اسم الفئة
+ * @param {Array} [props.users] - قائمة المستخدمين للعمود Responsibility
  */
 function MonitoringDataTable({
   data = [],
@@ -21,6 +22,7 @@ function MonitoringDataTable({
   isEditable = true,
   categoryCode,
   categoryName,
+  users = [],
 }) {
   if (data.length === 0) {
     return (
@@ -88,6 +90,9 @@ function MonitoringDataTable({
               <th className="px-3 py-3 text-center text-xs font-bold text-text-main dark:text-white uppercase tracking-wider min-w-[160px]">
                 Ranking
               </th>
+              <th className="px-3 py-3 text-center text-xs font-bold text-text-main dark:text-white uppercase tracking-wider min-w-[160px]">
+                Responsibility
+              </th>
               <th className="px-3 py-3 text-left text-xs font-bold text-text-main dark:text-white uppercase tracking-wider min-w-[180px]">
                 Note
               </th>
@@ -95,7 +100,8 @@ function MonitoringDataTable({
           </thead>
           <tbody>
             {data.map((item, index) => {
-              const indicatorId = item.indicator.id || item.indicator._id
+              // Use _id (MongoDB ObjectId) as primary, fallback to id for compatibility
+              const indicatorId = item.indicator._id || item.indicator.id
 
               return (
               <IndicatorDataRow
@@ -115,6 +121,7 @@ function MonitoringDataTable({
                   }
                 }}
                 isEditable={isEditable}
+                users={users}
               />
               )
             })}

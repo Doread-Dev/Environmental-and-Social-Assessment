@@ -15,7 +15,7 @@ const createMonitoringSchema = Joi.object({
   ranking: Joi.string()
     .valid("negligible", "low", "medium", "high", "not_applicable")
     .optional(),
-  responsible: Joi.string().optional(),
+  responsible: Joi.string().allow(null, "").optional(),
   note: Joi.string().allow("", null),
 });
 

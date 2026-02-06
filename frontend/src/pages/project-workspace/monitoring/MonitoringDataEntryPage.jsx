@@ -12,6 +12,7 @@ import { MonitoringDataTable } from '@/components/tables'
 import { Alert } from '@/components/ui'
 import { impactLevels } from '@/data/impactCategories'
 import { cn } from '@/utils/cn'
+import { userService } from '@/services'
 
 export default function MonitoringDataEntryPage() {
   const { projectId } = useParams()
@@ -20,6 +21,7 @@ export default function MonitoringDataEntryPage() {
   const categoryParam = searchParams.get('category')
   const { impactCategories, isLoading: lookupsLoading } = useLookups()
   const { assessment, isLoading: isAssessmentLoading } = useAssessment(projectId)
+  const [users, setUsers] = useState([])
   const isApproved = assessment?.status === 'approved'
   const isLocked = !isApproved
 
@@ -69,6 +71,31 @@ export default function MonitoringDataEntryPage() {
       className: 'bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400',
     },
   }
+
+  // Load users for Responsibility column
+  useEffect(() => {
+    let cancelled = false
+
+    const loadUsers = async () => {
+      try {
+        const activeUsers = await userService.getActive()
+        if (!cancelled) {
+          setUsers(activeUsers)
+        }
+      } catch (e) {
+        // في حال الفشل، نبقي الجدول يعمل بدون القائمة (لن يؤثر على الحفظ)
+        if (!cancelled) {
+          setUsers([])
+        }
+      }
+    }
+
+    loadUsers()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   // Auto-expand category from URL
   useEffect(() => {
@@ -313,6 +340,7 @@ export default function MonitoringDataEntryPage() {
                           setJustSaved(false)
                         }}
                         isEditable={true}
+                        users={users}
                       />
                     </div>
                   </div>

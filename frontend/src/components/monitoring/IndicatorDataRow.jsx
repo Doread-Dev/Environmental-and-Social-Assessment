@@ -4,6 +4,7 @@
  */
 
 import RankingSelect from './RankingSelect'
+import ResponsibleSelect from '@/components/semp/ResponsibleSelect'
 
 /**
  * @param {Object} props
@@ -14,6 +15,7 @@ import RankingSelect from './RankingSelect'
  * @param {Function} props.onUpdateScore - تحديث قيمة ربع سنوية (quarter, value) => void
  * @param {Function} props.onUpdateField - تحديث حقل (field, value) => void
  * @param {boolean} [props.isEditable] - قابل للتعديل
+ * @param {Array} [props.users] - قائمة المستخدمين للعمود Responsibility
  */
 function IndicatorDataRow({
   indicator,
@@ -23,6 +25,7 @@ function IndicatorDataRow({
   onUpdateScore,
   onUpdateField,
   isEditable = true,
+  users = [],
 }) {
   const quarters = ['baseline', 'Q1', 'Q2', 'Q3', 'Q4']
 
@@ -121,6 +124,17 @@ function IndicatorDataRow({
             {record.ranking || 'N/A'}
           </span>
         )}
+      </td>
+
+      {/* Responsibility */}
+      <td className="px-3 py-3 min-w-[160px]">
+        <ResponsibleSelect
+          value={record.responsible}
+          onChange={(value) => handleFieldChange('responsible', value)}
+          users={users}
+          readOnly={!isEditable}
+          className="w-full"
+        />
       </td>
 
       {/* Note */}

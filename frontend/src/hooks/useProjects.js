@@ -4,27 +4,28 @@
  */
 import { useState, useEffect, useCallback } from 'react'
 import { projectService } from '@/services/projectService'
-import { screeningService, assessmentService, sempService } from '@/services'
+import { screeningService, assessmentService, sempService, monitoringService } from '@/services'
 import { extractErrorMessage } from '@/services/api'
 import { deriveWorkflowStatus, calculateProjectStatusFromWorkflow } from '@/utils/workflowDerivation'
 
 /**
- * Enhance project with derived workflow from screening, assessment, and SEMP
- * For list view, we fetch screening, assessment, and SEMP data
+ * Enhance project with derived workflow from screening, assessment, SEMP, and monitoring
+ * For list view, we fetch screening, assessment, SEMP, and monitoring data
  */
 const enhanceProjectWithWorkflow = (
   project,
   screening,
   assessment,
   managementActivities = [],
-  mitigationPlans = []
+  mitigationPlans = [],
+  monitoringRecords = []
 ) => {
   const workflow = deriveWorkflowStatus({
     screening,
     assessment,
     managementActivities,
     mitigationPlans,
-    monitoringRecords: [],
+    monitoringRecords,
   })
 
   return {
@@ -87,39 +88,44 @@ export function useProjects() {
         })
       )
 
-      // Fetch SEMP data for all projects in parallel
-      const sempPromises = projects.map(async (project) => {
+      // Fetch SEMP and Monitoring data for all projects in parallel
+      const workflowPromises = projects.map(async (project) => {
         try {
-          const [activities, plans] = await Promise.allSettled([
+          const [activities, plans, monitoring] = await Promise.allSettled([
             sempService.getManagementActivities(project._id),
             sempService.getMitigationPlans(project._id),
+            monitoringService.getByProject(project._id),
           ])
           return {
             projectId: project._id,
             activities:
               activities.status === 'fulfilled' ? activities.value : [],
             plans: plans.status === 'fulfilled' ? plans.value : [],
+            monitoring: monitoring.status === 'fulfilled' ? monitoring.value : [],
           }
         } catch {
           return {
             projectId: project._id,
             activities: [],
             plans: [],
+            monitoring: [],
           }
         }
       })
 
-      const sempDataResults = await Promise.allSettled(sempPromises)
+      const workflowDataResults = await Promise.allSettled(workflowPromises)
 
-      // Group SEMP data by project ID
+      // Group workflow data by project ID
       const managementActivitiesByProjectId = new Map()
       const mitigationPlansByProjectId = new Map()
+      const monitoringRecordsByProjectId = new Map()
 
-      sempDataResults.forEach((result) => {
+      workflowDataResults.forEach((result) => {
         if (result.status === 'fulfilled') {
-          const { projectId, activities, plans } = result.value
+          const { projectId, activities, plans, monitoring } = result.value
           managementActivitiesByProjectId.set(projectId, activities)
           mitigationPlansByProjectId.set(projectId, plans)
+          monitoringRecordsByProjectId.set(projectId, monitoring)
         }
       })
 
@@ -129,7 +135,8 @@ export function useProjects() {
         const assessment = assessmentByProjectId.get(project._id) || null
         const activities = managementActivitiesByProjectId.get(project._id) || []
         const plans = mitigationPlansByProjectId.get(project._id) || []
-        return enhanceProjectWithWorkflow(project, screening, assessment, activities, plans)
+        const monitoring = monitoringRecordsByProjectId.get(project._id) || []
+        return enhanceProjectWithWorkflow(project, screening, assessment, activities, plans, monitoring)
       })
 
       setProjects(merged)
@@ -151,6 +158,20 @@ export function useProjects() {
   }, [fetchProjects])
 
   /**
+   * Listen for monitoring data updates and refetch projects
+   */
+  useEffect(() => {
+    const handleMonitoringUpdate = () => {
+      fetchProjects()
+    }
+
+    window.addEventListener('monitoring-data-updated', handleMonitoringUpdate)
+    return () => {
+      window.removeEventListener('monitoring-data-updated', handleMonitoringUpdate)
+    }
+  }, [fetchProjects])
+
+  /**
    * Create a new project
    * @param {Object} data - Project data
    * @returns {Promise<{success: boolean, data?: Object, error?: string}>}
@@ -158,8 +179,8 @@ export function useProjects() {
   const createProject = useCallback(async (data) => {
     try {
       const newProject = await projectService.create(data)
-      // New project has no screening/assessment yet
-      const enhanced = enhanceProjectWithWorkflow(newProject, null, null)
+      // New project has no screening/assessment/SEMP/monitoring yet
+      const enhanced = enhanceProjectWithWorkflow(newProject, null, null, [], [], [])
       setProjects((prev) => [enhanced, ...prev])
       return { success: true, data: newProject }
     } catch (err) {
@@ -180,11 +201,17 @@ export function useProjects() {
       setProjects((prev) =>
         prev.map((p) => {
           if (p._id !== id) return p
-          // Preserve existing screening/assessment when updating project details
+          // Preserve existing workflow data when updating project details
+          const activities = p.workflow?.semp?.managementActivities || []
+          const plans = p.workflow?.semp?.mitigationPlans || []
+          const monitoring = p.workflow?.monitoring?.records || []
           return enhanceProjectWithWorkflow(
             { ...p, ...updatedProject },
             p.screening,
-            p.assessment
+            p.assessment,
+            activities,
+            plans,
+            monitoring
           )
         })
       )

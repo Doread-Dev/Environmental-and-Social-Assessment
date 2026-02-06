@@ -19,7 +19,12 @@ const getByProject = async (projectId) =>
     "project indicator responsible"
   );
 
-const createRecord = async (payload) => MonitoringRecord.create(payload);
+const createRecord = async (payload) => {
+  const record = await MonitoringRecord.create(payload);
+  // Populate relations before returning (consistent with other methods)
+  await record.populate("project indicator responsible");
+  return record;
+};
 
 const updateRecord = async (id, payload) => {
   const updated = await MonitoringRecord.findByIdAndUpdate(id, payload, {
@@ -27,6 +32,9 @@ const updateRecord = async (id, payload) => {
     runValidators: true,
   });
   if (!updated) throw new ApiError(404, "Monitoring record not found");
+  
+  // Populate relations before returning (consistent with other methods)
+  await updated.populate("project indicator responsible");
   return updated;
 };
 
@@ -44,6 +52,9 @@ const updateQuarter = async (id, quarterKey, value) => {
   // لا يتم حساب total تلقائياً - سيتم إرساله من الفرونت
 
   await record.save();
+  
+  // Populate relations before returning (consistent with other methods)
+  await record.populate("project indicator responsible");
   return record;
 };
 

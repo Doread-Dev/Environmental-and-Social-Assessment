@@ -110,19 +110,20 @@ export function deriveMonitoringStatus(monitoringRecords, sempStatus) {
     return { status: WORKFLOW_STATUS.PENDING, tool: 5 }
   }
 
-  // Check if all quarters are filled for all records
+  // Check if any record has quarterly data
   const hasQuarterlyData = monitoringRecords.some((record) => {
     const scores = record.scores || {}
     return scores.Q1 || scores.Q2 || scores.Q3 || scores.Q4
   })
 
-  // Check if all quarters are complete
-  const allQuartersComplete = monitoringRecords.every((record) => {
+  // Check if at least one record has all quarters complete
+  // Monitoring is considered completed if even one record has all quarters filled
+  const atLeastOneRecordComplete = monitoringRecords.some((record) => {
     const scores = record.scores || {}
     return scores.Q1 && scores.Q2 && scores.Q3 && scores.Q4
   })
 
-  if (allQuartersComplete && monitoringRecords.length > 0) {
+  if (atLeastOneRecordComplete) {
     return { status: WORKFLOW_STATUS.COMPLETED, tool: 5 }
   }
 

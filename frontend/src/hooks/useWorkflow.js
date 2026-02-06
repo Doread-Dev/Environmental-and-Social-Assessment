@@ -72,34 +72,47 @@ export function useWorkflow(projectId) {
     }
   }, [projectId])
 
-  // Fetch monitoring data
-  useEffect(() => {
+  // Function to fetch monitoring data
+  const fetchMonitoringData = useCallback(() => {
     if (!projectId) {
       setMonitoringLoading(false)
       return
     }
 
-    let isMounted = true
     setMonitoringLoading(true)
 
     api
       .get(`/monitoring/project/${projectId}`)
       .then((response) => {
-        if (!isMounted) return
         setMonitoringRecords(response.data.data || [])
       })
       .catch(() => {
-        if (!isMounted) return
         setMonitoringRecords([])
       })
       .finally(() => {
-        if (isMounted) setMonitoringLoading(false)
+        setMonitoringLoading(false)
       })
-
-    return () => {
-      isMounted = false
-    }
   }, [projectId])
+
+  // Fetch monitoring data on mount and when projectId changes
+  useEffect(() => {
+    fetchMonitoringData()
+  }, [fetchMonitoringData])
+
+  // Listen for monitoring data updates (after save)
+  useEffect(() => {
+    const handleMonitoringUpdate = (event) => {
+      const updatedProjectId = event.detail?.projectId
+      if (updatedProjectId === projectId) {
+        fetchMonitoringData()
+      }
+    }
+
+    window.addEventListener('monitoring-data-updated', handleMonitoringUpdate)
+    return () => {
+      window.removeEventListener('monitoring-data-updated', handleMonitoringUpdate)
+    }
+  }, [projectId, fetchMonitoringData])
 
   // Compute derived workflow
   const workflow = useMemo(() => {

@@ -71,14 +71,26 @@ export function deriveSempStatus(managementActivities, mitigationPlans, assessme
   const hasActivities = Array.isArray(managementActivities) && managementActivities.length > 0
   const hasPlans = Array.isArray(mitigationPlans) && mitigationPlans.length > 0
 
-  if (hasActivities && hasPlans) {
+  // Check if activities are completed (all have activity_description)
+  const activitiesCompleted =
+    hasActivities &&
+    managementActivities.every((activity) => activity.activity_description?.trim())
+
+  // Check if plans are completed (all have output_description)
+  const plansCompleted =
+    hasPlans && mitigationPlans.every((plan) => plan.output_description?.trim())
+
+  // Both tools completed
+  if (activitiesCompleted && plansCompleted) {
     return { status: WORKFLOW_STATUS.COMPLETED, tools: [3, 4] }
   }
 
+  // At least one tool has data (in progress)
   if (hasActivities || hasPlans) {
     return { status: WORKFLOW_STATUS.IN_PROGRESS, tools: [3, 4] }
   }
 
+  // No data yet
   return { status: WORKFLOW_STATUS.PENDING, tools: [3, 4] }
 }
 

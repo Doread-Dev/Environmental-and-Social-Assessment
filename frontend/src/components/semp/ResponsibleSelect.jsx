@@ -11,32 +11,53 @@ export default function ResponsibleSelect({
   onChange,
   users = mockUsers,
   readOnly = false,
+  className,
 }) {
-  const selectedUser = users.find((u) => u._id === value)
+  // Handle both object (populated from API) and string ID
+  const responsibleId = typeof value === 'object' && value !== null ? value._id : value
+  const selectedUser = users.find((u) => u._id === responsibleId)
 
   return (
-    <div className="h-full flex items-center px-2 py-2">
+    <div className={cn('h-full flex items-center relative', className)}>
       {readOnly ? (
-        <span className="text-sm text-text-main dark:text-white">
+        <span className="text-sm text-text-main dark:text-white px-2 py-1">
           {selectedUser ? selectedUser.name : '-'}
         </span>
       ) : (
-        <select
-          value={value || ''}
-          onChange={(e) => onChange(e.target.value || null)}
-          className={cn(
-            'w-full bg-transparent border-none outline-none',
-            'text-sm text-text-main dark:text-white',
-            'focus:ring-0 cursor-pointer'
-          )}
-        >
-          <option value="">Select...</option>
-          {users.map((user) => (
-            <option key={user._id} value={user._id}>
-              {user.name}
+        <div className="relative w-full h-full group">
+          <select
+            value={responsibleId || ''}
+            onChange={(e) => onChange(e.target.value || null)}
+            className={cn(
+              'w-full h-full px-2 py-1 pr-7',
+              'bg-transparent dark:bg-transparent',
+              'border border-transparent rounded',
+              'text-sm text-text-main dark:text-white',
+              'appearance-none cursor-pointer',
+              'transition-all duration-150',
+              'hover:bg-gray-50/50 dark:hover:bg-white/5',
+              'focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50',
+              'focus:bg-white dark:focus:bg-surface-dark'
+            )}
+          >
+            <option value="" className="text-text-secondary dark:text-gray-400">
+              Select...
             </option>
-          ))}
-        </select>
+            {users.map((user) => (
+              <option
+                key={user._id}
+                value={user._id}
+                className="bg-white dark:bg-surface-dark text-text-main dark:text-white"
+              >
+                {user.name}
+              </option>
+            ))}
+          </select>
+          {/* Dropdown arrow icon */}
+          <span className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted dark:text-gray-500 opacity-60 group-hover:opacity-100 transition-opacity">
+            <span className="material-symbols-outlined text-lg">expand_more</span>
+          </span>
+        </div>
       )}
     </div>
   )

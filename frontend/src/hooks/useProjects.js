@@ -4,20 +4,26 @@
  */
 import { useState, useEffect, useCallback } from 'react'
 import { projectService } from '@/services/projectService'
-import { screeningService, assessmentService } from '@/services'
+import { screeningService, assessmentService, sempService } from '@/services'
 import { extractErrorMessage } from '@/services/api'
 import { deriveWorkflowStatus, calculateProjectStatusFromWorkflow } from '@/utils/workflowDerivation'
 
 /**
- * Enhance project with derived workflow from screening and assessment
- * For list view, we only have screening and assessment data
+ * Enhance project with derived workflow from screening, assessment, and SEMP
+ * For list view, we fetch screening, assessment, and SEMP data
  */
-const enhanceProjectWithWorkflow = (project, screening, assessment) => {
+const enhanceProjectWithWorkflow = (
+  project,
+  screening,
+  assessment,
+  managementActivities = [],
+  mitigationPlans = []
+) => {
   const workflow = deriveWorkflowStatus({
     screening,
     assessment,
-    managementActivities: [],
-    mitigationPlans: [],
+    managementActivities,
+    mitigationPlans,
     monitoringRecords: [],
   })
 
@@ -40,14 +46,14 @@ export function useProjects() {
   const [error, setError] = useState(null)
 
   /**
-   * Fetch all projects with screenings and assessments for workflow derivation
+   * Fetch all projects with screenings, assessments, and SEMP data for workflow derivation
    */
   const fetchProjects = useCallback(async () => {
     setIsLoading(true)
     setError(null)
 
     try {
-      // Fetch projects, screenings, and assessments in parallel
+      // Fetch projects, screenings, and assessments first
       const [projectsData, screeningsResult, assessmentsResult] = await Promise.allSettled([
         projectService.getAll(),
         screeningService.getAll(),
@@ -81,11 +87,49 @@ export function useProjects() {
         })
       )
 
+      // Fetch SEMP data for all projects in parallel
+      const sempPromises = projects.map(async (project) => {
+        try {
+          const [activities, plans] = await Promise.allSettled([
+            sempService.getManagementActivities(project._id),
+            sempService.getMitigationPlans(project._id),
+          ])
+          return {
+            projectId: project._id,
+            activities:
+              activities.status === 'fulfilled' ? activities.value : [],
+            plans: plans.status === 'fulfilled' ? plans.value : [],
+          }
+        } catch {
+          return {
+            projectId: project._id,
+            activities: [],
+            plans: [],
+          }
+        }
+      })
+
+      const sempDataResults = await Promise.allSettled(sempPromises)
+
+      // Group SEMP data by project ID
+      const managementActivitiesByProjectId = new Map()
+      const mitigationPlansByProjectId = new Map()
+
+      sempDataResults.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          const { projectId, activities, plans } = result.value
+          managementActivitiesByProjectId.set(projectId, activities)
+          mitigationPlansByProjectId.set(projectId, plans)
+        }
+      })
+
       // Merge projects with derived workflow
       const merged = projects.map((project) => {
         const screening = screeningByProjectId.get(project._id) || null
         const assessment = assessmentByProjectId.get(project._id) || null
-        return enhanceProjectWithWorkflow(project, screening, assessment)
+        const activities = managementActivitiesByProjectId.get(project._id) || []
+        const plans = mitigationPlansByProjectId.get(project._id) || []
+        return enhanceProjectWithWorkflow(project, screening, assessment, activities, plans)
       })
 
       setProjects(merged)

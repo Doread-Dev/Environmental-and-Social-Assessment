@@ -16,7 +16,7 @@ import {
   ProjectCTACard,
   ProjectSiteCard,
 } from '@/components/project'
-import { useProjectContext } from '@/hooks'
+import { useProjectContext, useSemp } from '@/hooks'
 import { getScreeningCategory } from '@/data'
 import { calculateDurationMonths, formatDuration } from '@/utils/formatters'
 import { getNextAction } from '@/utils/workflowDerivation'
@@ -28,6 +28,9 @@ function ProjectOverviewPage() {
   const { projectId } = useParams()
   const { project: contextProject, setProject: setContextProject, workflow } = useProjectContext()
   const [project, setProject] = useState(contextProject)
+  
+  // Get Management Activities count from SEMP hook
+  const { managementActivities, isLoading: sempLoading } = useSemp(projectId)
 
   useEffect(() => {
     if (contextProject) {
@@ -56,8 +59,8 @@ function ProjectOverviewPage() {
   const riskLabel = riskCategoryInfo ? `Category ${riskCategory}` : 'Not Assigned'
   const riskSubtitle = riskCategoryInfo ? riskCategoryInfo.label : ''
 
-  // Mock activities count (في الإنتاج سيأتي من API)
-  const activitiesCount = 4
+  // Get actual activities count from Tool 3 (Management Activities)
+  const activitiesCount = Array.isArray(managementActivities) ? managementActivities.length : 0
   const activitiesSubtitle = 'From Tool 3'
 
   // Calculate duration

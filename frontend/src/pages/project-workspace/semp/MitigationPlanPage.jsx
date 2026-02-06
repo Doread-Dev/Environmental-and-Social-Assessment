@@ -8,6 +8,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useSemp } from '@/hooks/useSemp'
 import { MitigationPlanTable } from '@/components/semp'
 import { cn } from '@/utils/cn'
+import { userService } from '@/services'
 
 export default function MitigationPlanPage() {
   const { projectId } = useParams()
@@ -26,6 +27,36 @@ export default function MitigationPlanPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [justSaved, setJustSaved] = useState(false)
   const hasInitialized = useRef(false)
+  const [users, setUsers] = useState([])
+  const [isUsersLoading, setIsUsersLoading] = useState(true)
+
+  // Load users for Responsibility column
+  useEffect(() => {
+    let cancelled = false
+
+    const loadUsers = async () => {
+      try {
+        const activeUsers = await userService.getActive()
+        if (!cancelled) {
+          setUsers(activeUsers)
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setUsers([])
+        }
+      } finally {
+        if (!cancelled) {
+          setIsUsersLoading(false)
+        }
+      }
+    }
+
+    loadUsers()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   // Auto-create first row if empty on load
   useEffect(() => {
@@ -151,6 +182,7 @@ export default function MitigationPlanPage() {
       <div className="px-4 md:px-10 pb-10 pt-4 w-full flex-1 flex flex-col overflow-hidden relative">
         <MitigationPlanTable
           plans={mitigationPlans}
+          users={users}
           onUpdate={handleUpdate}
           onDelete={handleDelete}
           onAddRow={handleAddRow}

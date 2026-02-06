@@ -17,7 +17,7 @@ export { userService } from './userService'
 // Service modules (uncomment as implemented)
 export { screeningService } from './screeningService'
 export { assessmentService } from './assessmentService'
-// export { sempService } from './sempService'
+export { sempService } from './sempService'
 // export { monitoringService } from './monitoringService'
 // export { fileService } from './fileService'
 // export { reportService } from './reportService'

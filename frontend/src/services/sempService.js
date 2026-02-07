@@ -18,8 +18,23 @@ export const sempService = {
    * @returns {Promise<Array>} Array of management activities
    */
   async getManagementActivities(projectId) {
-    const response = await api.get(`/management/project/${projectId}`)
-    return response.data.data
+    try {
+      const response = await api.get(`/management/project/${projectId}`, {
+        silent404: true, // Suppress console error for expected 404 (new project)
+        validateStatus: (status) => status === 200 || status === 404, // Don't throw on 404
+      })
+      // 404 means no activities yet - return empty array
+      if (response.status === 404) {
+        return []
+      }
+      return response.data.data || []
+    } catch (error) {
+      // Only throw if it's not a 404
+      if (error.response?.status !== 404) {
+        throw error
+      }
+      return []
+    }
   },
 
   /**
@@ -70,8 +85,23 @@ export const sempService = {
    * @returns {Promise<Array>} Array of mitigation plans
    */
   async getMitigationPlans(projectId) {
-    const response = await api.get(`/mitigation/project/${projectId}`)
-    return response.data.data
+    try {
+      const response = await api.get(`/mitigation/project/${projectId}`, {
+        silent404: true, // Suppress console error for expected 404 (new project)
+        validateStatus: (status) => status === 200 || status === 404, // Don't throw on 404
+      })
+      // 404 means no plans yet - return empty array
+      if (response.status === 404) {
+        return []
+      }
+      return response.data.data || []
+    } catch (error) {
+      // Only throw if it's not a 404
+      if (error.response?.status !== 404) {
+        throw error
+      }
+      return []
+    }
   },
 
   /**

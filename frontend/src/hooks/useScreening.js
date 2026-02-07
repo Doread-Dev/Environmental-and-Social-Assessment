@@ -22,17 +22,15 @@ export function useScreening(projectId) {
     let isMounted = true
 
     screeningService
-      .getByProjectId(projectId)
+      .getByProject(projectId)
       .then((data) => {
         if (!isMounted) return
-        setScreening(data)
+        setScreening(data) // null if no screening exists
       })
       .catch((err) => {
         if (!isMounted) return
-        if (err.response?.status === 404) {
-          setScreening(null)
-          return
-        }
+        // getByProject already handles 404 and returns null
+        // Only set error for other errors
         setError(extractErrorMessage(err))
       })
       .finally(() => {

@@ -16,11 +16,26 @@ export const screeningService = {
   /**
    * Get screening by project ID
    * @param {string} projectId
-   * @returns {Promise<Object>}
+   * @returns {Promise<Object|null>} Screening object or null if not found
    */
-  async getByProjectId(projectId) {
-    const response = await api.get(`/screenings/project/${projectId}`)
-    return response.data.data
+  async getByProject(projectId) {
+    try {
+      const response = await api.get(`/screenings/project/${projectId}`, {
+        silent404: true, // Suppress console error for expected 404 (new project)
+        validateStatus: (status) => status === 200 || status === 404, // Don't throw on 404
+      })
+      // 404 means no screening exists yet - return null
+      if (response.status === 404) {
+        return null
+      }
+      return response.data.data
+    } catch (error) {
+      // Only throw if it's not a 404
+      if (error.response?.status !== 404) {
+        throw error
+      }
+      return null
+    }
   },
 
   /**

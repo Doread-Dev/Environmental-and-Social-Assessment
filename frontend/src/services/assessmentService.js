@@ -27,11 +27,26 @@ export const assessmentService = {
   /**
    * Get assessment by project ID
    * @param {string} projectId
-   * @returns {Promise<Object>}
+   * @returns {Promise<Object|null>} Assessment object or null if not found
    */
-  async getByProjectId(projectId) {
-    const response = await api.get(`/assessments/project/${projectId}`)
-    return response.data.data
+  async getByProject(projectId) {
+    try {
+      const response = await api.get(`/assessments/project/${projectId}`, {
+        silent404: true, // Suppress console error for expected 404 (new project)
+        validateStatus: (status) => status === 200 || status === 404, // Don't throw on 404
+      })
+      // 404 means no assessment exists yet - return null
+      if (response.status === 404) {
+        return null
+      }
+      return response.data.data
+    } catch (error) {
+      // Only throw if it's not a 404
+      if (error.response?.status !== 404) {
+        throw error
+      }
+      return null
+    }
   },
 
   /**
@@ -56,7 +71,18 @@ export const assessmentService = {
   },
 
   /**
-   * Replace all methods for an assessment
+   * Add a single method to an assessment
+   * @param {string} assessmentId
+   * @param {Object} method - Method data { method_type, details }
+   * @returns {Promise<Object>}
+   */
+  async addMethod(assessmentId, method) {
+    const response = await api.post(`/assessments/${assessmentId}/methods`, method)
+    return response.data.data
+  },
+
+  /**
+   * Replace all methods for an assessment (bulk operation)
    * @param {string} assessmentId
    * @param {Array} methods
    * @returns {Promise<Array>}
@@ -77,7 +103,18 @@ export const assessmentService = {
   },
 
   /**
-   * Replace all consultations for an assessment
+   * Add a single consultation to an assessment
+   * @param {string} assessmentId
+   * @param {Object} consultation - Consultation data { type, participants, notes }
+   * @returns {Promise<Object>}
+   */
+  async addConsultation(assessmentId, consultation) {
+    const response = await api.post(`/assessments/${assessmentId}/consultations`, consultation)
+    return response.data.data
+  },
+
+  /**
+   * Replace all consultations for an assessment (bulk operation)
    * @param {string} assessmentId
    * @param {Array} consultations
    * @returns {Promise<Array>}

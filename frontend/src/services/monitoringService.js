@@ -14,8 +14,23 @@ export const monitoringService = {
    * @returns {Promise<Array>} Array of monitoring records
    */
   async getByProject(projectId) {
-    const response = await api.get(`/monitoring/project/${projectId}`)
-    return response.data.data
+    try {
+      const response = await api.get(`/monitoring/project/${projectId}`, {
+        silent404: true, // Suppress console error for expected 404 (new project)
+        validateStatus: (status) => status === 200 || status === 404, // Don't throw on 404
+      })
+      // 404 means no records yet - return empty array
+      if (response.status === 404) {
+        return []
+      }
+      return response.data.data || []
+    } catch (error) {
+      // Only throw if it's not a 404
+      if (error.response?.status !== 404) {
+        throw error
+      }
+      return []
+    }
   },
 
   /**

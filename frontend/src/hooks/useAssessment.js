@@ -4,7 +4,6 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { createEmptyAssessment } from '@/data'
 import { useLookups, useAuth } from '@/contexts'
 import { assessmentService } from '@/services'
 import { extractErrorMessage } from '@/services/api'
@@ -43,11 +42,22 @@ export function useAssessment(projectId) {
     setError(null)
 
     assessmentService
-      .getByProjectId(projectId)
+      .getByProject(projectId)
       .then(async (data) => {
         if (!isMounted) return
+        
+        if (!data) {
+          // No assessment exists yet
+          setAssessment(null)
+          setMethods([])
+          setConsultations([])
+          setImpactScores([])
+          return
+        }
+
         setAssessment(data)
 
+        // Load sub-entities in parallel
         const [methodsResult, consultationsResult, scoresResult] = await Promise.allSettled([
           assessmentService.getMethods(data._id),
           assessmentService.getConsultations(data._id),
@@ -65,13 +75,8 @@ export function useAssessment(projectId) {
       })
       .catch((err) => {
         if (!isMounted) return
-        if (err.response?.status === 404) {
-          setAssessment(createEmptyAssessment(projectId, user?._id || null))
-          setMethods([])
-          setConsultations([])
-          setImpactScores([])
-          return
-        }
+        // getByProject already handles 404 and returns null
+        // Only set error for other errors
         setError(extractErrorMessage(err))
       })
       .finally(() => {
@@ -86,15 +91,37 @@ export function useAssessment(projectId) {
 
   /**
    * بدء تقييم جديد
+   * ينشئ assessment حقيقي في الباك إند
    */
   const startAssessment = useCallback(async () => {
     setIsSaving(true)
+    setError(null)
     try {
       if (assessment?._id) {
-        return { success: true }
+        return { success: true, data: assessment }
       }
-      setAssessment(createEmptyAssessment(projectId, user?._id || null))
-      return { success: true }
+
+      if (!user?._id) {
+        const message = 'User ID is required to start assessment.'
+        setError(message)
+        return { success: false, error: message }
+      }
+
+      // Create assessment in backend
+      // Note: officer is set automatically by backend from req.user._id
+      // project_activity and description are required, so we use placeholders
+      const newAssessment = await assessmentService.create({
+        project: projectId,
+        project_activity: '(To be filled)',
+        description: '(To be filled)',
+        status: 'draft',
+      })
+
+      setAssessment(newAssessment)
+      setMethods([])
+      setConsultations([])
+      setImpactScores([])
+      return { success: true, data: newAssessment }
     } catch (err) {
       const errorMessage = extractErrorMessage(err)
       setError(errorMessage)

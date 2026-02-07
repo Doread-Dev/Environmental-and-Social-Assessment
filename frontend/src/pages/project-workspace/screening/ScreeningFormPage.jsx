@@ -11,7 +11,6 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Alert, StickyFooter, Modal, Button, useToast } from '@/components/ui'
 import { ScreeningInfoSection, RiskCategorySelector, ImpactSection } from '@/components/screening'
 import { useScreening } from '@/hooks'
-import { createEmptyScreening } from '@/data'
 import { cn } from '@/utils/cn'
 
 /**
@@ -79,7 +78,14 @@ function ScreeningFormPage() {
   const [showSubmitModal, setShowSubmitModal] = useState(false)
 
   useEffect(() => {
-    const source = hookScreening || createEmptyScreening(projectId)
+    // Initialize form with screening data or empty values
+    const source = hookScreening || {
+      screening_date: null,
+      category_code: null,
+      category_reason: '',
+      potential_negative: '',
+      potential_positive: '',
+    }
     setFormData({
       screeningDate: source.screening_date
         ? new Date(source.screening_date).toISOString().split('T')[0]

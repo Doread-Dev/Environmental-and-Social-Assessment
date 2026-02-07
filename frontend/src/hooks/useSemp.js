@@ -22,8 +22,27 @@ function normalizePayload(row) {
   }
 
   // Normalize responsible to ID string
-  if (payload.responsible && typeof payload.responsible === 'object') {
-    payload.responsible = payload.responsible._id || payload.responsible
+  // If responsible is empty/null/undefined, remove it from payload (don't send it to backend)
+  // Backend expects either a valid ObjectId string or the field to be omitted (not null/empty)
+  if (payload.responsible) {
+    // If it's an object (populated from API), extract the ID
+    if (typeof payload.responsible === 'object') {
+      const responsibleId = payload.responsible._id || payload.responsible
+      // Only keep it if it's a valid non-empty string
+      if (responsibleId && responsibleId !== '' && responsibleId !== null) {
+        payload.responsible = responsibleId
+      } else {
+        delete payload.responsible
+      }
+    } else if (typeof payload.responsible === 'string') {
+      // If it's already a string, check if it's valid
+      if (payload.responsible === '' || payload.responsible === null) {
+        delete payload.responsible
+      }
+    }
+  } else {
+    // If responsible is null, undefined, or empty string, remove it from payload
+    delete payload.responsible
   }
 
   return payload
@@ -133,6 +152,8 @@ export function useSemp(projectId) {
    * @param {any} value - New value
    */
   const updateManagementActivity = useCallback((rowId, field, value) => {
+    // Clear error when user starts editing
+    setError(null)
     setManagementActivities((prev) =>
       prev.map((row) =>
         row._id === rowId
@@ -182,6 +203,26 @@ export function useSemp(projectId) {
     try {
       const newRows = managementActivities.filter((row) => row._isNew)
       const dirtyRows = managementActivities.filter((row) => row._dirty && !row._isNew)
+
+      // Validate: Check if any new rows are missing required fields
+      const invalidNewRows = newRows.filter(
+        (row) => !row.activity_description || !row.activity_description.trim()
+      )
+      if (invalidNewRows.length > 0) {
+        const message = `Please fill in "Activity Description" for all new rows before saving. ${invalidNewRows.length} row(s) are incomplete.`
+        setError(message)
+        return { success: false, error: message }
+      }
+
+      // Validate: Check if any dirty rows are missing required fields
+      const invalidDirtyRows = dirtyRows.filter(
+        (row) => !row.activity_description || !row.activity_description.trim()
+      )
+      if (invalidDirtyRows.length > 0) {
+        const message = `Please fill in "Activity Description" for all modified rows before saving. ${invalidDirtyRows.length} row(s) are incomplete.`
+        setError(message)
+        return { success: false, error: message }
+      }
 
       // Execute delete operations in parallel
       const deletePromises = managementDeletedIds.map((id) =>
@@ -258,6 +299,8 @@ export function useSemp(projectId) {
    * @param {any} value - New value
    */
   const updateMitigationPlan = useCallback((rowId, field, value) => {
+    // Clear error when user starts editing
+    setError(null)
     setMitigationPlans((prev) =>
       prev.map((row) =>
         row._id === rowId
@@ -306,6 +349,26 @@ export function useSemp(projectId) {
     try {
       const newRows = mitigationPlans.filter((row) => row._isNew)
       const dirtyRows = mitigationPlans.filter((row) => row._dirty && !row._isNew)
+
+      // Validate: Check if any new rows are missing required fields
+      const invalidNewRows = newRows.filter(
+        (row) => !row.output_description || !row.output_description.trim()
+      )
+      if (invalidNewRows.length > 0) {
+        const message = `Please fill in "Output Description" for all new rows before saving. ${invalidNewRows.length} row(s) are incomplete.`
+        setError(message)
+        return { success: false, error: message }
+      }
+
+      // Validate: Check if any dirty rows are missing required fields
+      const invalidDirtyRows = dirtyRows.filter(
+        (row) => !row.output_description || !row.output_description.trim()
+      )
+      if (invalidDirtyRows.length > 0) {
+        const message = `Please fill in "Output Description" for all modified rows before saving. ${invalidDirtyRows.length} row(s) are incomplete.`
+        setError(message)
+        return { success: false, error: message }
+      }
 
       // Execute delete operations in parallel
       const deletePromises = mitigationDeletedIds.map((id) =>

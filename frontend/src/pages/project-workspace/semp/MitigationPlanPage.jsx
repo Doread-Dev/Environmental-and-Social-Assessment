@@ -18,6 +18,7 @@ export default function MitigationPlanPage() {
     mitigationPlans,
     isLoading,
     isSaving,
+    error,
     addMitigationPlan,
     updateMitigationPlan,
     deleteMitigationPlan,
@@ -177,6 +178,22 @@ export default function MitigationPlanPage() {
           </button>
         </div>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mx-4 md:mx-10 mt-4">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <span className="material-symbols-outlined text-red-600 dark:text-red-400 text-xl">
+                error
+              </span>
+              <div className="flex-1">
+                <p className="text-red-800 dark:text-red-300 font-medium text-sm">{error}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content Area */}
       <div className="px-4 md:px-10 pb-10 pt-4 w-full flex-1 flex flex-col overflow-hidden relative">

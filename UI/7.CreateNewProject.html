@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Create New Project - NGO ESMS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#11d452",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102216",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1A2C20",
+                        "border-light": "#dbe6df",
+                        "border-dark": "#2F4538",
+                        "text-main-light": "#111813",
+                        "text-main-dark": "#ffffff",
+                        "text-secondary-light": "#61896f",
+                        "text-secondary-dark": "#A0BCA8",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for better aesthetic */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col transition-colors duration-200">
+<!-- Top Navigation -->
+    <header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark px-6 md:px-10 py-3 shadow-sm h-16 shrink-0">
+<div class="flex items-center gap-3 px-2">
+<div class="flex items-center justify-center size-10 rounded-xl bg-primary text-white">
+<span class="material-symbols-outlined text-2xl">eco</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-lg font-bold leading-tight text-text-main dark:text-white">ESMS System</h1>
+</div>
+</div>
+    </header>
+<!-- Main Content Layout -->
+<div class="flex-1 flex flex-col items-center w-full max-w-[1200px] mx-auto px-4 sm:px-8 py-8">
+<!-- Breadcrumbs -->
+<div class="w-full max-w-[960px] flex flex-wrap gap-2 mb-6 text-sm">
+<a class="text-text-secondary-light dark:text-text-secondary-dark hover:text-primary transition-colors font-medium" href="#">Home</a>
+<span class="text-text-secondary-light dark:text-text-secondary-dark">/</span>
+<a class="text-text-secondary-light dark:text-text-secondary-dark hover:text-primary transition-colors font-medium" href="#">Projects</a>
+<span class="text-text-secondary-light dark:text-text-secondary-dark">/</span>
+<span class="text-text-main-light dark:text-text-main-dark font-medium">Create New</span>
+</div>
+<!-- Header Section -->
+<div class="w-full max-w-[960px] flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+<div class="flex flex-col gap-1">
+<h1 class="text-text-main-light dark:text-text-main-dark text-3xl md:text-4xl font-black leading-tight tracking-tight">Create New Project</h1>
+<p class="text-text-secondary-light dark:text-text-secondary-dark text-base font-normal">Enter the initial details to register the project in the ESMS.</p>
+</div>
+</div>
+<!-- Main Form Card -->
+<div class="w-full max-w-[960px] bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden">
+<!-- Info Banner -->
+<div class="bg-primary/10 border-l-4 border-primary p-4 m-6 mb-2 rounded-r-md flex items-start gap-3">
+<span class="material-symbols-outlined text-primary shrink-0 mt-0.5">info</span>
+<div class="flex flex-col">
+<span class="text-text-main-light dark:text-text-main-dark font-semibold text-sm">Process Information</span>
+<p class="text-text-secondary-light dark:text-text-secondary-dark text-sm leading-relaxed mt-1">
+                        Environmental screening and impact assessment workflows will be generated automatically after saving this basic profile. Please ensure the location and description are accurate.
+                    </p>
+</div>
+</div>
+<form class="p-6 md:p-8 flex flex-col gap-8">
+<!-- Section: Core Identity -->
+<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-1 pb-2 border-b border-border-light dark:border-border-dark">
+<h3 class="text-text-main-light dark:text-text-main-dark font-bold text-lg">Project Details</h3>
+</div>
+<div class="grid grid-cols-1 gap-6">
+<!-- Project Title -->
+<label class="flex flex-col w-full gap-2">
+<span class="text-text-main-light dark:text-text-main-dark text-base font-medium">Project Title</span>
+<div class="relative">
+<input class="w-full rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark text-text-main-light dark:text-text-main-dark placeholder:text-text-secondary-light dark:placeholder:text-text-secondary-dark h-12 px-4 focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all outline-none" placeholder="e.g., Clean Water Initiative Phase II" type="text"/>
+</div>
+</label>
+<!-- Project Location -->
+<label class="flex flex-col w-full gap-2">
+<span class="text-text-main-light dark:text-text-main-dark text-base font-medium">Project Location</span>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary-light dark:text-text-secondary-dark">location_on</span>
+<input class="w-full rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark text-text-main-light dark:text-text-main-dark placeholder:text-text-secondary-light dark:placeholder:text-text-secondary-dark h-12 pl-12 pr-4 focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all outline-none" placeholder="Enter city, region, or coordinates" type="text"/>
+</div>
+<span class="text-xs text-text-secondary-light dark:text-text-secondary-dark">Specific location allows for automated GIS risk overlay later.</span>
+</label>
+</div>
+</div>
+<!-- Section: Timeline & Categorization -->
+<div class="grid grid-cols-1 gap-8">
+<!-- Timeline -->
+<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-1 pb-2 border-b border-border-light dark:border-border-dark">
+<h3 class="text-text-main-light dark:text-text-main-dark font-bold text-lg">Timeline</h3>
+</div>
+<div class="flex flex-col gap-4">
+<label class="flex flex-col w-full gap-2">
+<span class="text-text-main-light dark:text-text-main-dark text-base font-medium">Start Date</span>
+<div class="relative">
+<input class="w-full rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark text-text-main-light dark:text-text-main-dark h-12 px-4 focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all outline-none [color-scheme:light] dark:[color-scheme:dark]" type="date"/>
+</div>
+</label>
+<label class="flex flex-col w-full gap-2">
+<span class="text-text-main-light dark:text-text-main-dark text-base font-medium">End Date (Estimated)</span>
+<div class="relative">
+<input class="w-full rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark text-text-main-light dark:text-text-main-dark h-12 px-4 focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all outline-none [color-scheme:light] dark:[color-scheme:dark]" type="date"/>
+</div>
+</label>
+</div>
+</div>
+</div>
+<!-- Section: Description -->
+<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-1 pb-2 border-b border-border-light dark:border-border-dark">
+<h3 class="text-text-main-light dark:text-text-main-dark font-bold text-lg">Description</h3>
+</div>
+<label class="flex flex-col w-full gap-2">
+<span class="text-text-main-light dark:text-text-main-dark text-base font-medium">Project Component / Activity Description</span>
+<textarea class="w-full rounded-lg bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark text-text-main-light dark:text-text-main-dark placeholder:text-text-secondary-light dark:placeholder:text-text-secondary-dark p-4 h-32 resize-y focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all outline-none" placeholder="Briefly describe the main activities, infrastructure components, or interventions..."></textarea>
+</label>
+</div>
+</form>
+<!-- Actions Footer -->
+<div class="border-t border-border-light dark:border-border-dark bg-background-light/50 dark:bg-background-dark/30 p-6 flex flex-col-reverse sm:flex-row justify-end gap-4">
+<button class="px-6 py-3 rounded-lg text-text-secondary-light dark:text-text-secondary-dark font-medium hover:bg-black/5 dark:hover:bg-white/5 hover:text-text-main-light dark:hover:text-text-main-dark transition-colors text-base min-w-[120px]">
+                    Cancel
+                </button>
+<button class="px-6 py-3 rounded-lg bg-primary hover:bg-primary/90 text-white font-bold shadow-lg shadow-primary/20 transition-all transform active:scale-95 flex items-center justify-center gap-2 text-base min-w-[160px]">
+<span class="material-symbols-outlined text-[20px]">save</span>
+                    Save Project
+                </button>
+</div>
+</div>
+</div>
+</body></html>

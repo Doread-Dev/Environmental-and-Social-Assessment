@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ESMS Portal - Project Overview</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#11d452",
+                        "primary-hover": "#0eb646",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102216",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1c2e22",
+                        "text-main": "#111813",
+                        "text-secondary": "#61896f",
+                        "border-color": "#dbe6df",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 20px;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        input[type="checkbox"] {
+            border-radius: 4px;
+            border-color: #dbe6df;
+            color: #11d452;
+        }
+        input[type="checkbox"]:focus {
+            --tw-ring-color: #11d452;
+            border-color: #11d452;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-text-main dark:text-gray-100 overflow-hidden">
+<div class="flex h-screen w-full">
+<aside class="w-[300px] hidden lg:flex flex-col border-r border-[#e5e7eb] dark:border-[#1f3526] bg-white dark:bg-[#102216] flex-shrink-0 h-full">
+<div class="px-5 pt-6 pb-2 shrink-0">
+<a class="group flex items-center gap-3 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-all duration-200 mb-6 w-full font-medium" href="#">
+<div class="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm dark:group-hover:bg-gray-700 transition-all">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+</div>
+<span>Back to Dashboard</span>
+</a>
+<div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl p-4 mb-2 shadow-sm relative overflow-hidden">
+<div class="absolute top-0 right-0 w-12 h-12 bg-primary/5 rounded-bl-xl"></div>
+<div class="flex flex-col gap-1.5 relative z-10">
+<h2 class="text-sm font-bold text-gray-900 dark:text-white leading-tight">Reforestation Initiative Alpha</h2>
+<div class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+<span class="material-symbols-outlined text-[14px]">location_on</span>
+<span>Sumatra, Indonesia</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 font-semibold border border-green-100 dark:border-green-900/30 mb-5" href="#">
+<span class="material-symbols-outlined filled">dashboard</span>
+<span class="text-sm">Project Overview</span>
+</a>
+<div class="px-3 mb-2 mt-2 flex items-center justify-between">
+<p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Workflow Tools</p>
+</div>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:text-text-main transition-colors" href="#">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+<span class="text-sm font-medium">Screening – Tool 1</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:text-text-main transition-colors" href="#">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+<span class="text-sm font-medium">Assessment – Tool 2</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-main dark:text-white bg-gray-50 dark:bg-white/5 font-medium border-l-4 border-primary transition-colors shadow-sm" href="#">
+<span class="material-symbols-outlined text-primary text-[20px]">edit_document</span>
+<span class="text-sm">SEMP – Tools 3 &amp; 4</span>
+</a>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-75">
+<span class="material-symbols-outlined text-[20px]">lock</span>
+<span class="text-sm font-medium">Monitoring – Tool 5</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-75">
+<span class="material-symbols-outlined text-[20px]">lock</span>
+<span class="text-sm font-medium">Reports</span>
+</div>
+<div class="my-5 border-t border-gray-100 dark:border-gray-800 mx-2"></div>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group" href="#">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 text-[20px]">folder_open</span>
+<span class="text-sm font-medium">Annex &amp; Attachments</span>
+</a>
+</div>
+<div class="mt-auto bg-surface-light dark:bg-surface-dark border-t border-gray-100 dark:border-gray-800 p-4 shrink-0">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors mb-2" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+<div class="h-px bg-gray-100 dark:bg-gray-800 w-full my-3"></div>
+<div class="flex items-center gap-3 px-1">
+<div class="w-9 h-9 rounded-full bg-cover bg-center ring-2 ring-gray-100 dark:ring-gray-700" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCtra6pj5M5oTyJp1GdJWuU63rsELKvVKe4fboOS02kUTaVf4ehAD_wchdxbPfoBzsc-L9HdsZm1dlAzW_598IOXygrITkCOb8PhtOGw5WVcDdF3hE96FbESF6OkZ6S4Qg8lCHAcfE56hrcA5qoUEuWFbxCSpY46m1nYJN2KV7pM5SvQP55_nYo7EqBZCnQnwrXRiHUeqB2sW7Jgr27PWEBt_NAf5J93MIG1HUbYa8YpgApira7wAky_Gj0olj2YRpwHmf8JlO4xcid')"></div>
+<div class="flex flex-col min-w-0">
+<span class="text-sm font-bold text-gray-900 dark:text-white truncate">Alex Morgan</span>
+<span class="text-xs text-gray-500 truncate">Project Manager</span>
+</div>
+</div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col h-full overflow-hidden">
+<!-- الهيدر المطابق للصفحة الأولى -->
+<header class="h-16 bg-surface-light dark:bg-surface-dark border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-6 lg:px-10 shrink-0 z-10">
+    <div class="flex items-center gap-4 lg:hidden">
+        <button class="text-text-main dark:text-white"><span class="material-symbols-outlined">menu</span></button>
+    </div>
+<div class="flex items-center gap-3 px-2">
+<div class="flex items-center justify-center size-10 rounded-xl bg-primary text-white">
+<span class="material-symbols-outlined text-2xl">eco</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-lg font-bold leading-tight text-text-main dark:text-white">ESMS System</h1>
+</div>
+</div>
+    <div class="flex items-center gap-6">
+        <button class="text-text-secondary hover:text-text-main transition-colors">
+            <span class="material-symbols-outlined">help</span>
+        </button>
+    </div>
+</header>
+
+<div class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark">
+<div class="p-8 max-w-[1200px] mx-auto flex flex-col gap-8">
+<section class="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-border-color dark:border-gray-800 p-6">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-3">
+<h1 class="text-3xl font-bold text-text-main dark:text-white">Reforestation Initiative Alpha</h1>
+<span class="bg-green-100 text-green-800 text-xs px-2.5 py-0.5 rounded-full font-medium border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800">Active</span>
+</div>
+<div class="flex items-center gap-4 text-text-secondary dark:text-gray-400 text-sm">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">location_on</span>
+                                Sumatra, Indonesia
+                            </span>
+<span class="w-1 h-1 bg-border-color rounded-full"></span>
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+                                1 January 2023 – 31 December 2025
+
+                            </span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex -space-x-2 overflow-hidden p-1">
+<img alt="" class="inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-surface-dark" data-alt="Team member portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnJ7KMMEeDrkrClHJvzDA6F8CcyWeJa8Nd_LabfS4-18_aFOo2O2s2yUaT03kx6m4e8QfUO4wYJ7iH2L78msiBa0RTfpYiOVjuhma_yOHR7yEC4zBo4TgGdXENHPk_W195HbHCfn5fg_2LszT0-IsQwAeoseBW1YZ43mf5NLrqgYBKww63_cUbsdw3Wu0q79xyMbsIMkXVoWHvbrHm80q_h9l_oJAVPGap5PVVvuEnzeY7a20xGAmeyAt4oxnP-Qi0MOQq0qJMnneS"/>
+<img alt="" class="inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-surface-dark" data-alt="Team member portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYW0-01iKSUKJx86bx_5HDgCP88w5yx5gl0aF2fi0mBp9qBrefO168ijIsMCigiuenLJv214QsfK0oUkwPnPOFT66tVePqAp70CGbIlCP6Uj41SZDE_S1cL7h1YDIRN8r83repPvy3FBtPeZ-DNX3hSsANHcf4HU3vl6JHuWNnYd4eQ3ezqs8MgRLUjoER4nib-E7XquwSkpibYyvdtaq3tQGJDBJO4GDOzPSS9jUKVC9cFoEm-luc46g5cxKfd65sDFcF9JfcN_r1"/>
+<img alt="" class="inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-surface-dark" data-alt="Team member portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIE2m9hVs07N0VxPXG1vvQJXvdfzA_t2iqOCWMT-6P060FyHsMMLS_X5KILwiRXTF2TEd2k08T98XQSSx8z_TF_Czkv6tTLdu_G5cZ3Lg3yFJrzq0LkG6hm0hSu84AGsJHmCvJetyfZr8xDnX1tCAmR9MuJVn1AcHf5GCEJcUPbyQ8e4UAlk4m1u-3zcU225ieymf8eSFXa0eTL0004DftKCqAvNRzfIhu_QvNoVaY2cNnuZlBeNN--DS63UfgrwY-BtiPp_t5DsQT"/>
+<div class="h-8 w-8 rounded-full ring-2 ring-white dark:ring-surface-dark bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300">+2</div>
+</div>
+<button class="bg-surface-light dark:bg-surface-dark border border-border-color dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-white/5 text-text-main dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                            Edit Project
+                        </button>
+</div>
+</div>
+<div class="mt-8 pt-6 border-t border-border-color dark:border-gray-800">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-sm font-semibold text-text-main dark:text-white">Completion Progress</h3>
+<span class="text-sm font-medium text-primary dark:text-primary">75%</span>
+</div>
+<div class="relative">
+<div class="absolute top-1/2 left-0 w-full h-1 bg-gray-100 dark:bg-gray-800 -translate-y-1/2 rounded-full z-0"></div>
+<div class="absolute top-1/2 left-0 w-[65%] h-1 bg-primary/30 -translate-y-1/2 rounded-full z-0"></div>
+<div class="relative z-10 flex justify-between w-full">
+<div class="flex flex-col items-center gap-2 group">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white shadow-sm ring-4 ring-white dark:ring-surface-dark">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-xs font-bold text-text-main dark:text-white">Screening</span>
+<span class="text-[10px] text-primary font-medium">Completed</span>
+</div>
+</div>
+<div class="flex flex-col items-center gap-2 group">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white shadow-sm ring-4 ring-white dark:ring-surface-dark">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-xs font-bold text-text-main dark:text-white">Assessment</span>
+<span class="text-[10px] text-primary font-medium">Completed</span>
+</div>
+</div>
+<div class="flex flex-col items-center gap-2 group">
+<div class="w-8 h-8 rounded-full bg-white dark:bg-surface-dark border-2 border-primary flex items-center justify-center text-primary shadow-sm ring-4 ring-white dark:ring-surface-dark">
+<span class="material-symbols-outlined text-[18px] animate-pulse">edit_document</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-xs font-bold text-primary dark:text-primary">SEMP</span>
+<span class="text-[10px] text-primary/80 dark:text-primary/80 font-medium">In Progress</span>
+</div>
+</div>
+<div class="flex flex-col items-center gap-2 group opacity-50">
+<div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 border-2 border-border-color dark:border-gray-600 flex items-center justify-center text-text-secondary shadow-sm ring-4 ring-white dark:ring-surface-dark">
+<span class="text-xs font-bold">4</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-xs font-bold text-text-main dark:text-white">Monitoring</span>
+<span class="text-[10px] text-text-secondary font-medium">Pending</span>
+</div>
+</div>
+<!-- <div class="flex flex-col items-center gap-2 group opacity-50">
+<div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 border-2 border-border-color dark:border-gray-600 flex items-center justify-center text-text-secondary shadow-sm ring-4 ring-white dark:ring-surface-dark">
+<span class="text-xs font-bold">5</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-xs font-bold text-text-main dark:text-white">Reports</span>
+<span class="text-[10px] text-text-secondary font-medium">Pending</span>
+</div>
+</div> -->
+</div>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="lg:col-span-2 flex flex-col gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+<div class="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-border-color dark:border-gray-800 shadow-sm flex flex-col gap-3">
+<div class="flex items-start justify-between">
+<div class="p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg text-yellow-600 dark:text-yellow-400">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<span class="text-xs font-medium text-text-secondary">Risk Level</span>
+</div>
+<div>
+<h4 class="text-2xl font-bold text-text-main dark:text-white">Category B</h4>
+<p class="text-sm text-text-secondary">Medium Risk</p>
+</div>
+</div>
+<div class="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-border-color dark:border-gray-800 shadow-sm flex flex-col gap-3">
+<div class="flex items-start justify-between">
+<div class="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600 dark:text-blue-400">
+<span class="material-symbols-outlined">assessment</span>
+</div>
+<span class="text-xs font-medium text-text-secondary">Activities</span>
+</div>
+<div>
+<h4 class="text-2xl font-bold text-text-main dark:text-white">4 Activities</h4>
+<p class="text-sm text-text-secondary">From Tool 3</p>
+</div>
+</div>
+<div class="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-border-color dark:border-gray-800 shadow-sm flex flex-col gap-3">
+<div class="flex items-start justify-between">
+<div class="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-purple-600 dark:text-purple-400">
+<span class="material-symbols-outlined">event</span>
+</div>
+<span class="text-xs font-medium text-text-secondary">Timeframe</span>
+</div>
+<div>
+<h4 class="text-2xl font-bold text-text-main dark:text-white">24 Months</h4>
+</div>
+</div>
+</div>
+<div class="bg-gradient-to-r from-surface-light to-[#f0fdf4] dark:from-surface-dark dark:to-[#0f2e1b] rounded-xl shadow-md border border-primary/20 p-6 flex items-center justify-between relative overflow-hidden group">
+<div class="absolute -right-10 -top-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-500"></div>
+<div class="relative z-10 flex flex-col gap-2 max-w-lg">
+<h2 class="text-xl font-bold text-text-main dark:text-white">Complete Management Plan (SEMP)</h2>
+<p class="text-text-secondary dark:text-gray-300 text-sm">The environmental assessment has been approved. Please proceed with defining mitigation strategies in Tool 3.</p>
+</div>
+<div class="relative z-10">
+<button class="bg-primary hover:bg-primary-hover text-white font-bold py-3 px-6 rounded-lg shadow-lg shadow-primary/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2">
+<span>Open Tool 3</span>
+<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+
+<div class="flex flex-col gap-6">
+    <div class="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-border-color dark:border-gray-800 overflow-hidden flex flex-col">
+<div class="h-32 bg-gray-200 relative">
+<div class="w-full h-full bg-cover bg-center" data-alt="Map view of Sumatra Indonesia" data-location="Sumatra, Indonesia" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBKNswRifGe553I-4ZkFsJp3RO9QCXaCSg0YD1ROiW5ZtRoeFxiuvbn-V1dJMisN1gkPPzhF1-zdsgiHhketRNEh1C7nnLtsKm2Kd2F2oauZkGuYEBZchhwR-nU3v3c8kSwrBLSCAUizFR75EWB92cP0aqkZ48yYQAGcBBWRfVcT4fVVKICKMcwUTgRqrqNxdvtIQCEzjCgtPfgzpiGjku0VhqDpe-00-tXlW7xf74oP9HZLaZVrWImehUjA0XgOKV1_LUuDE8sF5I8')"></div>
+<div class="absolute top-2 right-2 bg-white/90 dark:bg-black/50 p-1 rounded shadow-sm cursor-pointer hover:bg-white transition-colors">
+<span class="material-symbols-outlined text-text-main dark:text-gray-200 text-sm">open_in_full</span>
+</div>
+</div>
+<div class="p-4">
+<h4 class="text-sm font-bold text-text-main dark:text-white mb-1">Project Site Area</h4>
+<p class="text-xs text-text-secondary mb-3">Bukit Barisan Selatan National Park</p>
+<div class="flex items-center gap-2 text-xs text-text-secondary dark:text-gray-400">
+<span class="material-symbols-outlined text-[16px]">straighten</span>
+<span>245 Hectares</span>
+</div>
+</div>
+</div>
+
+
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Environmental Integration Screening - NGO Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#11d452",
+                        "primary-hover": "#0eb646",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102216",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1c2e22",
+                        "text-main": "#111813",
+                        "text-secondary": "#61896f",
+                        "text-disabled": "#9ca3af",
+                        "border-color": "#dbe6df",
+                        "sidebar-bg": "#ffffff",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "sans": ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 20px;
+        }
+        .material-symbols-filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        input[type="checkbox"] {
+            border-radius: 4px;
+            border-color: #dbe6df;
+            color: #11d452;
+        }
+        input[type="checkbox"]:focus {
+            --tw-ring-color: #11d452;
+            border-color: #11d452;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 20px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background-color: #334155;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-main dark:text-gray-100 h-screen overflow-hidden flex">
+<aside class="w-[300px] hidden lg:flex flex-col border-r border-[#e5e7eb] dark:border-[#1f3526] bg-white dark:bg-[#102216] flex-shrink-0 h-full">
+<div class="px-5 pt-6 pb-2 shrink-0">
+<a class="group flex items-center gap-3 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-all duration-200 mb-6 w-full font-medium" href="#">
+<div class="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm dark:group-hover:bg-gray-700 transition-all">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+</div>
+<span>Back to Dashboard</span>
+</a>
+<div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl p-4 mb-2 shadow-sm relative overflow-hidden">
+<div class="absolute top-0 right-0 w-12 h-12 bg-primary/5 rounded-bl-xl"></div>
+<div class="flex flex-col gap-1.5 relative z-10">
+<h2 class="text-sm font-bold text-gray-900 dark:text-white leading-tight">Reforestation Initiative Alpha</h2>
+<div class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+<span class="material-symbols-outlined text-[14px]">location_on</span>
+<span>Sumatra, Indonesia</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-green-700 dark:text-green-400 font-semibold mb-5" href="#">
+<span class="material-symbols-outlined filled">dashboard</span>
+<span class="text-sm">Project Overview</span>
+</a>
+<div class="px-3 mb-2 mt-2 flex items-center justify-between">
+<p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Workflow Tools</p>
+</div>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-green-50 dark:bg-[#1a3322] text-text-main dark:text-white border-l-4 border-primary shadow-sm" href="#">
+<span class="material-symbols-outlined text-primary" style="font-size: 22px;">fact_check</span>
+<span class="text-sm font-bold">Screening – Tool 1</span>
+</a>
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 dark:text-gray-600 cursor-not-allowed">
+<span class="material-symbols-outlined" style="font-size: 22px;">lock</span>
+<span class="text-sm font-medium">Assessment – Tool 2</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 dark:text-gray-600 cursor-not-allowed">
+<span class="material-symbols-outlined" style="font-size: 22px;">lock</span>
+<span class="text-sm font-medium">SEMP – Tools 3 &amp; 4</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-75">
+<span class="material-symbols-outlined text-[20px]">lock</span>
+<span class="text-sm font-medium">Monitoring – Tool 5</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-75">
+<span class="material-symbols-outlined text-[20px]">lock</span>
+<span class="text-sm font-medium">Reports</span>
+</div>
+<div class="my-5 border-t border-gray-100 dark:border-gray-800 mx-2"></div>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group" href="#">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 text-[20px]">folder_open</span>
+<span class="text-sm font-medium">Annex &amp; Attachments</span>
+</a>
+</div>
+<div class="mt-auto bg-surface-light dark:bg-surface-dark border-t border-gray-100 dark:border-gray-800 p-4 shrink-0">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors mb-2" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+<div class="h-px bg-gray-100 dark:bg-gray-800 w-full my-3"></div>
+<div class="flex items-center gap-3 px-1">
+<div class="w-9 h-9 rounded-full bg-cover bg-center ring-2 ring-gray-100 dark:ring-gray-700" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCtra6pj5M5oTyJp1GdJWuU63rsELKvVKe4fboOS02kUTaVf4ehAD_wchdxbPfoBzsc-L9HdsZm1dlAzW_598IOXygrITkCOb8PhtOGw5WVcDdF3hE96FbESF6OkZ6S4Qg8lCHAcfE56hrcA5qoUEuWFbxCSpY46m1nYJN2KV7pM5SvQP55_nYo7EqBZCnQnwrXRiHUeqB2sW7Jgr27PWEBt_NAf5J93MIG1HUbYa8YpgApira7wAky_Gj0olj2YRpwHmf8JlO4xcid')"></div>
+<div class="flex flex-col min-w-0">
+<span class="text-sm font-bold text-gray-900 dark:text-white truncate">Alex Morgan</span>
+<span class="text-xs text-gray-500 truncate">Project Manager</span>
+</div>
+</div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col h-full overflow-hidden relative">
+<header class="h-16 bg-surface-light dark:bg-surface-dark border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-6 lg:px-10 shrink-0 z-10">
+    <div class="flex items-center gap-4 lg:hidden">
+        <button class="text-text-main dark:text-white"><span class="material-symbols-outlined">menu</span></button>
+    </div>
+    <div class="flex items-center gap-3 px-2">
+<div class="flex items-center justify-center size-10 rounded-xl bg-primary text-white">
+<span class="material-symbols-outlined text-2xl">eco</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-lg font-bold leading-tight text-text-main dark:text-white">ESMS System</h1>
+</div>
+</div>
+    <div class="flex items-center gap-6">
+        <button class="text-text-secondary hover:text-text-main transition-colors">
+            <span class="material-symbols-outlined">help</span>
+        </button>
+    </div>
+</header>
+
+<div class="flex-1 overflow-y-auto">
+<div class="px-8 pb-20 max-w-5xl mx-auto w-full">
+<div class="flex flex-col gap-2 py-6">
+<div class="flex items-center gap-3">
+<div class="p-2 bg-primary/10 rounded-lg text-primary">
+<span class="material-symbols-outlined">assignment</span>
+</div>
+<h2 class="text-text-main dark:text-white text-2xl font-bold">Environmental Integration Screening</h2>
+</div>
+<p class="text-text-secondary pl-[52px]">Tool 1 – Screening Assessment</p>
+</div>
+<form class="flex flex-col gap-8">
+<section class="bg-white dark:bg-[#152a1d] rounded-xl shadow-sm border border-border-color dark:border-[#1f3526] overflow-hidden">
+<div class="px-6 py-4 border-b border-border-color dark:border-[#1f3526] bg-gray-50/50 dark:bg-[#1a3322]/50 flex justify-between items-center">
+<h3 class="font-bold text-lg text-text-main dark:text-white">1. Screening Information</h3>
+<span class="text-xs text-text-secondary bg-white dark:bg-[#102216] px-2 py-1 rounded border border-gray-200 dark:border-gray-700">Required</span>
+</div>
+<div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="col-span-1">
+        <label class="block text-sm font-medium text-text-main dark:text-gray-200 mb-2">Program Officer Name <span class="text-red-500">*</span></label>
+        <input class="w-full bg-gray-50 dark:bg-gray-800 border border-border-color dark:border-gray-700 rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium" readonly="" type="text" value="James Director"/>
+    </div>
+    <div class="col-span-1">
+        <label class="block text-sm font-medium text-text-main dark:text-gray-200 mb-2">Program Officer Position <span class="text-red-500">*</span></label>
+        <input class="w-full bg-gray-50 dark:bg-gray-800 border border-border-color dark:border-gray-700 rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium" readonly="" type="text" value="Environmental Specialist"/>
+    </div>
+    <div class="col-span-1 md:col-span-2">
+    <label class="block text-sm font-medium text-text-main dark:text-gray-200 mb-2">Screening Date <span class="text-red-500">*</span></label>
+    <div class="relative">
+    <input class="w-full rounded-lg border-border-color dark:border-gray-600 bg-white dark:bg-[#102216] text-text-main dark:text-white focus:ring-primary focus:border-primary px-3 py-2.5 text-sm" type="date"/>
+    </div>
+    </div>
+</div>
+</section>
+<section class="bg-white dark:bg-[#152a1d] rounded-xl shadow-sm border border-border-color dark:border-[#1f3526] overflow-hidden">
+<div class="px-6 py-4 border-b border-border-color dark:border-[#1f3526] bg-gray-50/50 dark:bg-[#1a3322]/50">
+<h3 class="font-bold text-lg text-text-main dark:text-white">2. Project Risk Category</h3>
+</div>
+<div class="p-6">
+<p class="text-sm text-text-secondary mb-4">Indicate the category of environmental risk for this project. Select one.</p>
+<div class="space-y-3 mb-6">
+<label class="relative flex items-start p-4 cursor-pointer rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-[#1a3322] transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5 has-[:checked]:ring-1 has-[:checked]:ring-primary">
+<div class="flex h-6 items-center">
+<input class="h-4 w-4 border-gray-300 text-primary focus:ring-primary" name="risk-category" type="radio"/>
+</div>
+<div class="ml-3 text-sm leading-6">
+<span class="font-bold text-text-main dark:text-white">Category A</span>
+<span class="text-text-secondary ml-1">- High potential environmental risk</span>
+</div>
+</label>
+<label class="relative flex items-start p-4 cursor-pointer rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-[#1a3322] transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5 has-[:checked]:ring-1 has-[:checked]:ring-primary">
+<div class="flex h-6 items-center">
+<input checked="" class="h-4 w-4 border-gray-300 text-primary focus:ring-primary" name="risk-category" type="radio"/>
+</div>
+<div class="ml-3 text-sm leading-6">
+<span class="font-bold text-text-main dark:text-white">Category B</span>
+<span class="text-text-secondary ml-1">- Low to moderate environmental risk</span>
+</div>
+</label>
+<label class="relative flex items-start p-4 cursor-pointer rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-[#1a3322] transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5 has-[:checked]:ring-1 has-[:checked]:ring-primary">
+<div class="flex h-6 items-center">
+<input class="h-4 w-4 border-gray-300 text-primary focus:ring-primary" name="risk-category" type="radio"/>
+</div>
+<div class="ml-3 text-sm leading-6">
+<span class="font-bold text-text-main dark:text-white">Category C</span>
+<span class="text-text-secondary ml-1">- Negligible environmental risk</span>
+</div>
+</label>
+<label class="relative flex items-start p-4 cursor-pointer rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-[#1a3322] transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5 has-[:checked]:ring-1 has-[:checked]:ring-primary">
+<div class="flex h-6 items-center">
+<input class="h-4 w-4 border-gray-300 text-primary focus:ring-primary" name="risk-category" type="radio"/>
+</div>
+<div class="ml-3 text-sm leading-6">
+<span class="font-bold text-text-main dark:text-white">Category D</span>
+<span class="text-text-secondary ml-1">- Emergency cases and initiatives</span>
+</div>
+</label>
+<label class="relative flex items-start p-4 cursor-pointer rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-[#1a3322] transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5 has-[:checked]:ring-1 has-[:checked]:ring-primary">
+<div class="flex h-6 items-center">
+<input class="h-4 w-4 border-gray-300 text-primary focus:ring-primary" name="risk-category" type="radio"/>
+</div>
+<div class="ml-3 text-sm leading-6">
+<span class="font-bold text-text-main dark:text-white">Category E</span>
+<span class="text-text-secondary ml-1">- Not enough information</span>
+</div>
+</label>
+<label class="relative flex items-start p-4 cursor-pointer rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-[#1a3322] transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5 has-[:checked]:ring-1 has-[:checked]:ring-primary">
+<div class="flex h-6 items-center">
+<input class="h-4 w-4 border-gray-300 text-primary focus:ring-primary" name="risk-category" type="radio"/>
+</div>
+<div class="ml-3 text-sm leading-6">
+<span class="font-bold text-text-main dark:text-white">Category F</span>
+<span class="text-text-secondary ml-1">- Positive environmental impact</span>
+</div>
+</label>
+</div>
+<div class="mt-6 p-4 bg-gray-50 dark:bg-[#1a3322] rounded-lg border border-dashed border-border-color dark:border-gray-600">
+<label class="block text-sm font-medium text-text-main dark:text-gray-200 mb-2">Category Justification <span class="text-red-500">*</span></label>
+<p class="text-xs text-text-secondary mb-3">Explain why you selected <span class="font-bold text-primary">Category B</span>. Be specific about the context.</p>
+<textarea class="w-full rounded-lg border-border-color dark:border-gray-600 bg-white dark:bg-[#102216] text-text-main dark:text-white focus:ring-primary focus:border-primary px-3 py-2.5 text-sm" placeholder="Provide justification..." rows="3"></textarea>
+</div>
+</div>
+</section>
+<section class="bg-white dark:bg-[#152a1d] rounded-xl shadow-sm border border-border-color dark:border-[#1f3526] overflow-hidden">
+<div class="px-6 py-4 border-b border-border-color dark:border-[#1f3526] bg-gray-50/50 dark:bg-[#1a3322]/50">
+<h3 class="font-bold text-lg text-text-main dark:text-white">3. Potential Impacts</h3>
+</div>
+<div class="p-6 grid grid-cols-1 gap-6">
+<div>
+<label class="flex items-center gap-2 text-sm font-medium text-text-main dark:text-gray-200 mb-2">
+<span class="material-symbols-outlined text-orange-500 text-lg">warning</span>
+                                        Potential Negative Impacts
+                                    </label>
+<textarea class="w-full rounded-lg border-border-color dark:border-gray-600 bg-white dark:bg-[#102216] text-text-main dark:text-white focus:ring-primary focus:border-primary px-3 py-2.5 text-sm" placeholder="Describe any potential adverse effects on the environment..." rows="4"></textarea>
+</div>
+<div>
+<label class="flex items-center gap-2 text-sm font-medium text-text-main dark:text-gray-200 mb-2">
+<span class="material-symbols-outlined text-green-500 text-lg">check_circle</span>
+                                        Potential Positive Impacts
+                                    </label>
+<textarea class="w-full rounded-lg border-border-color dark:border-gray-600 bg-white dark:bg-[#102216] text-text-main dark:text-white focus:ring-primary focus:border-primary px-3 py-2.5 text-sm" placeholder="Describe any expected environmental benefits..." rows="4"></textarea>
+</div>
+</div>
+</section>
+</form>
+</div>
+</div>
+<div class="h-20 bg-surface-light dark:bg-surface-dark border-t border-border-color dark:border-gray-700 flex items-center justify-between px-8 z-20">
+    <div class="text-xs text-text-secondary">
+        <p>By submitting this form, you confirm that all information provided is accurate and complete.</p>
+    </div>
+    <div class="flex gap-4">
+        <button class="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border-color dark:border-gray-600 text-text-main dark:text-white font-medium hover:bg-background-light dark:hover:bg-gray-800 transition-colors">
+            Save as Draft
+        </button>
+        <button class="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-medium shadow-md transition-colors transform active:scale-95">
+            <span class="material-symbols-outlined text-sm">send</span>
+            Submit Screening
+        </button>
+    </div>
+</div>
+</main>
+</div>
+</body></html>

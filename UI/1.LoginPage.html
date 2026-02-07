@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Login to EMS System</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#11d452",
+                        "primary-hover": "#0fb645",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102216",
+                        "card-dark": "#152a1d",
+                        "input-border": "#dbe6df",
+                        "input-border-dark": "#2a4234",
+                        "text-main": "#111813",
+                        "text-muted": "#61896f",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "sans": ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark min-h-screen flex flex-col text-text-main dark:text-gray-100 transition-colors duration-300">
+<div class="layout-container flex h-full grow flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+<!-- Main Card Container -->
+<div class="w-full max-w-[960px] bg-white dark:bg-card-dark rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row min-h-[600px] border border-gray-100 dark:border-gray-800">
+<!-- Left Side: Visual Panel -->
+<div class="relative w-full md:w-5/12 bg-emerald-50 dark:bg-emerald-900/20 flex flex-col items-center justify-center p-8 md:p-12 overflow-hidden group">
+<!-- Abstract Background Pattern -->
+<div class="absolute inset-0 opacity-10 dark:opacity-5 pointer-events-none" style="background-image: radial-gradient(circle at 2px 2px, #11d452 1px, transparent 0); background-size: 24px 24px;"></div>
+<!-- Hero Image/Illustration -->
+<div class="relative z-10 flex flex-col items-center text-center">
+<div class="w-24 h-24 rounded-full bg-white dark:bg-emerald-800 flex items-center justify-center shadow-sm mb-6">
+<span class="material-symbols-outlined text-5xl text-primary">eco</span>
+</div>
+<div class="w-full aspect-video rounded-lg overflow-hidden shadow-sm opacity-90 hidden md:block mt-8">
+<div class="w-full h-full bg-center bg-cover" data-alt="Abstract minimalist green leaf texture representing sustainability" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAWLS_HZQdBss0QYgByPrzVhjmm3gppMnQkwrT2K4Ufn4Q1TrWGxJ1hJHIEcw1fdjK7qlzR22EgH1JJ6qjz8WnO6QzXn_X_dGuqiAlc69-6DeFgqBmpv7lrsP3ei6fYwPjWRsS0MTKDsrYKOQfkxxfNimubAQX4ApKjKfSNPeFrFkw-KSbKzNlA_1k2jc5pJkoSofm_ZsNep21lOSOL-XBwJZgiAUATsRB5CrjorykNzTdz6OjnXFbrU0ZyidurRcnWXwGbiHmmhozm");'></div>
+</div>
+<p class="mt-8 text-sm font-medium text-emerald-800 dark:text-emerald-300 max-w-[200px] leading-relaxed hidden md:block">
+                        Securing our future through sustainable practices.
+                    </p>
+</div>
+<!-- Decorative shape -->
+<div class="absolute -bottom-24 -left-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+</div>
+<!-- Right Side: Login Form -->
+<div class="w-full md:w-7/12 flex flex-col justify-center p-8 md:p-12 lg:p-16 relative bg-white dark:bg-card-dark">
+<!-- Header -->
+<div class="mb-8">
+<h1 class="text-text-main dark:text-white tracking-tight text-3xl font-bold leading-tight mb-2">
+                        Environmental &amp; Social Management System
+                    </h1>
+<h2 class="text-text-muted dark:text-emerald-400 text-base font-medium">
+                        Aga Khan Foundation – Syria
+                    </h2>
+</div>
+<!-- Error State Placeholder (Hidden by default, shown here for design) -->
+<!-- <div class="mb-6 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex items-start gap-3">
+                    <span class="material-symbols-outlined text-red-600 dark:text-red-400 text-xl">error</span>
+                    <p class="text-sm text-red-700 dark:text-red-300">Invalid email or password. Please try again.</p>
+                </div> -->
+<!-- Form -->
+<form action="#" class="flex flex-col gap-5 w-full max-w-md" method="POST" onsubmit="event.preventDefault()">
+<!-- Email Field -->
+<label class="flex flex-col gap-1.5">
+<span class="text-text-main dark:text-gray-200 text-sm font-semibold">Email address</span>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-muted dark:text-gray-500 group-focus-within:text-primary transition-colors">mail</span>
+<input class="form-input flex w-full rounded-lg border border-input-border dark:border-input-border-dark bg-white dark:bg-black/20 h-12 pl-11 pr-4 text-base text-text-main dark:text-white placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200" placeholder="name@akdn.org" type="email"/>
+</div>
+</label>
+<!-- Password Field -->
+<label class="flex flex-col gap-1.5">
+<div class="flex justify-between items-center">
+<span class="text-text-main dark:text-gray-200 text-sm font-semibold">Password</span>
+</div>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-muted dark:text-gray-500 group-focus-within:text-primary transition-colors">lock</span>
+<input class="form-input flex w-full rounded-lg border border-input-border dark:border-input-border-dark bg-white dark:bg-black/20 h-12 pl-11 pr-12 text-base text-text-main dark:text-white placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200" placeholder="Enter your password" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-main dark:hover:text-white transition-colors" type="button">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</button>
+</div>
+</label>
+<!-- Forgot Password Link -->
+<div class="flex justify-end">
+<a class="text-sm font-medium text-text-muted hover:text-primary dark:text-emerald-400 dark:hover:text-primary transition-colors" href="#">
+                            Forgot password?
+                        </a>
+</div>
+<!-- Submit Button -->
+<button class="mt-2 w-full h-12 bg-primary hover:bg-primary-hover text-white font-bold rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2 group" type="submit">
+<span>Login</span>
+<span class="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</form>
+</div>
+</div>
+<!-- Footer -->
+<div class="mt-8 text-center">
+<p class="flex items-center gap-2 text-xs font-medium text-text-muted dark:text-gray-500 uppercase tracking-wider">
+<span class="material-symbols-outlined text-base">verified_user</span>
+                Authorized users only
+            </p>
+</div>
+</div>
+</body></html>

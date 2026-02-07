@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Assessment Methods & Consultation - NGO ESMS</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#11d452",
+                        "primary-hover": "#0eb646",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102216",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1c2e22",
+                        "text-main": "#111813",
+                        "text-secondary": "#61896f",
+                        "border-color": "#dbe6df",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 20px;
+        }
+        input[type="checkbox"] {
+            border-radius: 4px;
+            border-color: #dbe6df;
+            color: #11d452;
+        }
+        input[type="checkbox"]:focus {
+            --tw-ring-color: #11d452;
+            border-color: #11d452;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* Custom styles for transitions */
+        .checkbox-wrapper {
+            transition: all 0.2s ease-in-out;
+        }
+        .active-wrapper {
+            background-color: #f6f8f6; /* background-light */
+            border-color: rgba(17, 212, 82, 0.2); /* primary/20 */
+            border-width: 1px;
+            border-style: solid;
+        }
+        .dark .active-wrapper {
+            background-color: rgba(31, 41, 55, 0.3); /* dark:bg-gray-800/30 */
+            border-color: rgba(17, 212, 82, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-main dark:text-gray-100 h-screen overflow-hidden flex">
+
+<aside class="w-[300px] hidden lg:flex flex-col border-r border-[#e5e7eb] dark:border-[#1f3526] bg-white dark:bg-[#102216] flex-shrink-0 h-full">
+    <div class="px-5 pt-6 pb-2 shrink-0">
+        <a class="group flex items-center gap-3 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-all duration-200 mb-6 w-full font-medium" href="#">
+            <div class="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm dark:group-hover:bg-gray-700 transition-all">
+                <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+            </div>
+            <span>Back to Dashboard</span>
+        </a>
+        <div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl p-4 mb-2 shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-12 h-12 bg-primary/5 rounded-bl-xl"></div>
+            <div class="flex flex-col gap-1.5 relative z-10">
+                <h2 class="text-sm font-bold text-gray-900 dark:text-white leading-tight">Reforestation Initiative Alpha</h2>
+                <div class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                    <span class="material-symbols-outlined text-[14px]">location_on</span>
+                    <span>Sumatra, Indonesia</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-green-700 dark:text-green-400 font-semibold mb-5" href="#">
+            <span class="material-symbols-outlined filled">dashboard</span>
+            <span class="text-sm">Project Overview</span>
+        </a>
+        <div class="px-3 mb-2 mt-2 flex items-center justify-between">
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Workflow Tools</p>
+        </div>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:text-text-main transition-colors" href="#">
+            <span class="material-symbols-outlined text-primary">check_circle</span>
+            <span class="text-sm font-medium">Screening – Tool 1</span>
+        </a>
+        <div class="bg-background-light dark:bg-gray-800/50 rounded-lg overflow-hidden">
+            <div class="flex relative">
+                <div class="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-l-lg"></div>
+                <a class="flex-1 flex items-center gap-3 px-3 py-2.5" href="#">
+                    <span class="material-symbols-outlined text-primary">assignment</span>
+                    <span class="text-sm font-bold text-text-main dark:text-white">Assessment – Tool 2</span>
+                </a>
+            </div>
+            <div class="flex flex-col pb-2 relative">
+                <div class="absolute left-6 top-0 bottom-2 w-px bg-border-color dark:bg-gray-700 ml-0.5"></div>
+                <a class="pl-10 pr-3 py-1.5 text-sm font-medium text-text-secondary hover:text-primary block" href="#">Metadata</a>
+                <a class="pl-10 pr-3 py-1.5 text-sm font-bold text-primary hover:text-primary-hover block" href="#">Methods & Consultation</a>
+                <a class="pl-10 pr-3 py-1.5 text-sm font-medium text-text-secondary hover:text-primary block" href="#">Scoring</a>
+            </div>
+        </div>
+        <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 dark:text-gray-600 cursor-not-allowed">
+            <span class="material-symbols-outlined" style="font-size: 22px;">lock</span>
+            <span class="text-sm font-medium">SEMP – Tools 3 & 4</span>
+        </div>
+        <div class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-75">
+            <span class="material-symbols-outlined text-[20px]">lock</span>
+            <span class="text-sm font-medium">Monitoring – Tool 5</span>
+        </div>
+        <div class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-75">
+            <span class="material-symbols-outlined text-[20px]">lock</span>
+            <span class="text-sm font-medium">Reports</span>
+        </div>
+        <div class="my-5 border-t border-gray-100 dark:border-gray-800 mx-2"></div>
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group" href="#">
+            <span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 text-[20px]">folder_open</span>
+            <span class="text-sm font-medium">Annex & Attachments</span>
+        </a>
+    </div>
+    <div class="mt-auto bg-surface-light dark:bg-surface-dark border-t border-gray-100 dark:border-gray-800 p-4 shrink-0">
+        <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors mb-2" href="#">
+            <span class="material-symbols-outlined text-[20px]">settings</span>
+            <span class="text-sm font-medium">Settings</span>
+        </a>
+        <div class="h-px bg-gray-100 dark:bg-gray-800 w-full my-3"></div>
+        <div class="flex items-center gap-3 px-1">
+            <div class="w-9 h-9 rounded-full bg-cover bg-center ring-2 ring-gray-100 dark:ring-gray-700" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCtra6pj5M5oTyJp1GdJWuU63rsELKvVKe4fboOS02kUTaVf4ehAD_wchdxbPfoBzsc-L9HdsZm1dlAzW_598IOXygrITkCOb8PhtOGw5WVcDdF3hE96FbESF6OkZ6S4Qg8lCHAcfE56hrcA5qoUEuWFbxCSpY46m1nYJN2KV7pM5SvQP55_nYo7EqBZCnQnwrXRiHUeqB2sW7Jgr27PWEBt_NAf5J93MIG1HUbYa8YpgApira7wAky_Gj0olj2YRpwHmf8JlO4xcid')"></div>
+            <div class="flex flex-col min-w-0">
+                <span class="text-sm font-bold text-gray-900 dark:text-white truncate">Alex Morgan</span>
+                <span class="text-xs text-gray-500 truncate">Project Manager</span>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<main class="flex-1 flex flex-col h-full overflow-hidden relative">
+    <header class="h-16 bg-surface-light dark:bg-surface-dark border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-6 lg:px-10 shrink-0 z-10">
+        <div class="flex items-center gap-4 lg:hidden">
+            <button class="text-text-main dark:text-white"><span class="material-symbols-outlined">menu</span></button>
+        </div>
+        <div class="flex items-center gap-3 px-2">
+<div class="flex items-center justify-center size-10 rounded-xl bg-primary text-white">
+<span class="material-symbols-outlined text-2xl">eco</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-lg font-bold leading-tight text-text-main dark:text-white">ESMS System</h1>
+</div>
+</div>
+        <div class="flex items-center gap-6">
+            <button class="text-text-secondary hover:text-text-main transition-colors">
+                <span class="material-symbols-outlined">help</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark p-6 md:p-10">
+        <div class="max-w-4xl mx-auto space-y-8 pb-20">
+            <div class="flex flex-col gap-2">
+                <h1 class="text-3xl font-bold text-text-main dark:text-white tracking-tight">Assessment Methods & Consultation</h1>
+                <p class="text-text-secondary dark:text-gray-400 max-w-2xl">
+                    Document the methods used for environmental assessment and community consultation. Ensure all field visits and specialist consultations are recorded.
+                </p>
+            </div>
+
+            <div class="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-border-color dark:border-gray-700 overflow-hidden">
+                <div class="p-6 md:p-8 border-b border-border-color dark:border-gray-700">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="h-8 w-8 rounded-lg bg-green-50 dark:bg-green-900/30 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-primary">science</span>
+                        </div>
+                        <h2 class="text-lg font-bold text-text-main dark:text-white">Environmental Assessment Methods</h2>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <div class="checkbox-wrapper flex flex-col gap-3 p-3 rounded-lg hover:bg-background-light dark:hover:bg-gray-800/50">
+                            <label class="flex flex-start gap-4 cursor-pointer">
+                                <div class="flex items-center h-6">
+                                    <input checked="" class="h-5 w-5 rounded border-2 border-border-color text-primary focus:ring-primary focus:ring-offset-0 transition-all cursor-pointer" type="checkbox"/>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-text-main dark:text-gray-200 font-medium">Field visits</p>
+                                    <p class="text-sm text-text-secondary mt-0.5">Physical inspection of the site and surrounding area</p>
+                                </div>
+                            </label>
+                            <div class="input-container pl-9 pr-2">
+                                <label class="block text-xs font-semibold text-text-secondary uppercase mb-1">Details of field visits</label>
+                                <textarea class="w-full text-sm rounded-lg border-border-color bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary py-2 px-3 shadow-sm transition-all" placeholder="Enter dates and locations visited" rows="2">Initial site inspection conducted on Oct 10, 2023.</textarea>
+                            </div>
+                        </div>
+
+                        <div class="checkbox-wrapper flex flex-col gap-3 p-3 rounded-lg hover:bg-background-light dark:hover:bg-gray-800/50">
+                            <label class="flex flex-start gap-4 cursor-pointer">
+                                <div class="flex items-center h-6">
+                                    <input class="h-5 w-5 rounded border-2 border-border-color text-primary focus:ring-primary focus:ring-offset-0 transition-all cursor-pointer" type="checkbox"/>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-text-main dark:text-gray-200 font-medium">Previous environmental assessments</p>
+                                </div>
+                            </label>
+                            <div class="input-container pl-9 pr-2 hidden">
+                                <label class="block text-xs font-semibold text-text-secondary uppercase mb-1">Reference to previous assessments</label>
+                                <input class="w-full text-sm rounded-lg border-border-color bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary py-2 px-3 shadow-sm transition-all" placeholder="E.g., 2019 EIA Report for Phase 1" type="text"/>
+                            </div>
+                        </div>
+
+                        <div class="checkbox-wrapper flex flex-col gap-3 p-3 rounded-lg hover:bg-background-light dark:hover:bg-gray-800/50">
+                            <label class="flex flex-start gap-4 cursor-pointer">
+                                <div class="flex items-center h-6">
+                                    <input class="h-5 w-5 rounded border-2 border-border-color text-primary focus:ring-primary focus:ring-offset-0 transition-all cursor-pointer" type="checkbox"/>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-text-main dark:text-gray-200 font-medium">Available technical reports</p>
+                                </div>
+                            </label>
+                            <div class="input-container pl-9 pr-2 hidden">
+                                <label class="block text-xs font-semibold text-text-secondary uppercase mb-1">List technical reports</label>
+                                <textarea class="w-full text-sm rounded-lg border-border-color bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary py-2 px-3 shadow-sm transition-all" placeholder="Enter report titles and authors" rows="2"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="checkbox-wrapper flex flex-col gap-3 p-3 rounded-lg hover:bg-background-light dark:hover:bg-gray-800/50">
+                            <label class="flex flex-start gap-4 cursor-pointer">
+                                <div class="flex items-center h-6">
+                                    <input checked="" class="h-5 w-5 rounded border-2 border-border-color text-primary focus:ring-primary focus:ring-offset-0 transition-all cursor-pointer" type="checkbox"/>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-text-main dark:text-gray-200 font-medium">Consultation with specialists</p>
+                                </div>
+                            </label>
+                            <div class="input-container pl-9 pr-2">
+                                <label class="block text-xs font-semibold text-text-secondary uppercase mb-1">Who was consulted?</label>
+                                <input class="w-full text-sm rounded-lg border-border-color bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary py-2 px-3 shadow-sm transition-all" placeholder="Enter names and specialties" type="text" value="Dr. Sarah Chen (Hydrologist), Mr. Mark Davis (Ecologist)"/>
+                            </div>
+                        </div>
+
+                        <div class="checkbox-wrapper flex flex-col gap-3 p-3 rounded-lg hover:bg-background-light dark:hover:bg-gray-800/50">
+                            <label class="flex flex-start gap-4 cursor-pointer">
+                                <div class="flex items-center h-6">
+                                    <input class="h-5 w-5 rounded border-2 border-border-color text-primary focus:ring-primary focus:ring-offset-0 transition-all cursor-pointer" type="checkbox"/>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-text-main dark:text-gray-200 font-medium">Project team meetings</p>
+                                </div>
+                            </label>
+                            <div class="input-container pl-9 pr-2 hidden">
+                                <label class="block text-xs font-semibold text-text-secondary uppercase mb-1">Meeting details</label>
+                                <input class="w-full text-sm rounded-lg border-border-color bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary py-2 px-3 shadow-sm transition-all" placeholder="Dates and key outcomes" type="text"/>
+                            </div>
+                        </div>
+
+                        <div class="checkbox-wrapper flex flex-col gap-3 p-3 rounded-lg hover:bg-background-light dark:hover:bg-gray-800/50">
+                            <label class="flex flex-start gap-4 cursor-pointer">
+                                <div class="flex items-center h-6">
+                                    <input checked="" class="h-5 w-5 rounded border-2 border-border-color text-primary focus:ring-primary focus:ring-offset-0 transition-all cursor-pointer" type="checkbox"/>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-text-main dark:text-gray-200 font-medium">AKFS Environmental Guidelines</p>
+                                </div>
+                            </label>
+                            <div class="input-container pl-9 pr-2">
+                                <label class="block text-xs font-semibold text-text-secondary uppercase mb-1">Guidelines applied</label>
+                                <input class="w-full text-sm rounded-lg border-border-color bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary py-2 px-3 shadow-sm transition-all" placeholder="Specific sections or guidelines used" type="text" value="Section 4: Biodiversity Management"/>
+                            </div>
+                        </div>
+
+                        <div class="checkbox-wrapper flex flex-col gap-3 p-3 rounded-lg hover:bg-background-light dark:hover:bg-gray-800/50">
+                            <label class="flex flex-start gap-4 cursor-pointer">
+                                <div class="flex items-center h-6">
+                                    <input class="h-5 w-5 rounded border-2 border-border-color text-primary focus:ring-primary focus:ring-offset-0 transition-all cursor-pointer" type="checkbox"/>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-text-main dark:text-gray-200 font-medium">Other methods</p>
+                                </div>
+                            </label>
+                            <div class="input-container pl-9 pr-2 hidden">
+                                <label class="block text-xs font-semibold text-text-secondary uppercase mb-1">Description of other methods</label>
+                                <input class="w-full text-sm rounded-lg border-border-color bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary py-2 px-3 shadow-sm transition-all" placeholder="Describe other methods" type="text"/>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="p-6 md:p-8">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="h-8 w-8 rounded-lg bg-green-50 dark:bg-green-900/30 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-primary">groups</span>
+                        </div>
+                        <h2 class="text-lg font-bold text-text-main dark:text-white">Public and Community Consultation</h2>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="checkbox-wrapper flex flex-col gap-3 p-3 rounded-lg hover:bg-background-light dark:hover:bg-gray-800/50">
+                            <label class="flex flex-start gap-4 cursor-pointer">
+                                <div class="flex items-center h-6">
+                                    <input class="h-5 w-5 rounded border-2 border-border-color text-primary focus:ring-primary focus:ring-offset-0 transition-all cursor-pointer" type="checkbox"/>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-text-main dark:text-gray-200 font-medium">Interviews with community members</p>
+                                </div>
+                            </label>
+                            <div class="input-container pl-9 pr-2 hidden">
+                                <label class="block text-xs font-semibold text-text-secondary uppercase mb-1">Who was interviewed?</label>
+                                <textarea class="w-full text-sm rounded-lg border-border-color bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary py-2 px-3 shadow-sm transition-all" placeholder="Names or groups interviewed" rows="2"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="checkbox-wrapper flex flex-col gap-3 p-3 rounded-lg hover:bg-background-light dark:hover:bg-gray-800/50">
+                            <label class="flex flex-start gap-4 cursor-pointer">
+                                <div class="flex items-center h-6">
+                                    <input checked="" class="h-5 w-5 rounded border-2 border-border-color text-primary focus:ring-primary focus:ring-offset-0 transition-all cursor-pointer" type="checkbox"/>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-text-main dark:text-gray-200 font-medium">Village or site meetings</p>
+                                    <p class="text-sm text-text-secondary mt-0.5">Formal or informal gatherings with local stakeholders</p>
+                                </div>
+                            </label>
+                            <div class="input-container pl-9 pr-2">
+                                <label class="block text-xs font-semibold text-text-secondary uppercase mb-1">Who attended, How many, Where?</label>
+                                <textarea class="w-full text-sm rounded-lg border-border-color bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary py-2 px-3 shadow-sm transition-all" placeholder="E.g., Village Chief and 20 elders at the Community Hall" rows="2">Village Chief, 3 Council members, and approx. 15 residents at the North Village Community Center.</textarea>
+                            </div>
+                        </div>
+
+                        <div class="checkbox-wrapper flex flex-col gap-3 p-3 rounded-lg hover:bg-background-light dark:hover:bg-gray-800/50">
+                            <label class="flex flex-start gap-4 cursor-pointer">
+                                <div class="flex items-center h-6">
+                                    <input class="h-5 w-5 rounded border-2 border-border-color text-primary focus:ring-primary focus:ring-offset-0 transition-all cursor-pointer" type="checkbox"/>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-text-main dark:text-gray-200 font-medium">Consultation with village/site committees</p>
+                                </div>
+                            </label>
+                            <div class="input-container pl-9 pr-2 hidden">
+                                <label class="block text-xs font-semibold text-text-secondary uppercase mb-1">Committee details</label>
+                                <input class="w-full text-sm rounded-lg border-border-color bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary py-2 px-3 shadow-sm transition-all" placeholder="Name of committee and outcomes" type="text"/>
+                            </div>
+                        </div>
+
+                        <div class="checkbox-wrapper flex flex-col gap-3 p-3 rounded-lg hover:bg-background-light dark:hover:bg-gray-800/50">
+                            <label class="flex flex-start gap-4 cursor-pointer">
+                                <div class="flex items-center h-6">
+                                    <input class="h-5 w-5 rounded border-2 border-border-color text-primary focus:ring-primary focus:ring-offset-0 transition-all cursor-pointer" type="checkbox"/>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-text-main dark:text-gray-200 font-medium">Other community consultation</p>
+                                </div>
+                            </label>
+                            <div class="input-container pl-9 pr-2 hidden">
+                                <label class="block text-xs font-semibold text-text-secondary uppercase mb-1">Details</label>
+                                <textarea class="w-full text-sm rounded-lg border-border-color bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary py-2 px-3 shadow-sm transition-all" placeholder="Describe other consultation methods" rows="2"></textarea>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="h-20 bg-surface-light dark:bg-surface-dark border-t border-border-color dark:border-gray-700 flex items-center justify-between px-8 z-20">
+        <button class="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border-color dark:border-gray-600 text-text-main dark:text-white font-medium hover:bg-background-light dark:hover:bg-gray-800 transition-colors">
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
+            Back to Assessment Overview
+        </button>
+        <button class="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-medium shadow-md transition-colors transform active:scale-95">
+            Save and Continue
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </button>
+    </div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const checkboxes = document.querySelectorAll('.checkbox-wrapper input[type="checkbox"]');
+
+        function toggleInput(checkbox) {
+            const wrapper = checkbox.closest('.checkbox-wrapper');
+            const inputContainer = wrapper.querySelector('.input-container');
+
+            if (checkbox.checked) {
+                // Show input
+                if(inputContainer) inputContainer.classList.remove('hidden');
+                // Add active styles
+                wrapper.classList.add('active-wrapper');
+            } else {
+                // Hide input
+                if(inputContainer) inputContainer.classList.add('hidden');
+                // Remove active styles
+                wrapper.classList.remove('active-wrapper');
+            }
+        }
+
+        checkboxes.forEach(cb => {
+            // Initial check on page load
+            toggleInput(cb);
+
+            // Add event listener for changes
+            cb.addEventListener('change', () => {
+                toggleInput(cb);
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

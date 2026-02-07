@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Assessment Review &amp; Approval</title>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#11d452",
+              "primary-hover": "#0eb646",
+              "background-light": "#f6f8f6",
+              "background-dark": "#102216",
+              "surface-light": "#ffffff",
+              "surface-dark": "#1c2e22",
+              "text-main": "#111813",
+              "text-secondary": "#61896f",
+              "border-color": "#dbe6df",
+            },
+            fontFamily: {
+              "display": ["Public Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 20px;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        input[type="checkbox"] {
+            border-radius: 4px;
+            border-color: #dbe6df;
+            color: #11d452;
+        }
+        input[type="checkbox"]:focus {
+            --tw-ring-color: #11d452;
+            border-color: #11d452;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-main dark:text-gray-100 overflow-hidden flex h-screen w-full">
+<div class="flex h-screen w-full">
+<aside class="w-[300px] hidden lg:flex flex-col border-r border-[#e5e7eb] dark:border-[#1f3526] bg-white dark:bg-[#102216] flex-shrink-0 h-full">
+<div class="px-5 pt-6 pb-2 shrink-0">
+<a class="group flex items-center gap-3 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-all duration-200 mb-6 w-full font-medium" href="#">
+<div class="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm dark:group-hover:bg-gray-700 transition-all">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+</div>
+<span>Back to Dashboard</span>
+</a>
+<div class="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-800 rounded-xl p-4 mb-2 shadow-sm relative overflow-hidden">
+<div class="absolute top-0 right-0 w-12 h-12 bg-primary/5 rounded-bl-xl"></div>
+<div class="flex flex-col gap-1.5 relative z-10">
+<h2 class="text-sm font-bold text-gray-900 dark:text-white leading-tight">Water Access Initiative</h2>
+<div class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+<span class="material-symbols-outlined text-[14px]">location_on</span>
+<span>Sector 4, Village A</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto px-4 py-2 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-green-700 dark:text-green-400 font-semibold mb-5" href="#">
+<span class="material-symbols-outlined icon-fill">dashboard</span>
+<span class="text-sm">Project Overview</span>
+</a>
+<div class="px-3 mb-2 mt-2 flex items-center justify-between">
+<p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Workflow Tools</p>
+</div>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary hover:text-text-main transition-colors" href="#">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+<span class="text-sm font-medium">Screening – Tool 1</span>
+</a>
+<div class="bg-background-light dark:bg-gray-800/50 rounded-lg overflow-hidden">
+<div class="flex relative">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-l-lg"></div>
+<a class="flex-1 flex items-center gap-3 px-3 py-2.5" href="#">
+<span class="material-symbols-outlined text-primary">assignment</span>
+<span class="text-sm font-bold text-text-main dark:text-white">Assessment – Tool 2</span>
+</a>
+</div>
+</div>
+<div class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 dark:text-gray-600 cursor-not-allowed">
+<span class="material-symbols-outlined" style="font-size: 22px;">lock</span>
+<span class="text-sm font-medium">SEMP – Tools 3 &amp; 4</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-75">
+<span class="material-symbols-outlined text-[20px]">lock</span>
+<span class="text-sm font-medium">Monitoring – Tool 5</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-75">
+<span class="material-symbols-outlined text-[20px]">lock</span>
+<span class="text-sm font-medium">Reports</span>
+</div>
+<div class="my-5 border-t border-gray-100 dark:border-gray-800 mx-2"></div>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group" href="#">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 text-[20px]">folder_open</span>
+<span class="text-sm font-medium">Annex &amp; Attachments</span>
+</a>
+</div>
+<div class="mt-auto bg-surface-light dark:bg-surface-dark border-t border-gray-100 dark:border-gray-800 p-4 shrink-0">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors mb-2" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+<div class="h-px bg-gray-100 dark:bg-gray-800 w-full my-3"></div>
+<div class="flex items-center gap-3 px-1">
+<div class="w-9 h-9 rounded-full bg-cover bg-center ring-2 ring-gray-100 dark:ring-gray-700" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAcZTIcZbFLuTxsNQ7Q5O7LMolwTBz2G5GsKqXUFpWOLYiZ80Xv49tN8kUwxvRIEqLiVyTEeZ42mWj6uo4b2R9zjcYG7xUXDPGH_2Ignf9RKgQW93MQRPzvBQ7rb5BOa8zJuDeU0QP6LqPGdeUscXLIHr-NSTEstJl93JIQbsGo2Crkd04ro7Vutk_McGcFKB02AV3A6WOC0eamwHpn799zDcSBin2RTUNBGOdYt1QDng2_EcoQdX9BQ9fYFIE05hZdvw9eldgu28ZN')"></div>
+<div class="flex flex-col min-w-0">
+<span class="text-sm font-bold text-gray-900 dark:text-white truncate">Sarah Jenkins</span>
+<span class="text-xs text-gray-500 truncate">Field Officer</span>
+</div>
+</div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col h-full overflow-hidden">
+<!-- الهيدر المطابق للصفحة الأولى -->
+<header class="h-16 bg-surface-light dark:bg-surface-dark border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-6 lg:px-10 shrink-0 z-10">
+    <div class="flex items-center gap-4 lg:hidden">
+        <button class="text-text-main dark:text-white"><span class="material-symbols-outlined">menu</span></button>
+    </div>
+    <div class="flex items-center gap-3 px-2">
+<div class="flex items-center justify-center size-10 rounded-xl bg-primary text-white">
+<span class="material-symbols-outlined text-2xl">eco</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-lg font-bold leading-tight text-text-main dark:text-white">ESMS System</h1>
+</div>
+</div>
+    <div class="flex items-center gap-6">
+        <button class="text-text-secondary hover:text-text-main transition-colors">
+            <span class="material-symbols-outlined">help</span>
+        </button>
+    </div>
+</header>
+
+<div class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark">
+<div class="p-4 md:p-8 max-w-[1000px] mx-auto">
+<div class="bg-white dark:bg-[#1a2e22] shadow-sm rounded-xl min-h-full flex flex-col border border-border-color dark:border-gray-800 overflow-hidden mb-10">
+<header class="p-8 pb-6 border-b border-border-color dark:border-gray-800">
+<div class="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+<div class="flex flex-col gap-2">
+<h1 class="text-text-main dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-tight">Environmental Assessment</h1>
+<p class="text-text-secondary text-lg font-normal">
+                            Review &amp; Approval Stage
+                        </p>
+</div>
+<div class="flex flex-col items-end gap-2">
+<span class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 text-sm font-bold border border-amber-200 dark:border-amber-800">
+<span class="size-2 rounded-full bg-amber-500 mr-2 animate-pulse"></span>
+                            Pending Approval
+                        </span>
+</div>
+</div>
+</header>
+<section class="p-8 border-b border-border-color dark:border-gray-800">
+<h3 class="text-text-main dark:text-white text-lg font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">badge</span>
+                    Project &amp; Officer Information
+                </h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+<div class="flex flex-col gap-1">
+<p class="text-text-secondary text-xs font-bold uppercase tracking-wider">Officer Name</p>
+<p class="text-text-main dark:text-gray-200 text-sm font-medium">Sarah Jenkins</p>
+</div>
+<div class="flex flex-col gap-1">
+<p class="text-text-secondary text-xs font-bold uppercase tracking-wider">Officer Position</p>
+<p class="text-text-main dark:text-gray-200 text-sm font-medium">Field Officer</p>
+</div>
+<div class="flex flex-col gap-1">
+<p class="text-text-secondary text-xs font-bold uppercase tracking-wider">Activity Title</p>
+<p class="text-text-main dark:text-gray-200 text-sm font-medium">Borehole Construction &amp; Solar Pump</p>
+</div>
+<div class="flex flex-col gap-1">
+<p class="text-text-secondary text-xs font-bold uppercase tracking-wider">Location</p>
+<p class="text-text-main dark:text-gray-200 text-sm font-medium">Sector 4, Village A, Northern District</p>
+</div>
+<div class="flex flex-col gap-1">
+<p class="text-text-secondary text-xs font-bold uppercase tracking-wider">Activity Timeline</p>
+<p class="text-text-main dark:text-gray-200 text-sm font-medium">2023-11-01 <span class="text-text-secondary px-1">to</span> 2024-02-15</p>
+</div>
+<div class="flex flex-col gap-1">
+<p class="text-text-secondary text-xs font-bold uppercase tracking-wider">Screening Category</p>
+<div class="flex items-center gap-2">
+<span class="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200 text-xs font-bold px-2 py-0.5 rounded">Category B</span>
+</div>
+</div>
+</div>
+</section>
+<section class="p-8 border-b border-border-color dark:border-gray-800 bg-gray-50/50 dark:bg-white/5">
+<h3 class="text-text-main dark:text-white text-lg font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">info</span>
+                    Project Description
+                </h3>
+<div class="space-y-6">
+<div class="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4">
+<p class="text-text-secondary text-sm font-medium">Component Assessed</p>
+<p class="text-text-main dark:text-gray-200 text-sm leading-relaxed">Borehole Drilling and Pump Installation Phase 1.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4">
+<p class="text-text-secondary text-sm font-medium">Brief Description</p>
+<p class="text-text-main dark:text-gray-200 text-sm leading-relaxed">
+                            The project involves the mechanical drilling of a 50-meter deep borehole to access the aquifer. Following drilling, a solar-powered submersible pump will be installed. A 5000L raised storage tank will be constructed on a concrete plinth. The site will be fenced (10m x 10m perimeter) to prevent animal access.
+                        </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4">
+<p class="text-text-secondary text-sm font-medium">Environmental Setting</p>
+<p class="text-text-main dark:text-gray-200 text-sm leading-relaxed">
+                            Semi-arid region characterized by flat terrain with sandy-loam soil. Vegetation is sparse, consisting mainly of Acacia shrubs and seasonal grasses. No protected wildlife areas or water bodies are within 5km radius. The site is 500m from the nearest household cluster.
+                        </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4">
+<p class="text-text-secondary text-sm font-medium">Compliance Approach</p>
+<p class="text-text-main dark:text-gray-200 text-sm leading-relaxed">
+                            Adherence to National Water Resources Authority guidelines for groundwater abstraction. Compliance with the NGO's Environmental Social Management Framework (ESMF).
+                        </p>
+</div>
+</div>
+</section>
+<section class="p-8 border-b border-border-color dark:border-gray-800">
+<h3 class="text-text-main dark:text-white text-lg font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">groups</span>
+                    Methods &amp; Consultation
+                </h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div>
+<p class="text-text-secondary text-xs font-bold uppercase tracking-wider mb-3">Assessment Methods Used</p>
+<ul class="flex flex-col gap-4">
+<li class="flex flex-col gap-2">
+<div class="flex items-center gap-3 text-sm text-text-main dark:text-gray-200">
+<span class="material-symbols-outlined text-primary icon-fill">check_box</span>
+                                    Site Inspection / Walkover
+                                </div>
+<input class="ml-9 w-[calc(100%-2.25rem)] bg-background-light dark:bg-gray-800 border border-border-color dark:border-gray-700 rounded px-3 py-1.5 text-xs text-text-main dark:text-gray-200 focus:outline-none cursor-default" readonly="" type="text" value="Conducted on Oct 25, 2023 by Field Officer."/>
+</li>
+<li class="flex flex-col gap-2">
+<div class="flex items-center gap-3 text-sm text-text-main dark:text-gray-200">
+<span class="material-symbols-outlined text-primary icon-fill">check_box</span>
+                                    Review of Technical Design
+                                </div>
+<input class="ml-9 w-[calc(100%-2.25rem)] bg-background-light dark:bg-gray-800 border border-border-color dark:border-gray-700 rounded px-3 py-1.5 text-xs text-text-main dark:text-gray-200 focus:outline-none cursor-default" readonly="" type="text" value="Engineering drawings v2.1 reviewed against standards."/>
+</li>
+<li class="flex items-center gap-3 text-sm text-text-main dark:text-gray-200">
+<span class="material-symbols-outlined text-text-secondary">check_box_outline_blank</span>
+                                Historical Data Analysis
+                            </li>
+<li class="flex flex-col gap-2">
+<div class="flex items-center gap-3 text-sm text-text-main dark:text-gray-200">
+<span class="material-symbols-outlined text-primary icon-fill">check_box</span>
+                                    Public Consultation
+                                </div>
+<input class="ml-9 w-[calc(100%-2.25rem)] bg-background-light dark:bg-gray-800 border border-border-color dark:border-gray-700 rounded px-3 py-1.5 text-xs text-text-main dark:text-gray-200 focus:outline-none cursor-default" readonly="" type="text" value="Initial stakeholder engagement session completed."/>
+</li>
+</ul>
+</div>
+<div>
+<p class="text-text-secondary text-xs font-bold uppercase tracking-wider mb-3">Consultations Conducted</p>
+<ul class="flex flex-col gap-4">
+<li class="flex flex-col gap-2">
+<div class="flex items-center gap-3 text-sm text-text-main dark:text-gray-200">
+<span class="material-symbols-outlined text-primary icon-fill">check_box</span>
+<span class="font-medium">Community Meeting</span>
+</div>
+<input class="ml-9 w-[calc(100%-2.25rem)] bg-background-light dark:bg-gray-800 border border-border-color dark:border-gray-700 rounded px-3 py-1.5 text-xs text-text-main dark:text-gray-200 focus:outline-none cursor-default" readonly="" type="text" value="Held on Nov 3rd at Village Square. 45 attendees (20F/25M)."/>
+</li>
+<li class="flex flex-col gap-2">
+<div class="flex items-center gap-3 text-sm text-text-main dark:text-gray-200">
+<span class="material-symbols-outlined text-primary icon-fill">check_box</span>
+<span class="font-medium">Specialist: Hydrogeologist</span>
+</div>
+<input class="ml-9 w-[calc(100%-2.25rem)] bg-background-light dark:bg-gray-800 border border-border-color dark:border-gray-700 rounded px-3 py-1.5 text-xs text-text-main dark:text-gray-200 focus:outline-none cursor-default" readonly="" type="text" value="Dr. A. Mensah verified aquifer depth data."/>
+</li>
+</ul>
+</div>
+</div>
+</section>
+<section class="p-8 border-b border-border-color dark:border-gray-800">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-text-main dark:text-white text-lg font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">analytics</span>
+                        Detailed Impact Assessment
+                    </h3>
+<span class="text-xs text-text-secondary bg-gray-50 dark:bg-gray-800 px-3 py-1 rounded-full border border-border-color dark:border-gray-700">Read Only Mode</span>
+</div>
+<div class="mb-8 border border-border-color dark:border-gray-700 rounded-lg overflow-hidden">
+<div class="bg-gray-50 dark:bg-gray-800 px-4 py-3 flex justify-between items-center border-b border-border-color dark:border-gray-700">
+<h4 class="font-bold text-text-main dark:text-white text-sm">1. Air Quality</h4>
+<span class="text-xs font-bold px-2 py-0.5 rounded bg-yellow-100 text-yellow-800 border border-yellow-200 dark:bg-yellow-900/60 dark:text-yellow-200 dark:border-yellow-900/40">Low</span>
+</div>
+<div class="divide-y divide-border-color dark:divide-gray-700">
+<div class="grid grid-cols-1 md:grid-cols-[1fr_150px_1fr] gap-4 p-4 bg-white dark:bg-[#1a2e22]">
+<p class="text-sm text-text-main dark:text-gray-200">Will the activity generate significant dust during construction?</p>
+<div>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                                    Low Impact
+                                </span>
+</div>
+<p class="text-xs text-text-secondary">Dust expected during drilling (2-3 days). Site is far from homes.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-[1fr_150px_1fr] gap-4 p-4 bg-gray-50 dark:bg-gray-800/50">
+<p class="text-sm text-text-main dark:text-gray-200">Will there be smoke or fumes from machinery?</p>
+<div>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                    Negligible
+                                </span>
+</div>
+<p class="text-xs text-text-secondary">Drill rig operates for short duration. Solar pump has zero emissions.</p>
+</div>
+</div>
+</div>
+<div class="mb-8 border border-border-color dark:border-gray-700 rounded-lg overflow-hidden">
+<div class="bg-gray-50 dark:bg-gray-800 px-4 py-3 flex justify-between items-center border-b border-border-color dark:border-gray-700">
+<h4 class="font-bold text-text-main dark:text-white text-sm">2. Water Quality &amp; Resources</h4>
+<span class="text-xs font-bold px-2 py-0.5 rounded bg-orange-100 text-orange-800 border border-orange-200 dark:bg-orange-900/60 dark:text-orange-200 dark:border-orange-900/40">Medium</span>
+</div>
+<div class="divide-y divide-border-color dark:divide-gray-700">
+<div class="grid grid-cols-1 md:grid-cols-[1fr_150px_1fr] gap-4 p-4 bg-white dark:bg-[#1a2e22]">
+<p class="text-sm text-text-main dark:text-gray-200">Risk of groundwater contamination during drilling?</p>
+<div>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                                    Low Impact
+                                </span>
+</div>
+<p class="text-xs text-text-secondary">Oil spill kits will be onsite. Contractors briefed.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-[1fr_150px_1fr] gap-4 p-4 bg-gray-50 dark:bg-gray-800/50">
+<p class="text-sm text-text-main dark:text-gray-200">Is there potential for aquifer depletion?</p>
+<div>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                                    Medium Impact
+                                </span>
+</div>
+<p class="text-xs text-text-secondary">Abstraction rate calculated to be safe, but monitoring required dry season.</p>
+</div>
+</div>
+</div>
+<div class="border border-border-color dark:border-gray-700 rounded-lg overflow-hidden">
+<div class="bg-gray-50 dark:bg-gray-800 px-4 py-3 flex justify-between items-center border-b border-border-color dark:border-gray-700">
+<h4 class="font-bold text-text-main dark:text-white text-sm">3. Land Use &amp; Management</h4>
+<span class="text-xs font-bold px-2 py-0.5 rounded bg-gray-200 text-gray-700 border border-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600">Negligible</span>
+</div>
+<div class="p-4 bg-white dark:bg-[#1a2e22] text-center text-sm text-text-secondary italic">
+                        All questions marked as Negligible or Not Applicable. No issues identified.
+                    </div>
+</div>
+</section>
+<section class="p-8 bg-gray-50 dark:bg-gray-800/30 border-b border-border-color dark:border-gray-800">
+<h3 class="text-text-main dark:text-white text-lg font-bold mb-6 text-center">Overall Assessment Results</h3>
+<div class="flex flex-col md:flex-row justify-center items-stretch gap-6">
+<div class="bg-white dark:bg-[#1a2e22] rounded-xl p-6 shadow-sm border border-border-color dark:border-gray-700 flex-1 flex flex-col items-center justify-start text-center max-w-sm">
+<p class="text-text-secondary text-xs font-bold uppercase tracking-wider mb-2">Total Project Score</p>
+<div class="w-full space-y-2.5 bg-background-light dark:bg-background-dark p-4 rounded-lg">
+<div class="flex justify-between items-center text-xs">
+<span class="text-yellow-700 dark:text-yellow-500 font-medium">Low Impact</span>
+<span class="font-bold text-text-main dark:text-white">8 pts</span>
+</div>
+<div class="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-yellow-400 w-[44%]"></div>
+</div>
+<div class="flex justify-between items-center text-xs pt-1">
+<span class="text-orange-700 dark:text-orange-500 font-medium">Medium Impact</span>
+<span class="font-bold text-text-main dark:text-white">10 pts</span>
+</div>
+<div class="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-orange-400 w-[56%]"></div>
+</div>
+<div class="flex justify-between items-center text-xs pt-1">
+<span class="text-red-700 dark:text-red-500 font-medium">High Impact</span>
+<span class="font-bold text-text-main dark:text-white">0 pts</span>
+</div>
+<div class="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-red-500 w-[0%]"></div>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-[#1a2e22] rounded-xl p-6 shadow-sm border border-border-color dark:border-gray-700 flex-1 flex flex-col items-center justify-center text-center max-w-sm relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1.5 bg-orange-500"></div>
+<p class="text-text-secondary text-xs font-bold uppercase tracking-wider mb-4">Total Project Impact</p>
+<div class="text-4xl font-black text-orange-600 dark:text-orange-400 mb-3 tracking-tight">
+                            MEDIUM
+                        </div>
+<p class="text-xs text-text-secondary max-w-[200px]">Highest category score determines overall project impact classification.</p>
+</div>
+</div>
+</section>
+<section class="p-8 border-b border-border-color dark:border-gray-800">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="p-5 rounded-lg border border-red-100 bg-red-50/50 dark:bg-red-900/10 dark:border-red-900/30">
+<h4 class="text-red-800 dark:text-red-200 font-bold mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-red-600 dark:text-red-400" data-icon="warning">warning</span>
+                            Potential Negative Impacts
+                        </h4>
+<p class="text-sm text-text-main dark:text-gray-300 leading-relaxed">
+                            Minor temporary dust and noise pollution during drilling. Minimal risk of localized oil spills from machinery. Potential for social friction if water access rules are not clear.
+                        </p>
+</div>
+<div class="p-5 rounded-lg border border-green-100 bg-green-50/50 dark:bg-green-900/10 dark:border-green-900/30">
+<h4 class="text-green-800 dark:text-green-200 font-bold mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-green-600 dark:text-green-400" data-icon="eco">eco</span>
+                            Potential Positive Impacts
+                        </h4>
+<p class="text-sm text-text-main dark:text-gray-300 leading-relaxed">
+                            Provision of clean drinking water to 500+ residents. Reduction in water-borne diseases. Reduced time for women/children collecting water. Creation of local jobs during construction.
+                        </p>
+</div>
+</div>
+</section>
+<section class="p-8 bg-background-light dark:bg-background-dark">
+<div class="bg-white dark:bg-[#1a2e22] rounded-xl border border-border-color dark:border-gray-700 shadow-sm p-6 md:p-8">
+<h3 class="text-text-main dark:text-white text-xl font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">verified_user</span>
+                        Approval &amp; Recommendations
+                    </h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+<div class="flex flex-col gap-2">
+<label class="text-text-secondary text-xs font-bold uppercase tracking-wider">Approved By</label>
+<input class="w-full bg-gray-50 dark:bg-gray-800 border border-border-color dark:border-gray-700 rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium" readonly="" type="text" value="James Director"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-text-secondary text-xs font-bold uppercase tracking-wider">Position</label>
+<input class="w-full bg-gray-50 dark:bg-gray-800 border border-border-color dark:border-gray-700 rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium" readonly="" type="text" value="Regional Manager"/>
+</div>
+</div>
+<div class="flex flex-col gap-2 mb-8">
+<label class="text-text-main dark:text-white text-sm font-bold" for="recommendations">
+                            Reviewer Recommendations <span class="text-text-secondary font-normal">(Required for conditional approvals)</span>
+</label>
+<textarea class="w-full bg-white dark:bg-gray-800/50 border border-border-color dark:border-gray-700 rounded-lg px-4 py-3 text-text-main dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary placeholder-text-secondary/50" id="recommendations" placeholder="Enter specific conditions, monitoring requirements, or reasons for rejection..." rows="4"></textarea>
+</div>
+<div class="flex flex-col-reverse md:flex-row items-center justify-end gap-4 pt-4 border-t border-border-color dark:border-gray-700">
+<button class="w-full md:w-auto px-6 py-2.5 rounded-lg border border-border-color dark:border-gray-700 text-text-main dark:text-white font-bold text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">edit_document</span>
+                            Edit Assessment
+                        </button>
+<button class="w-full md:w-auto px-8 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-bold text-sm transition-colors shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">check_circle</span>
+                            Approve Assessment
+                        </button>
+</div>
+</div>
+</section>
+</div>
+<footer class="max-w-[1000px] mx-auto text-center pb-8 pt-4">
+<p class="text-xs text-text-secondary">Generated by EcoManage System • Confidential Internal Document • 2023</p>
+</footer>
+</div>
+</div>
+</main>
+</div>
+</body></html>

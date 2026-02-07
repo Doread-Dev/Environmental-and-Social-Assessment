@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Environmental &amp; Social Management Activities</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    "primary": "#11d452",
+                    "background-light": "#f6f8f6",
+                    "background-dark": "#102216",
+                    "surface-light": "#ffffff",
+                    "surface-dark": "#1a2c20",
+                    "border-light": "#e7f3eb",
+                    "border-dark": "#2a4030",
+                },
+                fontFamily: {
+                    "display": ["Public Sans", "sans-serif"]
+                },
+            },
+        },
+    }
+</script>
+<style>
+    /* شريط التمرير */
+    .excel-scroll::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    .excel-scroll::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    .dark .excel-scroll::-webkit-scrollbar-track {
+        background: #1a2c20;
+    }
+    .excel-scroll::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 5px;
+        border: 2px solid #f1f1f1;
+    }
+    .dark .excel-scroll::-webkit-scrollbar-thumb {
+        background: #4a5568;
+        border-color: #1a2c20;
+    }
+    .excel-scroll::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+
+    /* تنسيق الخلايا (Div contenteditable) */
+    .excel-cell {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: start;
+        text-align: left;
+        padding: 8px;
+        outline: none;
+        word-break: break-word;
+        white-space: pre-wrap;
+        background: transparent;
+    }
+    
+    .excel-cell:focus {
+        box-shadow: inset 0 0 0 2px #11d452;
+        background-color: rgba(17, 212, 82, 0.05);
+        z-index: 10;
+        position: relative;
+    }
+
+    /* تنسيق القائمة المنسدلة (Select) لتشبه الخلايا */
+    select.excel-cell {
+        appearance: none;
+        -webkit-appearance: none;
+        border: none;
+        text-align: center;
+        text-align-last: center; /* لمحاذاة النص داخل السيلكت للمنتصف */
+        padding: 0 8px;
+        cursor: pointer;
+    }
+    select.excel-cell:focus {
+        ring: 0;
+        outline: none;
+        box-shadow: inset 0 0 0 2px #11d452;
+    }
+
+    /* Placeholder */
+    .excel-cell[data-placeholder]:empty:before {
+        content: attr(data-placeholder);
+        color: #9ca3af;
+        pointer-events: none;
+    }
+
+    /* مقابض تغيير الحجم */
+    .resizer-col {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 5px;
+        cursor: col-resize;
+        z-index: 20;
+        user-select: none;
+        transition: background 0.2s;
+    }
+    
+    .resizer-row {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 5px;
+        cursor: row-resize;
+        z-index: 20;
+        user-select: none;
+        transition: background 0.2s;
+    }
+
+    .resizer-col:hover, .resizer-row:hover, .resizing {
+        background-color: rgba(17, 212, 82, 0.5);
+    }
+
+    /* زر الحذف العائم */
+    #floating-delete-btn {
+        position: absolute;
+        left: 5px;
+        display: none;
+        z-index: 100;
+        transition: opacity 0.2s, transform 0.2s;
+    }
+
+    tr { height: 60px; }
+    td { height: inherit; }
+    
+    tr:hover td {
+        background-color: rgba(0,0,0,0.02);
+    }
+    .dark tr:hover td {
+        background-color: rgba(255,255,255,0.02);
+    }
+</style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#0d1b12] dark:text-white font-display antialiased min-h-screen flex flex-col">
+    
+    <header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark px-6 md:px-10 py-3 shadow-sm h-16 shrink-0">
+        <div class="flex items-center gap-3 px-2">
+<div class="flex items-center justify-center size-10 rounded-xl bg-primary text-white">
+<span class="material-symbols-outlined text-2xl">eco</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-lg font-bold leading-tight text-text-main dark:text-white">ESMS System</h1>
+</div>
+</div>
+        <div class="flex flex-1 justify-end gap-6 items-center">
+            <button class="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium shadow-sm hover:border-primary hover:text-primary transition-colors">
+                <span class="material-symbols-outlined text-lg">download</span>
+                Export Excel
+            </button>
+        </div>
+    </header>
+
+    <div class="flex-1 flex flex-col w-full overflow-hidden">
+        
+        <div class="shrink-0 flex flex-wrap justify-between items-end gap-3 px-6 md:px-10 py-6 border-b border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark">
+            <div class="flex min-w-72 flex-col gap-2">
+                <div class="flex items-center gap-2 text-primary text-sm font-bold uppercase tracking-wider">
+                    <span class="material-symbols-outlined text-lg">build</span>
+                    <span>Tool 3</span>
+                </div>
+                <h1 class="text-[#0d1b12] dark:text-white text-2xl md:text-3xl font-black leading-tight tracking-[-0.033em]">Environmental &amp; Social Management</h1>
+                <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Operational planning and risk mitigation tracking.</p>
+            </div>
+            <div class="gap-2 flex items-center justify-center">
+                <button class="flex items-center justify-center gap-2 rounded-lg h-10 px-4 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-[#0d1b12] dark:text-white text-sm font-bold transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-lg">arrow_back</span>
+                    <span>Back</span>
+                </button>
+                <button class="flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-5 bg-primary hover:bg-green-500 text-white gap-2 text-sm font-bold leading-normal tracking-[0.015em] shadow-md transition-all transform hover:scale-[1.02]">
+                    <span class="material-symbols-outlined text-lg">save</span>
+                    <span class="truncate">Save</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="px-4 md:px-10 pb-10 pt-4 w-full flex-1 flex flex-col overflow-hidden relative" id="main-container">
+            
+            <button id="floating-delete-btn" class="flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-700 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 shadow-sm border border-red-200 dark:border-red-800 transition-all active:scale-95" title="Delete Row">
+                <span class="material-symbols-outlined text-lg">close</span>
+            </button>
+
+            <div class="border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-surface-dark shadow-sm flex flex-col overflow-hidden w-full h-full"> 
+                
+                <div class="flex-1 overflow-auto excel-scroll w-full" id="table-scroll-area">
+                    <table class="w-full border-collapse table-fixed" id="excel-table" style="min-width: 100%;">
+                        <thead class="sticky top-0 z-30 shadow-sm bg-gray-100 dark:bg-[#15231a]" id="table-header">
+                            <tr class="border-b border-gray-300 dark:border-gray-600">
+                                <th class="w-12 px-2 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider text-center border-r border-gray-300 dark:border-gray-600 relative group">#</th>
+                                <th class="w-[300px] px-3 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider text-center border-r border-gray-300 dark:border-gray-600 relative group">Activity Description</th>
+                                <th class="w-[200px] px-3 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider text-center border-r border-gray-300 dark:border-gray-600 relative group">Potential Impact and Significance / Risk- low-med-high</th>
+                                <th class="w-[250px] px-3 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider text-center border-r border-gray-300 dark:border-gray-600 relative group">Recommended Action Items</th>
+                                <th class="w-[200px] px-3 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider text-center border-r border-gray-300 dark:border-gray-600 relative group">Monitoring requirements</th>
+                                <th class="w-[150px] px-3 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider text-center border-r border-gray-300 dark:border-gray-600 relative group">Responsibility</th>
+                                <th class="w-[150px] px-3 py-3 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider text-center border-r border-gray-300 dark:border-gray-600 relative group">Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body" class="divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-surface-dark">
+                            
+                            <tr class="group transition-colors">
+                                <td class="bg-gray-50 dark:bg-[#0d1b12] text-center text-xs text-gray-500 font-medium border-r border-gray-200 dark:border-gray-700 select-none relative row-index">1</td>
+                                <td class="p-0 border-r border-gray-200 dark:border-gray-700 relative">
+                                    <div class="excel-cell text-sm text-[#0d1b12] dark:text-gray-100" contenteditable="true" data-placeholder="Type here...">Construction site clearing near wetlands</div>
+                                </td>
+                                <td class="p-0 border-r border-gray-200 dark:border-gray-700 relative">
+                                    <div class="excel-cell text-sm text-[#0d1b12] dark:text-gray-100" contenteditable="true">Wetlands Disturbance (High)</div>
+                                </td>
+                                <td class="p-0 border-r border-gray-200 dark:border-gray-700 relative">
+                                    <div class="excel-cell text-sm text-[#0d1b12] dark:text-gray-100" contenteditable="true">Install silt fences and sedimentation ponds immediately.</div>
+                                </td>
+                                <td class="p-0 border-r border-gray-200 dark:border-gray-700 relative">
+                                    <div class="excel-cell text-sm text-[#0d1b12] dark:text-gray-100" contenteditable="true">Daily visual inspection</div>
+                                </td>
+                                <td class="p-0 border-r border-gray-200 dark:border-gray-700 relative">
+                                    <select class="excel-cell text-sm text-[#0d1b12] dark:text-gray-100 bg-transparent">
+                                        <option value="">Select...</option>
+                                        <option selected>Sarah M.</option>
+                                        <option>John D.</option>
+                                        <option>Alice P.</option>
+                                        <option>Bob S.</option>
+                                    </select>
+                                </td>
+                                <td class="p-0 border-r border-gray-200 dark:border-gray-700 relative">
+                                    <div class="excel-cell text-xs italic text-gray-500 dark:text-gray-400" contenteditable="true">Pending permit</div>
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-[#15231a] border-t border-gray-300 dark:border-gray-700 p-2 w-full z-20">
+                    <button onclick="addRow()" class="w-full py-2 bg-white dark:bg-white/5 border border-dashed border-gray-300 dark:border-gray-600 rounded text-primary text-sm font-bold hover:bg-green-50 dark:hover:bg-green-900/10 hover:border-primary transition-all flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-xl">add</span>
+                        Add another row
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // --- Elements ---
+    const table = document.getElementById('excel-table');
+    const thead = document.getElementById('table-header');
+    const tbody = document.getElementById('table-body');
+    const deleteBtn = document.getElementById('floating-delete-btn');
+    const mainContainer = document.getElementById('main-container');
+    const scrollArea = document.getElementById('table-scroll-area');
+
+    let activeRow = null;
+
+    // --- Floating Button Logic ---
+    tbody.addEventListener('mouseover', function(e) {
+        const tr = e.target.closest('tr');
+        if (tr) {
+            activeRow = tr;
+            positionDeleteButton(tr);
+        }
+    });
+
+    // Explicitly hide when hovering header
+    thead.addEventListener('mouseenter', function() {
+        deleteBtn.style.display = 'none';
+        activeRow = null;
+    });
+
+    // Hide button when leaving the table area
+    mainContainer.addEventListener('mouseleave', function(e) {
+        deleteBtn.style.display = 'none';
+        activeRow = null;
+    });
+    
+    // Hide button on scroll to avoid misalignment
+    scrollArea.addEventListener('scroll', function() {
+         deleteBtn.style.display = 'none';
+    });
+    
+    // Re-show button on mouse move after scroll (only if on tbody)
+    scrollArea.addEventListener('mousemove', function(e) {
+         const tr = e.target.closest('tr');
+         // Ensure we are in tbody, not thead
+         if(tr && tr.parentElement === tbody) {
+             activeRow = tr;
+             positionDeleteButton(tr);
+         } else {
+             deleteBtn.style.display = 'none';
+         }
+    });
+
+    function positionDeleteButton(tr) {
+        // Calculate position relative to the main container
+        const containerRect = mainContainer.getBoundingClientRect();
+        const rowRect = tr.getBoundingClientRect();
+
+        // Check if row is visible (vertically)
+        if (rowRect.bottom < containerRect.top || rowRect.top > containerRect.bottom) {
+             deleteBtn.style.display = 'none';
+             return;
+        }
+
+        const topPos = rowRect.top - containerRect.top;
+        const height = rowRect.height;
+        
+        // Center the button vertically relative to the row
+        const btnHeight = 32; // h-8 = 32px
+        const centeredTop = topPos + (height / 2) - (btnHeight / 2);
+
+        deleteBtn.style.display = 'flex';
+        deleteBtn.style.top = `${centeredTop}px`;
+    }
+
+    // Delete Action
+    deleteBtn.addEventListener('click', function() {
+        if (activeRow) {
+            if (tbody.rows.length > 1) {
+                activeRow.remove();
+                updateRowNumbers();
+                deleteBtn.style.display = 'none';
+                activeRow = null;
+            } else {
+                // Clear content if it's the last row
+                const cells = activeRow.querySelectorAll('.excel-cell');
+                cells.forEach(cell => {
+                    if(cell.tagName === 'SELECT') cell.selectedIndex = 0;
+                    else cell.textContent = '';
+                });
+                deleteBtn.style.display = 'none';
+            }
+        }
+    });
+
+
+    // --- Table Management ---
+    function addRow() {
+        const rowCount = tbody.rows.length + 1;
+        const tr = document.createElement('tr');
+        tr.className = "group transition-colors";
+        
+        tr.innerHTML = `
+            <td class="bg-gray-50 dark:bg-[#0d1b12] text-center text-xs text-gray-500 font-medium border-r border-gray-200 dark:border-gray-700 select-none relative row-index">${rowCount}</td>
+            <td class="p-0 border-r border-gray-200 dark:border-gray-700 relative">
+                <div class="excel-cell text-sm text-[#0d1b12] dark:text-gray-100" contenteditable="true" data-placeholder="Type here..."></div>
+            </td>
+            <td class="p-0 border-r border-gray-200 dark:border-gray-700 relative">
+                <div class="excel-cell text-sm text-[#0d1b12] dark:text-gray-100" contenteditable="true"></div>
+            </td>
+            <td class="p-0 border-r border-gray-200 dark:border-gray-700 relative">
+                <div class="excel-cell text-sm text-[#0d1b12] dark:text-gray-100" contenteditable="true"></div>
+            </td>
+            <td class="p-0 border-r border-gray-200 dark:border-gray-700 relative">
+                <div class="excel-cell text-sm text-[#0d1b12] dark:text-gray-100" contenteditable="true"></div>
+            </td>
+            <td class="p-0 border-r border-gray-200 dark:border-gray-700 relative">
+                <select class="excel-cell text-sm text-[#0d1b12] dark:text-gray-100 bg-transparent">
+                    <option value="">Select...</option>
+                    <option>Sarah M.</option>
+                    <option>John D.</option>
+                    <option>Alice P.</option>
+                    <option>Bob S.</option>
+                </select>
+            </td>
+            <td class="p-0 border-r border-gray-200 dark:border-gray-700 relative">
+                <div class="excel-cell text-xs italic text-gray-500 dark:text-gray-400" contenteditable="true"></div>
+            </td>
+        `;
+
+        tbody.appendChild(tr);
+        
+        // Add resizers to the new row
+        Array.from(tr.children).forEach(cell => {
+            addResizers(cell, false);
+        });
+
+        // Scroll to bottom
+        scrollArea.scrollTop = scrollArea.scrollHeight;
+    }
+
+    function updateRowNumbers() {
+        Array.from(tbody.rows).forEach((row, index) => {
+            row.querySelector('.row-index').textContent = index + 1;
+        });
+    }
+
+    // --- Resizing Logic ---
+    function addResizers(cell, isHeader = false) {
+        if (cell.querySelector('.resizer-col')) return;
+
+        // 1. Column Resizer
+        if (!cell.classList.contains('no-resize')) {
+            const colResizer = document.createElement('div');
+            colResizer.className = 'resizer-col';
+            cell.appendChild(colResizer);
+            setupColResize(colResizer, cell);
+        }
+
+        // 2. Row Resizer (Only for data cells)
+        if (!isHeader) {
+            const rowResizer = document.createElement('div');
+            rowResizer.className = 'resizer-row';
+            cell.appendChild(rowResizer);
+            setupRowResize(rowResizer, cell);
+        }
+    }
+
+    // Initialize Existing Cells
+    const initCells = table.querySelectorAll('th, td');
+    initCells.forEach(cell => {
+        addResizers(cell, cell.tagName === 'TH');
+    });
+
+    // Col Resize Handler
+    function setupColResize(resizer, cell) {
+        let startX, startWidth;
+        const colIndex = cell.cellIndex;
+
+        resizer.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            startX = e.pageX;
+            const headerCell = table.rows[0].cells[colIndex];
+            startWidth = headerCell.offsetWidth;
+            resizer.classList.add('resizing');
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+
+        function onMouseMove(e) {
+            const diff = e.pageX - startX;
+            const newWidth = Math.max(50, startWidth + diff);
+            const headerCell = table.rows[0].cells[colIndex];
+            headerCell.style.width = newWidth + 'px';
+        }
+
+        function onMouseUp() {
+            resizer.classList.remove('resizing');
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+    }
+
+    // Row Resize Handler
+    function setupRowResize(resizer, cell) {
+        let startY, startHeight;
+        
+        resizer.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            e.stopPropagation(); 
+            startY = e.pageY;
+            
+            const row = cell.parentElement;
+            startHeight = row.offsetHeight;
+
+            resizer.classList.add('resizing');
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+
+        function onMouseMove(e) {
+            const diff = e.pageY - startY;
+            const newHeight = Math.max(40, startHeight + diff);
+            const row = cell.parentElement;
+            row.style.height = newHeight + 'px';
+            // Update button position if resizing active row
+            if(activeRow === row) positionDeleteButton(row);
+        }
+
+        function onMouseUp() {
+            resizer.classList.remove('resizing');
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+    }
+</script>
+
+</body>
+</html>

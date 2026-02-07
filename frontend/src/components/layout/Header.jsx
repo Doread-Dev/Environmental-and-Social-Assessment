@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/utils'
-import { useTheme, useAuth, ROLE_LABELS } from '@/contexts'
+import { useTheme, useAuth, ROLE_LABELS, USER_ROLES } from '@/contexts'
 import { Avatar } from '@/components/ui'
 import { ROUTES } from '@/routes/routes.config'
 
@@ -23,11 +23,20 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
   const userName = user?.name || user?.email || 'User'
   const userRoleLabel = user?.role ? ROLE_LABELS[user.role] || user.role : ''
 
-  const userMenuItems = [
-    { id: 'settings', label: 'Settings', icon: 'settings' },
-    { id: 'divider', type: 'divider' },
-    { id: 'logout', label: 'Sign Out', icon: 'logout' },
-  ]
+  // User menu items (filtered by role)
+  const userMenuItems = useMemo(() => {
+    const items = []
+    
+    // Settings - only for Environmental Specialist
+    if (user?.role === USER_ROLES.ENVIRONMENTAL_SPECIALIST) {
+      items.push({ id: 'settings', label: 'Settings', icon: 'settings' })
+      items.push({ id: 'divider', type: 'divider' })
+    }
+    
+    items.push({ id: 'logout', label: 'Sign Out', icon: 'logout' })
+    
+    return items
+  }, [user?.role])
 
   const handleLogout = () => {
     logout()
@@ -165,6 +174,9 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
                       key={item.id}
                       onClick={() => {
                         setIsUserMenuOpen(false)
+                        if (item.id === 'settings') {
+                          navigate(ROUTES.SETTINGS)
+                        }
                         if (item.id === 'logout') {
                           handleLogout()
                         }

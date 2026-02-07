@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { cn } from '@/utils'
 import { MAIN_NAV_ITEMS } from '@/routes/routes.config'
+import { useAuth, USER_ROLES } from '@/contexts'
 
 /**
  * MainSidebar Component
@@ -10,6 +11,9 @@ import { MAIN_NAV_ITEMS } from '@/routes/routes.config'
  * @param {string} props.className - Additional CSS classes
  */
 function MainSidebar({ className }) {
+  const { user } = useAuth()
+  const canAccessSettings = user?.role === USER_ROLES.ENVIRONMENTAL_SPECIALIST
+
   return (
     <aside
       className={cn(
@@ -62,26 +66,28 @@ function MainSidebar({ className }) {
         </div>
       </nav>
 
-      {/* Footer Section */}
-      <div className="mt-auto border-t border-border-default dark:border-border-dark p-4">
-        <NavLink
-          to="/app/settings"
-          className={({ isActive }) =>
-            cn(
-              'flex items-center gap-3',
-              'px-4 py-3 rounded-lg',
-              'text-sm font-medium',
-              'transition-colors duration-200',
-              isActive
-                ? 'bg-primary/10 text-primary'
-                : 'text-text-secondary hover:text-text-main hover:bg-background dark:hover:bg-background-dark'
-            )
-          }
-        >
-          <span className="material-symbols-outlined">settings</span>
-          Settings
-        </NavLink>
-      </div>
+      {/* Footer Section - Settings (Environmental Specialist only) */}
+      {canAccessSettings && (
+        <div className="mt-auto border-t border-border-default dark:border-border-dark p-4">
+          <NavLink
+            to="/app/settings"
+            className={({ isActive }) =>
+              cn(
+                'flex items-center gap-3',
+                'px-4 py-3 rounded-lg',
+                'text-sm font-medium',
+                'transition-colors duration-200',
+                isActive
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-text-secondary hover:text-text-main hover:bg-background dark:hover:bg-background-dark'
+              )
+            }
+          >
+            <span className="material-symbols-outlined">settings</span>
+            Settings
+          </NavLink>
+        </div>
+      )}
     </aside>
   )
 }

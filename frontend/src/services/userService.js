@@ -25,6 +25,16 @@ export const userService = {
     const users = await this.getAll()
     return users.filter((user) => user.is_active)
   },
+
+  /**
+   * Create a new user (requires environmental_specialist role)
+   * @param {Object} data - User data { name, email, password, role }
+   * @returns {Promise<Object>} Created user
+   */
+  async create(data) {
+    const response = await api.post('/auth/register', data)
+    return response.data.data
+  },
 }
 
 export default userService

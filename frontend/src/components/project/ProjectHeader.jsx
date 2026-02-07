@@ -155,10 +155,15 @@ function ProjectHeader({ project, showEditButton = true, onEdit, className, ...p
       {/* Left Section */}
       <div className="flex flex-col gap-2">
         {/* Title with Badge */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <h1 className="text-3xl font-bold text-text-main dark:text-white">
             {project.title || project.name}
           </h1>
+          {project._id && (
+            <span className="text-xs text-text-secondary dark:text-gray-400 font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+              ID: {project._id}
+            </span>
+          )}
           <Badge
             variant="success"
             size="sm"

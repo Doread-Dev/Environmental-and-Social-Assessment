@@ -1236,7 +1236,7 @@ const mitigationPlanSchema = new mongoose.Schema(
 | GET    | `/api/v1/projects/:id` | تفاصيل مشروع   |
 | POST   | `/api/v1/projects`     | إنشاء مشروع    |
 | PUT    | `/api/v1/projects/:id` | تحديث مشروع    |
-| DELETE | `/api/v1/projects/:id` | حذف مشروع      |
+| DELETE | `/api/v1/projects/:id` | حذف مشروع مع جميع البيانات المرتبطة |
 
 ### Tool 1: Screening
 
@@ -1416,6 +1416,62 @@ const mitigationPlanSchema = new mongoose.Schema(
 ### 2. Data Integrity
 
 - Screening.status = 'approved' قبل إنشاء Assessment
+
+### 3. Project Deletion (حذف المشروع)
+
+عند حذف مشروع، يتم حذف **جميع البيانات المرتبطة به** تلقائياً من قاعدة البيانات والملفات من نظام الملفات.
+
+#### البيانات المحذوفة تلقائياً:
+
+1. **Assessment Data**:
+   - `Assessment` - جميع التقييمات البيئية
+   - `AssessmentMethod` - طرق التقييم
+   - `CommunityConsultation` - الاستشارات المجتمعية
+   - `AssessmentImpactScore` - نتائج التأثير
+
+2. **Screening Data**:
+   - `Screening` - جميع عمليات الفرز
+
+3. **SEMP Data**:
+   - `SempObjective` - الأهداف
+   - `SempTarget` - الأهداف الفرعية
+   - `SempAction` - الإجراءات
+
+4. **Management & Mitigation**:
+   - `ManagementActivity` - أنشطة الإدارة
+   - `MitigationPlan` - خطط التخفيف
+
+5. **Monitoring Data**:
+   - `MonitoringRecord` - سجلات المراقبة
+
+6. **Attachments**:
+   - جميع المرفقات المرتبطة بـ:
+     - المشروع مباشرة (`entity_type: "project"`)
+     - Screenings الخاصة بالمشروع (`entity_type: "screening"`)
+     - Assessments الخاصة بالمشروع (`entity_type: "assessment"`)
+     - Monitoring Records الخاصة بالمشروع (`entity_type: "monitoring"`)
+   - **الملفات الفعلية** من مجلد `uploads` في نظام الملفات
+
+#### ترتيب الحذف:
+
+1. الحصول على Assessments (للحصول على IDs للمرفقات)
+2. حذف Assessment Sub-entities
+3. حذف Assessments
+4. الحصول على SEMP Objectives
+5. حذف SEMP Sub-entities (Actions → Targets → Objectives)
+6. حذف SEMP Objectives
+7. الحصول على IDs (Screenings, Assessments, Monitoring Records)
+8. حذف السجلات الرئيسية (Screenings, ManagementActivities, MitigationPlans, MonitoringRecords)
+9. حذف المرفقات (الملفات من نظام الملفات + السجلات من قاعدة البيانات)
+10. حذف المشروع نفسه
+
+#### معالجة الأخطاء:
+
+- إذا فشل حذف ملف واحد من نظام الملفات، العملية تستمر ولا تتوقف
+- يتم تسجيل الأخطاء في console ولكن العملية تكتمل
+- استخدام `Promise.allSettled` لحذف الملفات بشكل متوازي
+
+**⚠️ تحذير**: عملية الحذف لا يمكن التراجع عنها (irreversible)
 
 ---
 

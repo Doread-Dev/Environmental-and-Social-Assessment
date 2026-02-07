@@ -46,6 +46,9 @@ export const ROUTES = {
   // Files & Annex
   PROJECT_FILES: '/app/projects/:projectId/files',
   PROJECT_ANNEX: '/app/projects/:projectId/annex',
+
+  // Settings
+  SETTINGS: '/app/settings',
 }
 
 /**

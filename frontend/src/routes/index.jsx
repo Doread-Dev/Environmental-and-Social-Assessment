@@ -5,6 +5,7 @@ import ProtectedRoute from './ProtectedRoute'
 import MonitoringRouteGuard from './MonitoringRouteGuard'
 import SempRouteGuard from './SempRouteGuard'
 import AssessmentRouteGuard from './AssessmentRouteGuard'
+import SettingsRouteGuard from './SettingsRouteGuard'
 
 // Layouts - Keep these eager loaded as they're always needed
 import AuthLayout from '@/components/layout/AuthLayout'
@@ -86,6 +87,9 @@ const MonitoringDataEntryPage = lazy(
 const ProjectFilesPage = lazy(() => import('@/pages/project-workspace/annex/ProjectFilesPage'))
 const AnnexOverviewPage = lazy(() => import('@/pages/project-workspace/annex/AnnexOverviewPage'))
 
+// Settings Pages
+const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'))
+
 // Not Found Page (inline - small component)
 const NotFoundPage = () => (
   <div className="min-h-screen flex items-center justify-center bg-background dark:bg-background-dark">
@@ -163,6 +167,20 @@ export const router = createBrowserRouter([
             <ProjectCreatePage />
           </Suspense>
         ),
+      },
+      {
+        path: 'settings',
+        element: <SettingsRouteGuard />,
+        children: [
+          {
+            index: true,
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <SettingsPage />
+              </Suspense>
+            ),
+          },
+        ],
       },
     ],
   },

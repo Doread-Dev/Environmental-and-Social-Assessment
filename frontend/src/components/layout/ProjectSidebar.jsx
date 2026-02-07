@@ -1,18 +1,9 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { NavLink, useParams, useNavigate, useLocation } from 'react-router-dom'
 import { cn } from '@/utils'
-import { useTheme, useAuth, ROLE_LABELS } from '@/contexts'
+import { useTheme, useAuth, ROLE_LABELS, USER_ROLES } from '@/contexts'
 import { PROJECT_WORKFLOW_NAV, PROJECT_SECONDARY_NAV, ROUTES } from '@/routes/routes.config'
 import { Avatar, Tooltip } from '@/components/ui'
-
-// User menu items (same as Header)
-const userMenuItems = [
-  { id: 'settings', label: 'Settings', icon: 'settings' },
-  { id: 'divider', type: 'divider' },
-  { id: 'theme', label: 'Theme', icon: 'dark_mode', type: 'theme-toggle' },
-  { id: 'divider2', type: 'divider' },
-  { id: 'logout', label: 'Sign Out', icon: 'logout' },
-]
 
 /**
  * ProjectSidebar Component
@@ -30,6 +21,23 @@ function ProjectSidebar({ project, className }) {
   const { user, logout } = useAuth()
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+
+  // User menu items (filtered by role)
+  const userMenuItems = useMemo(() => {
+    const items = []
+    
+    // Settings - only for Environmental Specialist
+    if (user?.role === USER_ROLES.ENVIRONMENTAL_SPECIALIST) {
+      items.push({ id: 'settings', label: 'Settings', icon: 'settings' })
+      items.push({ id: 'divider', type: 'divider' })
+    }
+    
+    items.push({ id: 'theme', label: 'Theme', icon: 'dark_mode', type: 'theme-toggle' })
+    items.push({ id: 'divider2', type: 'divider' })
+    items.push({ id: 'logout', label: 'Sign Out', icon: 'logout' })
+    
+    return items
+  }, [user?.role])
 
   // Get project data (use title or name, prefer title)
   const projectTitle = project?.title || project?.name || 'Unknown Project'
@@ -526,7 +534,7 @@ function ProjectSidebar({ project, className }) {
                         setIsUserMenuOpen(false)
                         // Handle action
                         if (item.id === 'settings') {
-                          navigate(`/app/projects/${projectId}/settings`)
+                          navigate(ROUTES.SETTINGS)
                         }
                         if (item.id === 'logout') {
                           handleLogout()

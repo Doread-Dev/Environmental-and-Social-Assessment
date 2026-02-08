@@ -6,21 +6,24 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
-import { useMonitoring, useAssessment } from '@/hooks'
+import { useMonitoring, useAssessment, useScreening, useProjectContext } from '@/hooks'
 import { useLookups } from '@/contexts'
 import { MonitoringDataTable } from '@/components/tables'
 import { Alert } from '@/components/ui'
 import { impactLevels } from '@/data/impactCategories'
 import { cn } from '@/utils/cn'
 import { userService } from '@/services'
+import { exportMonitoringToExcel } from '@/utils/excelExport'
 
 export default function MonitoringDataEntryPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const categoryParam = searchParams.get('category')
-  const { impactCategories, isLoading: lookupsLoading } = useLookups()
+  const { impactCategories, categoriesWithIndicators, isLoading: lookupsLoading } = useLookups()
   const { assessment, isLoading: isAssessmentLoading } = useAssessment(projectId)
+  const { screening } = useScreening(projectId)
+  const { project } = useProjectContext()
   const [users, setUsers] = useState([])
   const isApproved = assessment?.status === 'approved'
   const isLocked = !isApproved
@@ -33,6 +36,7 @@ export default function MonitoringDataEntryPage() {
     isLoading,
     isSaving,
     error,
+    records,
   } = useMonitoring(projectId)
 
   const [expandedCategories, setExpandedCategories] = useState(
@@ -127,10 +131,15 @@ export default function MonitoringDataEntryPage() {
     navigate(`/app/projects/${projectId}/monitoring`)
   }
 
-  const handleExport = useCallback(() => {
-    // Placeholder for export functionality
-    alert('Export functionality will be implemented in future phase')
-  }, [])
+  const handleExport = useCallback(async () => {
+    try {
+      await exportMonitoringToExcel(project, screening, assessment, records, categoriesWithIndicators)
+      alert('Excel file downloaded successfully!')
+    } catch (error) {
+      console.error('Export error:', error)
+      alert('Failed to export Excel file')
+    }
+  }, [project, screening, assessment, records, categoriesWithIndicators])
 
   useEffect(() => {
     const handleExportEvent = () => {

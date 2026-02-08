@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react'
 import { Outlet, useParams, useNavigate } from 'react-router-dom'
-import { mockProjects } from '@/data'
+import { projectService } from '@/services'
 import { useAssessment } from '@/hooks'
 
 export default function SempFullWidthLayout() {
@@ -17,21 +17,37 @@ export default function SempFullWidthLayout() {
   const { assessment, isLoading: assessmentLoading } = useAssessment(projectId)
 
   useEffect(() => {
-    // Simulate data fetching
+    // Load project from API
     const fetchProject = async () => {
+      if (!projectId) return
       setIsLoading(true)
-      await new Promise((resolve) => setTimeout(resolve, 300))
-      const found = mockProjects.find((p) => p._id === projectId)
-      setProject(found || { _id: projectId, title: 'Unknown Project' })
-      setIsLoading(false)
+      try {
+        const data = await projectService.getById(projectId)
+        setProject(data)
+      } catch (err) {
+        console.error('Failed to load project:', err)
+        setProject({ _id: projectId, title: 'Unknown Project' })
+      } finally {
+        setIsLoading(false)
+      }
     }
     fetchProject()
   }, [projectId])
 
   const handleExport = () => {
-    // Dispatch generic export event
-    window.dispatchEvent(new CustomEvent('semp-export'))
-    alert('Export functionality coming soon!')
+    // Determine which tool is active from route
+    const path = window.location.pathname
+    const toolType = path.includes('management') ? 'tool3' : 'tool4'
+    console.log('[SempFullWidthLayout] Dispatching export event:', {
+      toolType,
+      path,
+      project: project ? 'available' : 'missing',
+    })
+    window.dispatchEvent(
+      new CustomEvent('semp-export', {
+        detail: { toolType, project }, // Pass project in event detail as backup
+      })
+    )
   }
 
   const handleBack = () => {
@@ -107,7 +123,8 @@ export default function SempFullWidthLayout() {
         <div className="flex flex-1 justify-end gap-6 items-center">
           <button
             onClick={handleExport}
-            className="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-white dark:bg-surface-dark border border-border-default dark:border-border-dark text-text-secondary dark:text-gray-300 text-sm font-medium shadow-sm hover:border-primary hover:text-primary dark:hover:border-primary dark:hover:text-primary transition-colors"
+            disabled={!project}
+            className="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-white dark:bg-surface-dark border border-border-default dark:border-border-dark text-text-secondary dark:text-gray-300 text-sm font-medium shadow-sm hover:border-primary hover:text-primary dark:hover:border-primary dark:hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span className="material-symbols-outlined text-lg">download</span>
             Export Excel

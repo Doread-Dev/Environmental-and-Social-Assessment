@@ -15,6 +15,7 @@ import { useAuth, ROLE_LABELS } from '@/contexts'
 import { getScreeningCategory } from '@/data'
 import { formatDateShort } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
+import { exportScreeningToExcel } from '@/utils/excelExport'
 
 function ScreeningSummaryPage() {
   const navigate = useNavigate()
@@ -40,10 +41,15 @@ function ScreeningSummaryPage() {
   const [rejectReasonInput, setRejectReasonInput] = useState('')
 
   // Handlers - must be defined before conditional returns
-  const handleExport = useCallback(() => {
-    // TODO: Implement Excel export
-    toast.info('Export functionality will be implemented in future phase')
-  }, [toast])
+  const handleExport = useCallback(async () => {
+    try {
+      await exportScreeningToExcel(project, screening)
+      toast.success('Excel file downloaded successfully!')
+    } catch (error) {
+      toast.error('Failed to export Excel file')
+      console.error('Export error:', error)
+    }
+  }, [project, screening, toast])
 
   const handleEdit = useCallback(() => {
     // Navigate to form with edit mode - router will show form for rejected status

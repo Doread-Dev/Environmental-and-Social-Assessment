@@ -4,15 +4,18 @@
  */
 
 import { useState, useEffect, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useOutletContext } from 'react-router-dom'
 import { useSemp } from '@/hooks/useSemp'
 import { MitigationPlanTable } from '@/components/semp'
 import { cn } from '@/utils/cn'
 import { userService } from '@/services'
+import { exportMitigationPlanToExcel } from '@/utils/excelExport'
 
 export default function MitigationPlanPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
+  const outletContext = useOutletContext()
+  const project = outletContext?.project || null
 
   const {
     mitigationPlans,
@@ -68,6 +71,42 @@ export default function MitigationPlanPage() {
       hasInitialized.current = true
     }
   }, [isLoading, mitigationPlans, addMitigationPlan])
+
+  // Handle export event from SempFullWidthLayout
+  useEffect(() => {
+    const handleExportEvent = async (event) => {
+      if (event.detail?.toolType === 'tool4') {
+        try {
+          // Get project from outlet context or load it
+          let exportProject = project
+          if (!exportProject && projectId) {
+            // Try to load project if not available from context
+            const { projectService } = await import('@/services')
+            try {
+              exportProject = await projectService.getById(projectId)
+            } catch (err) {
+              console.warn('Failed to load project, using fallback:', err)
+              exportProject = { _id: projectId, title: 'Unknown Project' }
+            }
+          }
+          
+          if (!exportProject) {
+            throw new Error('Project data is not available')
+          }
+
+          await exportMitigationPlanToExcel(exportProject, mitigationPlans || [])
+        } catch (error) {
+          console.error('Export error:', error)
+          alert(`Failed to export Excel file: ${error.message || 'Unknown error'}`)
+        }
+      }
+    }
+    
+    window.addEventListener('semp-export', handleExportEvent)
+    return () => {
+      window.removeEventListener('semp-export', handleExportEvent)
+    }
+  }, [project, projectId, mitigationPlans])
 
   // Handlers
   const handleUpdate = (rowId, field, value) => {

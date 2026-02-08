@@ -13,6 +13,7 @@ import { cn } from '@/utils/cn'
 import { formatDateRange } from '@/utils/formatters'
 import { getCategoryHighestLevel } from '@/utils/impactCalculations'
 import { assessmentMethods, consultationMethods } from '@/data'
+import { exportAssessmentToExcel } from '@/utils/excelExport'
 
 export default function AssessmentReviewPage() {
   const { projectId } = useParams()
@@ -37,12 +38,24 @@ export default function AssessmentReviewPage() {
   const [rejectReasonInput, setRejectReasonInput] = useState('')
 
   // Export handler - must be defined before any conditional returns
-  const handleExport = useCallback(() => {
-    // TODO: Implement Excel export
-    // eslint-disable-next-line no-console
-    console.info('Exporting assessment to Excel...')
-    alert('Export functionality will be implemented in future phase')
-  }, [])
+  const handleExport = useCallback(async () => {
+    try {
+      await exportAssessmentToExcel(
+        project,
+        screening,
+        assessment,
+        methods,
+        consultations,
+        impactScores,
+        categoriesWithQuestions
+      )
+      // Show success message (you can use toast if available)
+      alert('Excel file downloaded successfully!')
+    } catch (error) {
+      console.error('Export error:', error)
+      alert('Failed to export Excel file')
+    }
+  }, [project, screening, assessment, methods, consultations, impactScores, categoriesWithQuestions])
 
   // Expose export handler to parent layout via custom event
   useEffect(() => {

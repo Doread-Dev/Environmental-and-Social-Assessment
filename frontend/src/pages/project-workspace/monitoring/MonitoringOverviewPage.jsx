@@ -6,16 +6,19 @@
 
 import { useNavigate, useParams } from 'react-router-dom'
 import { MonitoringCategoryCard, MonitoringProgressTimeline } from '@/components/monitoring'
-import { useMonitoring, useAssessment } from '@/hooks'
+import { useMonitoring, useAssessment, useScreening, useProjectContext } from '@/hooks'
 import { useLookups } from '@/contexts'
 import { impactLevels } from '@/data/impactCategories'
+import { exportMonitoringToExcel } from '@/utils/excelExport'
 
 export default function MonitoringOverviewPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
-  const { isLoading: lookupsLoading } = useLookups()
+  const { isLoading: lookupsLoading, categoriesWithIndicators } = useLookups()
   const { getAllCategoryStats, getCategoryData, isLoading, records } = useMonitoring(projectId)
   const { assessment, isLoading: isAssessmentLoading } = useAssessment(projectId)
+  const { screening } = useScreening(projectId)
+  const { project } = useProjectContext()
 
   const isApproved = assessment?.status === 'approved'
   const isLocked = !isApproved
@@ -70,7 +73,21 @@ export default function MonitoringOverviewPage() {
             </button>
             <button
               type="button"
-              onClick={() => alert('Export functionality will be implemented in future phase')}
+              onClick={async () => {
+                try {
+                  await exportMonitoringToExcel(
+                    project,
+                    screening,
+                    assessment,
+                    records,
+                    categoriesWithIndicators
+                  )
+                  alert('Excel file downloaded successfully!')
+                } catch (error) {
+                  console.error('Export error:', error)
+                  alert('Failed to export Excel file')
+                }
+              }}
               disabled={isLocked}
               className="flex items-center justify-center gap-2 h-10 px-6 rounded-lg border border-primary text-primary hover:bg-primary/10 dark:hover:bg-primary/20 font-bold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >

@@ -4,15 +4,18 @@
  */
 
 import { useState, useEffect, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useOutletContext } from 'react-router-dom'
 import { useSemp } from '@/hooks/useSemp'
 import { ManagementActivitiesTable } from '@/components/semp'
 import { cn } from '@/utils/cn'
 import { userService } from '@/services'
+import { exportManagementActivitiesToExcel } from '@/utils/excelExport'
 
 export default function ManagementActivitiesPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
+  const outletContext = useOutletContext()
+  const project = outletContext?.project || null
 
   const {
     managementActivities,
@@ -71,6 +74,61 @@ export default function ManagementActivitiesPage() {
       hasInitialized.current = true
     }
   }, [isLoading, managementActivities, addManagementActivity])
+
+  // Handle export event from SempFullWidthLayout
+  useEffect(() => {
+    if (!projectId) return
+
+    const handleExportEvent = async (event) => {
+      console.log('[ManagementActivitiesPage] Export event received:', event.detail)
+      
+      // Only handle tool3 events
+      if (event.detail?.toolType !== 'tool3') {
+        console.log('[ManagementActivitiesPage] Ignoring event - not tool3')
+        return
+      }
+
+      try {
+        console.log('[ManagementActivitiesPage] Starting export...', {
+          project: project ? 'available' : 'missing',
+          projectId,
+          activitiesCount: managementActivities?.length || 0,
+        })
+        // Get project from multiple sources (priority order):
+        // 1. From outlet context
+        // 2. From event detail (backup)
+        // 3. Load from API
+        let exportProject = project || event.detail?.project
+
+        if (!exportProject && projectId) {
+          // Try to load project if not available
+          const { projectService } = await import('@/services')
+          try {
+            exportProject = await projectService.getById(projectId)
+          } catch (err) {
+            console.warn('Failed to load project, using fallback:', err)
+            exportProject = { _id: projectId, title: 'Unknown Project' }
+          }
+        }
+
+        if (!exportProject) {
+          throw new Error('Project data is not available')
+        }
+
+        const activities = managementActivities || []
+        await exportManagementActivitiesToExcel(exportProject, activities)
+        alert('Excel file downloaded successfully!')
+      } catch (error) {
+        console.error('Export error:', error)
+        alert(`Failed to export Excel file: ${error.message || 'Unknown error'}`)
+      }
+    }
+
+    window.addEventListener('semp-export', handleExportEvent)
+    return () => {
+      window.removeEventListener('semp-export', handleExportEvent)
+    }
+  }, [project, projectId, managementActivities])
 
   // Handlers
   const handleUpdate = (rowId, field, value) => {

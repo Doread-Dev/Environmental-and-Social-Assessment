@@ -28,6 +28,17 @@ export async function exportManagementActivitiesToExcel(project, managementActiv
   // Ensure managementActivities is an array
   const activities = Array.isArray(managementActivities) ? managementActivities : []
 
+  // Filter out any invalid activities (null, undefined, or empty objects)
+  const validActivities = activities.filter((activity) => {
+    return activity && typeof activity === 'object' && activity !== null
+  })
+
+  console.log('[exportManagementActivities] Exporting:', {
+    projectTitle: project.title,
+    totalActivities: activities.length,
+    validActivities: validActivities.length,
+  })
+
   const workbook = createWorkbook()
   const worksheet = workbook.addWorksheet('Management Activities')
 
@@ -75,8 +86,8 @@ export async function exportManagementActivitiesToExcel(project, managementActiv
   currentRow++
 
   // Data rows
-  if (activities && activities.length > 0) {
-    activities.forEach((activity) => {
+  if (validActivities && validActivities.length > 0) {
+    validActivities.forEach((activity) => {
       worksheet.getCell(currentRow, 1).value = activity.serial_number || ''
       worksheet.getCell(currentRow, 2).value = safeString(activity.activity_description)
       worksheet.getCell(currentRow, 3).value = safeString(activity.potential_impact)

@@ -63,7 +63,7 @@ function normalizeApiResponse(items) {
         : item.project,
     responsible:
       item.responsible && typeof item.responsible === 'object'
-        ? item.responsible._id
+        ? item.responsible // Keep full object for display/export
         : item.responsible,
   }))
 }

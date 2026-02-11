@@ -36,16 +36,12 @@ export default function SempFullWidthLayout() {
 
   const handleExport = () => {
     // Determine which tool is active from route
+    // Routes are defined as 'activities' (Tool 3) and 'mitigation' (Tool 4) in routes/index.jsx
     const path = window.location.pathname
-    const toolType = path.includes('management') ? 'tool3' : 'tool4'
-    console.log('[SempFullWidthLayout] Dispatching export event:', {
-      toolType,
-      path,
-      project: project ? 'available' : 'missing',
-    })
+    const toolType = path.includes('activities') ? 'tool3' : 'tool4'
     window.dispatchEvent(
       new CustomEvent('semp-export', {
-        detail: { toolType, project }, // Pass project in event detail as backup
+        detail: { toolType },
       })
     )
   }
@@ -123,8 +119,7 @@ export default function SempFullWidthLayout() {
         <div className="flex flex-1 justify-end gap-6 items-center">
           <button
             onClick={handleExport}
-            disabled={!project}
-            className="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-white dark:bg-surface-dark border border-border-default dark:border-border-dark text-text-secondary dark:text-gray-300 text-sm font-medium shadow-sm hover:border-primary hover:text-primary dark:hover:border-primary dark:hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-white dark:bg-surface-dark border border-border-default dark:border-border-dark text-text-secondary dark:text-gray-300 text-sm font-medium shadow-sm hover:border-primary hover:text-primary dark:hover:border-primary dark:hover:text-primary transition-colors"
           >
             <span className="material-symbols-outlined text-lg">download</span>
             Export Excel

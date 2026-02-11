@@ -17,6 +17,15 @@ export default function ManagementActivitiesPage() {
   const outletContext = useOutletContext()
   const project = outletContext?.project || null
 
+  // Debug: Log project availability
+  useEffect(() => {
+    if (project) {
+      console.log('[ManagementActivitiesPage] Project from context:', project)
+    } else if (projectId) {
+      console.warn('[ManagementActivitiesPage] Project not available from context, will load from API if needed')
+    }
+  }, [project, projectId])
+
   const {
     managementActivities,
     isLoading,
@@ -80,50 +89,67 @@ export default function ManagementActivitiesPage() {
     if (!projectId) return
 
     const handleExportEvent = async (event) => {
-      console.log('[ManagementActivitiesPage] Export event received:', event.detail)
-      
-      // Only handle tool3 events
-      if (event.detail?.toolType !== 'tool3') {
-        console.log('[ManagementActivitiesPage] Ignoring event - not tool3')
-        return
-      }
+      if (event.detail?.toolType === 'tool3') {
+        try {
+          console.log('[ManagementActivitiesPage] Export event received:', {
+            toolType: event.detail?.toolType,
+            project: project ? 'available' : 'missing',
+            projectId,
+            activitiesCount: managementActivities?.length || 0,
+          })
 
-      try {
-        console.log('[ManagementActivitiesPage] Starting export...', {
-          project: project ? 'available' : 'missing',
-          projectId,
-          activitiesCount: managementActivities?.length || 0,
-        })
-        // Get project from multiple sources (priority order):
-        // 1. From outlet context
-        // 2. From event detail (backup)
-        // 3. Load from API
-        let exportProject = project || event.detail?.project
-
-        if (!exportProject && projectId) {
-          // Try to load project if not available
-          const { projectService } = await import('@/services')
-          try {
-            exportProject = await projectService.getById(projectId)
-          } catch (err) {
-            console.warn('Failed to load project, using fallback:', err)
-            exportProject = { _id: projectId, title: 'Unknown Project' }
+          // Get project from outlet context or load it
+          let exportProject = project
+          if (!exportProject && projectId) {
+            // Try to load project if not available from context
+            const { projectService } = await import('@/services')
+            try {
+              exportProject = await projectService.getById(projectId)
+              console.log('[ManagementActivitiesPage] Project loaded from API:', exportProject)
+            } catch (err) {
+              console.warn('Failed to load project, using fallback:', err)
+              exportProject = { _id: projectId, title: 'Unknown Project' }
+            }
           }
-        }
+          
+          if (!exportProject) {
+            throw new Error('Project data is not available')
+          }
 
-        if (!exportProject) {
-          throw new Error('Project data is not available')
-        }
+          // Filter out placeholder/temporary activities (those with _isNew flag or temp IDs)
+          const validActivities = (managementActivities || []).filter((activity) => {
+            // Skip activities with temporary IDs (starting with "temp_")
+            if (activity._id && typeof activity._id === 'string' && activity._id.startsWith('temp_')) {
+              console.log('[ManagementActivitiesPage] Skipping temp activity:', activity._id)
+              return false
+            }
+            return true
+          })
 
-        const activities = managementActivities || []
-        await exportManagementActivitiesToExcel(exportProject, activities)
-        alert('Excel file downloaded successfully!')
-      } catch (error) {
-        console.error('Export error:', error)
-        alert(`Failed to export Excel file: ${error.message || 'Unknown error'}`)
+          console.log('[ManagementActivitiesPage] Exporting:', {
+            projectTitle: exportProject.title,
+            activitiesCount: validActivities.length,
+            totalActivities: managementActivities?.length || 0,
+          })
+
+          if (validActivities.length === 0) {
+            const shouldExportEmpty = window.confirm(
+              'No saved activities found. Do you want to export an empty template?'
+            )
+            if (!shouldExportEmpty) {
+              return
+            }
+          }
+
+          await exportManagementActivitiesToExcel(exportProject, validActivities)
+          alert('Excel file downloaded successfully!')
+        } catch (error) {
+          console.error('[ManagementActivitiesPage] Export error:', error)
+          alert(`Failed to export Excel file: ${error.message || 'Unknown error'}`)
+        }
       }
     }
-
+    
     window.addEventListener('semp-export', handleExportEvent)
     return () => {
       window.removeEventListener('semp-export', handleExportEvent)

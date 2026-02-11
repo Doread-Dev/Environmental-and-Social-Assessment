@@ -39,7 +39,7 @@ export const assessmentService = {
       if (response.status === 404) {
         return null
       }
-      return response.data.data
+    return response.data.data
     } catch (error) {
       // Only throw if it's not a 404
       if (error.response?.status !== 404) {

@@ -9,7 +9,7 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useMonitoring, useAssessment, useScreening, useProjectContext } from '@/hooks'
 import { useLookups } from '@/contexts'
 import { MonitoringDataTable } from '@/components/tables'
-import { Alert } from '@/components/ui'
+import { Alert, useToast } from '@/components/ui'
 import { impactLevels } from '@/data/impactCategories'
 import { cn } from '@/utils/cn'
 import { userService } from '@/services'
@@ -20,6 +20,7 @@ export default function MonitoringDataEntryPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const categoryParam = searchParams.get('category')
+  const toast = useToast()
   const { impactCategories, categoriesWithIndicators, isLoading: lookupsLoading } = useLookups()
   const { assessment, isLoading: isAssessmentLoading } = useAssessment(projectId)
   const { screening } = useScreening(projectId)
@@ -134,12 +135,12 @@ export default function MonitoringDataEntryPage() {
   const handleExport = useCallback(async () => {
     try {
       await exportMonitoringToExcel(project, screening, assessment, records, categoriesWithIndicators)
-      alert('Excel file downloaded successfully!')
+      toast.success('Excel file downloaded successfully!')
     } catch (error) {
       console.error('Export error:', error)
-      alert('Failed to export Excel file')
+      toast.error('Failed to export Excel file')
     }
-  }, [project, screening, assessment, records, categoriesWithIndicators])
+  }, [project, screening, assessment, records, categoriesWithIndicators, toast])
 
   useEffect(() => {
     const handleExportEvent = () => {

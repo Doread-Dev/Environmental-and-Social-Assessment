@@ -33,12 +33,6 @@ export async function exportManagementActivitiesToExcel(project, managementActiv
     return activity && typeof activity === 'object' && activity !== null
   })
 
-  console.log('[exportManagementActivities] Exporting:', {
-    projectTitle: project.title,
-    totalActivities: activities.length,
-    validActivities: validActivities.length,
-  })
-
   const workbook = createWorkbook()
   const worksheet = workbook.addWorksheet('Management Activities')
 

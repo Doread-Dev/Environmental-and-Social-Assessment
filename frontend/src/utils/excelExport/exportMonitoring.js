@@ -16,6 +16,8 @@ import {
   safeString,
   EXCEL_STYLES,
 } from './excelBase'
+import { getRankingDisplayLabel } from '@/data/rankingHelp'
+import { impactLevels } from '@/data/impactCategories'
 
 /**
  * Export monitoring data to Excel
@@ -152,9 +154,10 @@ export async function exportMonitoringToExcel(
     }
     currentRow++
 
-    // Indicators in this category
+    // Indicators in this category (questionNumber = 1-based index, as in UI)
     const indicators = category.indicators || []
-    indicators.forEach((indicator) => {
+    indicators.forEach((indicator, idx) => {
+      const questionNumber = idx + 1
       const indicatorId = indicator._id || indicator.id
       const record = recordsMap.get(indicatorId)
 
@@ -195,9 +198,17 @@ export async function exportMonitoringToExcel(
         worksheet.getCell(currentRow, 11).value = safeString(record.final_assessment || '')
       }
 
-      // Ranking
-      if (record) {
-        worksheet.getCell(currentRow, 12).value = safeString(record.ranking || '')
+      // Ranking (with description in parentheses, e.g. "High (frequently visible)")
+      if (record && record.ranking) {
+        const rankingDisplay = getRankingDisplayLabel(
+          record.ranking,
+          categoryCode,
+          questionNumber,
+          impactLevels
+        )
+        worksheet.getCell(currentRow, 12).value = safeString(rankingDisplay)
+      } else if (record) {
+        worksheet.getCell(currentRow, 12).value = ''
       }
 
       // Responsibility
@@ -239,7 +250,7 @@ export async function exportMonitoringToExcel(
   worksheet.getColumn(9).width = 12 // Q4
   worksheet.getColumn(10).width = 10 // Total
   worksheet.getColumn(11).width = 10 // Score
-  worksheet.getColumn(12).width = 15 // Ranking
+  worksheet.getColumn(12).width = 28 // Ranking (e.g. "High (frequently visible)")
   worksheet.getColumn(13).width = 20 // Responsibility
   worksheet.getColumn(14).width = 30 // Note
 

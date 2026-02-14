@@ -47,7 +47,7 @@ export async function exportMitigationPlanToExcel(project, mitigationPlans) {
   const headers = [
     'S',
     'Output or Activity description',
-    'Potential Impact and Significance/Risk',
+    'Potential Impact and Significance/Risk of each- low-med-high Including climate-related risksr',
     'Mitigation and enhancement measures',
     'Monitoring',
     'Responsibility',

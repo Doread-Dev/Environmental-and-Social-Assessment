@@ -7,10 +7,11 @@ import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useFiles } from '@/hooks'
 import { FileCategoryAccordion } from '@/components/files'
-import { FileUpload, Alert, Card } from '@/components/ui'
+import { FileUpload, Alert, Card, useToast } from '@/components/ui'
 
 export default function ProjectFilesPage() {
   const { projectId } = useParams()
+  const toast = useToast()
   const { getFilesByType, uploadFile, deleteFile, downloadFile, isLoading, isUploading, error } =
     useFiles(projectId)
 
@@ -50,14 +51,14 @@ export default function ProjectFilesPage() {
         await uploadFile(file, selectedEntityType)
       }
       setShowUploadSection(false)
-      alert('Files uploaded successfully!')
+      toast.success('Files uploaded successfully!')
     }
   }
 
   const handleDelete = async (fileId) => {
     const result = await deleteFile(fileId)
     if (result.success) {
-      alert('File deleted successfully!')
+      toast.success('File deleted successfully!')
     }
   }
 
@@ -144,7 +145,7 @@ export default function ProjectFilesPage() {
                   multiple={true}
                   maxSize={10 * 1024 * 1024}
                   onUpload={handleUpload}
-                  onError={(errors) => alert(errors.join('\n'))}
+                  onError={(errors) => toast.error(errors.join('\n'))}
                   label="Upload Files"
                   hint="Drag and drop files here or click to browse"
                   disabled={isUploading}

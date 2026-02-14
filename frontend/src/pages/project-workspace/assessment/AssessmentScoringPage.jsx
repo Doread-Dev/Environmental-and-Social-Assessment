@@ -14,7 +14,7 @@ import {
   TotalImpactCard,
   ImpactSummarySection,
 } from '@/components/assessment'
-import { Button, LoadingSpinner, StickyFooter, Modal } from '@/components/ui'
+import { Button, LoadingSpinner, StickyFooter, Modal, useToast } from '@/components/ui'
 
 export default function AssessmentScoringPage() {
   const { projectId } = useParams()
@@ -46,6 +46,7 @@ export default function AssessmentScoringPage() {
   const [negativeImpact, setNegativeImpact] = useState('')
   const [positiveImpact, setPositiveImpact] = useState('')
   const [showSubmitModal, setShowSubmitModal] = useState(false)
+  const toast = useToast()
 
   // Update state when assessment data loads
   useEffect(() => {
@@ -125,11 +126,11 @@ export default function AssessmentScoringPage() {
 
   const handleSaveDraft = async () => {
     if (!assessment?._id) {
-      alert('Please complete and save the metadata step first.')
+      toast.warning('Please complete and save the metadata step first.')
       return
     }
     if (!allQuestionIds.length) {
-      alert('Scoring questions are still loading. Please try again.')
+      toast.warning('Scoring questions are still loading. Please try again.')
       return
     }
 
@@ -147,13 +148,13 @@ export default function AssessmentScoringPage() {
 
     const result = await saveImpactScoresDraft(finalScores, negativeImpact, positiveImpact)
     if (!result.success) {
-      alert(result.error || 'Failed to save draft. Please try again.')
+      toast.error(result.error || 'Failed to save draft. Please try again.')
     }
   }
 
   const handleSubmit = async () => {
     if (!assessment?._id) {
-      alert('Please complete and save the metadata step first.')
+      toast.warning('Please complete and save the metadata step first.')
       return
     }
     // Validate potential impacts are required
@@ -180,7 +181,7 @@ export default function AssessmentScoringPage() {
 
   const handleConfirmSubmit = async () => {
     if (!allQuestionIds.length) {
-      alert('Scoring questions are still loading. Please try again.')
+      toast.warning('Scoring questions are still loading. Please try again.')
       setShowSubmitModal(false)
       return
     }
@@ -200,7 +201,7 @@ export default function AssessmentScoringPage() {
 
     const result = await saveImpactScores(finalScores, negativeImpact, positiveImpact)
     if (!result.success) {
-      alert(result.error || 'Failed to save scores. Please try again.')
+      toast.error(result.error || 'Failed to save scores. Please try again.')
       setShowSubmitModal(false)
       return
     }
@@ -209,7 +210,7 @@ export default function AssessmentScoringPage() {
     if (submitResult.success) {
       navigate(`/app/projects/${projectId}/assessment/review`)
     } else {
-      alert(submitResult.error || 'Failed to submit assessment. Please try again.')
+      toast.error(submitResult.error || 'Failed to submit assessment. Please try again.')
     }
     setShowSubmitModal(false)
   }

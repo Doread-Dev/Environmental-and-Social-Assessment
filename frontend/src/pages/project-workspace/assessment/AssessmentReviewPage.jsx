@@ -8,7 +8,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment, useScreening, useProjectContext } from '@/hooks'
 import { useLookups, useAuth, ROLE_LABELS, IMPACT_LEVEL_CONFIG } from '@/contexts'
-import { Button, Textarea } from '@/components/ui'
+import { Button, Textarea, useToast } from '@/components/ui'
 import { cn } from '@/utils/cn'
 import { formatDateRange } from '@/utils/formatters'
 import { getCategoryHighestLevel } from '@/utils/impactCalculations'
@@ -33,6 +33,7 @@ export default function AssessmentReviewPage() {
     rejectAssessment,
   } = useAssessment(projectId)
 
+  const toast = useToast()
   const [recommendations, setRecommendations] = useState(assessment?.recommendations || '')
   const [showRejectInput, setShowRejectInput] = useState(false)
   const [rejectReasonInput, setRejectReasonInput] = useState('')
@@ -49,13 +50,12 @@ export default function AssessmentReviewPage() {
         impactScores,
         categoriesWithQuestions
       )
-      // Show success message (you can use toast if available)
-      alert('Excel file downloaded successfully!')
+      toast.success('Excel file downloaded successfully!')
     } catch (error) {
       console.error('Export error:', error)
-      alert('Failed to export Excel file')
+      toast.error('Failed to export Excel file')
     }
-  }, [project, screening, assessment, methods, consultations, impactScores, categoriesWithQuestions])
+  }, [project, screening, assessment, methods, consultations, impactScores, categoriesWithQuestions, toast])
 
   // Expose export handler to parent layout via custom event
   useEffect(() => {
@@ -164,7 +164,7 @@ export default function AssessmentReviewPage() {
 
   const handleApprove = async () => {
     if (!recommendations.trim()) {
-      alert('Please provide recommendations before approving')
+      toast.warning('Please provide recommendations before approving')
       return
     }
     const result = await approveAssessment(recommendations)

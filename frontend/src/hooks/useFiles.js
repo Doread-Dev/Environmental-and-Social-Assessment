@@ -127,8 +127,6 @@ export function useFiles(projectId) {
       console.info('Downloading file:', attachment.file_name)
 
       // في الإنتاج: window.open(attachment.file_path, '_blank')
-      alert(`Downloading: ${attachment.file_name}\nPath: ${attachment.file_path}`)
-
       return { success: true }
     } catch (err) {
       setError('Failed to download file')

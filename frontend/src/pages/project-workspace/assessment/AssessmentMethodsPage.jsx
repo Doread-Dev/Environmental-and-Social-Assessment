@@ -7,12 +7,13 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment } from '@/hooks'
 import { MethodChecklistItem, ConsultationChecklistItem } from '@/components/assessment'
-import { LoadingSpinner, StickyFooter } from '@/components/ui'
+import { LoadingSpinner, StickyFooter, useToast } from '@/components/ui'
 import { assessmentMethods, consultationMethods } from '@/data'
 
 export default function AssessmentMethodsPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
+  const toast = useToast()
   const {
     assessment,
     methods,
@@ -149,7 +150,7 @@ export default function AssessmentMethodsPage() {
     }
 
     if (errors.length > 0) {
-      alert(errors.join('. ') + '. Please try again.')
+      toast.error(errors.join('. ') + '. Please try again.')
       return
     }
 

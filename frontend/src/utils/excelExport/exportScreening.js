@@ -48,12 +48,12 @@ export async function exportScreeningToExcel(project, screening) {
   worksheet.getCell(currentRow, 1).value = 'Project Title:'
   worksheet.getCell(currentRow, 1).font = { bold: true }
   worksheet.getCell(currentRow, 2).value = safeString(project?.title)
-  mergeCells(worksheet, currentRow, 2, currentRow, 5)
+  mergeCells(worksheet, currentRow, 2, currentRow, 3)
 
-  worksheet.getCell(currentRow, 6).value = 'Screening Date:'
-  worksheet.getCell(currentRow, 6).font = { bold: true }
-  worksheet.getCell(currentRow, 7).value = formatDate(screening?.screening_date)
-  mergeCells(worksheet, currentRow, 7, currentRow, 10)
+  worksheet.getCell(currentRow, 4).value = 'Screening Date:'
+  worksheet.getCell(currentRow, 4).font = { bold: true }
+  worksheet.getCell(currentRow, 5).value = formatDate(screening?.screening_date)
+  mergeCells(worksheet, currentRow, 5, currentRow, 10)
   currentRow++
 
   // Row 5: Program Officer
@@ -65,7 +65,7 @@ export async function exportScreeningToExcel(project, screening) {
   worksheet.getCell(currentRow, 4).value = 'Position:'
   worksheet.getCell(currentRow, 4).font = { bold: true }
   worksheet.getCell(currentRow, 5).value = extractUserJobTitle(screening?.officer)
-  mergeCells(worksheet, currentRow, 5, currentRow, 6)
+  mergeCells(worksheet, currentRow, 5, currentRow, 10)
   currentRow++
 
   // Row 6: Project Components
@@ -77,17 +77,14 @@ export async function exportScreeningToExcel(project, screening) {
   mergeCells(worksheet, currentRow, 2, currentRow, 10)
   currentRow++
 
-  // Empty row
-  currentRow++
-
   // Row 8: Category headers
   worksheet.getCell(currentRow, 1).value = 'Screening Project Category:'
   worksheet.getCell(currentRow, 1).font = { bold: true }
-  mergeCells(worksheet, currentRow, 1, currentRow, 5)
+  
 
-  worksheet.getCell(currentRow, 6).value = 'Assessment Result:'
-  worksheet.getCell(currentRow, 6).font = { bold: true }
-  mergeCells(worksheet, currentRow, 6, currentRow, 10)
+  worksheet.getCell(currentRow, 2).value = 'Assessment Result:'
+  worksheet.getCell(currentRow, 2).font = { bold: true }
+  mergeCells(worksheet, currentRow, 2, currentRow, 10)
   currentRow++
 
   // Row 9: Category explanation header
@@ -101,32 +98,32 @@ export async function exportScreeningToExcel(project, screening) {
     {
       code: 'A',
       description:
-        'Projects with no or negligible environmental and social impacts',
+        'High potential environmental risk',
     },
     {
       code: 'B',
       description:
-        'Projects with limited environmental and social impacts that can be easily mitigated',
+        'Low to moderate environmental risk',
     },
     {
       code: 'C',
       description:
-        'Projects with moderate environmental and social impacts that require mitigation measures',
+        'Negligible environmental risk',
     },
     {
       code: 'D',
       description:
-        'Projects with significant environmental and social impacts requiring comprehensive mitigation',
+        'Emergency cases and initiatives',
     },
     {
       code: 'E',
       description:
-        'Projects with severe environmental and social impacts requiring extensive mitigation and monitoring',
+        'Not enough information.',
     },
     {
       code: 'F',
       description:
-        'Projects with critical environmental and social impacts requiring full environmental assessment',
+        'Positive Environmental Impact',
     },
   ]
 
@@ -223,7 +220,7 @@ export async function exportScreeningToExcel(project, screening) {
   applyBorders(worksheet, 4, 1, currentRow, 10)
 
   // Set column widths
-  worksheet.getColumn(1).width = 20
+  worksheet.getColumn(1).width = 28.57
   worksheet.getColumn(2).width = 50
   for (let i = 3; i <= 10; i++) {
     worksheet.getColumn(i).width = 15

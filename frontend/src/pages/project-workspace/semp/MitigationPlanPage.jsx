@@ -10,10 +10,12 @@ import { MitigationPlanTable } from '@/components/semp'
 import { cn } from '@/utils/cn'
 import { userService } from '@/services'
 import { exportMitigationPlanToExcel } from '@/utils/excelExport'
+import { useToast } from '@/components/ui'
 
 export default function MitigationPlanPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
+  const toast = useToast()
   const outletContext = useOutletContext()
   const project = outletContext?.project || null
 
@@ -95,9 +97,10 @@ export default function MitigationPlanPage() {
           }
 
           await exportMitigationPlanToExcel(exportProject, mitigationPlans || [])
+          toast.success('Excel file downloaded successfully!')
         } catch (error) {
           console.error('Export error:', error)
-          alert(`Failed to export Excel file: ${error.message || 'Unknown error'}`)
+          toast.error(`Failed to export Excel file: ${error.message || 'Unknown error'}`)
         }
       }
     }
@@ -106,7 +109,7 @@ export default function MitigationPlanPage() {
     return () => {
       window.removeEventListener('semp-export', handleExportEvent)
     }
-  }, [project, projectId, mitigationPlans])
+  }, [project, projectId, mitigationPlans, toast])
 
   // Handlers
   const handleUpdate = (rowId, field, value) => {

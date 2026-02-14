@@ -10,10 +10,12 @@ import { useMonitoring, useAssessment, useScreening, useProjectContext } from '@
 import { useLookups } from '@/contexts'
 import { impactLevels } from '@/data/impactCategories'
 import { exportMonitoringToExcel } from '@/utils/excelExport'
+import { useToast } from '@/components/ui'
 
 export default function MonitoringOverviewPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
+  const toast = useToast()
   const { isLoading: lookupsLoading, categoriesWithIndicators } = useLookups()
   const { getAllCategoryStats, getCategoryData, isLoading, records } = useMonitoring(projectId)
   const { assessment, isLoading: isAssessmentLoading } = useAssessment(projectId)
@@ -82,10 +84,10 @@ export default function MonitoringOverviewPage() {
                     records,
                     categoriesWithIndicators
                   )
-                  alert('Excel file downloaded successfully!')
+                  toast.success('Excel file downloaded successfully!')
                 } catch (error) {
                   console.error('Export error:', error)
-                  alert('Failed to export Excel file')
+                  toast.error('Failed to export Excel file')
                 }
               }}
               disabled={isLocked}

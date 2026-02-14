@@ -406,7 +406,7 @@ export async function exportAssessmentToExcel(
   applyBorders(worksheet, 3, 1, currentRow, 10)
 
   // Set column widths
-  worksheet.getColumn(1).width = 15
+  worksheet.getColumn(1).width = 24.57
   worksheet.getColumn(2).width = 107.86
   worksheet.getColumn(3).width = 12
   worksheet.getColumn(4).width = 12

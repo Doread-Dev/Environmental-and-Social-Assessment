@@ -18,6 +18,7 @@ export function useScreening(projectId) {
 
     setIsLoading(true)
     setError(null)
+    setScreening(null) // Avoid showing previous project's screening while loading
 
     let isMounted = true
 

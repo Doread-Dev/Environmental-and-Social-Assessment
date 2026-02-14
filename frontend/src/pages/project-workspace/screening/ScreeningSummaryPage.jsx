@@ -22,7 +22,7 @@ function ScreeningSummaryPage() {
   const { projectId } = useParams()
   const toast = useToast()
   const { project: contextProject } = useProjectContext()
-  const { canApprove } = useAuth()
+  const { user: currentUser, canApprove } = useAuth()
   const {
     screening: hookScreening,
     isLoading: screeningLoading,
@@ -172,8 +172,15 @@ function ScreeningSummaryPage() {
 
   const officer =
     screening?.officer && typeof screening.officer === 'object' ? screening.officer : null
+  // When pending approval and current user can approve: show current user in "Approved By" so approval is linked to them
   const approvalUser =
-    status === 'approved' ? screening?.approved_by : status === 'rejected' ? screening?.reject_by : officer
+    status === 'approved'
+      ? screening?.approved_by
+      : status === 'rejected'
+        ? screening?.reject_by
+        : status === 'submitted' && canApproveScreening && currentUser
+          ? currentUser
+          : officer
 
   // Parse impacts into list items
   const negativeItems =

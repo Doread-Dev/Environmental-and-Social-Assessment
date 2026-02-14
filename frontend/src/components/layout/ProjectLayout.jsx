@@ -60,28 +60,25 @@ function ProjectLayout() {
     }
   }
 
-  // Fetch project data from API
-  useEffect(() => {
-    const fetchProject = async () => {
-      if (!projectId) return
-      setIsLoading(true)
-      setError(null)
-
-      try {
-        const projectData = await projectService.getById(projectId)
-        setProject(projectData)
-      } catch (err) {
-        const errorMessage = extractErrorMessage(err)
-        setError(errorMessage)
-        // eslint-disable-next-line no-console
-        console.error('Failed to load project:', errorMessage)
-      }
-
+  const fetchProject = useCallback(async () => {
+    if (!projectId) return
+    setIsLoading(true)
+    setError(null)
+    try {
+      const projectData = await projectService.getById(projectId)
+      setProject(projectData)
+    } catch (err) {
+      const errorMessage = extractErrorMessage(err)
+      setError(errorMessage)
+      console.error('Failed to load project:', errorMessage)
+    } finally {
       setIsLoading(false)
     }
-
-    fetchProject()
   }, [projectId])
+
+  useEffect(() => {
+    fetchProject()
+  }, [fetchProject])
 
   // Enhanced project with workflow (memoized)
   const enhancedProject = useMemo(() => {
@@ -124,7 +121,7 @@ function ProjectLayout() {
               Back to Projects
             </button>
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => fetchProject()}
               className="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary-hover text-white rounded-lg transition-colors"
             >
               Try Again

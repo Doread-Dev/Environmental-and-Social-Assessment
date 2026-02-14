@@ -8,15 +8,13 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { MonitoringCategoryCard, MonitoringProgressTimeline } from '@/components/monitoring'
 import { useMonitoring, useAssessment, useScreening, useProjectContext } from '@/hooks'
 import { useLookups } from '@/contexts'
-import { impactLevels } from '@/data/impactCategories'
-import { exportMonitoringToExcel } from '@/utils/excelExport'
 import { useToast } from '@/components/ui'
 
 export default function MonitoringOverviewPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
   const toast = useToast()
-  const { isLoading: lookupsLoading, categoriesWithIndicators } = useLookups()
+  const { isLoading: lookupsLoading, categoriesWithIndicators, IMPACT_LEVEL_CONFIG } = useLookups()
   const { getAllCategoryStats, getCategoryData, isLoading, records } = useMonitoring(projectId)
   const { assessment, isLoading: isAssessmentLoading } = useAssessment(projectId)
   const { screening } = useScreening(projectId)
@@ -77,12 +75,14 @@ export default function MonitoringOverviewPage() {
               type="button"
               onClick={async () => {
                 try {
+                  const { exportMonitoringToExcel } = await import('@/utils/excelExport')
                   await exportMonitoringToExcel(
                     project,
                     screening,
                     assessment,
                     records,
-                    categoriesWithIndicators
+                    categoriesWithIndicators,
+                    IMPACT_LEVEL_CONFIG
                   )
                   toast.success('Excel file downloaded successfully!')
                 } catch (error) {
@@ -196,7 +196,7 @@ export default function MonitoringOverviewPage() {
               }, {})
               const priority = ['high', 'medium', 'low', 'negligible', 'not_applicable']
               const rankingKey = priority.find((key) => rankingCounts[key] > 0) || 'not_applicable'
-              const rankingLabel = impactLevels[rankingKey]?.label || 'N/A'
+              const rankingLabel = IMPACT_LEVEL_CONFIG[rankingKey]?.label || 'N/A'
 
               return (
                 <MonitoringCategoryCard

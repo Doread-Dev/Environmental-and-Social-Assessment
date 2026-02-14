@@ -81,47 +81,38 @@ export function useSemp(projectId) {
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState(null)
 
-  // Load data from API
+  const loadData = useCallback(async () => {
+    if (!projectId) return
+    setIsLoading(true)
+    setError(null)
+    try {
+      const [activities, plans] = await Promise.all([
+        sempService.getManagementActivities(projectId),
+        sempService.getMitigationPlans(projectId),
+      ])
+      setManagementActivities(normalizeApiResponse(activities))
+      setMitigationPlans(normalizeApiResponse(plans))
+    } catch (err) {
+      const errorMessage = extractErrorMessage(err)
+      setError(errorMessage)
+      console.error('Failed to load SEMP data:', errorMessage)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [projectId])
+
+  const refetch = useCallback(() => {
+    loadData()
+  }, [loadData])
+
   useEffect(() => {
     if (!projectId) return
-
     let cancelled = false
-
-    const fetchData = async () => {
-      setIsLoading(true)
-      setError(null)
-
-      try {
-        // Fetch both in parallel
-        const [activities, plans] = await Promise.all([
-          sempService.getManagementActivities(projectId),
-          sempService.getMitigationPlans(projectId),
-        ])
-
-        if (!cancelled) {
-          // Normalize API responses for frontend use
-          setManagementActivities(normalizeApiResponse(activities))
-          setMitigationPlans(normalizeApiResponse(plans))
-        }
-      } catch (err) {
-        if (!cancelled) {
-          const errorMessage = extractErrorMessage(err)
-          setError(errorMessage)
-          console.error('Failed to load SEMP data:', errorMessage)
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false)
-        }
-      }
-    }
-
-    fetchData()
-
+    loadData().finally(() => {})
     return () => {
       cancelled = true
     }
-  }, [projectId])
+  }, [projectId, loadData])
 
   // ==========================================
   // Management Activities (Tool 3)
@@ -459,6 +450,7 @@ export function useSemp(projectId) {
     isLoading,
     isSaving,
     error,
+    refetch,
 
     // Management Activities Actions
     addManagementActivity,

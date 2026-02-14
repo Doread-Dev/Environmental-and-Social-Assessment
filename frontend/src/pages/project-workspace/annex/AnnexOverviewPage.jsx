@@ -4,7 +4,7 @@
  */
 
 import { Card, Alert } from '@/components/ui'
-import { mockAnnexItems } from '@/data'
+import { annexItems } from '@/utils/annexTypes'
 
 export default function AnnexOverviewPage() {
   return (
@@ -38,13 +38,13 @@ export default function AnnexOverviewPage() {
             </h2>
             <div className="flex items-center gap-2 text-sm text-text-secondary dark:text-gray-400">
               <span className="material-symbols-outlined text-base">info</span>
-              <span>{mockAnnexItems.length} items</span>
+              <span>{annexItems.length} items</span>
             </div>
           </div>
 
           {/* Annex Grid */}
           <div className="grid grid-cols-1 gap-4">
-            {mockAnnexItems.map((item, index) => (
+            {annexItems.map((item, index) => (
               <Card key={item._id} className="hover:shadow-md transition-shadow">
                 <Card.Body>
                   <div className="flex items-start gap-4">
@@ -105,7 +105,7 @@ export default function AnnexOverviewPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockAnnexItems.map((item, index) => (
+                  {annexItems.map((item, index) => (
                     <tr
                       key={item._id}
                       className="border-b border-border-default dark:border-border-dark hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors"

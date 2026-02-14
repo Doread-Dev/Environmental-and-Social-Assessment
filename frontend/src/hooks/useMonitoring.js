@@ -33,42 +33,30 @@ export function useMonitoring(projectId) {
     }))
   }, [records])
 
-  /**
-   * Load monitoring records from API
-   */
-  useEffect(() => {
+  const loadData = useCallback(async () => {
     if (!projectId) return
-
-    let cancelled = false
-
-    const fetchData = async () => {
-      setIsLoading(true)
-      setError(null)
-
-      try {
-        const data = await monitoringService.getByProject(projectId)
-        if (!cancelled) {
-          setRecords(data)
-        }
-      } catch (err) {
-        if (!cancelled) {
-          const errorMessage = extractErrorMessage(err)
-          setError(errorMessage)
-          console.error('Failed to load monitoring data:', errorMessage)
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false)
-        }
-      }
-    }
-
-    fetchData()
-
-    return () => {
-      cancelled = true
+    setIsLoading(true)
+    setError(null)
+    try {
+      const data = await monitoringService.getByProject(projectId)
+      setRecords(data)
+    } catch (err) {
+      const errorMessage = extractErrorMessage(err)
+      setError(errorMessage)
+      console.error('Failed to load monitoring data:', errorMessage)
+    } finally {
+      setIsLoading(false)
     }
   }, [projectId])
+
+  const refetch = useCallback(() => {
+    loadData()
+  }, [loadData])
+
+  useEffect(() => {
+    if (!projectId) return
+    loadData()
+  }, [projectId, loadData])
 
   /**
    * Update a quarter score
@@ -491,6 +479,7 @@ export function useMonitoring(projectId) {
     isLoading: isLoading || lookupsLoading,
     isSaving,
     error,
+    refetch,
     updateQuarterScore,
     updateRecordField,
     addRecord,

@@ -1,5 +1,5 @@
 import { cn } from '@/utils'
-import { workflowStepStatuses } from '@/data'
+import { workflowStepStatuses } from '@/utils/workflowStatuses'
 
 /**
  * WorkflowProgressBar - شريط تقدم سير العمل (S/A/M/R)

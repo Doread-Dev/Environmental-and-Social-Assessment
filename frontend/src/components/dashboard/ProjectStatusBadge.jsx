@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui'
-import { projectStatuses } from '@/data'
+import { projectStatuses } from '@/utils/workflowStatuses'
 
 /**
  * ProjectStatusBadge - شارة حالة المشروع

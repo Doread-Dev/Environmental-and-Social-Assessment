@@ -10,7 +10,7 @@
 
 import { useState } from 'react'
 import { Card, Input, Textarea, Button, Icon } from '@/components/ui'
-import { currentUser } from '@/data'
+import { useAuth } from '@/contexts'
 import { cn } from '@/utils/cn'
 
 /**
@@ -42,6 +42,7 @@ function ApprovalSection({
   className,
   ...props
 }) {
+  const { user } = useAuth()
   const [showRejectInput, setShowRejectInput] = useState(false)
   const [rejectReasonInput, setRejectReasonInput] = useState('')
 
@@ -49,9 +50,11 @@ function ApprovalSection({
   const isRejected = status === 'rejected'
   const isSubmitted = status === 'submitted'
 
-  // Use current user if approver info not provided
-  const displayName = approverName || currentUser.name
-  const displayPosition = approverPosition || currentUser.job_title?.title_name || 'Program Manager'
+  const displayName = approverName || user?.name || ''
+  const displayPosition =
+    approverPosition ||
+    (user?.job_title && typeof user.job_title === 'object' ? user.job_title.title_name : null) ||
+    'Program Manager'
 
   const handleRejectClick = () => {
     setShowRejectInput(true)

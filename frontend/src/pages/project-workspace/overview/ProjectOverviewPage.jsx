@@ -17,7 +17,7 @@ import {
   ProjectSiteCard,
 } from '@/components/project'
 import { useProjectContext, useSemp } from '@/hooks'
-import { getScreeningCategory } from '@/data'
+import { getScreeningCategory } from '@/utils/screeningDisplay'
 import { calculateDurationMonths, formatDuration } from '@/utils/formatters'
 import { getNextAction } from '@/utils/workflowDerivation'
 import { projectService } from '@/services/projectService'

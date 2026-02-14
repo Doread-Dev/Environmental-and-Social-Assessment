@@ -1,96 +1,24 @@
 /**
- * Mock Data Barrel Export
- * متوافق مع Backend Models
+ * @deprecated For production UI, use utils/ (formatFileSize, workflowStatuses, screeningDisplay,
+ * annexTypes, rankingHelp, assessmentMethods, attachmentsHelpers) and LookupContext (users,
+ * impact categories, IMPACT_LEVEL_CONFIG). This barrel re-exports from utils for backward
+ * compatibility only (e.g. documents or legacy scripts). Do not use in new code.
  */
 
-// Projects
-export {
-  mockProjects,
-  calculateProjectStatus,
-  calculateSempStatus, // ← جديد: حساب حالة SEMP
-  calculateMonitoringStatus, // ← جديد: حساب حالة Monitoring
-} from './mockProjects'
-
-// Users
-export {
-  mockUsers,
-  currentUser,
-  mockJobTitles,
-  USER_ROLES,
-  ROLE_LABELS,
-  getRoleDisplayName,
-} from './mockUsers'
-
-// Screening (Tool 1)
-export { screeningCategories, screeningStatuses, getScreeningCategory } from './screeningCategories'
-
-// Workflow
+// Re-export from utils for backward compatibility
+export { formatFileSize } from '../utils/formatFileSize'
 export {
   WORKFLOW_TOOLS,
   workflowStepStatuses,
   projectStatuses,
-  mapBackendStatusToDisplay, // ← جديد: تحويل حالة Backend للعرض
-} from './workflowStatuses'
-
-// Impact Categories (Tool 2)
-export { impactCategories, impactLevels } from './impactCategories'
-
-// Assessment Data
-export * from './assessmentMethods'
-export * from './impactQuestions'
-export * from './impactIndicators' // للاستخدام في Phase 7
-export * from './jobTitles'
+  mapBackendStatusToDisplay,
+} from '../utils/workflowStatuses'
 export {
-  mockAssessments,
-  mockAssessmentMethods,
-  mockConsultations,
-  mockImpactScores,
-  getAssessmentByProjectId,
-  getMethodsByAssessmentId,
-  getConsultationsByAssessmentId,
-  getImpactScoresByAssessmentId,
-  createEmptyAssessment,
-} from './mockAssessment'
-
-// Screening Data
-export {
-  mockScreenings,
-  getScreeningByProjectId,
-  getScreeningWithDetails,
-  createEmptyScreening,
-} from './mockScreening'
-
-// SEMP Data (Tools 3 & 4)
-export {
-  mockManagementActivities,
-  getManagementActivitiesByProjectId,
-  getNextSerialNumber,
-  createEmptyManagementActivity,
-} from './mockManagementActivities'
-
-export {
-  mockMitigationPlans,
-  getMitigationPlansByProjectId,
-  getNextMitigationSerialNumber,
-  createEmptyMitigationPlan,
-} from './mockMitigationPlans'
-
-// Monitoring Data (Tool 5)
-export {
-  monitoringIndicators,
-  getMonitoringIndicatorsByCategory,
-  mockMonitoringRecords,
-  getMonitoringRecordsByProjectId,
-  createEmptyMonitoringRecord,
-} from './mockMonitoringRecords'
-
-// Files & Annex
-export {
-  mockAttachments,
-  getAttachmentsByEntity,
-  getAllProjectAttachments,
-  groupAttachmentsByType,
-  formatFileSize,
-} from './mockAttachments'
-
-export { mockAnnexItems, getAnnexItemById } from './mockAnnexItems'
+  screeningCategories,
+  screeningStatuses,
+  getScreeningCategory,
+} from '../utils/screeningDisplay'
+export { getRankingDisplayLabel, RANKING_HELP } from '../utils/rankingHelp'
+export { assessmentMethods, consultationMethods } from '../utils/assessmentMethods'
+export { annexItems, getAnnexItemById } from '../utils/annexTypes'
+export { groupAttachmentsByType } from '../utils/attachmentsHelpers'

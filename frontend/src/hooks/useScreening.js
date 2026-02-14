@@ -12,37 +12,39 @@ export function useScreening(projectId) {
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState(null)
 
-  // تحميل بيانات الفرز
-  useEffect(() => {
-    if (!projectId) return
-
+  const loadData = useCallback(() => {
+    if (!projectId) return Promise.resolve()
     setIsLoading(true)
     setError(null)
-    setScreening(null) // Avoid showing previous project's screening while loading
-
-    let isMounted = true
-
-    screeningService
+    setScreening(null)
+    return screeningService
       .getByProject(projectId)
       .then((data) => {
-        if (!isMounted) return
-        setScreening(data) // null if no screening exists
+        setScreening(data)
       })
       .catch((err) => {
-        if (!isMounted) return
-        // getByProject already handles 404 and returns null
-        // Only set error for other errors
         setError(extractErrorMessage(err))
       })
       .finally(() => {
-        if (!isMounted) return
-      setIsLoading(false)
+        setIsLoading(false)
       })
+  }, [projectId])
 
+  const refetch = useCallback(() => {
+    loadData()
+  }, [loadData])
+
+  useEffect(() => {
+    if (!projectId) return
+    let isMounted = true
+    loadData()
+      .then(() => {})
+      .catch(() => {})
+      .finally(() => {})
     return () => {
       isMounted = false
     }
-  }, [projectId])
+  }, [projectId, loadData])
 
   // حفظ كمسودة
   const saveDraft = useCallback(async (data) => {
@@ -159,6 +161,7 @@ export function useScreening(projectId) {
     isLoading,
     isSaving,
     error,
+    refetch,
     saveDraft,
     submit,
     approve,

@@ -7,9 +7,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom'
 import { useSemp } from '@/hooks/useSemp'
 import { MitigationPlanTable } from '@/components/semp'
+import { useLookups } from '@/contexts'
 import { cn } from '@/utils/cn'
-import { userService } from '@/services'
-import { exportMitigationPlanToExcel } from '@/utils/excelExport'
 import { useToast } from '@/components/ui'
 
 export default function MitigationPlanPage() {
@@ -18,6 +17,7 @@ export default function MitigationPlanPage() {
   const toast = useToast()
   const outletContext = useOutletContext()
   const project = outletContext?.project || null
+  const { activeUsers } = useLookups()
 
   const {
     mitigationPlans,
@@ -33,36 +33,6 @@ export default function MitigationPlanPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [justSaved, setJustSaved] = useState(false)
   const hasInitialized = useRef(false)
-  const [users, setUsers] = useState([])
-  const [isUsersLoading, setIsUsersLoading] = useState(true)
-
-  // Load users for Responsibility column
-  useEffect(() => {
-    let cancelled = false
-
-    const loadUsers = async () => {
-      try {
-        const activeUsers = await userService.getActive()
-        if (!cancelled) {
-          setUsers(activeUsers)
-        }
-      } catch (e) {
-        if (!cancelled) {
-          setUsers([])
-        }
-      } finally {
-        if (!cancelled) {
-          setIsUsersLoading(false)
-        }
-      }
-    }
-
-    loadUsers()
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   // Auto-create first row if empty on load
   useEffect(() => {
@@ -96,6 +66,7 @@ export default function MitigationPlanPage() {
             throw new Error('Project data is not available')
           }
 
+          const { exportMitigationPlanToExcel } = await import('@/utils/excelExport')
           await exportMitigationPlanToExcel(exportProject, mitigationPlans || [])
           toast.success('Excel file downloaded successfully!')
         } catch (error) {
@@ -241,7 +212,7 @@ export default function MitigationPlanPage() {
       <div className="px-4 md:px-10 pb-10 pt-4 w-full flex-1 flex flex-col overflow-hidden relative">
         <MitigationPlanTable
           plans={mitigationPlans}
-          users={users}
+          users={activeUsers ?? []}
           onUpdate={handleUpdate}
           onDelete={handleDelete}
           onAddRow={handleAddRow}

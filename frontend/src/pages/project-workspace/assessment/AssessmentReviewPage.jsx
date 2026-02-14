@@ -12,9 +12,7 @@ import { Button, Textarea, useToast } from '@/components/ui'
 import { cn } from '@/utils/cn'
 import { formatDateRange } from '@/utils/formatters'
 import { getCategoryHighestLevel } from '@/utils/impactCalculations'
-import { assessmentMethods, consultationMethods } from '@/data'
-import { exportAssessmentToExcel } from '@/utils/excelExport'
-
+import { assessmentMethods, consultationMethods } from '@/utils/assessmentMethods'
 export default function AssessmentReviewPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
@@ -41,6 +39,7 @@ export default function AssessmentReviewPage() {
   // Export handler - must be defined before any conditional returns
   const handleExport = useCallback(async () => {
     try {
+      const { exportAssessmentToExcel } = await import('@/utils/excelExport')
       await exportAssessmentToExcel(
         project,
         screening,

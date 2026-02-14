@@ -1,10 +1,8 @@
 /**
- * Screening Categories (Tool 1)
- * متوافق مع backend/src/models/screening.model.js
- *
- * هذه الفئات تُستخدم في Tool 1 (Environmental Integration Screening)
- * لتحديد مستوى الخطورة البيئية للمشروع
+ * Screening categories and status display
+ * Moved from data/screeningCategories for production use (no mock dependency)
  */
+
 export const screeningCategories = {
   A: {
     code: 'A',
@@ -15,7 +13,7 @@ export const screeningCategories = {
     bgColor: 'bg-red-100 dark:bg-red-900/30',
     textColor: 'text-red-700 dark:text-red-400',
     borderColor: 'border-red-200 dark:border-red-800',
-    requiresAssessment: true, // يحتاج Tool 2
+    requiresAssessment: true,
     canProceed: true,
   },
   B: {
@@ -27,7 +25,7 @@ export const screeningCategories = {
     bgColor: 'bg-yellow-100 dark:bg-yellow-900/30',
     textColor: 'text-yellow-700 dark:text-yellow-400',
     borderColor: 'border-yellow-200 dark:border-yellow-800',
-    requiresAssessment: true, // يحتاج Tool 2
+    requiresAssessment: true,
     canProceed: true,
   },
   C: {
@@ -39,7 +37,7 @@ export const screeningCategories = {
     bgColor: 'bg-green-100 dark:bg-green-900/30',
     textColor: 'text-green-700 dark:text-green-400',
     borderColor: 'border-green-200 dark:border-green-800',
-    requiresAssessment: false, // قد لا يحتاج Tool 2
+    requiresAssessment: false,
     canProceed: true,
   },
   D: {
@@ -51,7 +49,7 @@ export const screeningCategories = {
     bgColor: 'bg-blue-100 dark:bg-blue-900/30',
     textColor: 'text-blue-700 dark:text-blue-400',
     borderColor: 'border-blue-200 dark:border-blue-800',
-    requiresAssessment: false, // قد لا يحتاج Tool 2
+    requiresAssessment: false,
     canProceed: true,
   },
   E: {
@@ -75,15 +73,11 @@ export const screeningCategories = {
     bgColor: 'bg-emerald-100 dark:bg-emerald-900/30',
     textColor: 'text-emerald-700 dark:text-emerald-400',
     borderColor: 'border-emerald-200 dark:border-emerald-800',
-    requiresAssessment: false, // قد لا يحتاج Tool 2
+    requiresAssessment: false,
     canProceed: true,
   },
 }
 
-/**
- * Screening Status - حالات الفرز
- * متوافق مع backend/src/models/screening.model.js
- */
 export const screeningStatuses = {
   draft: {
     label: 'Draft',
@@ -116,8 +110,8 @@ export const screeningStatuses = {
 }
 
 /**
- * الحصول على معلومات الفئة
- * @param {string} code - رمز الفئة
+ * Get screening category info by code
+ * @param {string} code - Category code
  * @returns {Object|null}
  */
 export function getScreeningCategory(code) {

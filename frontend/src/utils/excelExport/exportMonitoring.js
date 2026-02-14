@@ -16,8 +16,7 @@ import {
   safeString,
   EXCEL_STYLES,
 } from './excelBase'
-import { getRankingDisplayLabel } from '@/data/rankingHelp'
-import { impactLevels } from '@/data/impactCategories'
+import { getRankingDisplayLabel } from '@/utils/rankingHelp'
 
 /**
  * Export monitoring data to Excel
@@ -26,13 +25,15 @@ import { impactLevels } from '@/data/impactCategories'
  * @param {Object} assessment - Assessment object
  * @param {Array} monitoringRecords - Monitoring records array
  * @param {Array} categoriesWithIndicators - Categories with indicators from lookups
+ * @param {Object} impactLevelConfig - IMPACT_LEVEL_CONFIG from LookupContext (for ranking labels)
  */
 export async function exportMonitoringToExcel(
   project,
   screening,
   assessment,
   monitoringRecords,
-  categoriesWithIndicators
+  categoriesWithIndicators,
+  impactLevelConfig = {}
 ) {
   if (!project || !assessment) {
     throw new Error('Project and assessment data are required')
@@ -204,7 +205,7 @@ export async function exportMonitoringToExcel(
           record.ranking,
           categoryCode,
           questionNumber,
-          impactLevels
+          impactLevelConfig
         )
         worksheet.getCell(currentRow, 12).value = safeString(rankingDisplay)
       } else if (record) {

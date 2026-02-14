@@ -1,5 +1,5 @@
 import { cn } from '@/utils'
-import { getScreeningCategory } from '@/data'
+import { getScreeningCategory } from '@/utils/screeningDisplay'
 
 /**
  * ScreeningCategoryBadge - شارة فئة الفرز (Tool 1)

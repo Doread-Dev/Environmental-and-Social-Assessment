@@ -134,6 +134,11 @@ console.error = (...args) => {
  * @returns {string} Human-readable error message
  */
 export function extractErrorMessage(error) {
+  // 403 Forbidden: consistent user-friendly message
+  if (error.response?.status === 403) {
+    return "You don't have permission to perform this action."
+  }
+
   // Server responded with error
   if (error.response?.data?.message) {
     return error.response.data.message

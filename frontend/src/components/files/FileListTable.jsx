@@ -4,7 +4,7 @@
  */
 
 import { cn } from '@/utils/cn'
-import { formatFileSize } from '@/data'
+import { formatFileSize } from '@/utils/formatFileSize'
 import FileRowActions from './FileRowActions'
 
 /**

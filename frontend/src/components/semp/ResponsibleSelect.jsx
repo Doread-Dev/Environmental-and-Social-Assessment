@@ -4,12 +4,11 @@
  */
 
 import { cn } from '@/utils/cn'
-import { mockUsers } from '@/data'
 
 export default function ResponsibleSelect({
   value,
   onChange,
-  users = mockUsers,
+  users = [],
   readOnly = false,
   className,
 }) {

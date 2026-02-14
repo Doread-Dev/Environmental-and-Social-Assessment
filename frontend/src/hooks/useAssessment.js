@@ -33,61 +33,47 @@ export function useAssessment(projectId) {
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState(null)
 
-  // تحميل بيانات التقييم
-  useEffect(() => {
+  const loadData = useCallback(async () => {
     if (!projectId) return
-
-    let isMounted = true
     setIsLoading(true)
     setError(null)
-
-    assessmentService
-      .getByProject(projectId)
-      .then(async (data) => {
-        if (!isMounted) return
-        
-        if (!data) {
-          // No assessment exists yet
-          setAssessment(null)
-          setMethods([])
-          setConsultations([])
-          setImpactScores([])
-          return
-        }
-
-        setAssessment(data)
-
-        // Load sub-entities in parallel
-        const [methodsResult, consultationsResult, scoresResult] = await Promise.allSettled([
-          assessmentService.getMethods(data._id),
-          assessmentService.getConsultations(data._id),
-          assessmentService.getScores(data._id),
-        ])
-
-        if (!isMounted) return
-        setMethods(methodsResult.status === 'fulfilled' ? methodsResult.value : [])
-        setConsultations(
-          consultationsResult.status === 'fulfilled' ? consultationsResult.value : []
-        )
-        setImpactScores(
-          scoresResult.status === 'fulfilled' ? normalizeImpactScores(scoresResult.value) : []
-        )
-      })
-      .catch((err) => {
-        if (!isMounted) return
-        // getByProject already handles 404 and returns null
-        // Only set error for other errors
-        setError(extractErrorMessage(err))
-      })
-      .finally(() => {
-        if (!isMounted) return
-        setIsLoading(false)
-      })
-
-    return () => {
-      isMounted = false
+    try {
+      const data = await assessmentService.getByProject(projectId)
+      if (!data) {
+        setAssessment(null)
+        setMethods([])
+        setConsultations([])
+        setImpactScores([])
+        return
+      }
+      setAssessment(data)
+      const [methodsResult, consultationsResult, scoresResult] = await Promise.allSettled([
+        assessmentService.getMethods(data._id),
+        assessmentService.getConsultations(data._id),
+        assessmentService.getScores(data._id),
+      ])
+      setMethods(methodsResult.status === 'fulfilled' ? methodsResult.value : [])
+      setConsultations(
+        consultationsResult.status === 'fulfilled' ? consultationsResult.value : []
+      )
+      setImpactScores(
+        scoresResult.status === 'fulfilled' ? normalizeImpactScores(scoresResult.value) : []
+      )
+    } catch (err) {
+      setError(extractErrorMessage(err))
+    } finally {
+      setIsLoading(false)
     }
-  }, [projectId, user?._id])
+  }, [projectId, normalizeImpactScores])
+
+  const refetch = useCallback(() => {
+    loadData()
+  }, [loadData])
+
+  useEffect(() => {
+    if (!projectId) return
+    loadData()
+  }, [projectId, user?._id, loadData])
 
   /**
    * بدء تقييم جديد
@@ -368,6 +354,7 @@ export function useAssessment(projectId) {
     isLoading,
     isSaving,
     error,
+    refetch,
     startAssessment,
     saveMetadata,
     saveMethods,

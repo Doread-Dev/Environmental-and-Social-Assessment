@@ -9,7 +9,7 @@
  * - Validation
  */
 
-import { screeningCategories } from '@/data'
+import { screeningCategories } from '@/utils/screeningDisplay'
 import { cn } from '@/utils/cn'
 
 /**

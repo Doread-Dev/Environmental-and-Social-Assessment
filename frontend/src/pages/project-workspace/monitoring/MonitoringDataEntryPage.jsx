@@ -10,22 +10,23 @@ import { useMonitoring, useAssessment, useScreening, useProjectContext } from '@
 import { useLookups } from '@/contexts'
 import { MonitoringDataTable } from '@/components/tables'
 import { Alert, useToast } from '@/components/ui'
-import { impactLevels } from '@/data/impactCategories'
 import { cn } from '@/utils/cn'
-import { userService } from '@/services'
-import { exportMonitoringToExcel } from '@/utils/excelExport'
-
 export default function MonitoringDataEntryPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const categoryParam = searchParams.get('category')
   const toast = useToast()
-  const { impactCategories, categoriesWithIndicators, isLoading: lookupsLoading } = useLookups()
+  const {
+    impactCategories,
+    categoriesWithIndicators,
+    isLoading: lookupsLoading,
+    IMPACT_LEVEL_CONFIG,
+    activeUsers,
+  } = useLookups()
   const { assessment, isLoading: isAssessmentLoading } = useAssessment(projectId)
   const { screening } = useScreening(projectId)
   const { project } = useProjectContext()
-  const [users, setUsers] = useState([])
   const isApproved = assessment?.status === 'approved'
   const isLocked = !isApproved
 
@@ -77,31 +78,6 @@ export default function MonitoringDataEntryPage() {
     },
   }
 
-  // Load users for Responsibility column
-  useEffect(() => {
-    let cancelled = false
-
-    const loadUsers = async () => {
-      try {
-        const activeUsers = await userService.getActive()
-        if (!cancelled) {
-          setUsers(activeUsers)
-        }
-      } catch (e) {
-        // في حال الفشل، نبقي الجدول يعمل بدون القائمة (لن يؤثر على الحفظ)
-        if (!cancelled) {
-          setUsers([])
-        }
-      }
-    }
-
-    loadUsers()
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
   // Auto-expand category from URL
   useEffect(() => {
     if (categoryParam && !expandedCategories.includes(categoryParam)) {
@@ -134,13 +110,21 @@ export default function MonitoringDataEntryPage() {
 
   const handleExport = useCallback(async () => {
     try {
-      await exportMonitoringToExcel(project, screening, assessment, records, categoriesWithIndicators)
+      const { exportMonitoringToExcel } = await import('@/utils/excelExport')
+      await exportMonitoringToExcel(
+        project,
+        screening,
+        assessment,
+        records,
+        categoriesWithIndicators,
+        IMPACT_LEVEL_CONFIG
+      )
       toast.success('Excel file downloaded successfully!')
     } catch (error) {
       console.error('Export error:', error)
       toast.error('Failed to export Excel file')
     }
-  }, [project, screening, assessment, records, categoriesWithIndicators, toast])
+  }, [project, screening, assessment, records, categoriesWithIndicators, IMPACT_LEVEL_CONFIG, toast])
 
   useEffect(() => {
     const handleExportEvent = () => {
@@ -267,11 +251,19 @@ export default function MonitoringDataEntryPage() {
             const isExpanded = expandedCategories.includes(category.code)
             const categoryData = getCategoryData(category.code)
             const rankingLevels = categoryData
-              .map((item) => impactLevels[item.record?.ranking])
+              .map((item) => {
+                const k = item.record?.ranking
+                return IMPACT_LEVEL_CONFIG[k] && { ...IMPACT_LEVEL_CONFIG[k], key: k }
+              })
               .filter(Boolean)
               .filter((level) => level.key !== 'not_applicable')
+            const defaultRanking =
+              IMPACT_LEVEL_CONFIG.not_applicable &&
+              { ...IMPACT_LEVEL_CONFIG.not_applicable, key: 'not_applicable' }
             const currentRanking =
-              rankingLevels.sort((a, b) => b.value - a.value)[0] || impactLevels.not_applicable
+              rankingLevels.sort((a, b) => b.value - a.value)[0] ||
+              defaultRanking ||
+              { key: 'not_applicable', label: 'N/A', value: -1 }
             const rankingStyles = {
               negligible: 'bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-400',
               low: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
@@ -350,7 +342,7 @@ export default function MonitoringDataEntryPage() {
                           setJustSaved(false)
                         }}
                         isEditable={true}
-                        users={users}
+                        users={activeUsers ?? []}
                       />
                     </div>
                   </div>

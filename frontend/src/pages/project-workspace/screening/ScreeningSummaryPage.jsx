@@ -12,11 +12,9 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useToast } from '@/components/ui'
 import { useProjectContext, useScreening } from '@/hooks'
 import { useAuth, ROLE_LABELS } from '@/contexts'
-import { getScreeningCategory } from '@/data'
+import { getScreeningCategory } from '@/utils/screeningDisplay'
 import { formatDateShort } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
-import { exportScreeningToExcel } from '@/utils/excelExport'
-
 function ScreeningSummaryPage() {
   const navigate = useNavigate()
   const { projectId } = useParams()
@@ -26,6 +24,8 @@ function ScreeningSummaryPage() {
   const {
     screening: hookScreening,
     isLoading: screeningLoading,
+    error: screeningError,
+    refetch: refetchScreening,
     approve: approveScreening,
     reject: rejectScreening,
   } = useScreening(projectId)
@@ -43,6 +43,7 @@ function ScreeningSummaryPage() {
   // Handlers - must be defined before conditional returns
   const handleExport = useCallback(async () => {
     try {
+      const { exportScreeningToExcel } = await import('@/utils/excelExport')
       await exportScreeningToExcel(project, screening)
       toast.success('Excel file downloaded successfully!')
     } catch (error) {
@@ -133,6 +134,24 @@ function ScreeningSummaryPage() {
   useEffect(() => {
     setRecommendations(screening?.recommendations || '')
   }, [screening?.recommendations])
+
+  // Show error state with Try Again - AFTER all hooks
+  if (screeningError) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4 max-w-md text-center">
+          <p className="text-text-secondary dark:text-gray-400">{screeningError}</p>
+          <button
+            type="button"
+            onClick={() => refetchScreening()}
+            className="px-4 py-2 bg-primary text-white rounded-lg"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   // Show loading state - AFTER all hooks
   if (screeningLoading) {

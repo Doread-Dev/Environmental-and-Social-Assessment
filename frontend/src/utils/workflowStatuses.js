@@ -1,30 +1,29 @@
 /**
- * Workflow Tools
- * الأدوات الخمس الرئيسية في النظام
- *
- * ملاحظة: Tools 3 & 4 مدمجة في صفحة SEMP واحدة في Frontend
+ * Workflow and project status display data
+ * Moved from data/workflowStatuses for production use (no mock dependency)
  */
+
 export const WORKFLOW_TOOLS = {
   SCREENING: {
     key: 'screening',
     number: 1,
     label: 'Screening',
     labelAr: 'الفرز',
-    hasBackendStatus: true, // لديه حقل status في Backend
+    hasBackendStatus: true,
   },
   ASSESSMENT: {
     key: 'assessment',
     number: 2,
     label: 'Assessment',
     labelAr: 'التقييم',
-    hasBackendStatus: true, // لديه حقل status في Backend
+    hasBackendStatus: true,
   },
   SEMP: {
     key: 'semp',
-    numbers: [3, 4], // يجمع Tool 3 & 4
+    numbers: [3, 4],
     label: 'SEMP',
     labelAr: 'خطة الإدارة',
-    hasBackendStatus: false, // ❌ لا يوجد حقل status - محسوب
+    hasBackendStatus: false,
     description: 'Management Activities (Tool 3) + Mitigation Plan (Tool 4)',
   },
   MONITORING: {
@@ -32,35 +31,11 @@ export const WORKFLOW_TOOLS = {
     number: 5,
     label: 'Monitoring',
     labelAr: 'المراقبة',
-    hasBackendStatus: false, // ❌ لا يوجد حقل status - محسوب من Q1-Q4
+    hasBackendStatus: false,
   },
 }
 
-/**
- * === منطق حساب الحالة لكل أداة ===
- *
- * SCREENING & ASSESSMENT:
- *   - يستخدمان حقل `status` من Backend مباشرة
- *   - القيم: draft, submitted, approved, rejected
- *   - rejected يُعرض كـ needs_action في UI
- *
- * SEMP (Tools 3 & 4):
- *   - pending: لا توجد سجلات ManagementActivity للمشروع
- *   - in_progress: توجد ManagementActivity ولكن لا توجد MitigationPlan
- *   - completed: توجد سجلات MitigationPlan للمشروع
- *
- * MONITORING (Tool 5):
- *   - pending: لا توجد سجلات MonitoringRecord للمشروع
- *   - in_progress: توجد سجلات ولكن Q4 غير معبأ
- *   - completed: Q4 معبأ (تم ملء آخر quarter)
- */
-
-/**
- * Workflow Step Statuses
- * حالات كل خطوة في سير العمل
- */
 export const workflowStepStatuses = {
-  // === حالات عامة ===
   pending: {
     key: 'pending',
     label: 'Pending',
@@ -85,8 +60,6 @@ export const workflowStepStatuses = {
     textColor: 'text-blue-600 dark:text-blue-400',
     isComplete: false,
   },
-
-  // === حالات Screening & Assessment (من Backend) ===
   submitted: {
     key: 'submitted',
     label: 'Submitted',
@@ -101,7 +74,7 @@ export const workflowStepStatuses = {
     labelAr: 'تمت الموافقة',
     color: 'bg-primary',
     textColor: 'text-primary',
-    isComplete: true, // ← يُعتبر مكتمل
+    isComplete: true,
   },
   rejected: {
     key: 'rejected',
@@ -111,18 +84,14 @@ export const workflowStepStatuses = {
     textColor: 'text-red-600 dark:text-red-400',
     isComplete: false,
   },
-
-  // === حالات SEMP & Monitoring (محسوبة) ===
   completed: {
     key: 'completed',
     label: 'Completed',
     labelAr: 'مكتمل',
     color: 'bg-primary',
     textColor: 'text-primary',
-    isComplete: true, // ← يُعتبر مكتمل
+    isComplete: true,
   },
-
-  // === حالة خاصة ===
   needs_action: {
     key: 'needs_action',
     label: 'Needs Action',
@@ -133,24 +102,13 @@ export const workflowStepStatuses = {
   },
 }
 
-/**
- * تحويل حالة Backend إلى حالة العرض
- * @param {string} backendStatus - الحالة من Backend
- * @param {string} toolKey - مفتاح الأداة
- * @returns {string} - حالة العرض
- */
 export function mapBackendStatusToDisplay(backendStatus, toolKey) {
-  // Screening & Assessment: rejected = needs_action
   if (['screening', 'assessment'].includes(toolKey) && backendStatus === 'rejected') {
     return 'needs_action'
   }
   return backendStatus
 }
 
-/**
- * Project Overall Statuses
- * حالات المشروع العامة (محسوبة من workflow)
- */
 export const projectStatuses = {
   draft: {
     key: 'draft',

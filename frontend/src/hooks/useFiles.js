@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { getAllProjectAttachments, groupAttachmentsByType } from '@/data'
+import { groupAttachmentsByType } from '@/utils/attachmentsHelpers'
 
 /**
  * Hook لإدارة الملفات والمرفقات
@@ -15,32 +15,31 @@ export function useFiles(projectId) {
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState(null)
 
-  /**
-   * تحميل ملفات المشروع
-   */
-  useEffect(() => {
-    const loadFiles = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-
-        // محاكاة API call
-        await new Promise((resolve) => setTimeout(resolve, 500))
-
-        const projectFiles = getAllProjectAttachments(projectId)
-        setAttachments(projectFiles)
-      } catch (err) {
-        setError('Failed to load project files')
-        console.error(err)
-      } finally {
-        setIsLoading(false)
-      }
+  const loadFiles = useCallback(async () => {
+    if (!projectId) return
+    try {
+      setIsLoading(true)
+      setError(null)
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      // TODO: replace with attachmentService.getByProject(projectId) when API is available
+      setAttachments([])
+    } catch (err) {
+      setError('Failed to load project files')
+      console.error(err)
+    } finally {
+      setIsLoading(false)
     }
+  }, [projectId])
 
+  const refetch = useCallback(() => {
+    loadFiles()
+  }, [loadFiles])
+
+  useEffect(() => {
     if (projectId) {
       loadFiles()
     }
-  }, [projectId])
+  }, [projectId, loadFiles])
 
   /**
    * رفع ملف جديد (محاكاة)
@@ -114,8 +113,8 @@ export function useFiles(projectId) {
    * الحصول على ملفات مجمعة حسب النوع
    */
   const getGroupedFiles = useCallback(() => {
-    return groupAttachmentsByType(projectId)
-  }, [projectId, attachments]) // eslint-disable-line react-hooks/exhaustive-deps
+    return groupAttachmentsByType(attachments)
+  }, [attachments])
 
   /**
    * تحميل ملف (محاكاة)
@@ -140,6 +139,7 @@ export function useFiles(projectId) {
     isLoading,
     isUploading,
     error,
+    refetch,
     uploadFile,
     deleteFile,
     getFilesByType,

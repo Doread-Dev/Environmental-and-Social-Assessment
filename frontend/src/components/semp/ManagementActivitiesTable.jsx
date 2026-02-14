@@ -6,14 +6,13 @@
 import { useState, useRef } from 'react'
 import EditableCell from './EditableCell'
 import ResponsibleSelect from './ResponsibleSelect'
-import { mockUsers } from '@/data'
 
 export default function ManagementActivitiesTable({
   activities,
   onUpdate,
   onDelete,
   onAddRow,
-  users = mockUsers,
+  users = [],
   readOnly = false,
 }) {
   const [hoveredRowId, setHoveredRowId] = useState(null)

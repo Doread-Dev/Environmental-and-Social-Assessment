@@ -6,7 +6,7 @@
 import { cn } from '@/utils/cn'
 import { Badge } from '@/components/ui'
 import { formatDate } from '@/utils/formatters'
-import { IMPACT_LEVEL_CONFIG } from '@/data/impactQuestions'
+import { IMPACT_LEVEL_CONFIG } from '@/contexts/LookupContext'
 
 /**
  * @param {Object} props

@@ -4,8 +4,8 @@
  */
 
 import { cn } from '@/utils/cn'
-import { impactLevels } from '@/data/impactCategories'
-import { RANKING_HELP } from '@/data/rankingHelp'
+import { useLookups } from '@/contexts'
+import { RANKING_HELP } from '@/utils/rankingHelp'
 
 /**
  * @param {Object} props
@@ -24,13 +24,11 @@ function RankingSelect({
   disabled = false,
   className,
 }) {
-  const levels = [
-    impactLevels.not_applicable,
-    impactLevels.negligible,
-    impactLevels.low,
-    impactLevels.medium,
-    impactLevels.high,
-  ]
+  const { IMPACT_LEVEL_CONFIG } = useLookups()
+  const levelKeys = ['not_applicable', 'negligible', 'low', 'medium', 'high']
+  const levels = levelKeys
+    .map((key) => IMPACT_LEVEL_CONFIG[key] && { ...IMPACT_LEVEL_CONFIG[key], key })
+    .filter(Boolean)
 
   const getHelpText = (levelKey) => {
     if (!categoryCode || !questionNumber) return ''

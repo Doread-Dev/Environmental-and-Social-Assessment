@@ -12,7 +12,7 @@
 
 import { Card, Badge, Icon } from '@/components/ui'
 import { ROLE_LABELS } from '@/contexts'
-import { getScreeningCategory, screeningStatuses } from '@/data'
+import { getScreeningCategory, screeningStatuses } from '@/utils/screeningDisplay'
 import { formatDate } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
 

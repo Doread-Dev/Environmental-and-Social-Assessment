@@ -16,7 +16,7 @@ import {
   safeString,
   EXCEL_STYLES,
 } from './excelBase'
-import { assessmentMethods, consultationMethods } from '@/data/assessmentMethods'
+import { assessmentMethods, consultationMethods } from '@/utils/assessmentMethods'
 
 /**
  * Export assessment data to Excel

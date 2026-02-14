@@ -8,7 +8,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment } from '@/hooks'
 import { MethodChecklistItem, ConsultationChecklistItem } from '@/components/assessment'
 import { LoadingSpinner, StickyFooter, useToast } from '@/components/ui'
-import { assessmentMethods, consultationMethods } from '@/data'
+import { assessmentMethods, consultationMethods } from '@/utils/assessmentMethods'
 
 export default function AssessmentMethodsPage() {
   const { projectId } = useParams()

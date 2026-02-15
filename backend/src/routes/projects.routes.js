@@ -11,21 +11,21 @@ router.get("/:id", controller.getOne);
 router.post(
   "/",
   auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager"),
+  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
   validate(createProjectSchema),
   controller.create
 );
 router.put(
   "/:id",
   auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager"),
+  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
   validate(updateProjectSchema),
   controller.update
 );
 router.delete(
   "/:id",
   auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager"),
+  requireRole("environmental_specialist"),
   controller.remove
 );
 

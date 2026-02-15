@@ -4,7 +4,7 @@ const { auth, requireRole } = require("../middlewares/auth");
 
 const router = express.Router();
 
-// Allow all roles except viewer
+// Allow all roles including viewer (viewer can list users)
 router.get(
   "/",
   auth,
@@ -12,7 +12,8 @@ router.get(
     "environmental_specialist",
     "program_manager",
     "project_manager",
-    "environmental_focal_point"
+    "environmental_focal_point",
+    "viewer"
   ),
   controller.getAll
 );

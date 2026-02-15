@@ -17,28 +17,28 @@ router.get("/project/:projectId", controller.getByProject);
 router.post(
   "/",
   auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager"),
+  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
   validate(createScreeningSchema),
   controller.create
 );
 router.put(
   "/:id",
   auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager"),
+  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
   validate(updateScreeningSchema),
   controller.update
 );
 router.patch(
   "/:id/approve",
   auth,
-  requireRole("environmental_specialist", "program_manager"),
+  requireRole("environmental_specialist"),
   validate(approveScreeningSchema),
   controller.approve
 );
 router.patch(
   "/:id/reject",
   auth,
-  requireRole("environmental_specialist", "program_manager"),
+  requireRole("environmental_specialist"),
   validate(rejectScreeningSchema),
   controller.reject
 );

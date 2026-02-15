@@ -10,7 +10,7 @@ const router = express.Router();
 router.post(
   "/",
   auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager"),
+  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
   validate(createAttachmentSchema),
   controller.create
 );

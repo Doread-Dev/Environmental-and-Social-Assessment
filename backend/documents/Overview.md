@@ -140,7 +140,7 @@ backend/
 ✅ **API Routes**: 12 route files مع تجميع في `routes/index.js`  
 ✅ **Validators**: 9 Joi validator files للتحقق من المدخلات  
 ✅ **Authentication**: JWT-based authentication مع bcryptjs للتشفير  
-✅ **Authorization**: Role-based access control (5 roles)  
+✅ **Authorization**: Role-based access control (5 roles). environmental_specialist حصرياً: Register (بعد أول مستخدم)، الموافقة/الرفض على Screening و Assessment، حذف المشروع. الأدوار الأربعة (env_spec, program_mgr, project_mgr, environmental_focal_point) لإنشاء/تحديث/حذف المحتوى (ما عدا حذف المشروع). viewer: قراءة فقط + قائمة المستخدمين. (التفاصيل: Endpoints.md)  
 ✅ **File Upload**: Multer middleware مع تخزين محلي في `uploads/`  
 ✅ **Reporting**: Dashboard stats + Export (CSV/Excel/PDF) باستخدام ExcelJS و PDFKit
 
@@ -1226,6 +1226,24 @@ const mitigationPlanSchema = new mongoose.Schema(
 
 ---
 
+## صلاحيات الأدوار (Roles & Permissions)
+
+| الإجراء / الميزة | environmental_specialist | program_manager | project_manager | environmental_focal_point | viewer |
+|------------------|--------------------------|-----------------|-----------------|---------------------------|--------|
+| تسجيل مستخدم (Register) بعد أول مستخدم | ✅ | ❌ | ❌ | ❌ | ❌ |
+| قائمة المستخدمين (GET /users) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| إنشاء/تحديث مشروع | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **حذف مشروع** | ✅ | ❌ | ❌ | ❌ | ❌ |
+| إنشاء/تحديث Screening، Assessment، Management، Mitigation، SEMP، مرفقات | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **الموافقة/الرفض** على Screening أو Assessment | ✅ | ❌ | ❌ | ❌ | ❌ |
+| التقارير: Dashboard | ✅ | ✅ | ✅ | ✅ | ✅ |
+| التقارير: Export | ✅ | ✅ | ❌ | ❌ | ❌ |
+| أي GET (قراءة) | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+> التفاصيل الكاملة لكل endpoint في **Endpoints.md**.
+
+---
+
 ## API Endpoints
 
 ### Projects
@@ -1328,9 +1346,9 @@ const mitigationPlanSchema = new mongoose.Schema(
 
 ### Users
 
-| Method | Endpoint        | Description                                       |
-| ------ | --------------- | ------------------------------------------------- |
-| GET    | `/api/v1/users` | قائمة المستخدمين (مسموح لجميع الأدوار عدا viewer) |
+| Method | Endpoint        | Description                                                |
+| ------ | --------------- | ---------------------------------------------------------- |
+| GET    | `/api/v1/users` | قائمة المستخدمين (مسموح لجميع الأدوار **بما فيها viewer**) |
 
 ### Auth
 
@@ -1353,7 +1371,7 @@ const mitigationPlanSchema = new mongoose.Schema(
 │     ├── Category E → ❌ لا يمكن المتابعة                            │
 │     ├── Category C/D/F → ✅ قد لا يحتاج Tool 2                      │
 │     └── Category A/B → ⚠️ يحتاج Tool 2                              │
-│  4. موافقة Program Manager                                          │
+│  4. موافقة Environmental Specialist                                 │
 └─────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
@@ -1368,7 +1386,7 @@ const mitigationPlanSchema = new mongoose.Schema(
 │     ├── Low                                           │
 │     ├── Medium                             │
 │     └── High                               │
-│ 10. موافقة Program Manager + Environmental Officer                  │
+│ 10. موافقة Environmental Specialist                                │
 └─────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
@@ -1493,6 +1511,6 @@ const mitigationPlanSchema = new mongoose.Schema(
 
 ---
 
-**آخر تحديث**: 15 يناير 2026
-**الإصدار**: 2.2.0
-**الحالة**: مُحدَّث ومصحح - متوافق مع الكود الفعلي
+**آخر تحديث**: 16 فبراير 2026
+**الإصدار**: 2.3.0
+**الحالة**: مُحدَّث ومصحح — متوافق مع الكود الفعلي وصلاحيات الأدوار (Roles & Permissions)

@@ -22,21 +22,21 @@ router.get("/project/:projectId", controller.getByProject);
 router.post(
   "/",
   auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager"),
+  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
   validate(createAssessmentSchema),
   controller.create
 );
 router.put(
   "/:id",
   auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager"),
+  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
   validate(updateAssessmentSchema),
   controller.update
 );
 router.post(
   "/:id/methods",
   auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager"),
+  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
   validate(addMethodSchema),
   controller.addMethod
 );
@@ -44,14 +44,14 @@ router.get("/:id/methods", controller.getMethods);
 router.put(
   "/:id/methods",
   auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager"),
+  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
   validate(replaceMethodsSchema),
   controller.replaceMethods
 );
 router.post(
   "/:id/consultations",
   auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager"),
+  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
   validate(addConsultationSchema),
   controller.addConsultation
 );
@@ -59,14 +59,14 @@ router.get("/:id/consultations", controller.getConsultations);
 router.put(
   "/:id/consultations",
   auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager"),
+  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
   validate(replaceConsultationsSchema),
   controller.replaceConsultations
 );
 router.post(
   "/:id/scores",
   auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager"),
+  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
   validate(addScoresSchema),
   controller.addScores
 );
@@ -74,20 +74,20 @@ router.get("/:id/scores", controller.getScores);
 router.patch(
   "/:id/calculate",
   auth,
-  requireRole("environmental_specialist", "program_manager"),
+  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
   controller.calculate
 );
 router.patch(
   "/:id/approve",
   auth,
-  requireRole("environmental_specialist", "program_manager"),
+  requireRole("environmental_specialist"),
   validate(approveAssessmentSchema),
   controller.approve
 );
 router.patch(
   "/:id/reject",
   auth,
-  requireRole("environmental_specialist", "program_manager"),
+  requireRole("environmental_specialist"),
   validate(rejectAssessmentSchema),
   controller.reject
 );

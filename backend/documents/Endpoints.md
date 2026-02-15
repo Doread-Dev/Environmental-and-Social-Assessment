@@ -1,6 +1,8 @@
 # دليل الاختبارات والـ API (مرتَّب حسب المراحل)
 
 > جميع الطلبات تحت `http://localhost:3000`. استخدم هيدر `Content-Type: application/json` للطلبات التي تحتوي على جسم، وهيدر `Authorization: Bearer <TOKEN>` لكل المسارات المحمية. ابدأ دائماً بتسجيل الدخول للحصول على التوكن.
+>
+> **صلاحيات الأدوار (فبراير 2026):** environmental_specialist فقط: Register (بعد أول مستخدم)، approve/reject للـ Screening و Assessment، حذف المشروع. الأدوار الأربعة (env_spec, program_mgr, project_mgr, environmental_focal_point) لإنشاء/تحديث/حذف المحتوى (ما عدا حذف المشروع). viewer: قراءة فقط + GET /users. التفاصيل في نهاية الملف وفي Overview.md.
 
 ---
 
@@ -50,7 +52,7 @@
 
 - GET `/api/v1/users`
   - هيدر: Authorization
-  - الأدوار المسموحة: environmental_specialist / program_manager / project_manager / environmental_focal_point
+  - الأدوار المسموحة: environmental_specialist / program_manager / project_manager / environmental_focal_point / **viewer**
   - يعيد قائمة بجميع المستخدمين (مرتبة تنازلياً بالتاريخ)
 
 ---
@@ -71,7 +73,7 @@
 ### POST `/api/v1/attachments`
 
 - الاستخدام: إنشاء سجل مرفق (بدون رفع ملف).
-- هيدر: Authorization (أدوار: environmental_specialist / program_manager / project_manager)
+- هيدر: Authorization (أدوار: environmental_specialist / program_manager / project_manager / environmental_focal_point)
 - جسم مثال:
 
 ```json
@@ -108,7 +110,7 @@
 
 ### POST `/api/v1/projects`
 
-- هيدر: Authorization (أدوار: environmental_specialist / program_manager / project_manager)
+- هيدر: Authorization (أدوار: environmental_specialist / program_manager / project_manager / environmental_focal_point)
 - جسم مثال:
 
 ```json
@@ -127,12 +129,12 @@
 
 ### PUT `/api/v1/projects/:id`
 
-- هيدر: Authorization كما في POST.
+- هيدر: Authorization (نفس أدوار POST: environmental_specialist / program_manager / project_manager / environmental_focal_point).
 - جسم جزئي أو كامل (مثلاً تحديث `project_component`).
 
 ### DELETE `/api/v1/projects/:id`
 
-- هيدر: Authorization (environmental_specialist / program_manager / project_manager)
+- هيدر: Authorization (**environmental_specialist** فقط).
 - الاستخدام: حذف مشروع مع **جميع البيانات المرتبطة به** من قاعدة البيانات والملفات من نظام الملفات
 - **⚠️ تحذير**: هذه العملية لا يمكن التراجع عنها (irreversible)
 
@@ -156,7 +158,7 @@
 
 ### POST `/api/v1/screenings`
 
-- هيدر: Authorization (environmental_specialist / program_manager / project_manager)
+- هيدر: Authorization (environmental_specialist / program_manager / project_manager / environmental_focal_point)
 - جسم مثال:
 
 ```json
@@ -175,11 +177,11 @@
 
 ### PUT `/api/v1/screenings/:id`
 
-- نفس أدوار POST.
+- نفس أدوار POST (environmental_specialist / program_manager / project_manager / environmental_focal_point).
 
 ### PATCH `/api/v1/screenings/:id/approve`
 
-- هيدر: Authorization (environmental_specialist / program_manager).
+- هيدر: Authorization (**environmental_specialist** فقط).
 - جسم (اختياري):
 
 ```json
@@ -190,7 +192,7 @@
 
 ### PATCH `/api/v1/screenings/:id/reject`
 
-- هيدر: Authorization (environmental_specialist / program_manager).
+- هيدر: Authorization (**environmental_specialist** فقط).
 - جسم (اختياري):
 
 ```json
@@ -210,7 +212,7 @@
 
 ### POST `/api/v1/assessments`
 
-- هيدر: Authorization (environmental_specialist / program_manager / project_manager)
+- هيدر: Authorization (environmental_specialist / program_manager / project_manager / environmental_focal_point)
 - جسم مثال:
 
 ```json
@@ -252,7 +254,7 @@
 
 ### PATCH `/api/v1/assessments/:id/calculate`
 
-- هيدر: Authorization (environmental_specialist / program_manager).
+- هيدر: Authorization (environmental_specialist / program_manager / project_manager / environmental_focal_point).
 - لا جسم مطلوب؛ يحسب عدد النتائج لكل مستوى (`total_project_score`) ويحدد مستوى التأثير الكلي (`total_project_impact`) حسب أولوية الفئات.
   - المنطق:
     - يتم عدّ عدد الإجابات في كل مستوى (negligible, low, medium, high, not_applicable).
@@ -279,7 +281,7 @@
 
 ### PATCH `/api/v1/assessments/:id/approve` 
 
-- هيدر: Authorization (environmental_specialist / program_manager).
+- هيدر: Authorization (**environmental_specialist** فقط).
 - جسم (لـ approve اختياري):
 
 ```json
@@ -292,7 +294,7 @@
 
 ### PATCH `/api/v1/assessments/:id/reject`
 
-- هيدر: Authorization (environmental_specialist / program_manager).
+- هيدر: Authorization (**environmental_specialist** فقط).
 - جسم (اختياري):
 
 ```json
@@ -312,7 +314,7 @@
 
 ### PUT `/api/v1/assessments/:id`
 
-- نفس أدوار POST.
+- نفس أدوار POST (environmental_specialist / program_manager / project_manager / environmental_focal_point). وينطبق نفس الأدوار على POST /:id/methods، PUT /:id/methods، POST /:id/consultations، PUT /:id/consultations، POST /:id/scores.
 
 ---
 
@@ -337,7 +339,7 @@
 
 ### POST `/api/v1/monitoring`
 
-- هيدر: Authorization (environmental_specialist / program_manager / project_manager)
+- هيدر: Authorization (environmental_specialist / program_manager / project_manager / environmental_focal_point)
 - جسم مثال:
 
 ```json
@@ -385,7 +387,7 @@
 
 ### PUT `/api/v1/monitoring/:id`
 
-- نفس أدوار POST.
+- نفس أدوار POST (environmental_specialist / program_manager / project_manager / environmental_focal_point).
 
 ---
 
@@ -393,7 +395,7 @@
 
 ### POST `/api/v1/management`
 
-- هيدر: Authorization (environmental_specialist / program_manager / project_manager)
+- هيدر: Authorization (environmental_specialist / program_manager / project_manager / environmental_focal_point)
 - جسم مثال:
 
 ```json
@@ -413,7 +415,7 @@
 
 ### PUT `/api/v1/management/:id` | DELETE `/api/v1/management/:id`
 
-- أدوار كما في POST.
+- أدوار كما في POST (environmental_specialist / program_manager / project_manager / environmental_focal_point).
 
 ---
 
@@ -421,7 +423,7 @@
 
 ### POST `/api/v1/mitigation`
 
-- هيدر: Authorization (environmental_specialist / program_manager)
+- هيدر: Authorization (environmental_specialist / program_manager / project_manager / environmental_focal_point)
 - جسم مثال:
 
 ```json
@@ -441,7 +443,7 @@
 
 ### PUT `/api/v1/mitigation/:id` | DELETE `/api/v1/mitigation/:id`
 
-- أدوار كما في POST.
+- أدوار كما في POST (environmental_specialist / program_manager / project_manager / environmental_focal_point).
 
 ---
 
@@ -449,7 +451,7 @@
 
 ### POST `/api/v1/semp/objectives`
 
-- هيدر: Authorization (environmental_specialist / program_manager / project_manager)
+- هيدر: Authorization (environmental_specialist / program_manager / project_manager / environmental_focal_point)
 - جسم مثال:
 
 ```json
@@ -474,7 +476,7 @@
 
 ### PUT `/api/v1/semp/objectives/:id` | `/targets/:id` | `/actions/:id`
 
-- نفس الأدوار.
+- نفس الأدوار (environmental_specialist / program_manager / project_manager / environmental_focal_point).
 
 ### GET `/api/v1/semp/project/:projectId`
 
@@ -515,9 +517,10 @@
 7. Attachments: جرّب upload بملف صغير (Text/PNG).
 8. Reports: جرّب dashboard بقراءة، ثم export بكل الصيغ لكل من projects و monitoring.
 
-> تذكير بالأدوار الحرجة:
+> **تذكير بصلاحيات الأدوار (Roles & Permissions):**
 >
-> - التسجيل بعد أول مستخدم: يتطلب `environmental_specialist`.
-> - التصدير: `environmental_specialist` أو `program_manager`.
-> - تحديث ربع Monitoring: يشمل `environmental_focal_point`.
-> - رفع الملفات: focal مسموح في `/attachments/upload`، إنشاء سجل مرفق محصور في الأدوار الثلاثة العليا.
+> - **environmental_specialist فقط:** تسجيل مستخدم جديد (Register بعد وجود مستخدم)، الموافقة/الرفض على Screening و Assessment، حذف المشروع (DELETE project).
+> - **الأدوار الأربعة (env_spec, program_mgr, project_mgr, environmental_focal_point):** إنشاء/تحديث/حذف للمشاريع (ما عدا حذف المشروع)، Screenings، Assessments، Management، Mitigation، SEMP، المرفقات (إنشاء + رفع).
+> - **viewer:** القراءة فقط (جميع GET) + قائمة المستخدمين GET /users؛ لا create/update/delete.
+> - **التصدير:** GET /reports/export محصور بـ `environmental_specialist` و `program_manager`.
+> - **Dashboard:** GET /reports/dashboard مسموح لجميع الأدوار بما فيها viewer.

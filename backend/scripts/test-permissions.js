@@ -43,7 +43,9 @@ async function login(email, password) {
 async function ensureUser(adminToken, { name, email, password, role }) {
   const reg = await request("POST", "/api/v1/auth/register", { name, email, password, role }, adminToken);
   if (reg.status === 201) return { created: true };
-  if (reg.status === 400 && reg.data?.message?.includes("already in use")) return { created: false };
+  const errMsg = reg.data?.message || reg.data?.error || "";
+  if (reg.status === 400 && (errMsg.includes("already in use") || errMsg.includes("Email already in use")))
+    return { created: false };
   throw new Error(`Register failed: ${reg.status} ${JSON.stringify(reg.data)}`);
 }
 
@@ -53,6 +55,9 @@ async function getFirstProjectId() {
   const list = res.data.data;
   return list.length ? list[0]._id : null;
 }
+
+// Fake ID for approve/reject; non-env_spec must get 403, env_spec may get 404/400
+const FAKE_ID = "000000000000000000000000";
 
 async function main() {
   console.log("Base URL:", BASE);
@@ -136,7 +141,7 @@ async function main() {
     }
 
     // DELETE /projects (فقط environmental_specialist → 200/204/404؛ الباقي → 403)
-    const delId = projectId || "000000000000000000000000"; // fake id إذا لا مشاريع
+    const delId = projectId || FAKE_ID;
     const delRes = await request("DELETE", `/api/v1/projects/${delId}`, null, session.token);
     if (role === "environmental_specialist") {
       if (delRes.status !== 200 && delRes.status !== 204 && delRes.status !== 404) {
@@ -151,6 +156,80 @@ async function main() {
         failed++;
       } else {
         console.log("  OK: DELETE /projects 403");
+      }
+    }
+
+    // POST /auth/register (بعد وجود مستخدم: environmental_specialist فقط → 201/400؛ الباقي → 403)
+    const registerRes = await request(
+      "POST",
+      "/api/v1/auth/register",
+      { name: "PermTestUser", email: `perm-test-${role}-${Date.now()}@example.com`, password: "Passw0rd!", role: "viewer" },
+      session.token
+    );
+    if (role === "environmental_specialist") {
+      if (registerRes.status !== 201 && registerRes.status !== 400) {
+        console.log(`  FAIL: env_spec POST /register expected 201/400, got ${registerRes.status}`);
+        failed++;
+      } else {
+        console.log("  OK: POST /register", registerRes.status, "(env_specialist)");
+      }
+    } else {
+      if (registerRes.status !== 403) {
+        console.log(`  FAIL: ${role} POST /register expected 403, got ${registerRes.status}`);
+        failed++;
+      } else {
+        console.log("  OK: POST /register 403");
+      }
+    }
+
+    // GET /reports/export (environmental_specialist و program_manager → 200؛ الباقي → 403)
+    const exportRes = await request("GET", "/api/v1/reports/export", null, session.token);
+    if (role === "environmental_specialist" || role === "program_manager") {
+      if (exportRes.status !== 200 && exportRes.status !== 204) {
+        console.log(`  (GET /reports/export ${exportRes.status} - expected 200/204 for ${role})`);
+      } else {
+        console.log("  OK: GET /reports/export", exportRes.status);
+      }
+    } else {
+      if (exportRes.status !== 403) {
+        console.log(`  FAIL: ${role} GET /reports/export expected 403, got ${exportRes.status}`);
+        failed++;
+      } else {
+        console.log("  OK: GET /reports/export 403");
+      }
+    }
+
+    // PATCH screenings/:id/approve (environmental_specialist فقط → 200/400/404؛ الباقي → 403)
+    const screeningApproveRes = await request("PATCH", `/api/v1/screenings/${FAKE_ID}/approve`, {}, session.token);
+    if (role === "environmental_specialist") {
+      if (screeningApproveRes.status !== 200 && screeningApproveRes.status !== 400 && screeningApproveRes.status !== 404) {
+        console.log(`  (PATCH screenings/approve ${screeningApproveRes.status} - env_spec)`);
+      } else {
+        console.log("  OK: PATCH screenings/approve", screeningApproveRes.status);
+      }
+    } else {
+      if (screeningApproveRes.status !== 403) {
+        console.log(`  FAIL: ${role} PATCH screenings/approve expected 403, got ${screeningApproveRes.status}`);
+        failed++;
+      } else {
+        console.log("  OK: PATCH screenings/approve 403");
+      }
+    }
+
+    // PATCH assessments/:id/approve (environmental_specialist فقط → 200/400/404؛ الباقي → 403)
+    const assessmentApproveRes = await request("PATCH", `/api/v1/assessments/${FAKE_ID}/approve`, {}, session.token);
+    if (role === "environmental_specialist") {
+      if (assessmentApproveRes.status !== 200 && assessmentApproveRes.status !== 400 && assessmentApproveRes.status !== 404) {
+        console.log(`  (PATCH assessments/approve ${assessmentApproveRes.status} - env_spec)`);
+      } else {
+        console.log("  OK: PATCH assessments/approve", assessmentApproveRes.status);
+      }
+    } else {
+      if (assessmentApproveRes.status !== 403) {
+        console.log(`  FAIL: ${role} PATCH assessments/approve expected 403, got ${assessmentApproveRes.status}`);
+        failed++;
+      } else {
+        console.log("  OK: PATCH assessments/approve 403");
       }
     }
 

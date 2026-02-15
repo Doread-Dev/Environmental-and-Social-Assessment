@@ -173,26 +173,43 @@ export function AuthProvider({ children }) {
 
   /**
    * Permission helper: Can user edit/create content?
+   * Backend allows: env_spec, program_mgr, project_mgr, environmental_focal_point for create/update.
    */
   const canEdit = useMemo(() => {
     return hasAnyRole([
       USER_ROLES.ENVIRONMENTAL_SPECIALIST,
       USER_ROLES.PROGRAM_MANAGER,
       USER_ROLES.PROJECT_MANAGER,
+      USER_ROLES.ENVIRONMENTAL_FOCAL_POINT,
     ])
   }, [hasAnyRole])
 
   /**
    * Permission helper: Can user approve/reject submissions?
+   * Backend allows environmental_specialist only for approve/reject.
    */
   const canApprove = useMemo(() => {
-    return hasAnyRole([USER_ROLES.ENVIRONMENTAL_SPECIALIST, USER_ROLES.PROGRAM_MANAGER])
-  }, [hasAnyRole])
+    return hasRole(USER_ROLES.ENVIRONMENTAL_SPECIALIST)
+  }, [hasRole])
 
   /**
-   * Permission helper: Can user manage users?
+   * Permission helper: Can user manage users (create/edit)?
    */
   const canManageUsers = useMemo(() => {
+    return hasRole(USER_ROLES.ENVIRONMENTAL_SPECIALIST)
+  }, [hasRole])
+
+  /**
+   * Permission helper: Can user list users (GET /users)?
+   * Backend allows all authenticated roles including viewer.
+   */
+  const canListUsers = useMemo(() => isAuthenticated, [isAuthenticated])
+
+  /**
+   * Permission helper: Can user delete a project?
+   * Backend allows environmental_specialist only for DELETE /projects.
+   */
+  const canDeleteProject = useMemo(() => {
     return hasRole(USER_ROLES.ENVIRONMENTAL_SPECIALIST)
   }, [hasRole])
 
@@ -232,6 +249,8 @@ export function AuthProvider({ children }) {
       canEdit,
       canApprove,
       canManageUsers,
+      canListUsers,
+      canDeleteProject,
       canUpdateMonitoring,
 
       // Constants
@@ -253,6 +272,8 @@ export function AuthProvider({ children }) {
       canEdit,
       canApprove,
       canManageUsers,
+      canListUsers,
+      canDeleteProject,
       canUpdateMonitoring,
     ]
   )

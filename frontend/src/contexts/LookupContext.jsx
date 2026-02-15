@@ -85,7 +85,7 @@ export const IMPACT_LEVEL_CONFIG = {
  * Wraps the application to provide lookup data
  */
 export function LookupProvider({ children }) {
-  const { isAuthenticated, canEdit } = useAuth()
+  const { isAuthenticated, canListUsers } = useAuth()
 
   // Prevent duplicate fetches during rapid auth state changes
   const fetchingRef = useRef(false)
@@ -117,8 +117,8 @@ export function LookupProvider({ children }) {
       // Fetch lookups and users in parallel
       const [lookupData, usersData] = await Promise.all([
         lookupService.getAllLookups(),
-        // Only fetch users if user has permission (not viewer)
-        canEdit ? userService.getAll().catch(() => []) : Promise.resolve([]),
+        // GET /users is allowed for all roles including viewer
+        canListUsers ? userService.getAll().catch(() => []) : Promise.resolve([]),
       ])
 
       const sortedCategories = [...lookupData.impactCategories].sort((a, b) =>
@@ -146,7 +146,7 @@ export function LookupProvider({ children }) {
       setIsLoading(false)
       fetchingRef.current = false
     }
-  }, [isAuthenticated, canEdit])
+  }, [isAuthenticated, canListUsers])
 
   /**
    * Retry fetching lookups (for error recovery)

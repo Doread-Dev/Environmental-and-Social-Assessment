@@ -7,7 +7,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useMonitoring, useAssessment, useScreening, useProjectContext } from '@/hooks'
-import { useLookups } from '@/contexts'
+import { useLookups, useAuth } from '@/contexts'
 import { MonitoringDataTable } from '@/components/tables'
 import { Alert, useToast } from '@/components/ui'
 import { cn } from '@/utils/cn'
@@ -24,6 +24,7 @@ export default function MonitoringDataEntryPage() {
     IMPACT_LEVEL_CONFIG,
     activeUsers,
   } = useLookups()
+  const { canEdit } = useAuth()
   const { assessment, isLoading: isAssessmentLoading } = useAssessment(projectId)
   const { screening } = useScreening(projectId)
   const { project } = useProjectContext()
@@ -341,7 +342,7 @@ export default function MonitoringDataEntryPage() {
                           setHasUnsavedChanges(true)
                           setJustSaved(false)
                         }}
-                        isEditable={true}
+                        isEditable={canEdit}
                         users={activeUsers ?? []}
                       />
                     </div>

@@ -19,8 +19,15 @@ export default function ResponsibleSelect({
   return (
     <div className={cn('h-full flex items-center relative', className)}>
       {readOnly ? (
-        <span className="text-sm text-text-main dark:text-white px-2 py-1">
-          {selectedUser ? selectedUser.name : '-'}
+        <span
+          className={cn(
+            'text-sm text-text-main dark:text-white px-2 py-1 rounded block w-full',
+            'bg-gray-50 dark:bg-white/5 border border-transparent',
+            'cursor-default select-none'
+          )}
+          title={selectedUser ? selectedUser.name : undefined}
+        >
+          {selectedUser ? selectedUser.name : '—'}
         </span>
       ) : (
         <div className="relative w-full h-full group">

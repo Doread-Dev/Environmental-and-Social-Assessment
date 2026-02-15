@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom'
 import { useSemp } from '@/hooks/useSemp'
 import { MitigationPlanTable } from '@/components/semp'
-import { useLookups } from '@/contexts'
+import { useLookups, useAuth } from '@/contexts'
 import { cn } from '@/utils/cn'
 import { useToast } from '@/components/ui'
 
@@ -18,6 +18,7 @@ export default function MitigationPlanPage() {
   const outletContext = useOutletContext()
   const project = outletContext?.project || null
   const { activeUsers } = useLookups()
+  const { canEdit } = useAuth()
 
   const {
     mitigationPlans,
@@ -216,6 +217,7 @@ export default function MitigationPlanPage() {
           onUpdate={handleUpdate}
           onDelete={handleDelete}
           onAddRow={handleAddRow}
+          readOnly={!canEdit}
         />
       </div>
     </div>

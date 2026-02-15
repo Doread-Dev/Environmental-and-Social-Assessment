@@ -6,11 +6,13 @@
 import { useState, useEffect, useMemo } from 'react'
 import { projectService } from '@/services'
 import { extractErrorMessage } from '@/services/api'
+import { useAuth } from '@/contexts'
 import { useToast, Table, Badge, Pagination, Select } from '@/components/ui'
 import { cn } from '@/utils/cn'
 
 export function ProjectsManagementSection() {
   const toast = useToast()
+  const { canDeleteProject } = useAuth()
   const [projects, setProjects] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [deletingId, setDeletingId] = useState(null)
@@ -225,30 +227,34 @@ export function ProjectsManagementSection() {
                         </span>
                       </Table.Cell>
                       <Table.Cell className="text-right">
-                        <button
-                          onClick={() => handleDelete(project._id, project.title)}
-                          disabled={deletingId === project._id}
-                          className={cn(
-                            'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
-                            'text-red-600 dark:text-red-400',
-                            'hover:bg-red-50 dark:hover:bg-red-900/20',
-                            'border border-red-200 dark:border-red-800',
-                            'disabled:opacity-50 disabled:cursor-not-allowed',
-                            'flex items-center gap-2 inline-flex'
-                          )}
-                        >
-                          {deletingId === project._id ? (
-                            <>
-                              <div className="size-3 border-2 border-red-600/30 border-t-red-600 rounded-full animate-spin" />
-                              Deleting...
-                            </>
-                          ) : (
-                            <>
-                              <span className="material-symbols-outlined text-base">delete</span>
-                              Delete
-                            </>
-                          )}
-                        </button>
+                        {canDeleteProject ? (
+                          <button
+                            onClick={() => handleDelete(project._id, project.title)}
+                            disabled={deletingId === project._id}
+                            className={cn(
+                              'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
+                              'text-red-600 dark:text-red-400',
+                              'hover:bg-red-50 dark:hover:bg-red-900/20',
+                              'border border-red-200 dark:border-red-800',
+                              'disabled:opacity-50 disabled:cursor-not-allowed',
+                              'flex items-center gap-2 inline-flex'
+                            )}
+                          >
+                            {deletingId === project._id ? (
+                              <>
+                                <div className="size-3 border-2 border-red-600/30 border-t-red-600 rounded-full animate-spin" />
+                                Deleting...
+                              </>
+                            ) : (
+                              <>
+                                <span className="material-symbols-outlined text-base">delete</span>
+                                Delete
+                              </>
+                            )}
+                          </button>
+                        ) : (
+                          <span className="text-text-muted dark:text-gray-500 text-sm">—</span>
+                        )}
                       </Table.Cell>
                     </Table.Row>
                   ))

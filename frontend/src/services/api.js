@@ -11,7 +11,8 @@ import axios from 'axios'
 
 // Create Axios instance with base configuration
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
+  // No localhost fallback: set VITE_API_URL in .env / Vercel so production fails fast if missing
+  baseURL: import.meta.env.DEV ? (import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1') : import.meta.env.VITE_API_URL,
   headers: {
     'Content-Type': 'application/json',
   },

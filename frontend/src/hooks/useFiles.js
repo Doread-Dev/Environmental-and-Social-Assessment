@@ -121,11 +121,7 @@ export function useFiles(projectId) {
    */
   const downloadFile = useCallback(async (attachment) => {
     try {
-      // محاكاة تحميل الملف
-      // eslint-disable-next-line no-console
-      console.info('Downloading file:', attachment.file_name)
-
-      // في الإنتاج: window.open(attachment.file_path, '_blank')
+      // محاكاة تحميل الملف — في الإنتاج: window.open(attachment.file_path, '_blank')
       return { success: true }
     } catch (err) {
       setError('Failed to download file')

@@ -15,8 +15,8 @@
 
 ```json
 {
-  "name": "Admin Auto",
-  "email": "admin@example.com",
+  "name": "Admin",
+  "email": "Haydara@akdn.com",
   "password": "Passw0rd!",
   "role": "environmental_specialist"
 }

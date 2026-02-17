@@ -226,13 +226,11 @@ function ComponentShowcase() {
                 </Button>
               }
               items={[
-                // eslint-disable-next-line no-console
-                { label: 'Edit', icon: 'edit', onClick: () => console.info('Edit clicked') },
+                { label: 'Edit', icon: 'edit', onClick: () => {} },
                 {
                   label: 'Delete',
                   icon: 'delete',
-                  // eslint-disable-next-line no-console
-                  onClick: () => console.info('Delete clicked'),
+                  onClick: () => {},
                   danger: true,
                 },
               ]}

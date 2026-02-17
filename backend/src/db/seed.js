@@ -434,8 +434,6 @@ async function seedLookups() {
   ];
 
   try {
-    console.log("Seeding lookup tables...");
-
     await ImpactCategory.deleteMany({});
     const createdCategories = await ImpactCategory.insertMany(impactCategories);
     const catByCode = createdCategories.reduce((acc, c) => {
@@ -463,8 +461,6 @@ async function seedLookups() {
         measurement: i.measurement,
       }))
     );
-
-    console.log("Lookup data seeded successfully.");
   } catch (err) {
     console.error("Seeding error:", err);
     process.exitCode = 1;

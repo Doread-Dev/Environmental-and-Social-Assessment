@@ -62,19 +62,6 @@ export async function testApiConnection() {
     }
   }
 
-  // Log results
-  console.group('API Connection Test Results')
-  console.log('Base URL:', results.baseURL)
-  console.log('Timestamp:', results.timestamp)
-  console.table(
-    results.tests.map((t) => ({
-      Test: t.name,
-      Status: t.status,
-      Details: t.message || t.error || JSON.stringify(t.response),
-    }))
-  )
-  console.groupEnd()
-
   return results
 }
 

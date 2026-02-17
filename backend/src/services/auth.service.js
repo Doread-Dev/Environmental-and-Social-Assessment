@@ -4,7 +4,7 @@ const ApiError = require("../utils/ApiError");
 
 const signToken = (user) =>
   jwt.sign({ sub: user._id, role: user.role }, process.env.JWT_SECRET, {
-    expiresIn: "12h",
+    expiresIn: process.env.JWT_EXPIRES_IN || "12h",
   });
 
 const register = async (payload) => {

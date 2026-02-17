@@ -21,24 +21,25 @@ function validateEnv() {
 }
 validateEnv();
 
-// Connect to database
-connectDB();
-
-// Start server
-const server = app.listen(PORT);
-
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
-  console.error('Unhandled rejection:', err.message);
-  server.close(() => process.exit(1));
-});
-
-// Handle SIGTERM: close server then MongoDB for clean shutdown
-process.on('SIGTERM', () => {
-  server.close(() => {
-    mongoose.connection.close()
-      .then(() => process.exit(0))
-      .catch(() => process.exit(0));
+// Connect to database, then start server (so we don't accept requests before DB is ready)
+(async () => {
+  await connectDB();
+  const server = app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
   });
-});
 
+  // Handle unhandled promise rejections
+  process.on('unhandledRejection', (err) => {
+    console.error('Unhandled rejection:', err.message);
+    server.close(() => process.exit(1));
+  });
+
+  // Handle SIGTERM: close server then MongoDB for clean shutdown
+  process.on('SIGTERM', () => {
+    server.close(() => {
+      mongoose.connection.close()
+        .then(() => process.exit(0))
+        .catch(() => process.exit(0));
+    });
+  });
+})();

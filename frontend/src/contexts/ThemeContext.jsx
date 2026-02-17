@@ -7,19 +7,18 @@ import { THEME_STORAGE_KEY, THEMES } from '@/utils/constants'
 const ThemeContext = createContext(undefined)
 
 /**
- * Get initial theme from localStorage or system preference
+ * Get initial theme from localStorage.
+ * Default is always LIGHT for first-time visitors (no stored preference).
  */
 function getInitialTheme() {
-  // Check localStorage first
   if (typeof window !== 'undefined') {
     const storedTheme = localStorage.getItem(THEME_STORAGE_KEY)
     if (storedTheme && Object.values(THEMES).includes(storedTheme)) {
       return storedTheme
     }
   }
-
-  // Default to system preference
-  return THEMES.SYSTEM
+  // First visit or invalid value: default to light mode on every device
+  return THEMES.LIGHT
 }
 
 /**

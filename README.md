@@ -1,6 +1,6 @@
 # Environmental and Social Assessment (ESMS)
 
-> A two-app system for managing environmental and social assessments of development projects — React frontend and Express/MongoDB backend.
+> An app system for managing environmental and social assessments of development projects — React frontend and Express/MongoDB backend.
 
 ## Overview
 

@@ -10,22 +10,62 @@
 
 ## Quick Start
 
-1. **Prerequisites:** Node.js (LTS), MongoDB running locally or a connection string.
-2. **Backend:** From the repo root, go to the backend, install deps, set env, and run:
-   ```bash
-   cd backend && npm install
-   ```
-   Create a `.env` (see [Environment setup](#environment-setup) and [backend/README.md](backend/README.md)). Then:
-   ```bash
-   npm run dev
-   ```
-3. **Frontend:** In another terminal, from the repo root:
-   ```bash
-   cd frontend && npm install && npm run dev
-   ```
-4. Open the URL shown by Vite (e.g. `http://localhost:5173`) and sign in. The frontend is configured to call the backend API (typically `http://localhost:3000` or the URL in `frontend` env).
+1. **Prerequisites:** Node.js (LTS) and a running MongoDB (local or remote).
 
-For backend seed data (users, lookups), see [backend/README.md](backend/README.md) and backend docs (e.g. configuration and seed).
+2. **Backend (API):**
+   - Install dependencies:
+    ```bash
+      cd backend
+      npm install
+    ```
+   - Create `backend/.env` from the example:
+     - Windows PowerShell:
+       ```bash
+       Copy-Item .env.example .env
+       ```
+     - macOS/Linux/Git Bash:
+       ```bash
+       cp .env.example .env
+       ```
+   - Set required env vars in `backend/.env`:
+     - `MONGODB_URI` (required)
+     - `JWT_SECRET` (required, **32+ chars**)
+     - (optional) `PORT` (default `3000`), `JWT_EXPIRES_IN`, `FRONTEND_URL` (default dev origin `http://localhost:5173`)
+   - (Recommended) Seed lookups (impact categories/questions, indicators, job titles):
+     ```bash
+     npm run seed
+     ```
+   - Run the API:
+     ```bash
+     npm run dev
+     ```
+     Health check: `GET http://localhost:3000/health`  
+     API base: `http://localhost:3000/api/v1`
+
+3. **Frontend (Web UI):**
+   - Install dependencies:
+    ```bash
+      cd frontend
+      npm install
+    ```
+   - Create `frontend/.env` from the example and set the API base URL:
+     - Windows PowerShell:
+       ```bash
+       Copy-Item .env.example .env
+       ```
+     - macOS/Linux/Git Bash:
+       ```bash
+       cp .env.example .env
+       ```
+     - In `frontend/.env`, set:
+       - `VITE_API_URL=http://localhost:3000/api/v1`
+   - Run the frontend:
+     ```bash
+     npm run dev
+     ```
+   - Open the Vite URL (default `http://localhost:5173`).
+
+For more details (including env vars and seed behavior), see [backend/README.md](backend/README.md) and [frontend/README.md](frontend/README.md).
 
 ## Documentation
 

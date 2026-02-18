@@ -3,7 +3,10 @@ node_modules/
 package-lock.json
 yarn.lock
 .cursor/
-Static_UI/
+Static UI/
+doc-decisions.md
+documentation-blueprint.md
+docs-architecture.json
 
 
 # Environment variables

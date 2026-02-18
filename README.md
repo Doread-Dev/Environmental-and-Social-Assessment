@@ -1,173 +1,46 @@
-# Environmental and Social Assessment
+# Environmental and Social Assessment (ESMS)
 
-**Environmental & Social Management System (ESMS)**  
-Full-stack application for managing environmental and social impact assessments for development projects.
+> A two-app system for managing environmental and social assessments of development projects — React frontend and Express/MongoDB backend.
 
-Aga Khan Foundation – Syria
+## Overview
 
----
+**Why this project exists.** Development projects often need structured environmental and social due diligence: screening, assessment, SEMP (Social and Environmental Management Plan), and monitoring. Doing this in spreadsheets or ad-hoc tools is error-prone and hard to audit. This project provides a single, auditable workflow from screening through monitoring, with role-based access and document storage.
 
-## 📋 Project Overview
+**What it is.** The **Environmental and Social Management System (ESMS)** is one product from a user’s perspective: you log in, work with projects, run screenings and assessments, maintain SEMPs and monitoring, and attach annex files. Under the hood it is **two applications**: a **frontend** (React 19, Vite 7, Tailwind CSS, React Router 7) and a **backend** (Node.js, Express, MongoDB, Mongoose, JWT). The frontend talks to the backend REST API; the backend handles auth, business logic, and persistence. It is **not** a generic project-management tool — it is focused on the ESMS workflow (screening → assessment → SEMP → monitoring) and related lookups, users, and attachments.
 
-This is a comprehensive system for managing environmental and social assessments following a structured workflow with 5 main tools:
+## Quick Start
 
-1. **Tool 1 — Screening**: Initial environmental risk categorization
-2. **Tool 2 — Assessment**: Detailed environmental impact evaluation
-3. **Tool 3 — SEMP (Management Activities)**: General management planning
-4. **Tool 4 — Mitigation Plan**: Impact mitigation and enhancement strategies
-5. **Tool 5 — Monitoring**: Ongoing environmental monitoring and evaluation
+1. **Prerequisites:** Node.js (LTS), MongoDB running locally or a connection string.
+2. **Backend:** From the repo root, go to the backend, install deps, set env, and run:
+   ```bash
+   cd backend && npm install
+   ```
+   Create a `.env` (see [Environment setup](#environment-setup) and [backend/README.md](backend/README.md)). Then:
+   ```bash
+   npm run dev
+   ```
+3. **Frontend:** In another terminal, from the repo root:
+   ```bash
+   cd frontend && npm install && npm run dev
+   ```
+4. Open the URL shown by Vite (e.g. `http://localhost:5173`) and sign in. The frontend is configured to call the backend API (typically `http://localhost:3000` or the URL in `frontend` env).
 
----
+For backend seed data (users, lookups), see [backend/README.md](backend/README.md) and backend docs (e.g. configuration and seed).
 
-## 🏗️ Project Structure
+## Documentation
 
-```
-├── backend/              # Express + MongoDB Backend
-│   ├── src/
-│   ├── package.json
-│   └── README.md
-│
-├── frontend/             # React SPA Frontend
-│   ├── src/
-│   ├── documents/        # Project documentation & plans
-│   │   ├── MASTER_PLAN.md
-│   │   ├── phase-1-plan.md
-│   │   ├── phase-2-plan.md
-│   │   ├── phase-3-plan.md
-│   │   └── PHASE_3_REVIEW.md
-│   ├── package.json
-│   └── README.md
-│
-└── Static UI/            # Original static HTML pages (reference)
-```
+| Area | Where to go |
+|------|-------------|
+| **Frontend** — setup, scripts, tech stack | [frontend/README.md](frontend/README.md) |
+| **Frontend** — architecture, routing, state, API, components, hooks, features | [frontend/docs/](frontend/docs/) (e.g. [ARCHITECTURE.md](frontend/docs/ARCHITECTURE.md), [SERVICES_AND_API.md](frontend/docs/SERVICES_AND_API.md), [FEATURES.md](frontend/docs/FEATURES.md)) |
+| **Backend** — setup, scripts, env vars | [backend/README.md](backend/README.md) |
+| **Backend** — architecture, API reference, models, auth, middlewares, config | [backend/docs/](backend/docs/) (e.g. [ARCHITECTURE.md](backend/docs/ARCHITECTURE.md), [API_REFERENCE.md](backend/docs/API_REFERENCE.md), [CONFIGURATION_AND_DEPLOYMENT.md](backend/docs/CONFIGURATION_AND_DEPLOYMENT.md)) |
 
----
+## Environment Setup
 
-## 🚀 Getting Started
+- **Node:** Use an LTS version. Both `frontend` and `backend` have their own `package.json`; install in each folder with `npm install`.
+- **MongoDB:** Required for the backend. Run MongoDB locally or use a cloud instance and set the connection string in the backend `.env`.
+- **Backend `.env`:** In `backend/`, define at least the MongoDB URL, JWT secret, and any port/CORS/origin you need. All supported variables and production notes are in [backend/README.md](backend/README.md) and [backend/docs/CONFIGURATION_AND_DEPLOYMENT.md](backend/docs/CONFIGURATION_AND_DEPLOYMENT.md).
+- **Frontend API base URL:** The frontend uses an API base URL (often via env or config) to call the backend. Point it to your backend (e.g. `http://localhost:3000` in development). Details in [frontend/README.md](frontend/README.md) and [frontend/docs/SERVICES_AND_API.md](frontend/docs/SERVICES_AND_API.md).
 
-### Frontend Setup
-
-The frontend is a React SPA built with:
-- **React 19.x** (latest stable)
-- **React Router 7.x** (latest stable)
-- **Tailwind CSS 4.x** (latest stable)
-- **Vite 7.x** (latest stable)
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-See `frontend/README.md` for detailed frontend setup instructions.
-
-**Current Status:** ✅ Phase 3 Complete - Ready for Phase 4
-
-### Backend Setup
-
-Navigate to the backend directory and follow the setup instructions:
-
-```bash
-cd backend
-npm install
-```
-
-See `backend/README.md` for detailed backend setup instructions.
-
----
-
-## 📊 Project Status
-
-### Frontend Progress
-
-| Phase | Status | Description |
-|-------|--------|-------------|
-| Phase 1 | ✅ Complete | Project Setup & Build Pipeline |
-| Phase 2 | ✅ Complete | Component Library (22 UI components) |
-| Phase 3 | ✅ Complete | Layout Components & Routing (7 layout components, 25+ routes) |
-| Phase 4 | 🔄 Next | Auth & Dashboard Domain |
-| Phase 5 | ⏳ Pending | Project Workspace — Overview & Screening |
-| Phase 6 | ⏳ Pending | Project Workspace — Assessment |
-| Phase 7 | ⏳ Pending | Project Workspace — SEMP |
-| Phase 8 | ⏳ Pending | Project Workspace — Monitoring & Files |
-| Phase 9 | ⏳ Pending | QA & Consistency |
-
-### Key Achievements
-
-- ✅ **29 Components**: 22 UI components + 7 layout components
-- ✅ **25+ Routes**: Complete routing structure configured
-- ✅ **Dark Mode**: Full dark mode support
-- ✅ **Responsive Design**: Mobile-first approach
-- ✅ **Design System**: Unified color tokens and typography
-
----
-
-## 📚 Documentation
-
-### Frontend Documentation
-
-All frontend documentation is in `frontend/documents/`:
-
-- **MASTER_PLAN.md** - Comprehensive master plan (all phases)
-- **phase-1-plan.md** - Phase 1 detailed plan (✅ Complete)
-- **phase-2-plan.md** - Phase 2 detailed plan (✅ Complete)
-- **phase-3-plan.md** - Phase 3 detailed plan (✅ Complete)
-- **PHASE_3_REVIEW.md** - Phase 3 comprehensive review with all decisions and agreements
-
-### Important Notes for Developers
-
-1. **Step Locking Logic**: Currently disabled - all workflow tools are unlocked. TODO comments indicate where to re-enable sequential step locking.
-
-2. **Navigation Structure**: 
-   - Assessment menu contains only: Metadata, Methods, Scoring
-   - Annex & Attachments contains: Attachments (files), Annex
-   - Auto-expansion occurs only when visiting child pages manually
-
-3. **Header Structure**: 
-   - ProjectLayout has unified header (ESMS System logo on left)
-   - Theme toggle is in User Card Dropdown (not in Header)
-   - Each project page can have its own header based on requirements
-
-4. **Mobile Menu**: 
-   - Project variant shows "Back to Dashboard" instead of logo
-   - Theme toggle is in User Card Dropdown
-
----
-
-## 🛠️ Technology Stack
-
-### Frontend
-
-- React 19.x
-- React Router 7.x
-- Tailwind CSS 4.x
-- Vite 7.x
-- ESLint + Prettier
-
-### Backend
-
-- Express.js
-- MongoDB
-
----
-
-## 📝 License
-
-ISC
-
----
-
-## 📞 Support
-
-For questions or assistance:
-
-- **Frontend**: See `frontend/README.md` and `frontend/documents/`
-- **Backend**: See `backend/README.md`
-- **Master Plan**: See `frontend/documents/MASTER_PLAN.md`
-- **Phase Reviews**: See `frontend/documents/PHASE_*_REVIEW.md`
-
----
-
-**Last Updated:** January 23, 2026  
-**Current Phase:** Phase 3 Complete ✅  
-**Next Phase:** Phase 4 (Auth & Dashboard Domain)
+After cloning, run `npm install` in both `frontend` and `backend`, configure the backend `.env`, then start backend and frontend as in [Quick Start](#quick-start).

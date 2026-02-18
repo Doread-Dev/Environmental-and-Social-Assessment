@@ -3,7 +3,8 @@ node_modules/
 package-lock.json
 yarn.lock
 .cursor/
-Static Ui/
+Static_UI/
+
 
 # Environment variables
 .env

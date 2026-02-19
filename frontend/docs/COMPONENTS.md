@@ -33,7 +33,7 @@ The ESMS frontend component tree lives under `frontend/src/components`. **Root-l
 
 ### ErrorBoundary
 
-Class component that catches JavaScript errors in the child tree and renders a fallback UI instead of crashing.
+Class component that catches JavaScript errors in the child tree and renders a fallback UI instead of crashing. It also handles **chunk load errors** (e.g. after a new deploy when the user still has a cached old `index.html` that references removed JS chunks): one automatic full-page reload, then a "New version available" message with a "Reload page" button.
 
 **Location:** `frontend/src/components/ErrorBoundary.jsx`
 
@@ -43,7 +43,10 @@ Class component that catches JavaScript errors in the child tree and renders a f
 |------|------|----------|-------------|
 | children | React.ReactNode | yes | Child tree to wrap |
 
-**Behavior:** On error, `getDerivedStateFromError` sets `hasError: true` and `error`. `componentDidCatch` logs to console. Render shows a centered message "Something went wrong", "Try Again" (clears error state), and "Back to Dashboard" link to `ROUTES.DASHBOARD`. No props for custom message or retry callback; retry only clears state.
+**Behavior:**
+
+- **Generic errors:** `getDerivedStateFromError` sets `hasError: true` and `error`. `componentDidCatch` logs to console. Render shows "Something went wrong", "Try Again" (clears error state), and "Back to Dashboard" link to `ROUTES.DASHBOARD`.
+- **Chunk/module load errors:** Errors such as `ChunkLoadError` or "Failed to fetch dynamically imported module" are detected via `isChunkLoadError(error)`. On first occurrence, a flag is set in `sessionStorage` and `window.location.reload()` is triggered once so the browser fetches the new `index.html` and chunk references. If the error persists after reload (e.g. strong cache), the UI shows "New version available" and a "Reload page" button instead of "Try Again" / "Back to Dashboard". No automatic reload loop: only one auto-reload per session.
 
 **Constraints:** Must wrap a subtree that may throw. Does not catch event-handler or async errors unless they lead to a render throw.
 

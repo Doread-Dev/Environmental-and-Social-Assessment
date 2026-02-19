@@ -97,7 +97,7 @@ Data flows from the backend into the app via the shared API client; auth and loo
 
 **Lazy loading**
 
-- Page components are loaded via `React.lazy()` and wrapped in a `Suspense` + `PageLoader` fallback. Layout components (AuthLayout, MainLayout, ProjectLayout, SempFullWidthLayout) are eagerly imported so the shell is always present.
+- Page components are loaded via `React.lazy()` and wrapped in a `Suspense` + `PageLoader` fallback. Layout components (AuthLayout, MainLayout, ProjectLayout, SempFullWidthLayout) are eagerly imported so the shell is always present. When a deploy changes chunk hashes, users with a cached old `index.html` may hit "Failed to fetch dynamically imported module"; the root `ErrorBoundary` detects chunk load errors and triggers one full-page reload (or shows "New version available" with a reload button). See `frontend/docs/COMPONENTS.md` (ErrorBoundary) and `frontend/vercel.json` cache headers.
 
 **Invariants**
 
@@ -147,6 +147,13 @@ The production bundle is produced by Vite when running `npm run build` (i.e. `vi
 **Serving**
 
 - The app is a SPA: the server must serve `dist/index.html` for all non-asset paths (or configure fallback to `index.html`) so that client-side routing works. `npm run preview` serves `dist/` locally for testing.
+
+**Vercel deployment (`frontend/vercel.json`)**
+
+- **Rewrites:** `"source": "/(.*)"` → `"destination": "/index.html"` so all routes are served by the SPA and React Router handles navigation (avoids 404 on refresh or direct links).
+- **Cache headers:**  
+  - `/assets/(.*)`: `Cache-Control: public, max-age=31536000, immutable` — hashed JS/CSS filenames are immutable and can be cached long-term.  
+  - `/(.*)` (all other paths, including `/` and `/index.html`): `Cache-Control: public, max-age=0, must-revalidate` — the HTML entry is not cached so users always get the latest chunk references after a deploy and avoid "Failed to fetch dynamically imported module" when old cached HTML points to removed chunks.
 
 **Invariants**
 

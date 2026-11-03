@@ -71,6 +71,8 @@ Decisions taken here (documented in `CLAUDE.md`):
 - Owner decision D60: `DELETE /projects/:id/purge` (admin only, archived projects only, approved work included) + `AuditLog` model and `GET /audit-logs` (admin). The demo seed deletes its previous copies straight in MongoDB (`removeProjectData`, dev only, refuses in production) instead of archiving them, so copies no longer pile up.
 - D57 also applied to `validateProjectForm` (project title ≥ 3, description ≥ 20), not only the four listed pages. The two page validators moved to `utils/validators.js` so they are tested.
 
+- Owner report: the project sidebar only unlocked the next tool after a page refresh. Cause: `ProjectLayout`'s `useWorkflow` loaded the tools once and never refetched (only monitoring had an event, and that refresh set `isLoading`, so the layout swapped the page for a full-screen spinner). Fix: `notifyWorkflowChanged` after every successful save/submit/approve/reject in the tool hooks; `useWorkflow` loads all five tools itself and refetches silently. Checked in the browser through all five tools on a new project, no refresh.
+
 Open points for the owner / later phases:
 - No UI yet for archive/restore or the archived list (`?archived=true`); the delete button now gets a 409 for projects with approved work. Phase 5/8.
 - `PUT /monitoring/:id` still requires `project` and `indicator` (the update schema is the create schema), so partial updates → 400. Unchanged.

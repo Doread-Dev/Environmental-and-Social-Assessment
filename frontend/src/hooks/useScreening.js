@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { screeningService } from '@/services'
 import { extractErrorMessage } from '@/services/api'
+import { notifyWorkflowChanged } from '@/utils/workflowEvents'
 
 /**
  * Hook لإدارة حالة الفرز
@@ -66,11 +67,13 @@ export function useScreening(projectId) {
           }
           const created = await screeningService.create(payload)
           setScreening(created)
+          notifyWorkflowChanged(projectId)
           return { success: true, data: created }
         }
 
         const updated = await screeningService.update(screening._id, payload)
         setScreening(updated)
+        notifyWorkflowChanged(projectId)
         return { success: true, data: updated }
       } catch (err) {
         const errorMessage = extractErrorMessage(err)
@@ -102,6 +105,7 @@ export function useScreening(projectId) {
 
         const submitted = await screeningService.submit(saved._id)
         setScreening(submitted)
+        notifyWorkflowChanged(projectId)
         return { success: true, data: submitted }
       } catch (err) {
         const errorMessage = extractErrorMessage(err)
@@ -127,6 +131,7 @@ export function useScreening(projectId) {
         }
         const updated = await screeningService.approve(screening._id, recommendations)
         setScreening(updated)
+        notifyWorkflowChanged(projectId)
         return { success: true, data: updated }
       } catch (err) {
         const errorMessage = extractErrorMessage(err)
@@ -136,7 +141,7 @@ export function useScreening(projectId) {
         setIsSaving(false)
       }
     },
-    [screening?._id]
+    [projectId, screening?._id]
   )
 
   // الرفض
@@ -155,6 +160,7 @@ export function useScreening(projectId) {
           rejectReason === undefined ? '' : rejectReason
         )
         setScreening(updated)
+        notifyWorkflowChanged(projectId)
         return { success: true, data: updated }
       } catch (err) {
         const errorMessage = extractErrorMessage(err)
@@ -164,7 +170,7 @@ export function useScreening(projectId) {
         setIsSaving(false)
       }
     },
-    [screening?._id]
+    [projectId, screening?._id]
   )
 
   return {

@@ -5,6 +5,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { monitoringService } from '@/services/monitoringService'
 import { extractErrorMessage } from '@/services/api'
+import { notifyWorkflowChanged } from '@/utils/workflowEvents'
 import { useLookups } from '@/contexts'
 
 /**
@@ -353,12 +354,7 @@ export function useMonitoring(projectId) {
       const updatedRecords = await monitoringService.getByProject(projectId)
       setRecords(updatedRecords)
 
-      // Dispatch event to notify workflow hook to refetch monitoring data
-      window.dispatchEvent(
-        new CustomEvent('monitoring-data-updated', {
-          detail: { projectId },
-        })
-      )
+      notifyWorkflowChanged(projectId)
 
       return { success: true }
     } catch (err) {

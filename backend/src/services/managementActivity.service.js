@@ -2,6 +2,7 @@ const ManagementActivity = require("../models/managementActivity.model");
 const ApiError = require("../utils/ApiError");
 const assertSameProject = require("../utils/assertSameProject");
 const normalizeResponsible = require("../utils/responsible");
+const replaceProjectRows = require("../utils/replaceProjectRows");
 const { requireAssessmentApproved } = require("./workflow.service");
 
 const listByProject = async (projectId) =>
@@ -36,8 +37,16 @@ const deleteActivity = async (id) => {
   return true;
 };
 
+// The whole Tool 3 table in one request (D32); returns the saved table.
+const replaceForProject = async (projectId, rows) => {
+  await requireAssessmentApproved(projectId);
+  await replaceProjectRows(ManagementActivity, projectId, rows);
+  return listByProject(projectId);
+};
+
 module.exports = {
   listByProject,
+  replaceForProject,
   createActivity,
   updateActivity,
   deleteActivity,

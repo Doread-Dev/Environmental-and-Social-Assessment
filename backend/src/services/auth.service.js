@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 const ApiError = require("../utils/ApiError");
+const { permissionsFor } = require("../config/permissions");
 
 const signToken = (user) =>
   jwt.sign({ sub: user._id, role: user.role }, process.env.JWT_SECRET, {
@@ -26,7 +27,13 @@ const login = async (email, password) => {
   return { user, token };
 };
 
+const getMe = async (userId) => {
+  const user = await User.findById(userId).populate("job_title");
+  return { user, permissions: permissionsFor(user.role) };
+};
+
 module.exports = {
   register,
   login,
+  getMe,
 };

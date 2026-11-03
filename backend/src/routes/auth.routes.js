@@ -17,5 +17,7 @@ router.post(
   controller.register
 );
 router.post("/login", loginLimiter, validate(loginSchema), controller.login);
+// The signed-in user and what their role may do (D35).
+router.get("/me", auth, controller.me);
 
 module.exports = router;

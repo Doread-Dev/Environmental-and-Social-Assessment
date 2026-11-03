@@ -15,7 +15,7 @@ export default defineConfig({
       include: ["src/**/*.js"],
       reporter: ["text-summary", "html", "json-summary"],
       // Floor = current coverage, rounded down. Raise it when a phase adds tests; never lower it.
-      thresholds: { statements: 87, branches: 74, functions: 83, lines: 90 },
+      thresholds: { statements: 90, branches: 82, functions: 87, lines: 91 },
     },
   },
 });

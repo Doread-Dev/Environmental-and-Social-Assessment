@@ -3,6 +3,7 @@ const controller = require("../controllers/lookup.controller");
 
 const router = express.Router();
 
+router.get("/", controller.getAll);
 router.get("/impact-categories", controller.getImpactCategories);
 router.get("/impact-questions", controller.getImpactQuestions);
 router.get("/indicators", controller.getIndicators);

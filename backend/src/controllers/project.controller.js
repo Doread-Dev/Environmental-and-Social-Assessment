@@ -2,12 +2,17 @@ const asyncHandler = require("../utils/asyncHandler");
 const projectService = require("../services/project.service");
 
 exports.getAll = asyncHandler(async (req, res) => {
-  const data = await projectService.listProjects({ archived: req.query.archived === "true" });
-  res.json({ success: true, data });
+  const { items, pagination } = await projectService.listProjects(req.query, req.user.role);
+  res.json({ success: true, data: items, pagination });
 });
 
 exports.getOne = asyncHandler(async (req, res) => {
   const data = await projectService.getProject(req.params.id);
+  res.json({ success: true, data });
+});
+
+exports.getWorkspace = asyncHandler(async (req, res) => {
+  const data = await projectService.getWorkspace(req.params.id, req.user.role);
   res.json({ success: true, data });
 });
 

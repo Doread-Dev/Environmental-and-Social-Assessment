@@ -12,7 +12,24 @@ const getIndicators = async () => Indicator.find().populate("category").sort({ c
 
 const getJobTitles = async () => JobTitle.find().sort({ title_name: 1 });
 
+// All four lookup collections in one response (D31).
+const getAllLookups = async () => {
+  const [impactCategories, impactQuestions, indicators, jobTitles] = await Promise.all([
+    getImpactCategories(),
+    getImpactQuestions(),
+    getIndicators(),
+    getJobTitles(),
+  ]);
+  return {
+    impact_categories: impactCategories,
+    impact_questions: impactQuestions,
+    indicators,
+    job_titles: jobTitles,
+  };
+};
+
 module.exports = {
+  getAllLookups,
   getImpactCategories,
   getImpactQuestions,
   getIndicators,

@@ -18,7 +18,20 @@ const updateMitigationPlanSchema = createMitigationPlanSchema.fork(
   (schema) => schema.optional()
 );
 
+// PUT /projects/:id/mitigation: the whole table. A row with `_id` updates that row.
+const replaceMitigationPlansSchema = Joi.object({
+  rows: Joi.array()
+    .items(
+      createMitigationPlanSchema.keys({
+        _id: Joi.string().hex().length(24).optional(),
+        project: Joi.any().strip(),
+      })
+    )
+    .required(),
+});
+
 module.exports = {
   createMitigationPlanSchema,
   updateMitigationPlanSchema,
+  replaceMitigationPlansSchema,
 };

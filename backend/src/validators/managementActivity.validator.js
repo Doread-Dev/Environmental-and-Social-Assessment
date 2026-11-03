@@ -19,7 +19,20 @@ const updateManagementActivitySchema = createManagementActivitySchema.fork(
   (schema) => schema.optional()
 );
 
+// PUT /projects/:id/management: the whole table. A row with `_id` updates that row.
+const replaceManagementActivitiesSchema = Joi.object({
+  rows: Joi.array()
+    .items(
+      createManagementActivitySchema.keys({
+        _id: Joi.string().hex().length(24).optional(),
+        project: Joi.any().strip(),
+      })
+    )
+    .required(),
+});
+
 module.exports = {
   createManagementActivitySchema,
   updateManagementActivitySchema,
+  replaceManagementActivitiesSchema,
 };

@@ -9,11 +9,72 @@ const MitigationPlan = require("../models/mitigationPlan.model");
 const MonitoringRecord = require("../models/monitoringRecord.model");
 const AuditLog = require("../models/auditLog.model");
 const ApiError = require("../utils/ApiError");
-const { assertProjectWritable } = require("./workflow.service");
+const {
+  allowedActions,
+  assertProjectWritable,
+  computeWorkflow,
+  loadWorkflowInputs,
+  withWorkflowState,
+} = require("./workflow.service");
 
-// Archived projects are hidden unless asked for; `archived: true` lists only them (D17).
-const listProjects = async ({ archived = false } = {}) => {
-  return Project.find({ archived: archived ? true : { $ne: true } }).sort({ createdAt: -1 });
+const SORTS = {
+  createdAt: { createdAt: -1 },
+  updatedAt: { updatedAt: -1 },
+  title: { title: 1 },
+  start_date: { start_date: 1 },
+};
+
+const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// Projects with workflow state and allowed actions (D31). Archived projects are hidden unless
+// asked for; `archived: true` lists only them (D17). `status` and `category` filter on the
+// computed state, so they apply after it is loaded; without `limit` everything is one page.
+const listProjects = async (query, role) => {
+  const { archived, search, status, category, sort, page, limit } = query;
+  const filter = { archived: archived ? true : { $ne: true } };
+  if (search) {
+    const pattern = new RegExp(escapeRegex(search), "i");
+    filter.$or = [{ title: pattern }, { location: pattern }];
+  }
+
+  const projects = await Project.find(filter).sort(SORTS[sort]).lean();
+  const items = (await withWorkflowState(projects, role)).filter(
+    (item) =>
+      (!status || item.workflow.status === status) &&
+      (!category || item.screening?.category_code === category)
+  );
+
+  const total = items.length;
+  if (!limit) {
+    return { items, pagination: { page: 1, limit: null, total, pages: 1 } };
+  }
+  return {
+    items: items.slice((page - 1) * limit, page * limit),
+    pagination: { page, limit, total, pages: Math.max(1, Math.ceil(total / limit)) },
+  };
+};
+
+// Everything the project layout, sidebar, route guards and overview need, in one call (D31).
+const getWorkspace = async (id, role) => {
+  const project = await Project.findById(id)
+    .populate({ path: "archived_by", select: "name role" })
+    .lean();
+  if (!project) throw new ApiError(404, "Project not found");
+
+  const inputs = (await loadWorkflowInputs([project._id])).get(String(project._id));
+  const workflow = computeWorkflow(inputs);
+  return {
+    project,
+    workflow,
+    allowed_actions: allowedActions(role, project, workflow),
+    screening: inputs.screening,
+    assessment: inputs.assessment,
+    counts: {
+      management_activities: inputs.activities.length,
+      mitigation_plans: inputs.plans.length,
+      monitoring_records: inputs.records.length,
+    },
+  };
 };
 
 const getProject = async (id) => {
@@ -128,6 +189,7 @@ const restoreProject = async (id) => setArchived(id, false);
 
 module.exports = {
   listProjects,
+  getWorkspace,
   archiveProject,
   restoreProject,
   getProject,

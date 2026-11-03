@@ -1,8 +1,9 @@
-// Validates req.body and replaces it with Joi's value: unknown fields (incl. server-owned ones
-// such as status, officer, approved_by) are stripped, so controllers only see allowed fields.
-const validate = (schema) => {
+// Validates req.body (or req.query with source "query") and replaces it with Joi's value: unknown
+// fields (incl. server-owned ones such as status, officer, approved_by) are stripped, so
+// controllers only see allowed fields, with defaults applied and types converted.
+const validate = (schema, source = "body") => {
   return (req, res, next) => {
-    const { error, value } = schema.validate(req.body, {
+    const { error, value } = schema.validate(req[source], {
       abortEarly: false,
       stripUnknown: true,
     });
@@ -15,7 +16,7 @@ const validate = (schema) => {
       });
     }
 
-    req.body = value;
+    req[source] = value;
     next();
   };
 };

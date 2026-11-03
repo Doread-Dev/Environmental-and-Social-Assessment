@@ -24,8 +24,21 @@ const updateQuarterSchema = Joi.object({
   value: Joi.string().allow("", null).required(),
 });
 
+// PUT /projects/:id/monitoring: records upserted by indicator (one per indicator).
+const upsertMonitoringSchema = Joi.object({
+  records: Joi.array()
+    .items(
+      createMonitoringSchema.keys({
+        indicator: Joi.string().hex().length(24).required(),
+        project: Joi.any().strip(),
+      })
+    )
+    .required(),
+});
+
 module.exports = {
   createMonitoringSchema,
+  upsertMonitoringSchema,
   updateMonitoringSchema,
   updateQuarterSchema,
 };

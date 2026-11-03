@@ -109,12 +109,6 @@ export function deriveMonitoringStatus(monitoringRecords, sempStatus) {
     return { status: WORKFLOW_STATUS.PENDING, tool: 5 }
   }
 
-  // Check if any record has quarterly data
-  const hasQuarterlyData = monitoringRecords.some((record) => {
-    const scores = record.scores || {}
-    return scores.Q1 || scores.Q2 || scores.Q3 || scores.Q4
-  })
-
   // Check if at least one record has all quarters complete
   // Monitoring is considered completed if even one record has all quarters filled
   const atLeastOneRecordComplete = monitoringRecords.some((record) => {
@@ -126,11 +120,8 @@ export function deriveMonitoringStatus(monitoringRecords, sempStatus) {
     return { status: WORKFLOW_STATUS.COMPLETED, tool: 5 }
   }
 
-  if (hasQuarterlyData) {
-    return { status: WORKFLOW_STATUS.IN_PROGRESS, tool: 5 }
-  }
-
-  return { status: WORKFLOW_STATUS.PENDING, tool: 5 }
+  // Any record counts as started, even with only its baseline (same rule as the backend)
+  return { status: WORKFLOW_STATUS.IN_PROGRESS, tool: 5 }
 }
 
 /**

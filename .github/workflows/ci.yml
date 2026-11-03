@@ -18,16 +18,16 @@ permissions:
 jobs:
   backend:
     name: Backend
-    # MongoDB 8 exits on start on Linux kernels 6.19 to 7.0.13 (SERVER-121912 / SERVER-125742);
-    # the ubuntu-26.04 runner (ubuntu-latest, Oct 2026) is in that range. Move back to
-    # ubuntu-latest once its kernel is fixed.
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend
     services:
       mongo:
-        image: mongo:8.3
+        # MongoDB 8.x exits on start on Linux kernels 6.19 to 7.0.13 (SERVER-121912 / SERVER-125742),
+        # and the GitHub runner kernels (ubuntu-24.04 and 26.04, Nov 2026) are in that range.
+        # 7.0 is not affected. Move to the local version (8.3) once the runner kernels are fixed.
+        image: mongo:7.0
         ports:
           - 27017:27017
         options: >-

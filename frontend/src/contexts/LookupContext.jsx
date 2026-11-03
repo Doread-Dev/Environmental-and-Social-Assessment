@@ -140,7 +140,6 @@ export function LookupProvider({ children }) {
     } catch (err) {
       const errorMessage = extractErrorMessage(err)
       setError(errorMessage)
-      // eslint-disable-next-line no-console
       console.error('Failed to load lookup data:', errorMessage)
     } finally {
       setIsLoading(false)

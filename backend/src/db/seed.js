@@ -7,9 +7,9 @@ const ImpactQuestion = require("../models/impactQuestion.model");
 const Indicator = require("../models/indicator.model");
 const JobTitle = require("../models/jobTitle.model");
 
-async function seedLookups() {
-  await connectDB();
-
+// Wipes and re-inserts the lookup collections on the current connection.
+// Also used by the backend tests to seed esms_test.
+async function seedLookupData() {
   const impactCategories = [
     { code: "A", name: "Air Quality", name_ar: "جودة الهواء" },
     { code: "B", name: "Water Quality", name_ar: "جودة المياه" },
@@ -433,34 +433,39 @@ async function seedLookups() {
     },
   ];
 
+  await ImpactCategory.deleteMany({});
+  const createdCategories = await ImpactCategory.insertMany(impactCategories);
+  const catByCode = createdCategories.reduce((acc, c) => {
+    acc[c.code] = c._id;
+    return acc;
+  }, {});
+
+  await JobTitle.deleteMany({});
+  await JobTitle.insertMany(jobTitles.map((title_name) => ({ title_name })));
+
+  await ImpactQuestion.deleteMany({});
+  await ImpactQuestion.insertMany(
+    questions.map((q) => ({
+      category: catByCode[q.code],
+      question_text: q.text,
+    }))
+  );
+
+  await Indicator.deleteMany({});
+  await Indicator.insertMany(
+    indicators.map((i) => ({
+      category: catByCode[i.code],
+      name: i.name,
+      definition: i.definition,
+      measurement: i.measurement,
+    }))
+  );
+}
+
+async function seedLookups() {
+  await connectDB();
   try {
-    await ImpactCategory.deleteMany({});
-    const createdCategories = await ImpactCategory.insertMany(impactCategories);
-    const catByCode = createdCategories.reduce((acc, c) => {
-      acc[c.code] = c._id;
-      return acc;
-    }, {});
-
-    await JobTitle.deleteMany({});
-    await JobTitle.insertMany(jobTitles.map((title_name) => ({ title_name })));
-
-    await ImpactQuestion.deleteMany({});
-    await ImpactQuestion.insertMany(
-      questions.map((q) => ({
-        category: catByCode[q.code],
-        question_text: q.text,
-      }))
-    );
-
-    await Indicator.deleteMany({});
-    await Indicator.insertMany(
-      indicators.map((i) => ({
-        category: catByCode[i.code],
-        name: i.name,
-        definition: i.definition,
-        measurement: i.measurement,
-      }))
-    );
+    await seedLookupData();
   } catch (err) {
     console.error("Seeding error:", err);
     process.exitCode = 1;
@@ -469,4 +474,8 @@ async function seedLookups() {
   }
 }
 
-seedLookups();
+if (require.main === module) {
+  seedLookups();
+}
+
+module.exports = { seedLookupData };

@@ -6,7 +6,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { userService, authService } from '@/services'
 import { extractErrorMessage } from '@/services/api'
-import { useAuth, USER_ROLES, ROLE_LABELS } from '@/contexts'
+import { USER_ROLES, ROLE_LABELS } from '@/contexts'
 import { useToast, Table, Badge, Pagination, Select } from '@/components/ui'
 import { cn } from '@/utils/cn'
 

@@ -28,17 +28,27 @@ Backend (`cd backend`):
 - `npm start` — production start.
 - `npm run seed` — **wipes and re-inserts** the 4 lookup collections (impact categories, impact questions, indicators, job titles). Does not create users.
 - `SEED_EMAIL=... SEED_PASSWORD=... node scripts/seed-demo-project.js` — (re)creates `[DEMO] Al-Salam Water Network Rehabilitation`, a project that has passed all 5 tools, through the real API (needs a specialist login; use the `DEV_LOGIN_*` values from `backend/.env`).
-- `node scripts/clean-test-data.js` — deletes ALL domain data (projects, screenings, assessments, SEMP, monitoring, attachments). Destructive; ask before running.
+- `node scripts/clean-test-data.js` — deletes ALL domain data (projects, screenings, assessments, SEMP, monitoring, attachments). Destructive; ask before running. Refuses to run when `NODE_ENV=production`.
+- `npm test` (`npm run test:watch`) — Vitest + Supertest, see "Tests" below. Needs MongoDB running.
+- `npm run lint` / `npm run lint:fix` — ESLint flat config (CommonJS, Node globals, `eslint-config-prettier`).
+- `npm run format` / `npm run format:check` — Prettier, backend style: double quotes, semicolons, width 100.
 
 Frontend (`cd frontend`):
 - `npm run dev` — Vite on http://localhost:5173.
 - `npm run build` / `npm run preview`
+- `npm test` (`npm run test:watch`) — Vitest + React Testing Library + jsdom. Tests sit next to the code as `*.test.js(x)`; setup in `src/test/setup.js`.
 - `npm run lint` / `npm run lint:fix` — ESLint 9 flat config (prettier as a lint rule).
 - `npm run format` / `npm run format:check` — Prettier on `src/`.
 
-There are **no automated tests** in either app, and the backend has no linter. Verify changes by running the app (and `npm run lint` + `npm run build` for frontend).
+Node is pinned to 24 (`.nvmrc`, `engines` in both `package.json`). Lockfiles are committed: install with `npm ci`. esbuild's install script is approved via `allowScripts` in `frontend/package.json` (npm 11).
 
-Frontend lint baseline (pre-existing, as of 2026-11-03): 3 errors (`ErrorBoundary.jsx` empty catch blocks, unreachable code in `useFiles.js`), ~460 warnings, 39 files not Prettier-formatted. Don't mass-reformat unrelated files; keep your diffs from adding new problems.
+Every behavior change and fix ships with a test (D39). Before finishing a change: `npm test` + `npm run lint` in each app you touched, plus `npm run build` for the frontend. Lint must stay at 0 errors and Prettier checks must pass in both apps.
+
+### Tests
+
+- Backend tests live in `backend/tests/` (`*.test.js`, ESM syntax; app code is loaded via `createRequire` in `tests/helpers/app.js` so tests share the app's mongoose instance).
+- They run against `esms_test`: `MONGODB_URI_TEST` if set, else `MONGODB_URI` with `_test` appended to the DB name. `tests/setup/env.js` refuses any database whose name doesn't end in `_test`; every collection is emptied before each file and after each test. Files run one at a time.
+- Helpers (`tests/helpers/fixtures.js`): `createUser(role)`, `loginAs(role)` → `{ user, token }` via the real login endpoint, `seedLookups()` (same data as `npm run seed`, from `seedLookupData()` in `src/db/seed.js`), `ROLES`.
 
 `.claude/launch.json` defines `backend` (port 3000) and `frontend` (port 5173) dev servers for the preview pane.
 
@@ -51,11 +61,10 @@ Line endings: the repo is LF (Prettier `endOfLine: lf`). This clone sets `core.a
 - `frontend/.env` (gitignored): `VITE_API_URL` (must include `/api/v1`), `VITE_API_TIMEOUT`. In dev `api.js` falls back to `http://localhost:3000/api/v1`; in prod there is no fallback.
 - Users: the seed creates none. The **first** `POST /api/v1/auth/register` succeeds without auth; after that only an `environmental_specialist` can register users (Settings page → Users). A local dev specialist login is stored as comments in `backend/.env` (`DEV_LOGIN_EMAIL` / `DEV_LOGIN_PASSWORD`).
 - Joi `email()` validates TLDs, so `@*.local` / `@*.test` addresses are rejected — use `@example.com` for test users.
-- `package-lock.json` is gitignored, so installs are not pinned — dependency versions can drift between machines.
 
 ## Backend architecture
 
-Request pipeline (`src/app.js`): helmet → cors → body parsers (10mb) → morgan → `GET /health` → `app.use('/api/v1', apiLimiter, routes)` → 404 → `errorHandler` (must stay last). `server.js` validates env and connects to Mongo **before** `listen`.
+Request pipeline (`src/app.js`): helmet → cors → body parsers (10mb) → morgan (off when `NODE_ENV=test`) → `GET /health` → `app.use('/api/v1', apiLimiter, routes)` → 404 → `errorHandler` (must stay last). `server.js` validates env and connects to Mongo **before** `listen`.
 
 Layering, one file per domain in each folder:
 `routes/<domain>.routes.js` → `controllers/<domain>.controller.js` → `services/<domain>.service.js` → `models/<entity>.model.js`, with `validators/<domain>.validator.js` (Joi).

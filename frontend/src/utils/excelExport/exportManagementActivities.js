@@ -6,7 +6,6 @@ import {
   createWorkbook,
   addAkfHeader,
   applyBorders,
-  mergeCells,
   saveWorkbook,
   generateFileName,
   extractUserName,

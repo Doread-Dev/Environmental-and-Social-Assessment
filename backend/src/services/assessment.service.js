@@ -98,7 +98,7 @@ const calculateImpact = async (assessmentId) => {
   };
 
   scores.forEach((score) => {
-    if (scoreCount.hasOwnProperty(score.level)) {
+    if (Object.hasOwn(scoreCount, score.level)) {
       scoreCount[score.level]++;
     }
   });

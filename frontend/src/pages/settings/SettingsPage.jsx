@@ -5,7 +5,6 @@
  * Route: /app/settings
  */
 
-import { useState } from 'react'
 import { UsersManagementSection, ProjectsManagementSection } from '@/components/settings'
 
 export default function SettingsPage() {

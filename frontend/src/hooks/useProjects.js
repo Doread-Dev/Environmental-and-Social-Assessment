@@ -143,7 +143,6 @@ export function useProjects() {
     } catch (err) {
       const errorMessage = extractErrorMessage(err)
       setError(errorMessage)
-      // eslint-disable-next-line no-console
       console.error('Failed to fetch projects:', errorMessage)
     } finally {
       setIsLoading(false)

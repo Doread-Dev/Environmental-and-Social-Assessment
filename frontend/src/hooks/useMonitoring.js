@@ -355,11 +355,6 @@ export function useMonitoring(projectId) {
         throw new Error(`Failed to save some records: ${errorMessages}`)
       }
 
-      // Filter out null results (skipped records) and extract values
-      const validResults = results
-        .filter((r) => r.status === 'fulfilled' && r.value !== null)
-        .map((r) => r.value)
-
       // Reload all records from API to get fresh data with populated fields
       // This ensures consistency and removes dirty flags
       const updatedRecords = await monitoringService.getByProject(projectId)

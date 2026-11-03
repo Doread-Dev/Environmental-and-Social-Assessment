@@ -7,7 +7,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { projectService } from '@/services'
 import { extractErrorMessage } from '@/services/api'
 import { useAuth } from '@/contexts'
-import { useToast, Table, Badge, Pagination, Select } from '@/components/ui'
+import { useToast, Table, Pagination, Select } from '@/components/ui'
 import { cn } from '@/utils/cn'
 
 export function ProjectsManagementSection() {

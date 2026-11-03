@@ -14,6 +14,12 @@
 - Remove leftover dev pages (`ComponentShowcase` if present), dead components, unused utils.
 - Archive UI: archived badge, filter on project list, restore button (D17); in the archive list a "Delete permanently" action for `admin` only, with a confirm dialog (`DELETE /projects/:id/purge`, D60). An admin page for the audit log (`GET /audit-logs`).
 
+### Owner-reported screens
+- **Assessment gateway** (`pages/project-workspace/assessment/AssessmentGatewayPage.jsx`, "Begin Assessment Process"), reported by the owner with UI problems. Seen so far, to confirm with the owner before fixing:
+  - The page header with the step indicator (Screening → Assessment → SEMP) gets cut off at the top when the page scrolls, and the indicator stops at SEMP (no Monitoring).
+  - Left accent border on the main card and a decorative icon in its corner that does nothing; "Not Started" badge differs from the status badges elsewhere.
+- **Right-hand "Project Context" card** (`components/assessment/ProjectContextCard.jsx`): redo it the way the Overview card was redone in phase 1 (`ProjectSiteCard` → `ProjectDetailsCard`). Drop the placeholder map image, show real project data only (location, component, start/end with the full date, "Not specified" when empty) by reusing `ProjectDetailsCard`, and keep "Screening approved by" from `status_history` (D16). No project title (the sidebar already shows it). Same card wherever `ProjectContextCard` is used.
+
 ## Process
 - Walk every screen with the demo project in light and dark mode; list issues at the bottom of this file first, agree the list with the owner, then fix.
 

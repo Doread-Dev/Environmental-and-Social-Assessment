@@ -118,6 +118,7 @@ Inventory: [V2_INVENTORY.md](V2_INVENTORY.md). v2 was built by someone else and 
 
 | D59 | Navigation stays as in this repo: one sidebar entry "SEMP – Tools 3 & 4" (not split). The locked SEMP Plan button lives inside the SEMP overview page, where the "Coming soon" card is today. The overview metric keeps the label "Risk Level". |
 | D60 | (Owner, phase 3) An **archived** project can be deleted permanently, approved work included, by `admin` only (from the archive list, UI in phase 10). Each such delete is recorded in an audit log (who, when, project title and a snapshot of its state), readable by `admin`. Extends D17; the audit log starts with this one action, the full field-level log stays v3 (D16). The demo seed deletes its own previous copies straight in MongoDB (dev only) and does not use this. |
+| D61 | (Owner) Every screen is checked outside the happy path too — unsaved changes (Cancel / Back / sidebar / refresh), double clicks, every server error (400/401/403/404/409/500/offline), two users on one project, each role, empty and large data — and fixed with a shared mechanism, not one bug at a time. Own phase (10a) after UI polish; key unhappy paths join the phase 12 E2E suite. |
 
 ## Open items
 

@@ -15,6 +15,7 @@
   6. Viewer: sees everything, no edit/export controls; direct API writes 403.
   7. Archive / restore; delete blocked when something is approved.
   8. Locked v3 buttons visible and inert.
+  9. Unhappy paths agreed in phase 10a (D61), at least: leaving an edited page asks Save / Discard / Stay; a 409 from a stale tab is shown and the page recovers; expired session mid-edit.
 - One command to run; documented in `CLAUDE.md`.
 - Add the E2E run as a job in `.github/workflows/ci.yml`.
 

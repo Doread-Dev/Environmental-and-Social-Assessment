@@ -40,7 +40,7 @@ Frontend (`cd frontend`):
 - `npm run lint` / `npm run lint:fix` — ESLint 9 flat config (prettier as a lint rule).
 - `npm run format` / `npm run format:check` — Prettier on `src/`.
 
-Node is pinned to 24 (`.nvmrc`, `engines` in both `package.json`). Lockfiles are committed: install with `npm ci`. esbuild's install script is approved via `allowScripts` in `frontend/package.json` (npm 11).
+Node is pinned to 26 LTS (`.nvmrc`, `engines` in both `package.json`). Lockfiles are committed: install with `npm ci`. esbuild's install script is approved via `allowScripts` in `frontend/package.json` (npm 11).
 
 Every behavior change and fix ships with a test (D39). Before finishing a change: `npm test` + `npm run lint` in each app you touched, plus `npm run build` for the frontend. Lint must stay at 0 errors and Prettier checks must pass in both apps.
 

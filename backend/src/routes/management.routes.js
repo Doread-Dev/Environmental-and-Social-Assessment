@@ -5,45 +5,24 @@ const {
   createManagementActivitySchema,
   updateManagementActivitySchema,
 } = require("../validators/managementActivity.validator");
-const { auth, requireRole } = require("../middlewares/auth");
+const { requireRole } = require("../middlewares/auth");
+const { EDITOR_ROLES } = require("../config/roles");
 
 const router = express.Router();
 
 router.get("/project/:projectId", controller.listByProject);
 router.post(
   "/",
-  auth,
-  requireRole(
-    "environmental_specialist",
-    "program_manager",
-    "project_manager",
-    "environmental_focal_point"
-  ),
+  requireRole(...EDITOR_ROLES),
   validate(createManagementActivitySchema),
   controller.create
 );
 router.put(
   "/:id",
-  auth,
-  requireRole(
-    "environmental_specialist",
-    "program_manager",
-    "project_manager",
-    "environmental_focal_point"
-  ),
+  requireRole(...EDITOR_ROLES),
   validate(updateManagementActivitySchema),
   controller.update
 );
-router.delete(
-  "/:id",
-  auth,
-  requireRole(
-    "environmental_specialist",
-    "program_manager",
-    "project_manager",
-    "environmental_focal_point"
-  ),
-  controller.remove
-);
+router.delete("/:id", requireRole(...EDITOR_ROLES), controller.remove);
 
 module.exports = router;

@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { cn } from '@/utils'
 import { MAIN_NAV_ITEMS } from '@/routes/routes.config'
-import { useAuth, USER_ROLES } from '@/contexts'
+import { useAuth } from '@/contexts'
 
 /**
  * MainSidebar Component
@@ -11,8 +11,7 @@ import { useAuth, USER_ROLES } from '@/contexts'
  * @param {string} props.className - Additional CSS classes
  */
 function MainSidebar({ className }) {
-  const { user } = useAuth()
-  const canAccessSettings = user?.role === USER_ROLES.ENVIRONMENTAL_SPECIALIST
+  const { canManageUsers: canAccessSettings } = useAuth()
 
   return (
     <aside

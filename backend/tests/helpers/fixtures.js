@@ -4,13 +4,7 @@ import { app, require } from "./app.js";
 const User = require("../../src/models/user.model");
 const { seedLookupData } = require("../../src/db/seed");
 
-const ROLES = [
-  "environmental_specialist",
-  "program_manager",
-  "project_manager",
-  "environmental_focal_point",
-  "viewer",
-];
+const { ROLES, EDITOR_ROLES, SPECIALIST_ROLES } = require("../../src/config/roles");
 
 const TEST_PASSWORD = "test-password-123";
 
@@ -41,4 +35,4 @@ async function seedLookups() {
   await seedLookupData();
 }
 
-export { ROLES, TEST_PASSWORD, createUser, loginAs, seedLookups };
+export { ROLES, EDITOR_ROLES, SPECIALIST_ROLES, TEST_PASSWORD, createUser, loginAs, seedLookups };

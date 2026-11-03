@@ -33,10 +33,16 @@ const errorHandler = (err, req, res, next) => {
     error = new ApiError(400, message);
   }
 
-  res.status(error.statusCode || 500).json({
+  const statusCode = error.statusCode || 500;
+  // Auth failures never leak internals: no stack, and a generic message for server errors.
+  const authError = res.locals.authenticationError;
+  let message = error.message || "Server Error";
+  if (authError && statusCode >= 500) message = "Server Error";
+
+  res.status(statusCode).json({
     success: false,
-    error: error.message || "Server Error",
-    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+    error: message,
+    ...(!authError && process.env.NODE_ENV === "development" && { stack: err.stack }),
   });
 };
 

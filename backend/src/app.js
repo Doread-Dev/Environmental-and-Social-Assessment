@@ -5,8 +5,12 @@ const morgan = require("morgan");
 const routes = require("./routes");
 const errorHandler = require("./middlewares/errorHandler");
 const { apiLimiter } = require("./middlewares/rateLimiter");
+const parseTrustProxy = require("./config/trustProxy");
 
 const app = express();
+
+// Needed behind a reverse proxy so req.ip (rate limits, logs) is the client, not the proxy.
+app.set("trust proxy", parseTrustProxy(process.env.TRUST_PROXY));
 
 // Security middleware
 app.use(helmet());

@@ -6,11 +6,10 @@ const createScreeningSchema = Joi.object({
   category_reason: Joi.string().required(),
   potential_negative: Joi.string().allow("", null),
   potential_positive: Joi.string().allow("", null),
-  approved_by: Joi.string().optional(),
   recommendations: Joi.string().allow("", null),
   screening_date: Joi.date().optional(),
-  status: Joi.string().valid("draft", "submitted", "approved", "rejected").optional(),
-  // officer is set automatically by the service, not from client (will be stripped by stripUnknown)
+  // status, officer, approved_by, reject_by, reject_reason are server-owned: set only by the
+  // submit/approve/reject endpoints, stripped from create/update bodies.
 });
 
 const updateScreeningSchema = createScreeningSchema.fork(

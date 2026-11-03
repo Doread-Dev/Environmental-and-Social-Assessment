@@ -1,13 +1,6 @@
 const mongoose = require("mongoose");
 
-const roles = [
-  "environmental_specialist",
-  "program_manager",
-  "project_manager",
-  "environmental_focal_point",
-  "viewer",
-];
-
+const { ROLES } = require("../config/roles");
 const bcrypt = require("bcryptjs");
 
 const userSchema = new mongoose.Schema(
@@ -16,7 +9,7 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true },
     job_title: { type: mongoose.Schema.Types.ObjectId, ref: "JobTitle" },
-    role: { type: String, enum: roles, default: "viewer" },
+    role: { type: String, enum: ROLES, default: "viewer" },
     is_active: { type: Boolean, default: true },
   },
   {

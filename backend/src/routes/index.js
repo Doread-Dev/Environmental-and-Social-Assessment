@@ -1,4 +1,5 @@
 const express = require("express");
+const { auth } = require("../middlewares/auth");
 
 const projectsRoutes = require("./projects.routes");
 const screeningsRoutes = require("./screenings.routes");
@@ -12,7 +13,12 @@ const usersRoutes = require("./users.routes");
 
 const router = express.Router();
 
+// /auth handles its own auth (login is public, register is protected).
 router.use("/auth", authRoutes);
+
+// Everything below requires a valid token of an active user (D3). Routers add requireRole().
+router.use(auth);
+
 router.use("/users", usersRoutes);
 router.use("/projects", projectsRoutes);
 router.use("/screenings", screeningsRoutes);

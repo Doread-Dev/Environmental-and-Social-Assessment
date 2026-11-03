@@ -6,46 +6,24 @@ const {
   updateMonitoringSchema,
   updateQuarterSchema,
 } = require("../validators/monitoring.validator");
-const { auth, requireRole } = require("../middlewares/auth");
+const { requireRole } = require("../middlewares/auth");
+const { EDITOR_ROLES } = require("../config/roles");
 
 const router = express.Router();
 
 router.get("/", controller.getAll);
 router.get("/project/:projectId", controller.getByProject);
 router.get("/:id", controller.getOne);
-router.post(
-  "/",
-  auth,
-  requireRole(
-    "environmental_specialist",
-    "program_manager",
-    "project_manager",
-    "environmental_focal_point"
-  ),
-  validate(createMonitoringSchema),
-  controller.create
-);
+router.post("/", requireRole(...EDITOR_ROLES), validate(createMonitoringSchema), controller.create);
 router.put(
   "/:id",
-  auth,
-  requireRole(
-    "environmental_specialist",
-    "program_manager",
-    "project_manager",
-    "environmental_focal_point"
-  ),
+  requireRole(...EDITOR_ROLES),
   validate(updateMonitoringSchema),
   controller.update
 );
 router.patch(
   "/:id/quarter/:q",
-  auth,
-  requireRole(
-    "environmental_specialist",
-    "program_manager",
-    "project_manager",
-    "environmental_focal_point"
-  ),
+  requireRole(...EDITOR_ROLES),
   validate(updateQuarterSchema),
   controller.updateQuarter
 );

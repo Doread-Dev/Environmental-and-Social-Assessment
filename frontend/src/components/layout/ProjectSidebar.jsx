@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { NavLink, useParams, useNavigate, useLocation } from 'react-router-dom'
 import { cn } from '@/utils'
-import { useTheme, useAuth, ROLE_LABELS, USER_ROLES } from '@/contexts'
+import { useTheme, useAuth, ROLE_LABELS } from '@/contexts'
 import { PROJECT_WORKFLOW_NAV, PROJECT_SECONDARY_NAV, ROUTES } from '@/routes/routes.config'
 import { Avatar, Tooltip } from '@/components/ui'
 
@@ -18,7 +18,7 @@ function ProjectSidebar({ project, className }) {
   const navigate = useNavigate()
   const location = useLocation()
   const { isDark, toggleTheme } = useTheme()
-  const { user, logout } = useAuth()
+  const { user, logout, canManageUsers } = useAuth()
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
@@ -26,8 +26,8 @@ function ProjectSidebar({ project, className }) {
   const userMenuItems = useMemo(() => {
     const items = []
 
-    // Settings - only for Environmental Specialist
-    if (user?.role === USER_ROLES.ENVIRONMENTAL_SPECIALIST) {
+    // Settings - only for Environmental Specialist / Admin
+    if (canManageUsers) {
       items.push({ id: 'settings', label: 'Settings', icon: 'settings' })
       items.push({ id: 'divider', type: 'divider' })
     }
@@ -37,7 +37,7 @@ function ProjectSidebar({ project, className }) {
     items.push({ id: 'logout', label: 'Sign Out', icon: 'logout' })
 
     return items
-  }, [user?.role])
+  }, [canManageUsers])
 
   // Get project data (use title or name, prefer title)
   const projectTitle = project?.title || project?.name || 'Unknown Project'

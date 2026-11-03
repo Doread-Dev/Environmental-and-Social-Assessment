@@ -314,11 +314,14 @@ export function UsersManagementSection() {
                     'focus:ring-primary focus:border-primary'
                   )}
                 >
-                  {Object.entries(ROLE_LABELS).map(([key, label]) => (
-                    <option key={key} value={key}>
-                      {label}
-                    </option>
-                  ))}
+                  {/* Admins are created with scripts/create-admin.js, not from here */}
+                  {Object.entries(ROLE_LABELS)
+                    .filter(([key]) => key !== USER_ROLES.ADMIN)
+                    .map(([key, label]) => (
+                      <option key={key} value={key}>
+                        {label}
+                      </option>
+                    ))}
                 </select>
               </div>
             </div>
@@ -450,7 +453,8 @@ export function UsersManagementSection() {
                       <Table.Cell>
                         <Badge
                           variant={
-                            user.role === USER_ROLES.ENVIRONMENTAL_SPECIALIST
+                            user.role === USER_ROLES.ENVIRONMENTAL_SPECIALIST ||
+                            user.role === USER_ROLES.ADMIN
                               ? 'success'
                               : user.role === USER_ROLES.PROGRAM_MANAGER
                                 ? 'info'

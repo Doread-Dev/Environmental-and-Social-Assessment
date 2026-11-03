@@ -1,32 +1,25 @@
 const Screening = require("../models/screening.model");
 const ApiError = require("../utils/ApiError");
+const assertSameProject = require("../utils/assertSameProject");
+const { applyTransition } = require("../utils/statusTransition");
 
-const listScreenings = async () =>
-  Screening.find().populate([
-    { path: "project" },
-    { path: "approved_by", populate: { path: "job_title" } },
-    { path: "reject_by", populate: { path: "job_title" } },
-    { path: "officer", populate: { path: "job_title" } },
-  ]);
+const POPULATE = [
+  { path: "project" },
+  { path: "approved_by", populate: { path: "job_title" } },
+  { path: "reject_by", populate: { path: "job_title" } },
+  { path: "officer", populate: { path: "job_title" } },
+];
+
+const listScreenings = async () => Screening.find().populate(POPULATE);
 
 const getScreening = async (id) => {
-  const screening = await Screening.findById(id).populate([
-    { path: "project" },
-    { path: "approved_by", populate: { path: "job_title" } },
-    { path: "reject_by", populate: { path: "job_title" } },
-    { path: "officer", populate: { path: "job_title" } },
-  ]);
+  const screening = await Screening.findById(id).populate(POPULATE);
   if (!screening) throw new ApiError(404, "Screening not found");
   return screening;
 };
 
 const getByProject = async (projectId) => {
-  const screening = await Screening.findOne({ project: projectId }).populate([
-    { path: "project" },
-    { path: "approved_by", populate: { path: "job_title" } },
-    { path: "reject_by", populate: { path: "job_title" } },
-    { path: "officer", populate: { path: "job_title" } },
-  ]);
+  const screening = await Screening.findOne({ project: projectId }).populate(POPULATE);
   if (!screening) throw new ApiError(404, "Screening not found for project");
   return screening;
 };
@@ -37,79 +30,39 @@ const createScreening = async (payload, createdBy) => {
     screeningData.officer = createdBy;
   }
   const created = await Screening.create(screeningData);
-  return Screening.findById(created._id).populate([
-    { path: "project" },
-    { path: "approved_by", populate: { path: "job_title" } },
-    { path: "reject_by", populate: { path: "job_title" } },
-    { path: "officer", populate: { path: "job_title" } },
-  ]);
+  return Screening.findById(created._id).populate(POPULATE);
 };
 
 const updateScreening = async (id, payload, updatedBy) => {
-  // إذا كان status يتغير إلى submitted أو لم يكن officer موجوداً، نحدّث officer
   const screening = await Screening.findById(id);
   if (!screening) throw new ApiError(404, "Screening not found");
+  assertSameProject(screening, payload);
 
   const updateData = { ...payload };
-
-  // إذا تغير status إلى submitted أو لم يكن officer موجوداً، نحدّث officer
-  if (updatedBy && (payload.status === "submitted" || !screening.officer)) {
+  if (updatedBy && !screening.officer) {
     updateData.officer = updatedBy;
   }
 
   const updated = await Screening.findByIdAndUpdate(id, updateData, {
     new: true,
     runValidators: true,
-  }).populate([
-    { path: "project" },
-    { path: "approved_by", populate: { path: "job_title" } },
-    { path: "reject_by", populate: { path: "job_title" } },
-    { path: "officer", populate: { path: "job_title" } },
-  ]);
+  }).populate(POPULATE);
   if (!updated) throw new ApiError(404, "Screening not found");
   return updated;
 };
 
-const setStatus = async (id, status, approvedBy, recommendations = null, rejectReason = null) => {
-  const updateData = {
-    status,
-  };
-
-  // في حالة الموافقة: تسجيل approved_by و recommendations
-  if (status === "approved") {
-    updateData.approved_by = approvedBy;
-    if (recommendations) {
-      updateData.recommendations = recommendations;
-    }
-  }
-
-  // في حالة الرفض: تسجيل reject_by و reject_reason فقط
-  if (status === "rejected") {
-    updateData.reject_by = approvedBy;
-    updateData.reject_reason = rejectReason ?? "";
-  }
-
-  const updated = await Screening.findByIdAndUpdate(id, updateData, {
-    new: true,
-    runValidators: true,
-  }).populate([
-    { path: "project" },
-    { path: "approved_by", populate: { path: "job_title" } },
-    { path: "reject_by", populate: { path: "job_title" } },
-    { path: "officer", populate: { path: "job_title" } },
-  ]);
-
-  if (!updated) throw new ApiError(404, "Screening not found");
-  return updated;
+const transition = async (id, action, userId, options) => {
+  const updated = await applyTransition(Screening, id, action, userId, options);
+  return updated.populate(POPULATE);
 };
 
-const approveScreening = async (id, approvedBy, recommendations) => {
-  return setStatus(id, "approved", approvedBy, recommendations, null);
-};
+const submitScreening = async (id, submittedBy) => transition(id, "submit", submittedBy);
 
-const rejectScreening = async (id, rejectBy, rejectReason = null) => {
-  return setStatus(id, "rejected", rejectBy, null, rejectReason);
-};
+const approveScreening = async (id, approvedBy, recommendations) =>
+  transition(id, "approve", approvedBy, { recommendations });
+
+const rejectScreening = async (id, rejectBy, rejectReason = null) =>
+  transition(id, "reject", rejectBy, { rejectReason });
 
 module.exports = {
   listScreenings,
@@ -117,7 +70,7 @@ module.exports = {
   getByProject,
   createScreening,
   updateScreening,
-  setStatus,
+  submitScreening,
   approveScreening,
   rejectScreening,
 };

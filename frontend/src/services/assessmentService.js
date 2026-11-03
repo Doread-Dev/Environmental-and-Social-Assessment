@@ -166,6 +166,16 @@ export const assessmentService = {
   },
 
   /**
+   * Submit an assessment for approval (draft|rejected → submitted)
+   * @param {string} assessmentId
+   * @returns {Promise<Object>}
+   */
+  async submit(assessmentId) {
+    const response = await api.patch(`/assessments/${assessmentId}/submit`)
+    return response.data.data
+  },
+
+  /**
    * Approve assessment
    * @param {string} assessmentId
    * @param {string|null} recommendations

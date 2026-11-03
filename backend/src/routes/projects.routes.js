@@ -2,36 +2,15 @@ const express = require("express");
 const controller = require("../controllers/project.controller");
 const validate = require("../middlewares/validate");
 const { createProjectSchema, updateProjectSchema } = require("../validators/project.validator");
-const { auth, requireRole } = require("../middlewares/auth");
+const { requireRole } = require("../middlewares/auth");
+const { EDITOR_ROLES, SPECIALIST_ROLES } = require("../config/roles");
 
 const router = express.Router();
 
 router.get("/", controller.getAll);
 router.get("/:id", controller.getOne);
-router.post(
-  "/",
-  auth,
-  requireRole(
-    "environmental_specialist",
-    "program_manager",
-    "project_manager",
-    "environmental_focal_point"
-  ),
-  validate(createProjectSchema),
-  controller.create
-);
-router.put(
-  "/:id",
-  auth,
-  requireRole(
-    "environmental_specialist",
-    "program_manager",
-    "project_manager",
-    "environmental_focal_point"
-  ),
-  validate(updateProjectSchema),
-  controller.update
-);
-router.delete("/:id", auth, requireRole("environmental_specialist"), controller.remove);
+router.post("/", requireRole(...EDITOR_ROLES), validate(createProjectSchema), controller.create);
+router.put("/:id", requireRole(...EDITOR_ROLES), validate(updateProjectSchema), controller.update);
+router.delete("/:id", requireRole(...SPECIALIST_ROLES), controller.remove);
 
 module.exports = router;

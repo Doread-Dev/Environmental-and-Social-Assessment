@@ -10,6 +10,7 @@ import { extractErrorMessage } from '@/services/api'
  * User roles constant for permission checks
  */
 export const USER_ROLES = {
+  ADMIN: 'admin',
   ENVIRONMENTAL_SPECIALIST: 'environmental_specialist',
   PROGRAM_MANAGER: 'program_manager',
   PROJECT_MANAGER: 'project_manager',
@@ -27,12 +28,19 @@ const ROLE_HIERARCHY = [
   USER_ROLES.PROJECT_MANAGER,
   USER_ROLES.PROGRAM_MANAGER,
   USER_ROLES.ENVIRONMENTAL_SPECIALIST,
+  USER_ROLES.ADMIN,
 ]
+
+/**
+ * Roles that pass the backend's specialist checks (approve/reject, delete project, users)
+ */
+const SPECIALIST_ROLES = [USER_ROLES.ADMIN, USER_ROLES.ENVIRONMENTAL_SPECIALIST]
 
 /**
  * Role display names
  */
 export const ROLE_LABELS = {
+  admin: 'Administrator',
   environmental_specialist: 'Environmental Specialist',
   program_manager: 'Program Manager',
   project_manager: 'Project Manager',
@@ -173,10 +181,11 @@ export function AuthProvider({ children }) {
 
   /**
    * Permission helper: Can user edit/create content?
-   * Backend allows: env_spec, program_mgr, project_mgr, environmental_focal_point for create/update.
+   * Backend EDITOR_ROLES: admin, env_spec, program_mgr, project_mgr, environmental_focal_point.
    */
   const canEdit = useMemo(() => {
     return hasAnyRole([
+      USER_ROLES.ADMIN,
       USER_ROLES.ENVIRONMENTAL_SPECIALIST,
       USER_ROLES.PROGRAM_MANAGER,
       USER_ROLES.PROJECT_MANAGER,
@@ -186,18 +195,19 @@ export function AuthProvider({ children }) {
 
   /**
    * Permission helper: Can user approve/reject submissions?
-   * Backend allows environmental_specialist only for approve/reject.
+   * Backend SPECIALIST_ROLES (admin + environmental_specialist) for approve/reject.
    */
   const canApprove = useMemo(() => {
-    return hasRole(USER_ROLES.ENVIRONMENTAL_SPECIALIST)
-  }, [hasRole])
+    return hasAnyRole(SPECIALIST_ROLES)
+  }, [hasAnyRole])
 
   /**
-   * Permission helper: Can user manage users (create/edit)?
+   * Permission helper: Can user manage users (create/edit) and open Settings?
+   * Specialist keeps this until phase 6 moves user management to admin only.
    */
   const canManageUsers = useMemo(() => {
-    return hasRole(USER_ROLES.ENVIRONMENTAL_SPECIALIST)
-  }, [hasRole])
+    return hasAnyRole(SPECIALIST_ROLES)
+  }, [hasAnyRole])
 
   /**
    * Permission helper: Can user list users (GET /users)?
@@ -207,17 +217,18 @@ export function AuthProvider({ children }) {
 
   /**
    * Permission helper: Can user delete a project?
-   * Backend allows environmental_specialist only for DELETE /projects.
+   * Backend SPECIALIST_ROLES for DELETE /projects.
    */
   const canDeleteProject = useMemo(() => {
-    return hasRole(USER_ROLES.ENVIRONMENTAL_SPECIALIST)
-  }, [hasRole])
+    return hasAnyRole(SPECIALIST_ROLES)
+  }, [hasAnyRole])
 
   /**
    * Permission helper: Can user update monitoring data?
    */
   const canUpdateMonitoring = useMemo(() => {
     return hasAnyRole([
+      USER_ROLES.ADMIN,
       USER_ROLES.ENVIRONMENTAL_SPECIALIST,
       USER_ROLES.PROGRAM_MANAGER,
       USER_ROLES.PROJECT_MANAGER,

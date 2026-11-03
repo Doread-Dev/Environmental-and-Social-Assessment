@@ -8,10 +8,9 @@ const createAssessmentSchema = Joi.object({
   legal_requirements: Joi.string().allow("", null),
   potential_negative_impact: Joi.string().allow("", null),
   potential_positive_impact: Joi.string().allow("", null),
-  approved_by: Joi.string().optional(),
   recommendations: Joi.string().allow("", null),
-  status: Joi.string().valid("draft", "submitted", "approved", "rejected").optional(),
-  // officer is set automatically by the service, not from client (will be stripped by stripUnknown)
+  // status, officer, approved_by, reject_by, reject_reason and the calculated totals are
+  // server-owned: stripped from create/update bodies.
 });
 
 const updateAssessmentSchema = createAssessmentSchema.fork(

@@ -73,6 +73,11 @@ exports.calculate = asyncHandler(async (req, res) => {
   res.json({ success: true, data });
 });
 
+exports.submit = asyncHandler(async (req, res) => {
+  const data = await service.submitAssessment(req.params.id, req.user._id);
+  res.json({ success: true, data });
+});
+
 exports.approve = asyncHandler(async (req, res) => {
   const { recommendations } = req.body || {};
   const approvedBy = req.user._id;

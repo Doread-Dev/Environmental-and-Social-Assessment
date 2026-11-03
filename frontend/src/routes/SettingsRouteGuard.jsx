@@ -1,14 +1,14 @@
 import { Navigate, Outlet, useLocation, useOutletContext } from 'react-router-dom'
-import { useAuth, USER_ROLES } from '@/contexts'
+import { useAuth } from '@/contexts'
 
 /**
  * SettingsRouteGuard
- * Guards Settings routes - only Environmental Specialist can access
+ * Guards Settings routes - only Environmental Specialist / Admin can access
  */
 function SettingsRouteGuard() {
   const location = useLocation()
   const outletContext = useOutletContext()
-  const { user, isLoading } = useAuth()
+  const { user, isLoading, canManageUsers } = useAuth()
 
   if (isLoading) {
     return (
@@ -23,8 +23,8 @@ function SettingsRouteGuard() {
     )
   }
 
-  // Only Environmental Specialist can access settings
-  if (!user || user.role !== USER_ROLES.ENVIRONMENTAL_SPECIALIST) {
+  // Only Environmental Specialist / Admin can access settings
+  if (!user || !canManageUsers) {
     return <Navigate to="/app/dashboard" replace state={{ from: location }} />
   }
 

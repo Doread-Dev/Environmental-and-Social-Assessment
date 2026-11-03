@@ -1,5 +1,6 @@
 const MitigationPlan = require("../models/mitigationPlan.model");
 const ApiError = require("../utils/ApiError");
+const assertSameProject = require("../utils/assertSameProject");
 
 const listByProject = async (projectId) =>
   MitigationPlan.find({ project: projectId })
@@ -9,6 +10,10 @@ const listByProject = async (projectId) =>
 const createPlan = async (payload) => MitigationPlan.create(payload);
 
 const updatePlan = async (id, payload) => {
+  const existing = await MitigationPlan.findById(id);
+  if (!existing) throw new ApiError(404, "Mitigation plan item not found");
+  assertSameProject(existing, payload);
+
   const updated = await MitigationPlan.findByIdAndUpdate(id, payload, {
     new: true,
     runValidators: true,

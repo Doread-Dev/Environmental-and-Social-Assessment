@@ -49,11 +49,15 @@
 - Login page: no change yet (phase 8).
 
 ## Done when
-- [ ] All tests above pass; frontend flows (create → submit → approve) still work in the browser.
-- [ ] `CLAUDE.md` updated: auth on all routes, transitions, admin role, CLI scripts.
-- [ ] Demo seed uses the transition endpoints and an admin/specialist account.
+- [x] All tests above pass; frontend flows (create → submit → approve) still work in the browser (screening checked in the UI; assessment submit covered by tests + demo seed).
+- [x] `CLAUDE.md` updated: auth on all routes, transitions, admin role, CLI scripts.
+- [x] Demo seed uses the transition endpoints and an admin/specialist account.
 
 ## Out of scope
 User management UI and password change (phase 6), workflow order (phase 3).
 
 ## Found during phase
+
+- `POST /auth/register` returns a **token of the newly created user** to the specialist/admin who called it. Not needed by the UI; drop it when user management moves to admin (phase 6).
+- `recommendations` is still accepted in screening/assessment create/PUT bodies from any editor, although it is the approver's field (also set on approve). Left as is; decide with the locking rules in phase 3 (D13).
+- `express-rate-limit` is on 7.x; 8.x adds `ipKeyGenerator` (groups IPv6 addresses by subnet for the IP fallback key). Worth upgrading with the dependency refresh.

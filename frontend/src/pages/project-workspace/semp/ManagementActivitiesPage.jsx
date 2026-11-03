@@ -5,9 +5,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom'
-import { useSemp } from '@/hooks/useSemp'
+import { useManagementActivities } from '@/hooks/useSemp'
 import { ManagementActivitiesTable } from '@/components/semp'
-import { useLookups, useAuth } from '@/contexts'
+import { useUsers } from '@/hooks'
 import { cn } from '@/utils/cn'
 import { useToast } from '@/components/ui'
 
@@ -16,20 +16,21 @@ export default function ManagementActivitiesPage() {
   const navigate = useNavigate()
   const toast = useToast()
   const outletContext = useOutletContext()
+  // From SempFullWidthLayout (workspace query)
   const project = outletContext?.project || null
-  const { activeUsers } = useLookups()
-  const { canEdit } = useAuth()
+  const canEdit = outletContext?.can?.('semp.edit') ?? false
+  const { activeUsers } = useUsers()
 
   const {
-    managementActivities,
+    rows: managementActivities,
     isLoading,
     isSaving,
     error,
-    addManagementActivity,
-    updateManagementActivity,
-    deleteManagementActivity,
-    saveManagementActivities,
-  } = useSemp(projectId)
+    addRow: addManagementActivity,
+    updateRow: updateManagementActivity,
+    deleteRow: deleteManagementActivity,
+    saveRows: saveManagementActivities,
+  } = useManagementActivities(projectId)
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [justSaved, setJustSaved] = useState(false)
@@ -37,7 +38,7 @@ export default function ManagementActivitiesPage() {
 
   // Auto-create first row if empty on load
   useEffect(() => {
-    if (!isLoading && managementActivities.length === 0 && !hasInitialized.current) {
+    if (!isLoading && canEdit && managementActivities.length === 0 && !hasInitialized.current) {
       addManagementActivity()
       hasInitialized.current = true
       // We don't set hasUnsavedChanges here to avoid prompting if user leaves immediately
@@ -45,7 +46,7 @@ export default function ManagementActivitiesPage() {
     } else if (!isLoading && managementActivities.length > 0) {
       hasInitialized.current = true
     }
-  }, [isLoading, managementActivities, addManagementActivity])
+  }, [isLoading, canEdit, managementActivities, addManagementActivity])
 
   // Handle export event from SempFullWidthLayout
   useEffect(() => {
@@ -54,19 +55,7 @@ export default function ManagementActivitiesPage() {
     const handleExportEvent = async (event) => {
       if (event.detail?.toolType === 'tool3') {
         try {
-          // Get project from outlet context or load it
-          let exportProject = project
-          if (!exportProject && projectId) {
-            // Try to load project if not available from context
-            const { projectService } = await import('@/services')
-            try {
-              exportProject = await projectService.getById(projectId)
-            } catch (err) {
-              console.warn('Failed to load project, using fallback:', err)
-              exportProject = { _id: projectId, title: 'Unknown Project' }
-            }
-          }
-
+          const exportProject = project
           if (!exportProject) {
             throw new Error('Project data is not available')
           }
@@ -195,25 +184,27 @@ export default function ManagementActivitiesPage() {
             <span>Back</span>
           </button>
 
-          <button
-            onClick={handleSave}
-            disabled={isSaving || (justSaved && !hasUnsavedChanges)} // Disable if already saved to prevent double submitting without changes? Or keep enabled? User said "stays as Saved", implied purely feedback. I'll keep enabled or follow standard UX. Disable on Saved is good UX.
-            className={cn(
-              'flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-5 gap-2 text-sm font-bold leading-normal tracking-[0.015em] shadow-md transition-all transform ',
-              isSaving
-                ? 'bg-primary/70 cursor-wait'
-                : justSaved && !hasUnsavedChanges
-                  ? 'bg-green-600 hover:bg-green-700 text-white border border-transparent'
-                  : 'bg-primary hover:bg-green-500 text-primary-content'
-            )}
-          >
-            {saveBtn.spinner ? (
-              <span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <span className="material-symbols-outlined text-lg">{saveBtn.icon}</span>
-            )}
-            <span className="truncate">{saveBtn.text}</span>
-          </button>
+          {canEdit && (
+            <button
+              onClick={handleSave}
+              disabled={isSaving || (justSaved && !hasUnsavedChanges)} // Disable if already saved to prevent double submitting without changes? Or keep enabled? User said "stays as Saved", implied purely feedback. I'll keep enabled or follow standard UX. Disable on Saved is good UX.
+              className={cn(
+                'flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-5 gap-2 text-sm font-bold leading-normal tracking-[0.015em] shadow-md transition-all transform ',
+                isSaving
+                  ? 'bg-primary/70 cursor-wait'
+                  : justSaved && !hasUnsavedChanges
+                    ? 'bg-green-600 hover:bg-green-700 text-white border border-transparent'
+                    : 'bg-primary hover:bg-green-500 text-primary-content'
+              )}
+            >
+              {saveBtn.spinner ? (
+                <span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <span className="material-symbols-outlined text-lg">{saveBtn.icon}</span>
+              )}
+              <span className="truncate">{saveBtn.text}</span>
+            </button>
+          )}
         </div>
       </div>
 

@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import request from "supertest";
-import { app, mongoose } from "./helpers/app.js";
+import { app, require } from "./helpers/app.js";
 import { createProject, loginAs } from "./helpers/fixtures.js";
 
-// Every project-owned record that has an update endpoint (D58).
+const ManagementActivity = require("../../src/models/managementActivity.model");
+
+// Every project-owned record that has its own update endpoint (D58). Tools 3–5 are saved per
+// project (PUT /projects/:id/...), so their rows take the project from the URL (below).
 const kinds = [
   {
     name: "screening",
@@ -16,24 +19,6 @@ const kinds = [
     stage: "screening_approved",
     base: "/api/v1/assessments",
     body: { project_activity: "Pipes", description: "Replace pipes" },
-  },
-  {
-    name: "management activity",
-    stage: "assessment_approved",
-    base: "/api/v1/management",
-    body: { activity_description: "Dig" },
-  },
-  {
-    name: "mitigation plan",
-    stage: "assessment_approved",
-    base: "/api/v1/mitigation",
-    body: { output_description: "Network" },
-  },
-  {
-    name: "monitoring record",
-    stage: "semp_complete",
-    base: "/api/v1/monitoring",
-    body: { indicator: new mongoose.Types.ObjectId().toString() },
   },
 ];
 
@@ -72,5 +57,22 @@ describe.each(kinds)("PUT $name", ({ base, stage, body }) => {
 
     expect(res.status).toBe(200);
     expect(String(res.body.data.project._id ?? res.body.data.project)).toBe(project._id.toString());
+  });
+});
+
+describe("bulk saves take the project from the URL (D32, D58)", () => {
+  it("ignores a project id sent in a row", async () => {
+    const { token } = await loginAs("project_manager");
+    const project = await createProject({ stage: "assessment_approved", title: "Own" });
+    const other = await createProject({ stage: "assessment_approved", title: "Other" });
+
+    const res = await request(app)
+      .put(`/api/v1/projects/${project._id}/management`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ rows: [{ project: other._id.toString(), activity_description: "Dig" }] });
+
+    expect(res.status).toBe(200);
+    expect(await ManagementActivity.countDocuments({ project: project._id })).toBe(1);
+    expect(await ManagementActivity.countDocuments({ project: other._id })).toBe(0);
   });
 });

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { useScreening } from './useScreening'
 import { screeningService } from '@/services'
-import { WORKFLOW_CHANGED_EVENT } from '@/utils/workflowEvents'
+import { withQueryClient } from '@/test/utils'
 
 vi.mock('@/services', () => ({
   screeningService: {
@@ -18,13 +18,38 @@ const form = { category_code: 'B', category_reason: 'Urban works' }
 
 async function renderLoaded(existing) {
   screeningService.getByProject.mockResolvedValue(existing)
-  const hook = renderHook(() => useScreening('p1'))
+  const { wrapper, queryClient } = withQueryClient()
+  const invalidate = vi.spyOn(queryClient, 'invalidateQueries')
+  const hook = renderHook(() => useScreening('p1'), { wrapper })
   await waitFor(() => expect(hook.result.current.isLoading).toBe(false))
-  return hook
+  return { ...hook, invalidate }
 }
+
+const invalidatedKeys = (invalidate) => invalidate.mock.calls.map(([{ queryKey }]) => queryKey)
 
 describe('useScreening', () => {
   beforeEach(() => vi.clearAllMocks())
+
+  it('loads: loading, then the screening (null = not started)', async () => {
+    screeningService.getByProject.mockResolvedValue(null)
+    const { wrapper } = withQueryClient()
+    const { result } = renderHook(() => useScreening('p1'), { wrapper })
+
+    expect(result.current.isLoading).toBe(true)
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.screening).toBeNull()
+    expect(result.current.error).toBeNull()
+  })
+
+  it('shows the backend message when loading fails', async () => {
+    screeningService.getByProject.mockRejectedValue({
+      response: { status: 500, data: { error: 'Server Error' } },
+    })
+    const { wrapper } = withQueryClient()
+    const { result } = renderHook(() => useScreening('p1'), { wrapper })
+
+    await waitFor(() => expect(result.current.error).toBe('Server Error'))
+  })
 
   it('saveDraft sends no status (the server owns it)', async () => {
     screeningService.create.mockResolvedValue({ _id: 's1', status: 'draft' })
@@ -33,6 +58,20 @@ describe('useScreening', () => {
     await act(() => result.current.saveDraft(form))
 
     expect(screeningService.create).toHaveBeenCalledWith({ project: 'p1', ...form })
+    expect(result.current.screening).toEqual({ _id: 's1', status: 'draft' })
+  })
+
+  it('saveDraft of a new screening needs a category and a reason (no request)', async () => {
+    const { result } = await renderLoaded(null)
+
+    let outcome
+    await act(async () => {
+      outcome = await result.current.saveDraft({ category_code: 'B' })
+    })
+
+    expect(outcome.success).toBe(false)
+    expect(result.current.error).toMatch(/category/)
+    expect(screeningService.create).not.toHaveBeenCalled()
   })
 
   it('submit creates the screening, then calls the submit endpoint', async () => {
@@ -62,28 +101,39 @@ describe('useScreening', () => {
     expect(screeningService.submit).toHaveBeenCalledWith('s1')
   })
 
-  it('announces approve so the sidebar unlocks the assessment', async () => {
+  it('approve refreshes the workspace, project list and dashboard (sidebar unlocks Tool 2)', async () => {
     screeningService.approve.mockResolvedValue({ _id: 's1', status: 'approved' })
-    const { result } = await renderLoaded({ _id: 's1', status: 'submitted' })
-    const listener = vi.fn()
-    window.addEventListener(WORKFLOW_CHANGED_EVENT, listener)
+    const { result, invalidate } = await renderLoaded({ _id: 's1', status: 'submitted' })
 
     await act(() => result.current.approve('Go ahead'))
 
-    window.removeEventListener(WORKFLOW_CHANGED_EVENT, listener)
-    expect(listener).toHaveBeenCalledTimes(1)
-    expect(listener.mock.calls[0][0].detail).toEqual({ projectId: 'p1' })
+    expect(screeningService.approve).toHaveBeenCalledWith('s1', 'Go ahead')
+    expect(invalidatedKeys(invalidate)).toEqual([['workspace', 'p1'], ['projects'], ['dashboard']])
+    expect(result.current.screening.status).toBe('approved')
   })
 
-  it('does not announce a failed request', async () => {
-    screeningService.approve.mockRejectedValue({ response: { status: 409, data: {} } })
-    const { result } = await renderLoaded({ _id: 's1', status: 'submitted' })
-    const listener = vi.fn()
-    window.addEventListener(WORKFLOW_CHANGED_EVENT, listener)
+  it('a failed request refreshes nothing and returns the backend message', async () => {
+    screeningService.approve.mockRejectedValue({
+      response: { status: 409, data: { error: 'Only a submitted screening can be approved' } },
+    })
+    const { result, invalidate } = await renderLoaded({ _id: 's1', status: 'submitted' })
 
-    await act(() => result.current.approve('Go ahead'))
+    let outcome
+    await act(async () => {
+      outcome = await result.current.approve('Go ahead')
+    })
 
-    window.removeEventListener(WORKFLOW_CHANGED_EVENT, listener)
-    expect(listener).not.toHaveBeenCalled()
+    expect(invalidate).not.toHaveBeenCalled()
+    expect(outcome).toEqual({ success: false, error: 'Only a submitted screening can be approved' })
+    expect(result.current.error).toBe('Only a submitted screening can be approved')
+  })
+
+  it('two users of the hook at the same time share one request', async () => {
+    screeningService.getByProject.mockResolvedValue({ _id: 's1', status: 'draft' })
+    const { wrapper } = withQueryClient()
+    const { result } = renderHook(() => [useScreening('p1'), useScreening('p1')], { wrapper })
+
+    await waitFor(() => expect(result.current[1].isLoading).toBe(false))
+    expect(screeningService.getByProject).toHaveBeenCalledTimes(1)
   })
 })

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { NavLink, useParams, useNavigate, useLocation } from 'react-router-dom'
 import { cn } from '@/utils'
+import { isStepDone, isStepLocked as isWorkflowStepLocked } from '@/utils/workflowSteps'
 import { useTheme, useAuth, ROLE_LABELS } from '@/contexts'
 import { PROJECT_WORKFLOW_NAV, PROJECT_SECONDARY_NAV, ROUTES } from '@/routes/routes.config'
 import { Avatar, Tooltip } from '@/components/ui'
@@ -70,38 +71,13 @@ function ProjectSidebar({ project, className }) {
   // Auto-expand items with active children (no manual toggle needed)
   // Expansion happens automatically when a child is active
 
-  const getStepStatus = (stepId) => project?.workflow?.[stepId]?.status
+  // Step state comes from the backend workflow (D30)
+  const isStepCompleted = (stepId) => isStepDone(project?.workflow, stepId)
 
-  const isApproved = (status) => status === 'approved'
-  const isCompleted = (status) => status === 'completed'
-
-  // Check if a step is completed
-  const isStepCompleted = (stepId) => {
-    const status = getStepStatus(stepId)
-    return isApproved(status) || isCompleted(status)
-  }
-
-  // Step Locking Logic (Sequential Tools)
-  // Screening → Assessment → SEMP → Monitoring
+  // Screening → Assessment → SEMP → Monitoring: the backend marks steps not open yet as locked
   const isStepLocked = (stepId) => {
     if (!project) return stepId !== 'overview'
-
-    const screeningApproved = isApproved(getStepStatus('screening'))
-    const assessmentApproved = isApproved(getStepStatus('assessment'))
-    const sempCompleted = isCompleted(getStepStatus('semp'))
-
-    switch (stepId) {
-      case 'screening':
-        return false
-      case 'assessment':
-        return !screeningApproved
-      case 'semp':
-        return !screeningApproved || !assessmentApproved
-      case 'monitoring':
-        return !screeningApproved || !assessmentApproved || !sempCompleted
-      default:
-        return false
-    }
+    return isWorkflowStepLocked(project.workflow, stepId)
   }
 
   // Render expandable nav item

@@ -10,33 +10,23 @@ import {
   AssessmentStartCard,
   ProjectContextCard,
 } from '@/components/assessment'
+import { getStepStatus, isStepDone } from '@/utils/workflowSteps'
 
 /**
- * تحديد حالة التقييم
+ * Gateway state from the backend step status (locked until the screening is approved)
  */
-function getAssessmentStatus(assessment, screening) {
-  // لا يمكن بدء التقييم إذا لم يُعتمد الفرز
-  if (screening?.status !== 'approved') {
-    return 'locked'
-  }
-
-  if (!assessment || !assessment._id) {
-    return 'not_started'
-  }
-
-  if (assessment.status === 'approved') {
-    return 'completed'
-  }
-
+function getGatewayStatus(stepStatus) {
+  if (stepStatus === 'locked' || stepStatus === 'not_started') return stepStatus
+  if (stepStatus === 'approved') return 'completed'
   return 'in_progress'
 }
 
 export default function AssessmentGatewayPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
-  const { project } = useProjectContext()
+  const { project, workflow, can } = useProjectContext()
   const { screening, isLoading: screeningLoading } = useScreening(projectId)
-  const { assessment, isLoading: assessmentLoading, startAssessment } = useAssessment(projectId)
+  const { isLoading: assessmentLoading, startAssessment } = useAssessment(projectId)
 
   const isLoading = screeningLoading || assessmentLoading
 
@@ -51,7 +41,7 @@ export default function AssessmentGatewayPage() {
     )
   }
 
-  const status = getAssessmentStatus(assessment, screening)
+  const status = getGatewayStatus(getStepStatus(workflow, 'assessment'))
 
   // إذا كان التقييم مقفل (Screening غير معتمد)
   if (status === 'locked') {
@@ -104,7 +94,7 @@ export default function AssessmentGatewayPage() {
           </div>
           <AssessmentProgressIndicator
             currentStep={2}
-            screeningComplete={screening?.status === 'approved'}
+            screeningComplete={isStepDone(workflow, 'screening')}
           />
         </div>
       </div>
@@ -123,6 +113,7 @@ export default function AssessmentGatewayPage() {
             }
             onStart={handleStart}
             onContinue={handleContinue}
+            canStart={can('assessment.create')}
           />
         </div>
 

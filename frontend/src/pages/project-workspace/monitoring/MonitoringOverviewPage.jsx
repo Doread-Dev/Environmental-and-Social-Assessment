@@ -6,8 +6,11 @@
 
 import { useNavigate, useParams } from 'react-router-dom'
 import { MonitoringCategoryCard, MonitoringProgressTimeline } from '@/components/monitoring'
-import { useMonitoring, useAssessment, useScreening, useProjectContext } from '@/hooks'
-import { useLookups } from '@/contexts'
+import { useQueryClient } from '@tanstack/react-query'
+import { useMonitoring, useProjectContext } from '@/hooks'
+import { assessmentQuery } from '@/hooks/useAssessment'
+import { isStepLocked } from '@/utils/workflowSteps'
+import { useLookups } from '@/hooks'
 import { useToast } from '@/components/ui'
 
 export default function MonitoringOverviewPage() {
@@ -16,14 +19,12 @@ export default function MonitoringOverviewPage() {
   const toast = useToast()
   const { isLoading: lookupsLoading, categoriesWithIndicators, IMPACT_LEVEL_CONFIG } = useLookups()
   const { getAllCategoryStats, getCategoryData, isLoading, records } = useMonitoring(projectId)
-  const { assessment, isLoading: isAssessmentLoading } = useAssessment(projectId)
-  const { screening } = useScreening(projectId)
-  const { project } = useProjectContext()
+  const queryClient = useQueryClient()
+  // Lock and permissions from the backend workflow (workspace, D30/D35)
+  const { project, workflow, can } = useProjectContext()
+  const isLocked = isStepLocked(workflow, 'monitoring')
 
-  const isApproved = assessment?.status === 'approved'
-  const isLocked = !isApproved
-
-  if (isLoading || isAssessmentLoading || lookupsLoading) {
+  if (isLoading || lookupsLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4">
@@ -71,31 +72,37 @@ export default function MonitoringOverviewPage() {
               <span className="material-symbols-outlined text-base">add_circle</span>
               Enter / Edit Data
             </button>
-            <button
-              type="button"
-              onClick={async () => {
-                try {
-                  const { exportMonitoringToExcel } = await import('@/utils/excelExport')
-                  await exportMonitoringToExcel(
-                    project,
-                    screening,
-                    assessment,
-                    records,
-                    categoriesWithIndicators,
-                    IMPACT_LEVEL_CONFIG
-                  )
-                  toast.success('Excel file downloaded successfully!')
-                } catch (error) {
-                  console.error('Export error:', error)
-                  toast.error('Failed to export Excel file')
-                }
-              }}
-              disabled={isLocked}
-              className="flex items-center justify-center gap-2 h-10 px-6 rounded-lg border border-primary text-primary hover:bg-primary/10 dark:hover:bg-primary/20 font-bold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span className="material-symbols-outlined text-base">download</span>
-              Export Excel
-            </button>
+            {can('export') && (
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    const { exportMonitoringToExcel } = await import('@/utils/excelExport')
+                    // Full assessment (officer) loaded on export only, then cached
+                    const { assessment } = await queryClient.ensureQueryData(
+                      assessmentQuery(projectId)
+                    )
+                    await exportMonitoringToExcel(
+                      project,
+                      project.screening,
+                      assessment,
+                      records,
+                      categoriesWithIndicators,
+                      IMPACT_LEVEL_CONFIG
+                    )
+                    toast.success('Excel file downloaded successfully!')
+                  } catch (error) {
+                    console.error('Export error:', error)
+                    toast.error('Failed to export Excel file')
+                  }
+                }}
+                disabled={isLocked}
+                className="flex items-center justify-center gap-2 h-10 px-6 rounded-lg border border-primary text-primary hover:bg-primary/10 dark:hover:bg-primary/20 font-bold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span className="material-symbols-outlined text-base">download</span>
+                Export Excel
+              </button>
+            )}
           </div>
         </div>
 

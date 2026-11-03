@@ -4,9 +4,7 @@ const validate = require("../middlewares/validate");
 const {
   createAssessmentSchema,
   updateAssessmentSchema,
-  addMethodSchema,
   replaceMethodsSchema,
-  addConsultationSchema,
   replaceConsultationsSchema,
   addScoresSchema,
   approveAssessmentSchema,
@@ -17,7 +15,6 @@ const { EDITOR_ROLES, SPECIALIST_ROLES } = require("../config/roles");
 
 const router = express.Router();
 
-router.get("/", controller.getAll);
 router.get("/:id", controller.getOne);
 router.get("/project/:projectId", controller.getByProject);
 router.post("/", requireRole(...EDITOR_ROLES), validate(createAssessmentSchema), controller.create);
@@ -27,24 +24,12 @@ router.put(
   validate(updateAssessmentSchema),
   controller.update
 );
-router.post(
-  "/:id/methods",
-  requireRole(...EDITOR_ROLES),
-  validate(addMethodSchema),
-  controller.addMethod
-);
 router.get("/:id/methods", controller.getMethods);
 router.put(
   "/:id/methods",
   requireRole(...EDITOR_ROLES),
   validate(replaceMethodsSchema),
   controller.replaceMethods
-);
-router.post(
-  "/:id/consultations",
-  requireRole(...EDITOR_ROLES),
-  validate(addConsultationSchema),
-  controller.addConsultation
 );
 router.get("/:id/consultations", controller.getConsultations);
 router.put(
@@ -60,7 +45,6 @@ router.post(
   controller.addScores
 );
 router.get("/:id/scores", controller.getScores);
-router.patch("/:id/calculate", requireRole(...EDITOR_ROLES), controller.calculate);
 router.patch("/:id/submit", requireRole(...EDITOR_ROLES), controller.submit);
 router.patch(
   "/:id/approve",

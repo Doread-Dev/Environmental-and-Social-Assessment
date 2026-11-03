@@ -3,36 +3,16 @@
  * Layout for SEMP tools (Tool 3 & 4) that require full page width without sidebar
  */
 
-import { useState, useEffect } from 'react'
 import { Outlet, useParams, useNavigate } from 'react-router-dom'
-import { projectService } from '@/services'
-import { useAssessment } from '@/hooks'
+import { useWorkspace } from '@/hooks'
+import { isStepLocked } from '@/utils/workflowSteps'
 
 export default function SempFullWidthLayout() {
   const { projectId } = useParams()
   const navigate = useNavigate()
-  const [project, setProject] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
 
-  const { assessment, isLoading: assessmentLoading } = useAssessment(projectId)
-
-  useEffect(() => {
-    // Load project from API
-    const fetchProject = async () => {
-      if (!projectId) return
-      setIsLoading(true)
-      try {
-        const data = await projectService.getById(projectId)
-        setProject(data)
-      } catch (err) {
-        console.error('Failed to load project:', err)
-        setProject({ _id: projectId, title: 'Unknown Project' })
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    fetchProject()
-  }, [projectId])
+  // Same workspace query as the route guard above (no extra request)
+  const { project, workflow, can, isLoading } = useWorkspace(projectId)
 
   const handleExport = () => {
     // Determine which tool is active from route
@@ -51,7 +31,7 @@ export default function SempFullWidthLayout() {
     navigate(`/app/projects/${projectId}/semp`)
   }
 
-  if (isLoading || assessmentLoading) {
+  if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background dark:bg-background-dark">
         <div className="size-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
@@ -59,8 +39,8 @@ export default function SempFullWidthLayout() {
     )
   }
 
-  // Gatekeeper: Check if Assessment is Approved
-  if (assessment?.status !== 'approved') {
+  // Gatekeeper: Tools 3 and 4 open once the assessment is approved (backend workflow)
+  if (!project || isStepLocked(workflow, 'semp')) {
     return (
       <div className="flex flex-col min-h-screen bg-background dark:bg-background-dark">
         <header className="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-border-default dark:border-border-dark bg-surface dark:bg-surface-dark px-6 md:px-10 py-3 shadow-sm h-16 shrink-0">
@@ -117,19 +97,21 @@ export default function SempFullWidthLayout() {
         </div>
 
         <div className="flex flex-1 justify-end gap-6 items-center">
-          <button
-            onClick={handleExport}
-            className="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-white dark:bg-surface-dark border border-border-default dark:border-border-dark text-text-secondary dark:text-gray-300 text-sm font-medium shadow-sm hover:border-primary hover:text-primary dark:hover:border-primary dark:hover:text-primary transition-colors"
-          >
-            <span className="material-symbols-outlined text-lg">download</span>
-            Export Excel
-          </button>
+          {can('export') && (
+            <button
+              onClick={handleExport}
+              className="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-white dark:bg-surface-dark border border-border-default dark:border-border-dark text-text-secondary dark:text-gray-300 text-sm font-medium shadow-sm hover:border-primary hover:text-primary dark:hover:border-primary dark:hover:text-primary transition-colors"
+            >
+              <span className="material-symbols-outlined text-lg">download</span>
+              Export Excel
+            </button>
+          )}
         </div>
       </header>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col w-full overflow-hidden">
-        <Outlet context={{ project }} />
+        <Outlet context={{ project, workflow, can }} />
       </main>
     </div>
   )

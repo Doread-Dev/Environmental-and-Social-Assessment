@@ -5,14 +5,16 @@
  */
 
 import { useNavigate, useParams } from 'react-router-dom'
-import { useSemp, useAssessment } from '@/hooks'
+import { useProjectContext } from '@/hooks'
+import { isStepLocked } from '@/utils/workflowSteps'
 import { SempToolCard, SempCTABanner } from '@/components/semp'
 
 export default function SempOverviewPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
-  const { getTool3Status, getTool4Status, isLoading } = useSemp(projectId)
-  const { assessment } = useAssessment(projectId)
+  // Tool 3 / Tool 4 status and the lock come from the backend workflow (workspace, D30)
+  const { workflow } = useProjectContext()
+  const semp = workflow.steps.semp
 
   // Navigate handlers
   const handleNavigate = (path) => {
@@ -20,23 +22,9 @@ export default function SempOverviewPage() {
     navigate(`/app/projects/${projectId}/semp/${path}`)
   }
 
-  // Check locks
-  const isApproved = assessment?.status === 'approved'
-  const isLocked = !isApproved
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading SEMP data...</p>
-        </div>
-      </div>
-    )
-  }
-
-  const tool3Status = getTool3Status()
-  const tool4Status = getTool4Status()
+  const isLocked = isStepLocked(workflow, 'semp')
+  const tool3Status = semp.management_activities.status
+  const tool4Status = semp.mitigation_plans.status
 
   return (
     <div className="flex-1 overflow-y-auto bg-background dark:bg-background-dark p-6 md:p-10 lg:p-12">

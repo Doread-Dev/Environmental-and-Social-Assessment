@@ -1,10 +1,8 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { Outlet, useParams, useLocation, useNavigate } from 'react-router-dom'
 import { cn } from '@/utils'
-import { projectService } from '@/services/projectService'
-import { extractErrorMessage } from '@/services/api'
 import { ROUTES } from '@/routes/routes.config'
-import { useWorkflow } from '@/hooks'
+import { useWorkspace } from '@/hooks'
 import ProjectSidebar from './ProjectSidebar'
 import MobileMenu from './MobileMenu'
 
@@ -19,12 +17,22 @@ function ProjectLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [project, setProject] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
 
-  // Get workflow data from hook (derives from actual entities)
-  const { workflow, screening, assessment, isLoading: workflowLoading } = useWorkflow(projectId)
+  // Project, workflow state and allowed actions: one shared query (D31, D33). A refetch after a
+  // save keeps the old data on screen, so the page is never replaced by the spinner below.
+  const {
+    project,
+    workflow,
+    screening,
+    assessment,
+    counts,
+    allowedActions,
+    can,
+    isLoading,
+    error,
+    refetch,
+  } = useWorkspace(projectId)
+  const canExport = can('export')
 
   // Check if we're on screening page and get screening status for Export button
   const isScreeningPage = location.pathname.includes('/screening')
@@ -41,7 +49,9 @@ function ProjectLayout() {
     (assessment.status === 'submitted' || assessment.status === 'approved')
 
   const isMonitoringDataEntryPage = location.pathname.includes('/monitoring/data-entry')
-  const showExportButton = showScreeningExport || showAssessmentExport || isMonitoringDataEntryPage
+  // Viewers never export (D28a)
+  const showExportButton =
+    canExport && (showScreeningExport || showAssessmentExport || isMonitoringDataEntryPage)
 
   const handleExportClick = () => {
     if (isScreeningPage) {
@@ -55,27 +65,7 @@ function ProjectLayout() {
     }
   }
 
-  const fetchProject = useCallback(async () => {
-    if (!projectId) return
-    setIsLoading(true)
-    setError(null)
-    try {
-      const projectData = await projectService.getById(projectId)
-      setProject(projectData)
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      console.error('Failed to load project:', errorMessage)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [projectId])
-
-  useEffect(() => {
-    fetchProject()
-  }, [fetchProject])
-
-  // Enhanced project with workflow (memoized)
+  // Project with its workflow state, summaries and allowed actions (sidebar, mobile menu, pages)
   const enhancedProject = useMemo(() => {
     if (!project) return null
     return {
@@ -83,8 +73,9 @@ function ProjectLayout() {
       workflow,
       screening,
       assessment,
+      allowed_actions: allowedActions,
     }
-  }, [project, workflow, screening, assessment])
+  }, [project, workflow, screening, assessment, allowedActions])
 
   const handleMenuToggle = useCallback(() => {
     setIsMobileMenuOpen((prev) => !prev)
@@ -94,8 +85,8 @@ function ProjectLayout() {
     setIsMobileMenuOpen(false)
   }, [])
 
-  // Error state
-  if (error) {
+  // Error state (a failed background refetch keeps the loaded project on screen)
+  if (error && !project) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background dark:bg-background-dark">
         <div className="flex flex-col items-center gap-4 max-w-md text-center p-8">
@@ -116,7 +107,7 @@ function ProjectLayout() {
               Back to Projects
             </button>
             <button
-              onClick={() => fetchProject()}
+              onClick={() => refetch()}
               className="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary-hover text-white rounded-lg transition-colors"
             >
               Try Again
@@ -127,8 +118,8 @@ function ProjectLayout() {
     )
   }
 
-  // Loading state (project loading or workflow loading)
-  if (isLoading || (project && workflowLoading)) {
+  // Loading state (first load only)
+  if (isLoading || !enhancedProject) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background dark:bg-background-dark">
         <div className="flex flex-col items-center gap-4">
@@ -221,7 +212,7 @@ function ProjectLayout() {
           )}
         >
           <div className="max-w-7xl mx-auto">
-            <Outlet context={{ project: enhancedProject, setProject, workflow }} />
+            <Outlet context={{ project: enhancedProject, workflow, counts, can }} />
           </div>
         </main>
       </div>

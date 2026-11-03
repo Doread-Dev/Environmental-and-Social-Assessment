@@ -7,8 +7,8 @@
  * Route: /app/projects/:projectId/overview
  */
 
-import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   ProjectHeader,
   ProjectProgressTimeline,
@@ -16,27 +16,19 @@ import {
   ProjectCTACard,
   ProjectDetailsCard,
 } from '@/components/project'
-import { useProjectContext, useSemp } from '@/hooks'
+import { useProjectContext } from '@/hooks'
 import { getScreeningCategory } from '@/utils/screeningDisplay'
 import { calculateDurationMonths, formatDuration } from '@/utils/formatters'
-import { getNextAction } from '@/utils/workflowDerivation'
 import { projectService } from '@/services/projectService'
 import { extractErrorMessage } from '@/services/api'
+import { invalidateProjectState } from '@/services/queryKeys'
+import { ROUTES, getProjectRoute } from '@/routes/routes.config'
 
 function ProjectOverviewPage() {
   const navigate = useNavigate()
   const { projectId } = useParams()
-  const { project: contextProject, setProject: setContextProject, workflow } = useProjectContext()
-  const [project, setProject] = useState(contextProject)
-
-  // Get Management Activities count from SEMP hook
-  const { managementActivities } = useSemp(projectId)
-
-  useEffect(() => {
-    if (contextProject) {
-      setProject(contextProject)
-    }
-  }, [contextProject])
+  const queryClient = useQueryClient()
+  const { project, workflow, counts, can } = useProjectContext()
 
   if (!project) {
     return (
@@ -48,10 +40,9 @@ function ProjectOverviewPage() {
     )
   }
 
-  // workflow is derived from actual entity data (passed from ProjectLayout)
-  const currentWorkflow = workflow || project.workflow || {}
+  // Workflow state and next action come from the backend (workspace, D30)
   const screening = project.screening || {}
-  const nextAction = getNextAction(currentWorkflow)
+  const nextAction = workflow.next_action
 
   // Calculate metrics
   const riskCategory = screening.category_code || 'N/A'
@@ -60,7 +51,7 @@ function ProjectOverviewPage() {
   const riskSubtitle = riskCategoryInfo ? riskCategoryInfo.label : ''
 
   // Get actual activities count from Tool 3 (Management Activities)
-  const activitiesCount = Array.isArray(managementActivities) ? managementActivities.length : 0
+  const activitiesCount = counts?.management_activities ?? 0
   const activitiesSubtitle = 'From Tool 3'
 
   // Calculate duration
@@ -71,11 +62,8 @@ function ProjectOverviewPage() {
   const handleEditProject = async (updates) => {
     if (!projectId) return { success: false, error: 'Missing project id.' }
     try {
-      const updatedProject = await projectService.update(projectId, updates)
-      setProject((prev) => (prev ? { ...prev, ...updatedProject } : updatedProject))
-      if (setContextProject) {
-        setContextProject((prev) => (prev ? { ...prev, ...updatedProject } : updatedProject))
-      }
+      await projectService.update(projectId, updates)
+      await invalidateProjectState(queryClient, projectId)
       return { success: true }
     } catch (err) {
       const message = extractErrorMessage(err)
@@ -84,7 +72,7 @@ function ProjectOverviewPage() {
   }
 
   const handleNextStep = () => {
-    navigate(`/app/projects/${projectId}/${nextAction.path}`)
+    navigate(getProjectRoute(projectId, ROUTES[nextAction.route]))
   }
 
   return (
@@ -92,10 +80,14 @@ function ProjectOverviewPage() {
       {/* Project Header Section (includes header + progress timeline) */}
       <section className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark p-6">
         {/* Header Content */}
-        <ProjectHeader project={project} onEdit={handleEditProject} />
+        <ProjectHeader
+          project={project}
+          showEditButton={can('project.edit')}
+          onEdit={handleEditProject}
+        />
 
         {/* Progress Timeline */}
-        <ProjectProgressTimeline workflow={currentWorkflow} />
+        <ProjectProgressTimeline workflow={workflow} />
       </section>
 
       {/* Main Content Grid */}
@@ -132,7 +124,7 @@ function ProjectOverviewPage() {
 
           {/* CTA Card */}
           <ProjectCTACard
-            title={nextAction.title}
+            title={nextAction.label}
             description={nextAction.description}
             buttonText={`Open Tool ${nextAction.tool}`}
             buttonIcon="arrow_forward"

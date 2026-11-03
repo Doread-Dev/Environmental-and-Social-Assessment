@@ -13,7 +13,7 @@ import { cn } from '@/utils/cn'
 
 /**
  * @param {Object} props
- * @param {Object} props.workflow - حالة كل خطوة
+ * @param {Object} props.workflow - workflow state from the backend (steps + percent_complete)
  * @param {boolean} props.showLabels - عرض التسميات (default: true)
  * @param {boolean} props.showPercentage - عرض النسبة المئوية (default: true)
  */
@@ -34,39 +34,11 @@ function ProjectProgressTimeline({
     { id: 'monitoring', label: 'Monitoring', tool: 5 },
   ]
 
-  // حساب النسبة المئوية
-  function calculateProgress(workflow) {
-    const stepKeys = ['screening', 'assessment', 'semp', 'monitoring']
-    const completedSteps = stepKeys.filter((step) => {
-      const status = workflow[step]?.status
-      return status === 'approved' || status === 'completed'
-    }).length
-
-    const inProgressSteps = stepKeys.filter((step) => {
-      const status = workflow[step]?.status
-      // For screening & assessment: submitted, draft, rejected count as in_progress
-      if (step === 'screening' || step === 'assessment') {
-        return (
-          status === 'submitted' ||
-          status === 'draft' ||
-          status === 'rejected' ||
-          status === 'in_progress'
-        )
-      }
-      return status === 'in_progress'
-    }).length
-
-    // Calculate percentage based on completed + half of in-progress
-    const totalProgress = completedSteps + inProgressSteps * 0.5
-    return Math.round((totalProgress / stepKeys.length) * 100)
-  }
-
-  const progressPercentage = calculateProgress(workflow)
+  const progressPercentage = workflow.percent_complete ?? 0
 
   // Get step status and render config
   function getStepConfig(stepId, stepTool) {
-    const stepData = workflow[stepId] || {}
-    let status = stepData.status || 'pending'
+    const status = workflow.steps?.[stepId]?.status
 
     // Completed statuses
     if (status === 'approved' || status === 'completed') {
@@ -97,13 +69,13 @@ function ProjectProgressTimeline({
       }
     }
 
-    // Submitted or needs_action status (for screening & assessment) - pending approval/action
-    if (status === 'submitted' || status === 'needs_action') {
+    // Submitted (screening & assessment) - pending approval
+    if (status === 'submitted') {
       return {
         bgColor: 'bg-white dark:bg-surface-dark border-2 border-amber-500',
-        icon: status === 'needs_action' ? 'warning' : 'hourglass_top',
+        icon: 'hourglass_top',
         iconColor: 'text-amber-500',
-        label: status === 'needs_action' ? 'Needs Action' : 'Pending Approval',
+        label: 'Pending Approval',
         labelColor: 'text-amber-600 dark:text-amber-400',
         subtitleColor: 'text-amber-500 dark:text-amber-400',
         showNumber: false,
@@ -112,13 +84,13 @@ function ProjectProgressTimeline({
       }
     }
 
-    // In progress or draft status
-    if (status === 'in_progress' || status === 'draft') {
+    // In progress (a screening/assessment draft too)
+    if (status === 'in_progress') {
       return {
         bgColor: 'bg-white dark:bg-surface-dark border-2 border-primary',
         icon: 'edit_document',
         iconColor: 'text-primary',
-        label: status === 'draft' ? 'Draft' : 'In Progress',
+        label: 'In Progress',
         labelColor: 'text-primary dark:text-primary',
         subtitleColor: 'text-primary/80 dark:text-primary/80',
         showNumber: false,
@@ -127,7 +99,7 @@ function ProjectProgressTimeline({
       }
     }
 
-    // pending
+    // not_started or locked
     return {
       bgColor: 'bg-gray-100 dark:bg-white/5 border-2 border-border-default dark:border-border-dark',
       icon: null,

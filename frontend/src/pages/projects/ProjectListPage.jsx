@@ -7,6 +7,7 @@ import {
   ProjectStatusBadge,
 } from '@/components/dashboard'
 import { useProjects } from '@/hooks'
+import { useAuth } from '@/contexts'
 import { formatDateRange, formatDuration, calculateDurationMonths } from '@/utils'
 import { ROUTES, getProjectRoute } from '@/routes/routes.config'
 
@@ -17,6 +18,7 @@ import { ROUTES, getProjectRoute } from '@/routes/routes.config'
 function ProjectListPage() {
   const navigate = useNavigate()
   const { projects, isLoading, error, fetchProjects } = useProjects()
+  const { canCreateProject } = useAuth()
 
   // State
   const [searchQuery, setSearchQuery] = useState('')
@@ -38,9 +40,9 @@ function ProjectListPage() {
       )
     }
 
-    // Status filter (projectStatus is pre-computed by useProjects)
+    // Status filter (overall status computed by the backend, D30)
     if (statusFilter !== 'all') {
-      filtered = filtered.filter((p) => p.projectStatus === statusFilter)
+      filtered = filtered.filter((p) => p.workflow?.status === statusFilter)
     }
 
     // Risk filter
@@ -134,11 +136,11 @@ function ProjectListPage() {
     )
   }
 
-  if (error) {
+  if (error && projects.length === 0) {
     return (
       <div className="flex flex-col gap-4 max-w-md mx-auto mt-12">
         <Alert variant="error">Failed to load projects: {error}</Alert>
-        <Button onClick={fetchProjects} variant="primary">
+        <Button onClick={() => fetchProjects()} variant="primary">
           Try Again
         </Button>
       </div>
@@ -157,9 +159,11 @@ function ProjectListPage() {
             Manage environmental and social compliance across all active initiatives.
           </p>
         </div>
-        <Button variant="primary" leftIcon={<Icon name="add" />} onClick={handleNewProject}>
-          Create New Project
-        </Button>
+        {canCreateProject && (
+          <Button variant="primary" leftIcon={<Icon name="add" />} onClick={handleNewProject}>
+            Create New Project
+          </Button>
+        )}
       </div>
 
       {/* Filters and Search */}
@@ -318,7 +322,7 @@ function ProjectListPage() {
                       </div>
                     </Table.Cell>
                     <Table.Cell>
-                      <ProjectStatusBadge status={project.projectStatus} size="sm" />
+                      <ProjectStatusBadge status={project.workflow?.status} size="sm" />
                     </Table.Cell>
                     <Table.Cell className="text-right">
                       <button

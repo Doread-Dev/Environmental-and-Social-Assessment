@@ -4,38 +4,21 @@
  */
 
 import { useState, useEffect, useMemo } from 'react'
-import { projectService } from '@/services'
-import { extractErrorMessage } from '@/services/api'
-import { useAuth } from '@/contexts'
+import { useProjects } from '@/hooks'
 import { useToast, Table, Pagination, Select } from '@/components/ui'
 import { cn } from '@/utils/cn'
 
 export function ProjectsManagementSection() {
   const toast = useToast()
-  const { canDeleteProject } = useAuth()
-  const [projects, setProjects] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [deletingId, setDeletingId] = useState(null)
+  // Same cached project list as the Projects page; each project carries its allowed actions
+  const { projects, isLoading, error, deleteProject, deletingId } = useProjects()
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
 
-  // Load projects on mount
   useEffect(() => {
-    loadProjects()
-  }, [])
-
-  const loadProjects = async () => {
-    setIsLoading(true)
-    try {
-      const data = await projectService.getAll()
-      setProjects(data)
-    } catch (err) {
-      toast.error(extractErrorMessage(err))
-    } finally {
-      setIsLoading(false)
-    }
-  }
+    if (error) toast.error(error)
+  }, [error, toast])
 
   const handleDelete = async (projectId, projectTitle) => {
     if (
@@ -46,16 +29,9 @@ export function ProjectsManagementSection() {
       return
     }
 
-    setDeletingId(projectId)
-    try {
-      await projectService.delete(projectId)
-      toast.success('Project deleted successfully')
-      loadProjects()
-    } catch (err) {
-      toast.error(extractErrorMessage(err))
-    } finally {
-      setDeletingId(null)
-    }
+    const result = await deleteProject(projectId)
+    if (result.success) toast.success('Project deleted successfully')
+    else toast.error(result.error)
   }
 
   // Filter projects by search query
@@ -221,7 +197,8 @@ export function ProjectsManagementSection() {
                         </span>
                       </Table.Cell>
                       <Table.Cell className="text-right">
-                        {canDeleteProject ? (
+                        {/* Hidden once the screening or assessment is approved (archive instead) */}
+                        {project.allowed_actions?.includes('project.delete') ? (
                           <button
                             onClick={() => handleDelete(project._id, project.title)}
                             disabled={deletingId === project._id}

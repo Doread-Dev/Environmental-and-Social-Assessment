@@ -10,7 +10,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Alert, StickyFooter, Modal, Button, useToast } from '@/components/ui'
 import { ScreeningInfoSection, RiskCategorySelector, ImpactSection } from '@/components/screening'
-import { useScreening } from '@/hooks'
+import { useScreening, useProjectContext } from '@/hooks'
 import { cn } from '@/utils/cn'
 import { validateScreeningForm } from '@/utils'
 
@@ -24,6 +24,9 @@ function ScreeningFormPage() {
     submit: submitScreening,
     saveDraft: saveDraftScreening,
   } = useScreening(projectId)
+  // Create (not started) or edit (draft/rejected): allowed actions from the backend (D35)
+  const { can } = useProjectContext()
+  const canSave = can('screening.create') || can('screening.edit')
 
   // Initialize all hooks BEFORE any conditional returns
   const [formData, setFormData] = useState({
@@ -275,37 +278,39 @@ function ScreeningFormPage() {
             complete.
           </p>
         </div>
-        <div className="flex gap-4">
-          <button
-            type="button"
-            onClick={handleSaveDraft}
-            disabled={isSavingDraft || isSubmitting}
-            className={cn(
-              'flex items-center gap-2 px-6 py-2.5 rounded-lg',
-              'border border-border-default dark:border-border-dark',
-              'text-text-main dark:text-white font-medium',
-              'hover:bg-gray-50/50 dark:hover:bg-white/5',
-              'transition-colors',
-              (isSavingDraft || isSubmitting) && 'opacity-50 cursor-not-allowed'
-            )}
-          >
-            {isSavingDraft ? 'Saving...' : 'Save as Draft'}
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isSubmitting || isSavingDraft}
-            className={cn(
-              'flex items-center gap-2 px-6 py-2.5 rounded-lg',
-              'bg-primary hover:bg-primary-hover text-white font-medium',
-              'shadow-md transition-colors transform active:scale-95',
-              (isSubmitting || isSavingDraft) && 'opacity-50 cursor-not-allowed'
-            )}
-          >
-            <span className="material-symbols-outlined text-sm">send</span>
-            {isSubmitting ? 'Submitting...' : 'Submit Screening'}
-          </button>
-        </div>
+        {canSave && (
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              disabled={isSavingDraft || isSubmitting}
+              className={cn(
+                'flex items-center gap-2 px-6 py-2.5 rounded-lg',
+                'border border-border-default dark:border-border-dark',
+                'text-text-main dark:text-white font-medium',
+                'hover:bg-gray-50/50 dark:hover:bg-white/5',
+                'transition-colors',
+                (isSavingDraft || isSubmitting) && 'opacity-50 cursor-not-allowed'
+              )}
+            >
+              {isSavingDraft ? 'Saving...' : 'Save as Draft'}
+            </button>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={isSubmitting || isSavingDraft}
+              className={cn(
+                'flex items-center gap-2 px-6 py-2.5 rounded-lg',
+                'bg-primary hover:bg-primary-hover text-white font-medium',
+                'shadow-md transition-colors transform active:scale-95',
+                (isSubmitting || isSavingDraft) && 'opacity-50 cursor-not-allowed'
+              )}
+            >
+              <span className="material-symbols-outlined text-sm">send</span>
+              {isSubmitting ? 'Submitting...' : 'Submit Screening'}
+            </button>
+          </div>
+        )}
       </StickyFooter>
 
       {/* Submit Confirmation Modal */}

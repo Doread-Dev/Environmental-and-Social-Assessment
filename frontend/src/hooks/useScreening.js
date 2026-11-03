@@ -1,184 +1,97 @@
-import { useState, useEffect, useCallback } from 'react'
+/**
+ * useScreening Hook
+ * Tool 1 record of a project (query) and its writes (mutations). Each write refreshes the
+ * project's workflow state through useProjectSave.
+ */
+import { useCallback } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { screeningService } from '@/services'
 import { extractErrorMessage } from '@/services/api'
-import { notifyWorkflowChanged } from '@/utils/workflowEvents'
+import { queryKeys } from '@/services/queryKeys'
+import { useProjectSave } from './useProjectSave'
 
 /**
  * Hook لإدارة حالة الفرز
  * @param {string} projectId - معرف المشروع
  */
 export function useScreening(projectId) {
-  const [screening, setScreening] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-  const [error, setError] = useState(null)
+  const query = useQuery({
+    queryKey: queryKeys.screening(projectId),
+    queryFn: () => screeningService.getByProject(projectId), // null = not started yet
+    enabled: !!projectId,
+  })
+  const screening = query.data ?? null
+  const screeningId = screening?._id
+  const { save, fail, isSaving, error, queryClient } = useProjectSave(projectId)
 
-  const loadData = useCallback(() => {
-    if (!projectId) return Promise.resolve()
-    setIsLoading(true)
-    setError(null)
-    setScreening(null)
-    return screeningService
-      .getByProject(projectId)
-      .then((data) => {
-        setScreening(data)
-      })
-      .catch((err) => {
-        setError(extractErrorMessage(err))
-      })
-      .finally(() => {
-        setIsLoading(false)
-      })
-  }, [projectId])
-
-  const refetch = useCallback(() => {
-    loadData()
-  }, [loadData])
-
-  useEffect(() => {
-    if (!projectId) return
-    let isMounted = true
-    loadData()
-      .then(() => {})
-      .catch(() => {})
-      .finally(() => {})
-    return () => {
-      isMounted = false
-    }
-  }, [projectId, loadData])
+  const store = useCallback(
+    (data) => queryClient.setQueryData(queryKeys.screening(projectId), data),
+    [queryClient, projectId]
+  )
 
   // حفظ كمسودة
   const saveDraft = useCallback(
-    async (data) => {
-      setIsSaving(true)
-      setError(null)
-      try {
-        // status is server-owned: a new screening starts as draft
-        const payload = {
-          project: projectId,
-          ...data,
-        }
-
-        if (!screening?._id) {
-          if (!payload.category_code || !payload.category_reason?.trim()) {
-            const message = 'Please select a category and provide justification before saving.'
-            setError(message)
-            return { success: false, error: message }
-          }
-          const created = await screeningService.create(payload)
-          setScreening(created)
-          notifyWorkflowChanged(projectId)
-          return { success: true, data: created }
-        }
-
-        const updated = await screeningService.update(screening._id, payload)
-        setScreening(updated)
-        notifyWorkflowChanged(projectId)
-        return { success: true, data: updated }
-      } catch (err) {
-        const errorMessage = extractErrorMessage(err)
-        setError(errorMessage)
-        return { success: false, error: errorMessage }
-      } finally {
-        setIsSaving(false)
+    (data) => {
+      // status is server-owned: a new screening starts as draft
+      const payload = { project: projectId, ...data }
+      if (!screeningId && (!payload.category_code || !payload.category_reason?.trim())) {
+        return Promise.resolve(
+          fail('Please select a category and provide justification before saving.')
+        )
       }
+      return save(
+        () =>
+          screeningId
+            ? screeningService.update(screeningId, payload)
+            : screeningService.create(payload),
+        store
+      )
     },
-    [projectId, screening?._id]
+    [projectId, screeningId, save, fail, store]
   )
 
-  // إرسال للموافقة
+  // إرسال للموافقة: save the form first, then move it to submitted through the transition
   const submit = useCallback(
-    async (data) => {
-      setIsSaving(true)
-      setError(null)
-      try {
-        const payload = {
-          project: projectId,
-          ...data,
-        }
-
-        // Save the form first, then move it to submitted through the transition endpoint
-        const saved = screening?._id
-          ? await screeningService.update(screening._id, payload)
+    (data) => {
+      const payload = { project: projectId, ...data }
+      return save(async () => {
+        const saved = screeningId
+          ? await screeningService.update(screeningId, payload)
           : await screeningService.create(payload)
-        setScreening(saved)
-
-        const submitted = await screeningService.submit(saved._id)
-        setScreening(submitted)
-        notifyWorkflowChanged(projectId)
-        return { success: true, data: submitted }
-      } catch (err) {
-        const errorMessage = extractErrorMessage(err)
-        setError(errorMessage)
-        return { success: false, error: errorMessage }
-      } finally {
-        setIsSaving(false)
-      }
+        store(saved)
+        return screeningService.submit(saved._id)
+      }, store)
     },
-    [projectId, screening?._id]
+    [projectId, screeningId, save, store]
   )
 
   // الموافقة
   const approve = useCallback(
-    async (recommendations) => {
-      setIsSaving(true)
-      setError(null)
-      try {
-        if (!screening?._id) {
-          const message = 'Screening record not found.'
-          setError(message)
-          return { success: false, error: message }
-        }
-        const updated = await screeningService.approve(screening._id, recommendations)
-        setScreening(updated)
-        notifyWorkflowChanged(projectId)
-        return { success: true, data: updated }
-      } catch (err) {
-        const errorMessage = extractErrorMessage(err)
-        setError(errorMessage)
-        return { success: false, error: errorMessage }
-      } finally {
-        setIsSaving(false)
-      }
+    (recommendations) => {
+      if (!screeningId) return Promise.resolve(fail('Screening record not found.'))
+      return save(() => screeningService.approve(screeningId, recommendations), store)
     },
-    [projectId, screening?._id]
+    [screeningId, save, fail, store]
   )
 
   // الرفض
   const reject = useCallback(
-    async (rejectReason) => {
-      setIsSaving(true)
-      setError(null)
-      try {
-        if (!screening?._id) {
-          const message = 'Screening record not found.'
-          setError(message)
-          return { success: false, error: message }
-        }
-        const updated = await screeningService.reject(
-          screening._id,
-          rejectReason === undefined ? '' : rejectReason
-        )
-        setScreening(updated)
-        notifyWorkflowChanged(projectId)
-        return { success: true, data: updated }
-      } catch (err) {
-        const errorMessage = extractErrorMessage(err)
-        setError(errorMessage)
-        return { success: false, error: errorMessage }
-      } finally {
-        setIsSaving(false)
-      }
+    (rejectReason) => {
+      if (!screeningId) return Promise.resolve(fail('Screening record not found.'))
+      return save(
+        () => screeningService.reject(screeningId, rejectReason === undefined ? '' : rejectReason),
+        store
+      )
     },
-    [projectId, screening?._id]
+    [screeningId, save, fail, store]
   )
 
   return {
     screening,
-    isLoading,
+    isLoading: !!projectId && query.isPending,
     isSaving,
-    error,
-    refetch,
+    error: error ?? (query.error ? extractErrorMessage(query.error) : null),
+    refetch: query.refetch,
     saveDraft,
     submit,
     approve,

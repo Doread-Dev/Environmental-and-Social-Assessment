@@ -1,7 +1,8 @@
 const Joi = require("joi");
 
-const createManagementActivitySchema = Joi.object({
-  project: Joi.string().required(),
+// One table row (the project comes from the URL).
+const rowSchema = Joi.object({
+  _id: Joi.string().hex().length(24).optional(),
   serial_number: Joi.number().optional(),
   activity_description: Joi.string().required(),
   potential_impact: Joi.string().allow("", null).optional(),
@@ -14,17 +15,11 @@ const createManagementActivitySchema = Joi.object({
   notes: Joi.string().allow("", null),
 });
 
-const updateManagementActivitySchema = createManagementActivitySchema.fork(
-  ["project", "activity_description"],
-  (schema) => schema.optional()
-);
-
 // PUT /projects/:id/management: the whole table. A row with `_id` updates that row.
 const replaceManagementActivitiesSchema = Joi.object({
   rows: Joi.array()
     .items(
-      createManagementActivitySchema.keys({
-        _id: Joi.string().hex().length(24).optional(),
+      rowSchema.keys({
         project: Joi.any().strip(),
       })
     )
@@ -32,7 +27,5 @@ const replaceManagementActivitiesSchema = Joi.object({
 });
 
 module.exports = {
-  createManagementActivitySchema,
-  updateManagementActivitySchema,
   replaceManagementActivitiesSchema,
 };

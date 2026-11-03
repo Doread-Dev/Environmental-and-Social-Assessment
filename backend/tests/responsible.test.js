@@ -1,87 +1,92 @@
 import { describe, expect, it } from "vitest";
 import request from "supertest";
-import { app, mongoose } from "./helpers/app.js";
-import { createProject, createUser, loginAs } from "./helpers/fixtures.js";
+import { app, require } from "./helpers/app.js";
+import { createProject, createUser, loginAs, seedLookups } from "./helpers/fixtures.js";
+
+const Indicator = require("../../src/models/indicator.model");
 
 const auth = (token) => ({ Authorization: `Bearer ${token}` });
 
-// Responsible = an internal user OR free text, never both (D55).
+// Responsible = an internal user OR free text, never both (D55). Tools 3–5 are saved per project
+// (D32): `send` builds the request body.
 const kinds = [
   {
     name: "management activity",
-    base: "/api/v1/management",
+    path: "management",
     stage: "assessment_approved",
-    body: (project) => ({ project, activity_description: "Dig" }),
+    send: (fields) => ({ rows: [{ activity_description: "Dig", ...fields }] }),
   },
   {
     name: "mitigation plan",
-    base: "/api/v1/mitigation",
+    path: "mitigation",
     stage: "assessment_approved",
-    body: (project) => ({ project, output_description: "Network" }),
+    send: (fields) => ({ rows: [{ output_description: "Network", ...fields }] }),
   },
   {
     name: "monitoring record",
-    base: "/api/v1/monitoring",
+    path: "monitoring",
     stage: "semp_complete",
-    body: (project) => ({ project, indicator: new mongoose.Types.ObjectId().toString() }),
+    send: (fields, indicator) => ({ records: [{ indicator, ...fields }] }),
   },
 ];
 
 const responsibleId = (data) => data.responsible?._id ?? data.responsible ?? null;
 
-describe.each(kinds)("$name responsible", ({ base, stage, body }) => {
+describe.each(kinds)("$name responsible", ({ path, stage, send }) => {
   async function setup() {
+    await seedLookups();
     const { token } = await loginAs("project_manager");
     const { user } = await createUser("environmental_focal_point");
     const project = await createProject({ stage });
-    return { token, user, payload: body(project._id.toString()) };
+    const indicator = String((await Indicator.findOne())._id);
+    const save = async (fields, rowId) => {
+      const body = send(fields, indicator);
+      if (rowId) body.rows[0]._id = rowId;
+      const res = await request(app)
+        .put(`/api/v1/projects/${project._id}/${path}`)
+        .set(auth(token))
+        .send(body);
+      return { status: res.status, row: res.body.data?.[0], error: res.body.error };
+    };
+    return { user, save };
   }
 
   it("accepts a user", async () => {
-    const { token, user, payload } = await setup();
-    const res = await request(app)
-      .post(base)
-      .set(auth(token))
-      .send({ ...payload, responsible: user._id.toString() });
-    expect(res.status).toBe(201);
-    expect(String(responsibleId(res.body.data))).toBe(user._id.toString());
-    expect(res.body.data.responsible_text).toBe("");
+    const { user, save } = await setup();
+    const { status, row } = await save({ responsible: user._id.toString() });
+    expect(status).toBe(200);
+    expect(String(responsibleId(row))).toBe(user._id.toString());
+    expect(row.responsible_text).toBe("");
   });
 
   it("accepts an external party as text", async () => {
-    const { token, payload } = await setup();
-    const res = await request(app)
-      .post(base)
-      .set(auth(token))
-      .send({ ...payload, responsible_text: "  Contractor Ltd  " });
-    expect(res.status).toBe(201);
-    expect(res.body.data.responsible_text).toBe("Contractor Ltd");
-    expect(responsibleId(res.body.data)).toBeNull();
+    const { save } = await setup();
+    const { status, row } = await save({ responsible_text: "  Contractor Ltd  " });
+    expect(status).toBe(200);
+    expect(row.responsible_text).toBe("Contractor Ltd");
+    expect(responsibleId(row)).toBeNull();
   });
 
   it("rejects both (400)", async () => {
-    const { token, user, payload } = await setup();
-    const res = await request(app)
-      .post(base)
-      .set(auth(token))
-      .send({ ...payload, responsible: user._id.toString(), responsible_text: "Contractor" });
-    expect(res.status).toBe(400);
+    const { user, save } = await setup();
+    const { status, error } = await save({
+      responsible: user._id.toString(),
+      responsible_text: "Contractor",
+    });
+    expect(status).toBe(400);
+    expect(error).toMatch(/Responsible is either a user or an external party/);
   });
 
   it("switching to text on update clears the user", async () => {
-    const { token, user, payload } = await setup();
-    const created = await request(app)
-      .post(base)
-      .set(auth(token))
-      .send({ ...payload, responsible: user._id.toString() });
+    const { user, save } = await setup();
+    const created = await save({ responsible: user._id.toString() });
 
-    const res = await request(app)
-      .put(`${base}/${created.body.data._id}`)
-      .set(auth(token))
-      .send({ ...payload, responsible_text: "Municipality" });
+    // Tables update by row id; monitoring upserts by indicator
+    const rowId = path === "monitoring" ? undefined : String(created.row._id);
+    const { status, row } = await save({ responsible_text: "Municipality" }, rowId);
 
-    expect(res.status).toBe(200);
-    expect(res.body.data.responsible_text).toBe("Municipality");
-    expect(responsibleId(res.body.data)).toBeNull();
+    expect(status).toBe(200);
+    expect(row.responsible_text).toBe("Municipality");
+    expect(responsibleId(row)).toBeNull();
   });
 });

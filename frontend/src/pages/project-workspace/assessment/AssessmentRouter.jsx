@@ -4,7 +4,8 @@
  */
 
 import { useParams } from 'react-router-dom'
-import { useAssessment, useScreening } from '@/hooks'
+import { useAssessment, useProjectContext } from '@/hooks'
+import { isStepLocked } from '@/utils/workflowSteps'
 import AssessmentGatewayPage from './AssessmentGatewayPage'
 import AssessmentReviewPage from './AssessmentReviewPage'
 
@@ -24,10 +25,10 @@ import AssessmentReviewPage from './AssessmentReviewPage'
  */
 export default function AssessmentRouter() {
   const { projectId } = useParams()
-  const { screening, isLoading: screeningLoading } = useScreening(projectId)
-  const { assessment, isLoading: assessmentLoading } = useAssessment(projectId)
+  const { workflow } = useProjectContext()
+  const { assessment, isLoading } = useAssessment(projectId)
 
-  if (screeningLoading || assessmentLoading) {
+  if (isLoading) {
     return (
       <div className="flex w-full items-center justify-center py-20">
         <div className="flex flex-col items-center gap-4">
@@ -38,8 +39,8 @@ export default function AssessmentRouter() {
     )
   }
 
-  // التحقق من اكتمال Screening
-  if (screening?.status !== 'approved') {
+  // Tool 2 stays locked until the screening is approved (backend workflow)
+  if (isStepLocked(workflow, 'assessment')) {
     return (
       <div className="max-w-4xl mx-auto p-8">
         <div className="bg-white dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark p-8 text-center">

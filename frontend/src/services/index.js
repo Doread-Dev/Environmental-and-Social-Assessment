@@ -21,3 +21,7 @@ export { sempService } from './sempService'
 export { monitoringService } from './monitoringService'
 // export { fileService } from './fileService'
 // export { reportService } from './reportService'
+
+// Query cache (D33)
+export { queryClient, createQueryClient } from './queryClient'
+export { queryKeys, invalidateProjectState } from './queryKeys'

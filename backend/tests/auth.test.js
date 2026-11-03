@@ -69,11 +69,9 @@ describe("test helpers", () => {
     await seedLookups();
     const { token } = await loginAs("viewer");
 
-    const res = await request(app)
-      .get("/api/v1/lookups/impact-categories")
-      .set("Authorization", `Bearer ${token}`);
+    const res = await request(app).get("/api/v1/lookups").set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.data.length).toBeGreaterThan(0);
+    expect(res.body.data.impact_categories.length).toBeGreaterThan(0);
   });
 });

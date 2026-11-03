@@ -1,6 +1,6 @@
 /**
  * Project Service
- * Handles project CRUD operations
+ * Handles project CRUD operations and the aggregate project reads (D31)
  */
 import api from './api'
 
@@ -9,7 +9,7 @@ import api from './api'
  */
 export const projectService = {
   /**
-   * Get all projects
+   * Get all projects, each with its screening/assessment summary, `workflow` and `allowed_actions`
    * @returns {Promise<Array>} Array of projects
    */
   async getAll() {
@@ -18,12 +18,21 @@ export const projectService = {
   },
 
   /**
-   * Get a single project by ID
+   * Get everything the project workspace needs in one call
    * @param {string} id - Project ID
-   * @returns {Promise<Object>} Project object
+   * @returns {Promise<{project: Object, workflow: Object, allowed_actions: string[], screening: Object|null, assessment: Object|null, counts: Object}>}
    */
-  async getById(id) {
-    const response = await api.get(`/projects/${id}`)
+  async getWorkspace(id) {
+    const response = await api.get(`/projects/${id}/workspace`)
+    return response.data.data
+  },
+
+  /**
+   * Dashboard stats and the latest projects (with workflow state)
+   * @returns {Promise<{stats: Object, latest_projects: Array}>}
+   */
+  async getDashboard() {
+    const response = await api.get('/dashboard')
     return response.data.data
   },
 

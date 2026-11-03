@@ -4,16 +4,19 @@
  */
 
 import { useState, useEffect, useMemo } from 'react'
-import { userService, authService } from '@/services'
+import { useQueryClient } from '@tanstack/react-query'
+import { authService } from '@/services'
 import { extractErrorMessage } from '@/services/api'
+import { queryKeys } from '@/services/queryKeys'
+import { useUsers } from '@/hooks'
 import { USER_ROLES, ROLE_LABELS } from '@/contexts'
 import { useToast, Table, Badge, Pagination, Select } from '@/components/ui'
 import { cn } from '@/utils/cn'
 
 export function UsersManagementSection() {
   const toast = useToast()
-  const [users, setUsers] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
+  const queryClient = useQueryClient()
+  const { users, isLoading, error: loadError } = useUsers()
   const [isCreating, setIsCreating] = useState(false)
   const [showAddForm, setShowAddForm] = useState(false)
   const [formData, setFormData] = useState({
@@ -29,22 +32,9 @@ export function UsersManagementSection() {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
 
-  // Load users on mount
   useEffect(() => {
-    loadUsers()
-  }, [])
-
-  const loadUsers = async () => {
-    setIsLoading(true)
-    try {
-      const data = await userService.getAll()
-      setUsers(data)
-    } catch (err) {
-      toast.error(extractErrorMessage(err))
-    } finally {
-      setIsLoading(false)
-    }
-  }
+    if (loadError) toast.error(loadError)
+  }, [loadError, toast])
 
   const validateForm = () => {
     const newErrors = {}
@@ -101,7 +91,7 @@ export function UsersManagementSection() {
       })
       setErrors({})
       setShowPassword(false)
-      loadUsers() // Refresh users list
+      queryClient.invalidateQueries({ queryKey: queryKeys.users }) // Refresh users list
     } catch (err) {
       toast.error(extractErrorMessage(err))
     } finally {

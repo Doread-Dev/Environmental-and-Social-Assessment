@@ -1,8 +1,8 @@
 const Joi = require("joi");
 
-const createMonitoringSchema = Joi.object({
-  project: Joi.string().required(),
-  indicator: Joi.string().required(),
+// One record, upserted by its indicator (the project comes from the URL).
+const recordSchema = Joi.object({
+  indicator: Joi.string().hex().length(24).required(),
   scores: Joi.object({
     baseline: Joi.string().allow("", null).optional(),
     Q1: Joi.string().allow("", null).optional(),
@@ -18,27 +18,15 @@ const createMonitoringSchema = Joi.object({
   note: Joi.string().allow("", null),
 });
 
-const updateMonitoringSchema = createMonitoringSchema;
-
-const updateQuarterSchema = Joi.object({
-  value: Joi.string().allow("", null).required(),
-});
-
 // PUT /projects/:id/monitoring: records upserted by indicator (one per indicator).
 const upsertMonitoringSchema = Joi.object({
   records: Joi.array()
     .items(
-      createMonitoringSchema.keys({
-        indicator: Joi.string().hex().length(24).required(),
+      recordSchema.keys({
         project: Joi.any().strip(),
       })
     )
     .required(),
 });
 
-module.exports = {
-  createMonitoringSchema,
-  upsertMonitoringSchema,
-  updateMonitoringSchema,
-  updateQuarterSchema,
-};
+module.exports = { upsertMonitoringSchema };

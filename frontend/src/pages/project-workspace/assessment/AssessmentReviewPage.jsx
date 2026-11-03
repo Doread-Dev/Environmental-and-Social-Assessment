@@ -7,7 +7,9 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment, useScreening, useProjectContext } from '@/hooks'
-import { useLookups, useAuth, ROLE_LABELS, IMPACT_LEVEL_CONFIG } from '@/contexts'
+import { useAuth, ROLE_LABELS } from '@/contexts'
+import { useLookups } from '@/hooks'
+import { IMPACT_LEVEL_CONFIG } from '@/utils/impactLevels'
 import { Button, Textarea, useToast } from '@/components/ui'
 import { cn } from '@/utils/cn'
 import { formatDateRange } from '@/utils/formatters'
@@ -16,9 +18,9 @@ import { assessmentMethods, consultationMethods } from '@/utils/assessmentMethod
 export default function AssessmentReviewPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
-  const { project } = useProjectContext()
+  const { project, can } = useProjectContext()
   const { categoriesWithQuestions, isLoading: lookupsLoading } = useLookups()
-  const { user, canApprove } = useAuth()
+  const { user } = useAuth()
   const { screening } = useScreening(projectId)
   const {
     assessment,
@@ -207,7 +209,8 @@ export default function AssessmentReviewPage() {
     navigate(`/app/projects/${projectId}/semp`)
   }
 
-  const canApproveAssessment = canApprove && assessment?.status === 'submitted'
+  // Allowed actions from the backend: specialist/admin, submitted, project not archived (D35)
+  const canApproveAssessment = can('assessment.approve')
 
   // Status badge config
   const statusConfig = {

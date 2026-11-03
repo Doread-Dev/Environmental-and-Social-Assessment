@@ -2,13 +2,9 @@ const mongoose = require("mongoose");
 const MonitoringRecord = require("../models/monitoringRecord.model");
 const Indicator = require("../models/indicator.model");
 const ApiError = require("../utils/ApiError");
-const assertSameProject = require("../utils/assertSameProject");
 const normalizeResponsible = require("../utils/responsible");
 const validationMessage = require("../utils/validationMessage");
 const { requireSempComplete } = require("./workflow.service");
-
-const listMonitoring = async () =>
-  MonitoringRecord.find().populate("project indicator responsible").sort({ createdAt: -1 });
 
 const getMonitoringRecord = async (id) => {
   const record = await MonitoringRecord.findById(id).populate("project indicator responsible");
@@ -18,58 +14,6 @@ const getMonitoringRecord = async (id) => {
 
 const getByProject = async (projectId) =>
   MonitoringRecord.find({ project: projectId }).populate("project indicator responsible");
-
-const createRecord = async (payload) => {
-  await requireSempComplete(payload.project);
-  if (await MonitoringRecord.exists({ project: payload.project, indicator: payload.indicator })) {
-    throw new ApiError(
-      409,
-      "A monitoring record already exists for this indicator in this project"
-    );
-  }
-  const record = await MonitoringRecord.create(normalizeResponsible(payload));
-  // Populate relations before returning (consistent with other methods)
-  await record.populate("project indicator responsible");
-  return record;
-};
-
-const updateRecord = async (id, payload) => {
-  const existing = await MonitoringRecord.findById(id);
-  if (!existing) throw new ApiError(404, "Monitoring record not found");
-  assertSameProject(existing, payload);
-  await requireSempComplete(existing.project);
-
-  const updated = await MonitoringRecord.findByIdAndUpdate(id, normalizeResponsible(payload), {
-    new: true,
-    runValidators: true,
-  });
-  if (!updated) throw new ApiError(404, "Monitoring record not found");
-
-  // Populate relations before returning (consistent with other methods)
-  await updated.populate("project indicator responsible");
-  return updated;
-};
-
-const updateQuarter = async (id, quarterKey, value) => {
-  const record = await MonitoringRecord.findById(id);
-  if (!record) throw new ApiError(404, "Monitoring record not found");
-  await requireSempComplete(record.project);
-
-  if (!["baseline", "Q1", "Q2", "Q3", "Q4"].includes(quarterKey)) {
-    throw new ApiError(400, "Invalid quarter key");
-  }
-
-  record.scores = record.scores || {};
-  record.scores[quarterKey] = value; // value الآن String
-
-  // لا يتم حساب total تلقائياً - سيتم إرساله من الفرونت
-
-  await record.save();
-
-  // Populate relations before returning (consistent with other methods)
-  await record.populate("project indicator responsible");
-  return record;
-};
 
 const recordError = (index, message) => new ApiError(400, `Record ${index + 1}: ${message}`);
 
@@ -121,11 +65,7 @@ const upsertForProject = async (projectId, records) => {
 };
 
 module.exports = {
-  listMonitoring,
   upsertForProject,
   getMonitoringRecord,
   getByProject,
-  createRecord,
-  updateRecord,
-  updateQuarter,
 };

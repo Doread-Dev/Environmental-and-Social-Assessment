@@ -25,7 +25,7 @@ import { getRankingDisplayLabel } from '@/utils/rankingHelp'
  * @param {Object} assessment - Assessment object
  * @param {Array} monitoringRecords - Monitoring records array
  * @param {Array} categoriesWithIndicators - Categories with indicators from lookups
- * @param {Object} impactLevelConfig - IMPACT_LEVEL_CONFIG from LookupContext (for ranking labels)
+ * @param {Object} impactLevelConfig - IMPACT_LEVEL_CONFIG from utils/impactLevels (for ranking labels)
  */
 export async function exportMonitoringToExcel(
   project,

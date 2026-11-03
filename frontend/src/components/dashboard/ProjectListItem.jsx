@@ -25,8 +25,8 @@ function ProjectListItem({ project, onClick, className, ...props }) {
     }
   }
 
-  // projectStatus is pre-computed by useProjects
-  const projectStatus = project.projectStatus || 'draft'
+  // Overall status computed by the backend (D30)
+  const projectStatus = project.workflow?.status || 'draft'
   const categoryCode = project.screening?.category_code
 
   return (

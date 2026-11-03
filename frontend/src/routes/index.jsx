@@ -2,9 +2,7 @@ import { lazy, Suspense } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { ROUTES } from './routes.config'
 import ProtectedRoute from './ProtectedRoute'
-import MonitoringRouteGuard from './MonitoringRouteGuard'
-import SempRouteGuard from './SempRouteGuard'
-import AssessmentRouteGuard from './AssessmentRouteGuard'
+import WorkflowRouteGuard from './WorkflowRouteGuard'
 import SettingsRouteGuard from './SettingsRouteGuard'
 
 // Layouts - Keep these eager loaded as they're always needed
@@ -230,7 +228,7 @@ export const router = createBrowserRouter([
       // Assessment (Tool 2)
       {
         path: 'assessment',
-        element: <AssessmentRouteGuard />,
+        element: <WorkflowRouteGuard step="assessment" />,
         children: [
           {
             index: true,
@@ -278,7 +276,7 @@ export const router = createBrowserRouter([
       // SEMP (Overview remains in Project Layout)
       {
         path: 'semp',
-        element: <SempRouteGuard />,
+        element: <WorkflowRouteGuard step="semp" />,
         children: [
           {
             index: true,
@@ -294,7 +292,7 @@ export const router = createBrowserRouter([
       // Monitoring (Tool 5)
       {
         path: 'monitoring',
-        element: <MonitoringRouteGuard />,
+        element: <WorkflowRouteGuard step="monitoring" />,
         children: [
           {
             index: true,
@@ -334,7 +332,7 @@ export const router = createBrowserRouter([
     path: '/app/projects/:projectId/semp',
     element: (
       <ProtectedRoute>
-        <SempRouteGuard />
+        <WorkflowRouteGuard step="semp" />
       </ProtectedRoute>
     ),
     children: [

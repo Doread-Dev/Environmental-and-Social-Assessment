@@ -57,9 +57,7 @@ const rejectAssessmentSchema = Joi.object({
 module.exports = {
   createAssessmentSchema,
   updateAssessmentSchema,
-  addMethodSchema,
   replaceMethodsSchema,
-  addConsultationSchema,
   replaceConsultationsSchema,
   addScoresSchema,
   approveAssessmentSchema,

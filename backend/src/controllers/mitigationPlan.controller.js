@@ -20,3 +20,8 @@ exports.remove = asyncHandler(async (req, res) => {
   await service.deletePlan(req.params.id);
   res.status(204).send();
 });
+
+exports.replaceForProject = asyncHandler(async (req, res) => {
+  const data = await service.replaceForProject(req.params.id, req.body.rows);
+  res.json({ success: true, data });
+});

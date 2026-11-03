@@ -11,6 +11,7 @@ const lookupsRoutes = require("./lookups.routes");
 const authRoutes = require("./auth.routes");
 const usersRoutes = require("./users.routes");
 const auditLogsRoutes = require("./auditLogs.routes");
+const dashboardRoutes = require("./dashboard.routes");
 
 const router = express.Router();
 
@@ -29,5 +30,6 @@ router.use("/management", managementRoutes);
 router.use("/mitigation", mitigationRoutes);
 router.use("/lookups", lookupsRoutes);
 router.use("/audit-logs", auditLogsRoutes);
+router.use("/dashboard", dashboardRoutes);
 
 module.exports = router;

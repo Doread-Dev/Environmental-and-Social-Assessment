@@ -36,10 +36,21 @@
 - Bulk saves: create, update, delete rows in one call; invalid row → nothing written.
 
 ## Done when
-- [ ] New endpoints tested and documented in `CLAUDE.md`.
-- [ ] Existing frontend still works unchanged (additive phase).
+- [x] New endpoints tested and documented in `CLAUDE.md`.
+- [x] Existing frontend still works unchanged (additive phase): only the monitoring status rule in `workflowDerivation.js` changed (owner decision, kept in step with the backend); `GET /projects` without params still returns every project as an array in `data` (extra fields + a `pagination` sibling only).
 
 ## Out of scope
 Frontend migration (phase 5), `200 {data:null}` switch (phase 5, done together with the hooks).
 
+## Decisions taken in this phase
+
+- **`allowed_actions`** is returned where the frontend will read project state from in phase 5: `GET /projects/:id/workspace`, every item of `GET /projects` and of the dashboard's `latest_projects`. The per-tool endpoints (`/screenings/project/:id`, …) don't carry it.
+- **Monitoring state** (owner): `in_progress` as soon as one record exists (a baseline alone counts — before, records without a quarter value were `not_started`); `completed` once one record has all four quarters filled (kept as it was). The frontend's `workflowDerivation.js` was changed the same way so both agree until phase 5. `percent_complete` ports the progress timeline (approved/completed = 1, in progress/submitted/rejected = ½, of 4 steps).
+- **Gates** (`requireScreeningApproved`, `requireAssessmentApproved`, `requireSempComplete`) now read the step statuses from `computeWorkflow`; their 409 messages are unchanged.
+- **`GET /projects` pagination** only applies when `limit` is sent; without it every project comes back (the current frontend paginates client-side). `status`/`category` filter on the computed state, after loading — fine at the expected number of projects.
+- **Bulk saves**: no MongoDB transaction (the local server is standalone, transactions need a replica set). Instead every row is validated before the first write and the writes go out as one ordered `bulkWrite`. Owner agreed: the server gets a single-node replica set and the bulk saves a transaction in phase 11 (task added there).
+- **D36** (required-field list in the workspace response): not added — nothing in the frontend needs it yet; decide in phase 5.
+
 ## Found during phase
+
+- `POST /monitoring` and `PUT /monitoring/:id` don't check that the indicator exists (any id is accepted). The new bulk `PUT /projects/:id/monitoring` does (400). Align the row endpoints when they are cleaned up in phase 5, or keep them as is — owner's call.

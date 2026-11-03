@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { useAssessment } from './useAssessment'
 import { assessmentService } from '@/services'
+import { WORKFLOW_CHANGED_EVENT } from '@/utils/workflowEvents'
 
 vi.mock('@/contexts', () => ({
   useLookups: () => ({ categoriesWithQuestions: [], isLoading: false }),
@@ -13,6 +14,9 @@ vi.mock('@/services', () => ({
     getByProject: vi.fn(),
     create: vi.fn(),
     getScores: vi.fn(),
+    getMethods: vi.fn().mockResolvedValue([]),
+    getConsultations: vi.fn().mockResolvedValue([]),
+    approve: vi.fn(),
   },
 }))
 
@@ -79,5 +83,24 @@ describe('useAssessment.startAssessment', () => {
     })
 
     expect(outcome).toEqual({ success: false, error: 'Tool 1 must be approved' })
+  })
+})
+
+describe('useAssessment workflow notifications', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('announces approve so the sidebar unlocks SEMP', async () => {
+    assessmentService.getByProject.mockResolvedValue({ _id: 'a1', status: 'submitted' })
+    assessmentService.getScores.mockResolvedValue([])
+    assessmentService.approve.mockResolvedValue({ _id: 'a1', status: 'approved' })
+    const { result } = renderHook(() => useAssessment('p1'))
+    await waitFor(() => expect(result.current.assessment?._id).toBe('a1'))
+    const listener = vi.fn()
+    window.addEventListener(WORKFLOW_CHANGED_EVENT, listener)
+
+    await act(() => result.current.approveAssessment('ok'))
+
+    window.removeEventListener(WORKFLOW_CHANGED_EVENT, listener)
+    expect(listener).toHaveBeenCalledTimes(1)
   })
 })

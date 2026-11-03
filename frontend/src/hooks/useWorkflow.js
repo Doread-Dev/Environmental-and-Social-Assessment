@@ -8,12 +8,42 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useScreening, useAssessment } from '@/hooks'
-import api from '@/services/api'
+import { assessmentService, monitoringService, screeningService, sempService } from '@/services'
 import {
   deriveWorkflowStatus,
   getNextAction,
   calculateProjectStatusFromWorkflow,
 } from '@/utils/workflowDerivation'
+import { WORKFLOW_CHANGED_EVENT } from '@/utils/workflowEvents'
+
+const EMPTY = {
+  screening: null,
+  assessment: null,
+  managementActivities: [],
+  mitigationPlans: [],
+  monitoringRecords: [],
+}
+
+// A failed request counts as "nothing there yet", like the services' own 404 handling.
+async function loadEntities(projectId) {
+  const [screening, assessment, managementActivities, mitigationPlans, monitoringRecords] =
+    await Promise.allSettled([
+      screeningService.getByProject(projectId),
+      assessmentService.getByProject(projectId),
+      sempService.getManagementActivities(projectId),
+      sempService.getMitigationPlans(projectId),
+      monitoringService.getByProject(projectId),
+    ])
+  const value = (result, fallback) =>
+    result.status === 'fulfilled' ? (result.value ?? fallback) : fallback
+  return {
+    screening: value(screening, null),
+    assessment: value(assessment, null),
+    managementActivities: value(managementActivities, []),
+    mitigationPlans: value(mitigationPlans, []),
+    monitoringRecords: value(monitoringRecords, []),
+  }
+}
 
 /**
  * Hook to compute workflow status for a specific project
@@ -21,108 +51,54 @@ import {
  * @returns {Object} Workflow data and loading state
  */
 export function useWorkflow(projectId) {
-  const { screening, isLoading: screeningLoading } = useScreening(projectId)
-  const { assessment, isLoading: assessmentLoading } = useAssessment(projectId)
+  const [entities, setEntities] = useState(EMPTY)
+  const [isLoading, setIsLoading] = useState(true)
 
-  // SEMP data (management activities + mitigation plans)
-  const [managementActivities, setManagementActivities] = useState([])
-  const [mitigationPlans, setMitigationPlans] = useState([])
-  const [sempLoading, setSempLoading] = useState(true)
+  const load = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!projectId) {
+        setIsLoading(false)
+        return
+      }
+      if (!silent) setIsLoading(true)
+      const loaded = await loadEntities(projectId)
+      setEntities(loaded)
+      setIsLoading(false)
+    },
+    [projectId]
+  )
 
-  // Monitoring data
-  const [monitoringRecords, setMonitoringRecords] = useState([])
-  const [monitoringLoading, setMonitoringLoading] = useState(true)
-
-  // Fetch SEMP data
   useEffect(() => {
-    if (!projectId) {
-      setSempLoading(false)
-      return
-    }
-
     let isMounted = true
-    setSempLoading(true)
-
-    Promise.allSettled([
-      api.get(`/management/project/${projectId}`),
-      api.get(`/mitigation/project/${projectId}`),
-    ])
-      .then(([activitiesResult, plansResult]) => {
-        if (!isMounted) return
-
-        setManagementActivities(
-          activitiesResult.status === 'fulfilled' ? activitiesResult.value.data.data || [] : []
-        )
-        setMitigationPlans(
-          plansResult.status === 'fulfilled' ? plansResult.value.data.data || [] : []
-        )
-      })
-      .catch(() => {
-        if (!isMounted) return
-        setManagementActivities([])
-        setMitigationPlans([])
-      })
-      .finally(() => {
-        if (isMounted) setSempLoading(false)
-      })
-
+    setEntities(EMPTY)
+    setIsLoading(true)
+    if (!projectId) {
+      setIsLoading(false)
+      return undefined
+    }
+    loadEntities(projectId).then((loaded) => {
+      if (!isMounted) return
+      setEntities(loaded)
+      setIsLoading(false)
+    })
     return () => {
       isMounted = false
     }
   }, [projectId])
 
-  // Function to fetch monitoring data
-  const fetchMonitoringData = useCallback(() => {
-    if (!projectId) {
-      setMonitoringLoading(false)
-      return
-    }
-
-    setMonitoringLoading(true)
-
-    api
-      .get(`/monitoring/project/${projectId}`)
-      .then((response) => {
-        setMonitoringRecords(response.data.data || [])
-      })
-      .catch(() => {
-        setMonitoringRecords([])
-      })
-      .finally(() => {
-        setMonitoringLoading(false)
-      })
-  }, [projectId])
-
-  // Fetch monitoring data on mount and when projectId changes
+  // Refetch after a save/submit/approve on any page. Silent: the layout keeps the page mounted.
   useEffect(() => {
-    fetchMonitoringData()
-  }, [fetchMonitoringData])
-
-  // Listen for monitoring data updates (after save)
-  useEffect(() => {
-    const handleMonitoringUpdate = (event) => {
-      const updatedProjectId = event.detail?.projectId
-      if (updatedProjectId === projectId) {
-        fetchMonitoringData()
-      }
+    const handleChange = (event) => {
+      if (event.detail?.projectId === projectId) load({ silent: true })
     }
+    window.addEventListener(WORKFLOW_CHANGED_EVENT, handleChange)
+    return () => window.removeEventListener(WORKFLOW_CHANGED_EVENT, handleChange)
+  }, [projectId, load])
 
-    window.addEventListener('monitoring-data-updated', handleMonitoringUpdate)
-    return () => {
-      window.removeEventListener('monitoring-data-updated', handleMonitoringUpdate)
-    }
-  }, [projectId, fetchMonitoringData])
+  const { screening, assessment, managementActivities, mitigationPlans, monitoringRecords } =
+    entities
 
-  // Compute derived workflow
-  const workflow = useMemo(() => {
-    return deriveWorkflowStatus({
-      screening,
-      assessment,
-      managementActivities,
-      mitigationPlans,
-      monitoringRecords,
-    })
-  }, [screening, assessment, managementActivities, mitigationPlans, monitoringRecords])
+  const workflow = useMemo(() => deriveWorkflowStatus(entities), [entities])
 
   // Compute next action
   const nextAction = useMemo(() => getNextAction(workflow), [workflow])
@@ -130,14 +106,12 @@ export function useWorkflow(projectId) {
   // Compute project status
   const projectStatus = useMemo(() => calculateProjectStatusFromWorkflow(workflow), [workflow])
 
-  // Loading state
-  const isLoading = screeningLoading || assessmentLoading || sempLoading || monitoringLoading
-
   return {
     workflow,
     nextAction,
     projectStatus,
     isLoading,
+    refetch: load,
 
     // Raw entities (for components that need them)
     screening,
@@ -145,12 +119,6 @@ export function useWorkflow(projectId) {
     managementActivities,
     mitigationPlans,
     monitoringRecords,
-
-    // Individual loading states
-    screeningLoading,
-    assessmentLoading,
-    sempLoading,
-    monitoringLoading,
   }
 }
 

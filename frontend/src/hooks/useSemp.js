@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { sempService } from '@/services/sempService'
 import { extractErrorMessage } from '@/services/api'
+import { notifyWorkflowChanged } from '@/utils/workflowEvents'
 
 /**
  * Normalize data payload for API requests
@@ -249,6 +250,7 @@ export function useSemp(projectId) {
       setManagementActivities(normalizeApiResponse(activities))
       setManagementDeletedIds([])
 
+      notifyWorkflowChanged(projectId)
       return { success: true }
     } catch (err) {
       const errorMessage = extractErrorMessage(err)
@@ -393,6 +395,7 @@ export function useSemp(projectId) {
       setMitigationPlans(normalizeApiResponse(plans))
       setMitigationDeletedIds([])
 
+      notifyWorkflowChanged(projectId)
       return { success: true }
     } catch (err) {
       const errorMessage = extractErrorMessage(err)

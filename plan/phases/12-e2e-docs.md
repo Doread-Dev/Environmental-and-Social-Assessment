@@ -16,6 +16,10 @@
   7. Archive / restore; delete blocked when something is approved.
   8. Locked v3 buttons visible and inert.
 - One command to run; documented in `CLAUDE.md`.
+- Add the E2E run as a job in `.github/workflows/ci.yml`.
+
+## Test gap review
+- Open the coverage reports (`npm run test:coverage` → `coverage/index.html` in each app) and list every module still without meaningful tests (routes, services, hooks, pages, utils). Owner decides which get tests in this phase; raise the thresholds after.
 
 ## Documentation (D44)
 - Delete `backend/docs/` and `frontend/docs/`.
@@ -25,7 +29,8 @@
 - README at the root.
 
 ## Done when
-- [ ] E2E suite green; docs reviewed by the owner.
+- [ ] E2E suite green and running in CI; docs reviewed by the owner.
+- [ ] Test gap list reviewed by the owner; agreed tests added.
 - [ ] `plan/README.md` progress table complete.
 
 ## Found during phase

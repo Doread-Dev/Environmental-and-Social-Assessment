@@ -38,6 +38,7 @@ Thumbs.db
 # Build outputs
 dist/
 build/
+coverage/
 
 # Backend specific
 backend/node_modules/

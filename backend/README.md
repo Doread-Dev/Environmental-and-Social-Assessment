@@ -22,7 +22,7 @@
    - `MONGODB_URI` — MongoDB connection string (required).
    - `JWT_SECRET` — Strong secret, at least 32 characters (required; server refuses to start otherwise).
      Optionally set `PORT`, `NODE_ENV`, `JWT_EXPIRES_IN`, and `FRONTEND_URL` (see [Configuration](#configuration)).
-4. **Run:** Start the API in development (with nodemon):
+4. **Run:** Start the API in development (with `node --watch`):
    ```bash
    npm run dev
    ```
@@ -35,12 +35,12 @@
 
 ## Scripts
 
-| Script  | Command                  | Purpose                                              |
-| ------- | ------------------------ | ---------------------------------------------------- |
-| `dev`   | `nodemon src/server.js`  | Run server with auto-reload (development).           |
-| `start` | `node src/server.js`     | Run server (production).                             |
-| `build` | `echo 'Build completed'` | No bundle step; placeholder for CI if needed.        |
-| `seed`  | `node src/db/seed.js`    | Connect to DB and seed lookups (and optional users). |
+| Script  | Command                      | Purpose                                              |
+| ------- | ---------------------------- | ---------------------------------------------------- |
+| `dev`   | `node --watch src/server.js` | Run server with auto-reload (development).           |
+| `start` | `node src/server.js`         | Run server (production).                             |
+| `build` | `echo 'Build completed'`     | No bundle step; placeholder for CI if needed.        |
+| `seed`  | `node src/db/seed.js`        | Connect to DB and seed lookups (and optional users). |
 
 ## Configuration
 

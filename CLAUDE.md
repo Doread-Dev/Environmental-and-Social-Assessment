@@ -24,25 +24,32 @@ Sections below describe the code **as it is today**; they change as phases land.
 ## Commands
 
 Backend (`cd backend`):
-- `npm run dev` — nodemon on `src/server.js` (port 3000). Health: `GET http://localhost:3000/health`.
+- `npm run dev` — `node --watch src/server.js` (port 3000). Health: `GET http://localhost:3000/health`.
 - `npm start` — production start.
 - `npm run seed` — upserts the 4 lookup collections (impact categories, impact questions, indicators, job titles) by a stable key (category `code`, question text, indicator name, job title name). Safe to re-run: existing rows keep their `_id`, so scores, monitoring records and users stay linked. Does not delete rows that are no longer in the seed, and does not create users.
 - `SEED_EMAIL=... SEED_PASSWORD=... node scripts/seed-demo-project.js` — (re)creates `[DEMO] Al-Salam Water Network Rehabilitation`, a project that has passed all 5 tools, through the real API (needs a specialist login; use the `DEV_LOGIN_*` values from `backend/.env`).
 - `node scripts/clean-test-data.js` — deletes ALL domain data (projects, screenings, assessments, management activities, mitigation plans, monitoring). Destructive; ask before running. Refuses to run when `NODE_ENV=production`.
-- `npm test` (`npm run test:watch`) — Vitest + Supertest, see "Tests" below. Needs MongoDB running.
+- `npm test` (`npm run test:watch`, `npm run test:coverage`) — Vitest + Supertest, see "Tests" below. Needs MongoDB running.
 - `npm run lint` / `npm run lint:fix` — ESLint flat config (CommonJS, Node globals, `eslint-config-prettier`).
 - `npm run format` / `npm run format:check` — Prettier, backend style: double quotes, semicolons, width 100.
 
 Frontend (`cd frontend`):
 - `npm run dev` — Vite on http://localhost:5173.
 - `npm run build` / `npm run preview`
-- `npm test` (`npm run test:watch`) — Vitest + React Testing Library + jsdom. Tests sit next to the code as `*.test.js(x)`; setup in `src/test/setup.js`.
+- `npm test` (`npm run test:watch`, `npm run test:coverage`) — Vitest + React Testing Library + jsdom. Tests sit next to the code as `*.test.js(x)`; setup in `src/test/setup.js`.
 - `npm run lint` / `npm run lint:fix` — ESLint 9 flat config (prettier as a lint rule).
 - `npm run format` / `npm run format:check` — Prettier on `src/`.
 
 Node is pinned to 26 LTS (`.nvmrc`, `engines` in both `package.json`). Lockfiles are committed: install with `npm ci`. esbuild's install script is approved via `allowScripts` in `frontend/package.json` (npm 11).
 
 Every behavior change and fix ships with a test (D39). Before finishing a change: `npm test` + `npm run lint` in each app you touched, plus `npm run build` for the frontend. Lint must stay at 0 errors and Prettier checks must pass in both apps.
+
+### CI and coverage
+
+- `.github/workflows/ci.yml` (GitHub Actions) runs on every PR and on pushes to `main`/`Development`: jobs **Backend** (MongoDB **7.0** service — 8.x cannot start on the runner kernels, see the comment in the workflow; `npm ci`, lint, `format:check`, `test:coverage`) and **Frontend** (`npm ci`, lint, `format:check`, `test:coverage`, `build`). Merge only when green. Coverage HTML is uploaded as an artifact; the job summary shows the numbers.
+- New `*.test.js(x)` files run in CI automatically. Add a step/job only for a new kind of check (e.g. Playwright in phase 12).
+- `coverage.thresholds` in `backend/vitest.config.mjs` and `frontend/vitest.config.js` are a floor: `test:coverage` fails below them. Raise them at the end of a phase (rounded down to the new numbers); never lower them.
+- A green CI does not mean new code is tested — writing the test is still part of the change (D39).
 
 ### Tests
 

@@ -8,6 +8,14 @@ export default mergeConfig(
       environment: 'jsdom',
       include: ['src/**/*.test.{js,jsx}'],
       setupFiles: ['src/test/setup.js'],
+      coverage: {
+        provider: 'v8',
+        include: ['src/**/*.{js,jsx}'],
+        exclude: ['src/**/*.test.{js,jsx}', 'src/test/**'],
+        reporter: ['text-summary', 'html', 'json-summary'],
+        // Floor = current coverage, rounded down. Raise it when a phase adds tests; never lower it.
+        thresholds: { statements: 0.4, branches: 0.6, functions: 0.7, lines: 0.4 },
+      },
     },
   })
 )

@@ -46,7 +46,7 @@ Every behavior change and fix ships with a test (D39). Before finishing a change
 
 ### CI and coverage
 
-- `.github/workflows/ci.yml` (GitHub Actions) runs on every PR and on pushes to `main`/`Development`: jobs **Backend** (MongoDB 8 service, `npm ci`, lint, `format:check`, `test:coverage`) and **Frontend** (`npm ci`, lint, `format:check`, `test:coverage`, `build`). Merge only when green. Coverage HTML is uploaded as an artifact; the job summary shows the numbers.
+- `.github/workflows/ci.yml` (GitHub Actions) runs on every PR and on pushes to `main`/`Development`: jobs **Backend** (`ubuntu-24.04` + MongoDB 8.3 service — see the comment in the workflow, `npm ci`, lint, `format:check`, `test:coverage`) and **Frontend** (`npm ci`, lint, `format:check`, `test:coverage`, `build`). Merge only when green. Coverage HTML is uploaded as an artifact; the job summary shows the numbers.
 - New `*.test.js(x)` files run in CI automatically. Add a step/job only for a new kind of check (e.g. Playwright in phase 12).
 - `coverage.thresholds` in `backend/vitest.config.mjs` and `frontend/vitest.config.js` are a floor: `test:coverage` fails below them. Raise them at the end of a phase (rounded down to the new numbers); never lower them.
 - A green CI does not mean new code is tested — writing the test is still part of the change (D39).

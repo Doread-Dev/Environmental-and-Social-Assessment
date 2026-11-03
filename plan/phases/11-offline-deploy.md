@@ -32,3 +32,4 @@
 - [ ] `CLAUDE.md` deployment section rewritten.
 
 ## Found during phase
+- **MongoDB 8 vs Linux kernel (found while adding CI, 2026-11-03):** MongoDB 8.x refuses to start on Linux kernels 6.19 to 7.0.13 (tcmalloc/rseq bug, SERVER-121912; startup check changed in 8.0.30 / 8.3.9 by SERVER-125742). The GitHub `ubuntu-26.04` runner hit it, so CI's Backend job runs on `ubuntu-24.04`. When choosing the server OS/kernel and MongoDB version here, check this matrix first (kernel < 6.19 or a fixed kernel, MongoDB ≥ 8.0.30 / 8.3.9).

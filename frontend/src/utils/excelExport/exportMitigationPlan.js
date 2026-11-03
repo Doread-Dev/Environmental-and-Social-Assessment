@@ -6,7 +6,6 @@ import {
   createWorkbook,
   addAkfHeader,
   applyBorders,
-  mergeCells,
   saveWorkbook,
   generateFileName,
   extractUserName,
@@ -36,8 +35,7 @@ export async function exportMitigationPlanToExcel(project, mitigationPlans) {
   // Row 3: Title
   worksheet.mergeCells(currentRow, 1, currentRow, 8)
   const titleCell = worksheet.getCell(currentRow, 1)
-  titleCell.value =
-    'Environmental and social impact assessment and mitigation plan - Tool 4'
+  titleCell.value = 'Environmental and social impact assessment and mitigation plan - Tool 4'
   titleCell.font = EXCEL_STYLES.titleFont
   titleCell.alignment = { horizontal: 'center', vertical: 'middle' }
   worksheet.getRow(currentRow).height = 20
@@ -76,12 +74,8 @@ export async function exportMitigationPlanToExcel(project, mitigationPlans) {
     mitigationPlans.forEach((plan) => {
       worksheet.getCell(currentRow, 1).value = plan.serial_number || ''
       worksheet.getCell(currentRow, 2).value = safeString(plan.output_description)
-      worksheet.getCell(currentRow, 3).value = safeString(
-        plan.potential_impact_and_significance
-      )
-      worksheet.getCell(currentRow, 4).value = safeString(
-        plan.mitigation_and_enhancement_measures
-      )
+      worksheet.getCell(currentRow, 3).value = safeString(plan.potential_impact_and_significance)
+      worksheet.getCell(currentRow, 4).value = safeString(plan.mitigation_and_enhancement_measures)
       worksheet.getCell(currentRow, 5).value = safeString(plan.monitoring)
       worksheet.getCell(currentRow, 6).value = extractUserName(plan.responsible)
       worksheet.getCell(currentRow, 7).value = safeString(plan.schedule)

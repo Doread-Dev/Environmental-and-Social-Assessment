@@ -119,15 +119,9 @@ export function useFiles(projectId) {
   /**
    * تحميل ملف (محاكاة)
    */
-  const downloadFile = useCallback(async (attachment) => {
-    try {
-      // محاكاة تحميل الملف — في الإنتاج: window.open(attachment.file_path, '_blank')
-      return { success: true }
-    } catch (err) {
-      setError('Failed to download file')
-      console.error(err)
-      return { success: false, error: err.message }
-    }
+  const downloadFile = useCallback(async (_attachment) => {
+    // محاكاة تحميل الملف — في الإنتاج: window.open(attachment.file_path, '_blank')
+    return { success: true }
   }, [])
 
   return {

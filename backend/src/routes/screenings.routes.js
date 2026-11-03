@@ -17,14 +17,24 @@ router.get("/project/:projectId", controller.getByProject);
 router.post(
   "/",
   auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
+  requireRole(
+    "environmental_specialist",
+    "program_manager",
+    "project_manager",
+    "environmental_focal_point"
+  ),
   validate(createScreeningSchema),
   controller.create
 );
 router.put(
   "/:id",
   auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
+  requireRole(
+    "environmental_specialist",
+    "program_manager",
+    "project_manager",
+    "environmental_focal_point"
+  ),
   validate(updateScreeningSchema),
   controller.update
 );
@@ -44,4 +54,3 @@ router.patch(
 );
 
 module.exports = router;
-

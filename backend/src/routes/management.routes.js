@@ -13,21 +13,36 @@ router.get("/project/:projectId", controller.listByProject);
 router.post(
   "/",
   auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
+  requireRole(
+    "environmental_specialist",
+    "program_manager",
+    "project_manager",
+    "environmental_focal_point"
+  ),
   validate(createManagementActivitySchema),
   controller.create
 );
 router.put(
   "/:id",
   auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
+  requireRole(
+    "environmental_specialist",
+    "program_manager",
+    "project_manager",
+    "environmental_focal_point"
+  ),
   validate(updateManagementActivitySchema),
   controller.update
 );
 router.delete(
   "/:id",
   auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
+  requireRole(
+    "environmental_specialist",
+    "program_manager",
+    "project_manager",
+    "environmental_focal_point"
+  ),
   controller.remove
 );
 

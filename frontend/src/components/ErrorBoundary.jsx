@@ -33,7 +33,9 @@ export class ErrorBoundary extends Component {
           window.location.reload()
           return
         }
-      } catch (_) {}
+      } catch {
+        // sessionStorage unavailable (e.g. private mode): fall through to the error UI
+      }
     }
     console.error('ErrorBoundary caught:', error, errorInfo)
   }
@@ -41,7 +43,9 @@ export class ErrorBoundary extends Component {
   handleRetry = () => {
     try {
       sessionStorage.removeItem(CHUNK_RELOAD_KEY)
-    } catch (_) {}
+    } catch {
+      // sessionStorage unavailable: nothing to clear
+    }
     this.setState({ hasError: false, error: null })
   }
 

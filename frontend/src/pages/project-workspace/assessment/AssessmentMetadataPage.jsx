@@ -131,7 +131,11 @@ export default function AssessmentMetadataPage() {
       <div className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden mb-20">
         {/* Info Section */}
         <MetadataInfoSection
-          officer={assessment?.officer && typeof assessment.officer === 'object' ? assessment.officer : user}
+          officer={
+            assessment?.officer && typeof assessment.officer === 'object'
+              ? assessment.officer
+              : user
+          }
           currentUser={user}
           project={project}
           screeningCategory={screening?.category_code}

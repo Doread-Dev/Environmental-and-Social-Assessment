@@ -25,9 +25,7 @@ function SettingsRouteGuard() {
 
   // Only Environmental Specialist can access settings
   if (!user || user.role !== USER_ROLES.ENVIRONMENTAL_SPECIALIST) {
-    return (
-      <Navigate to="/app/dashboard" replace state={{ from: location }} />
-    )
+    return <Navigate to="/app/dashboard" replace state={{ from: location }} />
   }
 
   return <Outlet context={outletContext} />

@@ -31,4 +31,3 @@ exports.updateQuarter = asyncHandler(async (req, res) => {
   const data = await service.updateQuarter(req.params.id, q, req.body.value);
   res.json({ success: true, data });
 });
-

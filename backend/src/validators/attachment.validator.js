@@ -13,4 +13,3 @@ const createAttachmentSchema = Joi.object({
 module.exports = {
   createAttachmentSchema,
 };
-

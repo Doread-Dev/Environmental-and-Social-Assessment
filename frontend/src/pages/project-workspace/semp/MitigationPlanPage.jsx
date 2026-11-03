@@ -62,7 +62,7 @@ export default function MitigationPlanPage() {
               exportProject = { _id: projectId, title: 'Unknown Project' }
             }
           }
-          
+
           if (!exportProject) {
             throw new Error('Project data is not available')
           }
@@ -76,7 +76,7 @@ export default function MitigationPlanPage() {
         }
       }
     }
-    
+
     window.addEventListener('semp-export', handleExportEvent)
     return () => {
       window.removeEventListener('semp-export', handleExportEvent)

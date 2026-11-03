@@ -13,4 +13,3 @@ const assessmentMethodSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("AssessmentMethod", assessmentMethodSchema);
-

@@ -1,5 +1,11 @@
-// Cleanup script to purge test data and uploads.
+// Cleanup script to purge test data and uploads. Dev-only: refuses to run in production.
 require("dotenv").config();
+
+if (process.env.NODE_ENV === "production") {
+  console.error("clean-test-data.js refuses to run with NODE_ENV=production.");
+  process.exit(1);
+}
+
 const mongoose = require("mongoose");
 const path = require("path");
 const fs = require("fs");

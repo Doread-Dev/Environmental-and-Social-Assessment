@@ -10,4 +10,3 @@ exports.login = asyncHandler(async (req, res) => {
   const { user, token } = await service.login(req.body.email, req.body.password);
   res.json({ success: true, data: { user, token } });
 });
-

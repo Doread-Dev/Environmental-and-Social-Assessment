@@ -73,8 +73,6 @@
   }
 }
 
-
-
 /* ==========================================
    Base Styles
    ========================================== */
@@ -378,12 +376,12 @@ html.dark .excel-table tr:hover td {
 }
 
 /* Radio Button Styling - مطابق للتصميم الأصلي */
-input[type="radio"].text-primary,
-input[type="radio"][class*="text-primary"] {
+input[type='radio'].text-primary,
+input[type='radio'][class*='text-primary'] {
   accent-color: var(--color-primary);
 }
 
-input[type="radio"]:checked {
+input[type='radio']:checked {
   accent-color: var(--color-primary);
 }
 

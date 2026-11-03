@@ -7,7 +7,7 @@
  * Route: /app/projects/:projectId/overview
  */
 
-import { useMemo, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   ProjectHeader,
@@ -28,9 +28,9 @@ function ProjectOverviewPage() {
   const { projectId } = useParams()
   const { project: contextProject, setProject: setContextProject, workflow } = useProjectContext()
   const [project, setProject] = useState(contextProject)
-  
+
   // Get Management Activities count from SEMP hook
-  const { managementActivities, isLoading: sempLoading } = useSemp(projectId)
+  const { managementActivities } = useSemp(projectId)
 
   useEffect(() => {
     if (contextProject) {

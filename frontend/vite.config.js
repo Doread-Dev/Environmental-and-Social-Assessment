@@ -35,10 +35,7 @@ export default defineConfig({
         assetFileNames: 'assets/[name]-[hash].[ext]',
         manualChunks: (id) => {
           // Heavy Excel vendor - single shared chunk (used by screening, assessment, semp, monitoring)
-          if (
-            id.includes('node_modules/exceljs') ||
-            id.includes('node_modules/file-saver')
-          ) {
+          if (id.includes('node_modules/exceljs') || id.includes('node_modules/file-saver')) {
             return 'vendor-excel'
           }
           if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {

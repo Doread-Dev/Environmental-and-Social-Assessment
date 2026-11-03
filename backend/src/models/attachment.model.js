@@ -21,4 +21,3 @@ const attachmentSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Attachment", attachmentSchema);
-

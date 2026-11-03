@@ -13,4 +13,3 @@ exports.export = asyncHandler(async (req, res) => {
   res.setHeader("Content-Disposition", `attachment; filename=${result.filename}`);
   res.send(result.content);
 });
-

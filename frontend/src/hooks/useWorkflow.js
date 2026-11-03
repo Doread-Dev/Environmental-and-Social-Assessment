@@ -9,7 +9,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useScreening, useAssessment } from '@/hooks'
 import api from '@/services/api'
-import { extractErrorMessage } from '@/services/api'
 import {
   deriveWorkflowStatus,
   getNextAction,

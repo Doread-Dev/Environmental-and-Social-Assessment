@@ -6,7 +6,6 @@ import {
   createWorkbook,
   addAkfHeader,
   applyBorders,
-  mergeCells,
   saveWorkbook,
   generateFileName,
   extractUserName,
@@ -45,8 +44,7 @@ export async function exportManagementActivitiesToExcel(project, managementActiv
   // Row 3: Title
   worksheet.mergeCells(currentRow, 1, currentRow, 7)
   const titleCell = worksheet.getCell(currentRow, 1)
-  titleCell.value =
-    'Template for environmental and social management activities - Tool 3'
+  titleCell.value = 'Template for environmental and social management activities - Tool 3'
   titleCell.font = EXCEL_STYLES.titleFont
   titleCell.alignment = { horizontal: 'center', vertical: 'middle' }
   worksheet.getRow(currentRow).height = 20

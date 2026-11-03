@@ -6,7 +6,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { userService, authService } from '@/services'
 import { extractErrorMessage } from '@/services/api'
-import { useAuth, USER_ROLES, ROLE_LABELS } from '@/contexts'
+import { USER_ROLES, ROLE_LABELS } from '@/contexts'
 import { useToast, Table, Badge, Pagination, Select } from '@/components/ui'
 import { cn } from '@/utils/cn'
 
@@ -175,9 +175,7 @@ export function UsersManagementSection() {
       <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-gray-50/50 dark:bg-white/5">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-text-main dark:text-white">
-              Users Management
-            </h2>
+            <h2 className="text-lg font-bold text-text-main dark:text-white">Users Management</h2>
             <p className="text-sm text-text-secondary dark:text-gray-400 mt-1">
               Create and manage user accounts
             </p>
@@ -198,7 +196,10 @@ export function UsersManagementSection() {
       <div className="p-6">
         {/* Add User Form */}
         {showAddForm && (
-          <form onSubmit={handleSubmit} className="mb-6 p-4 bg-gray-50/50 dark:bg-white/5 rounded-lg border border-border-default dark:border-border-dark">
+          <form
+            onSubmit={handleSubmit}
+            className="mb-6 p-4 bg-gray-50/50 dark:bg-white/5 rounded-lg border border-border-default dark:border-border-dark"
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Name */}
               <div>

@@ -26,15 +26,15 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
   // User menu items (filtered by role)
   const userMenuItems = useMemo(() => {
     const items = []
-    
+
     // Settings - only for Environmental Specialist
     if (user?.role === USER_ROLES.ENVIRONMENTAL_SPECIALIST) {
       items.push({ id: 'settings', label: 'Settings', icon: 'settings' })
       items.push({ id: 'divider', type: 'divider' })
     }
-    
+
     items.push({ id: 'logout', label: 'Sign Out', icon: 'logout' })
-    
+
     return items
   }, [user?.role])
 
@@ -125,11 +125,7 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
             </div>
 
             {/* Avatar */}
-            <Avatar
-              alt={userName}
-              size="md"
-              className="ring-2 ring-white dark:ring-surface-dark"
-            />
+            <Avatar alt={userName} size="md" className="ring-2 ring-white dark:ring-surface-dark" />
           </button>
 
           {/* User Dropdown Menu */}
@@ -151,9 +147,7 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
               >
                 {/* User Info in Menu */}
                 <div className="px-4 py-3 border-b border-border-default dark:border-border-dark sm:hidden">
-                  <p className="text-sm font-semibold text-text-main dark:text-white">
-                    {userName}
-                  </p>
+                  <p className="text-sm font-semibold text-text-main dark:text-white">{userName}</p>
                   <p className="text-xs text-text-secondary dark:text-gray-400 mt-0.5">
                     {userRoleLabel}
                   </p>

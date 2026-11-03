@@ -49,14 +49,14 @@ const updateScreening = async (id, payload, updatedBy) => {
   // إذا كان status يتغير إلى submitted أو لم يكن officer موجوداً، نحدّث officer
   const screening = await Screening.findById(id);
   if (!screening) throw new ApiError(404, "Screening not found");
-  
+
   const updateData = { ...payload };
-  
+
   // إذا تغير status إلى submitted أو لم يكن officer موجوداً، نحدّث officer
   if (updatedBy && (payload.status === "submitted" || !screening.officer)) {
     updateData.officer = updatedBy;
   }
-  
+
   const updated = await Screening.findByIdAndUpdate(id, updateData, {
     new: true,
     runValidators: true,
@@ -117,7 +117,7 @@ module.exports = {
   getByProject,
   createScreening,
   updateScreening,
-  setStatus, 
+  setStatus,
   approveScreening,
-  rejectScreening, 
+  rejectScreening,
 };

@@ -6,7 +6,10 @@ import { useState, useEffect, useCallback } from 'react'
 import { projectService } from '@/services/projectService'
 import { screeningService, assessmentService, sempService, monitoringService } from '@/services'
 import { extractErrorMessage } from '@/services/api'
-import { deriveWorkflowStatus, calculateProjectStatusFromWorkflow } from '@/utils/workflowDerivation'
+import {
+  deriveWorkflowStatus,
+  calculateProjectStatusFromWorkflow,
+} from '@/utils/workflowDerivation'
 
 /**
  * Enhance project with derived workflow from screening, assessment, SEMP, and monitoring
@@ -66,10 +69,8 @@ export function useProjects() {
       }
 
       const projects = projectsData.value
-      const screenings =
-        screeningsResult.status === 'fulfilled' ? screeningsResult.value : []
-      const assessments =
-        assessmentsResult.status === 'fulfilled' ? assessmentsResult.value : []
+      const screenings = screeningsResult.status === 'fulfilled' ? screeningsResult.value : []
+      const assessments = assessmentsResult.status === 'fulfilled' ? assessmentsResult.value : []
 
       // Create lookup maps by project ID
       const screeningByProjectId = new Map(
@@ -98,8 +99,7 @@ export function useProjects() {
           ])
           return {
             projectId: project._id,
-            activities:
-              activities.status === 'fulfilled' ? activities.value : [],
+            activities: activities.status === 'fulfilled' ? activities.value : [],
             plans: plans.status === 'fulfilled' ? plans.value : [],
             monitoring: monitoring.status === 'fulfilled' ? monitoring.value : [],
           }
@@ -136,14 +136,20 @@ export function useProjects() {
         const activities = managementActivitiesByProjectId.get(project._id) || []
         const plans = mitigationPlansByProjectId.get(project._id) || []
         const monitoring = monitoringRecordsByProjectId.get(project._id) || []
-        return enhanceProjectWithWorkflow(project, screening, assessment, activities, plans, monitoring)
+        return enhanceProjectWithWorkflow(
+          project,
+          screening,
+          assessment,
+          activities,
+          plans,
+          monitoring
+        )
       })
 
       setProjects(merged)
     } catch (err) {
       const errorMessage = extractErrorMessage(err)
       setError(errorMessage)
-      // eslint-disable-next-line no-console
       console.error('Failed to fetch projects:', errorMessage)
     } finally {
       setIsLoading(false)

@@ -24,15 +24,15 @@ export default function MetadataInfoSection({
 }) {
   const officerName = officer?.name || 'N/A'
   const officerRoleLabel = officer?.role ? ROLE_LABELS[officer.role] : null
-  const officerPosition = officer?.job_title?.title_name || officer?.position || officerRoleLabel || 'N/A'
+  const officerPosition =
+    officer?.job_title?.title_name || officer?.position || officerRoleLabel || 'N/A'
 
   const currentName = currentUser?.name || 'N/A'
   const currentRoleLabel = currentUser?.role ? ROLE_LABELS[currentUser.role] : null
   const currentPosition =
     currentUser?.job_title?.title_name || currentUser?.position || currentRoleLabel || 'N/A'
 
-  const showReassignHint =
-    officer?._id && currentUser?._id && officer._id !== currentUser._id
+  const showReassignHint = officer?._id && currentUser?._id && officer._id !== currentUser._id
   return (
     <div
       className={cn(
@@ -51,8 +51,7 @@ export default function MetadataInfoSection({
             <div className="flex flex-col">
               <span className="text-text-secondary line-through">{officerName}</span>
               <span className="text-text-main dark:text-white font-medium">
-                {currentName}{' '}
-                <span className="text-text-secondary text-xs">(في حال الحفظ)</span>
+                {currentName} <span className="text-text-secondary text-xs">(في حال الحفظ)</span>
               </span>
             </div>
           ) : (

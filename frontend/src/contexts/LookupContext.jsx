@@ -79,7 +79,6 @@ export const IMPACT_LEVEL_CONFIG = {
   },
 }
 
-
 /**
  * LookupProvider Component
  * Wraps the application to provide lookup data
@@ -140,7 +139,6 @@ export function LookupProvider({ children }) {
     } catch (err) {
       const errorMessage = extractErrorMessage(err)
       setError(errorMessage)
-      // eslint-disable-next-line no-console
       console.error('Failed to load lookup data:', errorMessage)
     } finally {
       setIsLoading(false)

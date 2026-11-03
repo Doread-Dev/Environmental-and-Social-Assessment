@@ -14,7 +14,7 @@ import {
   ProjectProgressTimeline,
   ProjectMetricCard,
   ProjectCTACard,
-  ProjectSiteCard,
+  ProjectDetailsCard,
 } from '@/components/project'
 import { useProjectContext, useSemp } from '@/hooks'
 import { getScreeningCategory } from '@/utils/screeningDisplay'
@@ -87,10 +87,6 @@ function ProjectOverviewPage() {
     navigate(`/app/projects/${projectId}/${nextAction.path}`)
   }
 
-  const handleMapExpand = () => {
-    // TODO: Open map in modal or new page
-  }
-
   return (
     <div className="flex flex-col gap-8">
       {/* Project Header Section (includes header + progress timeline) */}
@@ -146,13 +142,12 @@ function ProjectOverviewPage() {
 
         {/* Right Column (1/3) */}
         <div className="flex flex-col gap-6">
-          {/* Site Card */}
-          <ProjectSiteCard
+          {/* Project Details Card */}
+          <ProjectDetailsCard
             location={project.location}
-            areaName="Bukit Barisan Selatan National Park"
-            areaSize="245 Hectares"
-            mapImageUrl={null}
-            onExpand={handleMapExpand}
+            component={project.project_component}
+            startDate={project.start_date}
+            endDate={project.end_date}
           />
         </div>
       </div>

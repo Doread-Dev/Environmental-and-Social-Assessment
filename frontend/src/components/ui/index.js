@@ -11,7 +11,6 @@ export { default as Textarea } from './Textarea'
 export { default as Select } from './Select'
 export { default as Checkbox } from './Checkbox'
 export { default as RadioGroup } from './RadioGroup'
-export { default as FileUpload } from './FileUpload'
 
 // Display Components
 export { default as Card } from './Card'

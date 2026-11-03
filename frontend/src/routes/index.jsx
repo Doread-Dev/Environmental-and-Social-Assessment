@@ -83,8 +83,7 @@ const MonitoringDataEntryPage = lazy(
   () => import('@/pages/project-workspace/monitoring/MonitoringDataEntryPage')
 )
 
-// Files & Annex Pages
-const ProjectFilesPage = lazy(() => import('@/pages/project-workspace/annex/ProjectFilesPage'))
+// Annex Page
 const AnnexOverviewPage = lazy(() => import('@/pages/project-workspace/annex/AnnexOverviewPage'))
 
 // Settings Pages
@@ -316,15 +315,7 @@ export const router = createBrowserRouter([
         ],
       },
 
-      // Files & Annex
-      {
-        path: 'files',
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <ProjectFilesPage />
-          </Suspense>
-        ),
-      },
+      // Annex
       {
         path: 'annex',
         element: (

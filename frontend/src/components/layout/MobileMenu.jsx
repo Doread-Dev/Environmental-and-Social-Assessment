@@ -462,7 +462,7 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
 
                   {/* Secondary Navigation */}
                   {PROJECT_SECONDARY_NAV.map((item) => {
-                    // Only Annex & Attachments should be expandable
+                    // Annex is a plain link unless it has children
                     if (item.children && item.id === 'annex') {
                       return renderExpandableItem(item)
                     }

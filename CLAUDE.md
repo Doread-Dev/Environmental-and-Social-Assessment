@@ -10,7 +10,7 @@ ESMS (Environmental and Social Management System) — a workflow app for environ
 - `frontend/` — React 19 + Vite 7 + React Router 7 + Tailwind CSS 4 (ES modules, plain JSX — no TypeScript). Deployed to Vercel.
 
 The domain workflow is strictly ordered, and most code is organized around it:
-**Screening (Tool 1) → Assessment (Tool 2) → SEMP: Management Activities (Tool 3) + Mitigation Plan (Tool 4) → Monitoring (Tool 5)**, plus Annex/Files and Settings.
+**Screening (Tool 1) → Assessment (Tool 2) → SEMP: Management Activities (Tool 3) + Mitigation Plan (Tool 4) → Monitoring (Tool 5)**, plus Annex and Settings.
 
 ## Active rework plan (read first)
 
@@ -26,9 +26,9 @@ Sections below describe the code **as it is today**; they change as phases land.
 Backend (`cd backend`):
 - `npm run dev` — nodemon on `src/server.js` (port 3000). Health: `GET http://localhost:3000/health`.
 - `npm start` — production start.
-- `npm run seed` — **wipes and re-inserts** the 4 lookup collections (impact categories, impact questions, indicators, job titles). Does not create users.
+- `npm run seed` — upserts the 4 lookup collections (impact categories, impact questions, indicators, job titles) by a stable key (category `code`, question text, indicator name, job title name). Safe to re-run: existing rows keep their `_id`, so scores, monitoring records and users stay linked. Does not delete rows that are no longer in the seed, and does not create users.
 - `SEED_EMAIL=... SEED_PASSWORD=... node scripts/seed-demo-project.js` — (re)creates `[DEMO] Al-Salam Water Network Rehabilitation`, a project that has passed all 5 tools, through the real API (needs a specialist login; use the `DEV_LOGIN_*` values from `backend/.env`).
-- `node scripts/clean-test-data.js` — deletes ALL domain data (projects, screenings, assessments, SEMP, monitoring, attachments). Destructive; ask before running. Refuses to run when `NODE_ENV=production`.
+- `node scripts/clean-test-data.js` — deletes ALL domain data (projects, screenings, assessments, management activities, mitigation plans, monitoring). Destructive; ask before running. Refuses to run when `NODE_ENV=production`.
 - `npm test` (`npm run test:watch`) — Vitest + Supertest, see "Tests" below. Needs MongoDB running.
 - `npm run lint` / `npm run lint:fix` — ESLint flat config (CommonJS, Node globals, `eslint-config-prettier`).
 - `npm run format` / `npm run format:check` — Prettier, backend style: double quotes, semicolons, width 100.
@@ -77,8 +77,8 @@ Conventions to follow when adding endpoints:
 - Models use snake_case fields, `timestamps: true`, `versionKey: false`. References use `ObjectId` + `ref`.
 
 Roles (`user.model.js`): `environmental_specialist`, `program_manager`, `project_manager`, `environmental_focal_point`, `viewer`.
-- Writes (create/update) → the first four roles. Approve/reject screening & assessment, delete project, register users → `environmental_specialist` only. Report export → specialist + program manager.
-- Most `GET` endpoints are **unauthenticated** by design (projects, screenings, assessments, monitoring, SEMP, lookups, attachments/:id). There is no per-resource ownership check.
+- Writes (create/update) → the first four roles. Approve/reject screening & assessment, delete project, register users → `environmental_specialist` only.
+- Most `GET` endpoints are **unauthenticated** by design (projects, screenings, assessments, management, mitigation, monitoring, lookups). There is no per-resource ownership check.
 
 Rate limits: 1000 req / 7 min per IP on `/api/v1`; login 10 failed attempts / 15 min.
 
@@ -110,9 +110,9 @@ Statuses for screening & assessment: `draft | submitted | approved | rejected`. 
 
 ## Known gaps (as of initial review)
 
-- **Project Files is mocked**: `hooks/useFiles.js` simulates upload/list/delete (TODO comment). The backend only has `POST /attachments`, `POST /attachments/upload` (multer → `backend/uploads/`, no size/type limits) and `GET /attachments/:id` — there is no list-by-entity, delete, or download/static-serve endpoint.
+- **No file uploads**: the old attachments module and the Project Files page were removed in phase 1 (D26); the new file module comes in phase 7 (D47).
 - Annex page is static data (`utils/annexTypes.js`).
-- Backend endpoints not used by the frontend: `/reports/dashboard`, `/reports/export`, `/semp/objectives|targets|actions`, `/attachments/*`. The dashboard computes stats client-side.
+- The dashboard computes stats client-side (no backend dashboard endpoint until phase 4).
 - No user update/delete endpoints (only `GET /users` and register).
 
 ## Documentation

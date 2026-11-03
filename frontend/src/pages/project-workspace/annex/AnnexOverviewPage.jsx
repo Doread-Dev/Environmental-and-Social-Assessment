@@ -14,7 +14,7 @@ export default function AnnexOverviewPage() {
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4 border-b border-border-default dark:border-border-dark pb-6">
           <div className="flex flex-col gap-2">
             <h1 className="text-text-main dark:text-white text-3xl md:text-4xl font-black tracking-tight font-display">
-              Annex & Attachments
+              Annex
             </h1>
             <p className="text-text-secondary dark:text-gray-400 text-lg font-normal">
               Reference documents and supporting materials

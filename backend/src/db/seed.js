@@ -7,8 +7,9 @@ const ImpactQuestion = require("../models/impactQuestion.model");
 const Indicator = require("../models/indicator.model");
 const JobTitle = require("../models/jobTitle.model");
 
-// Wipes and re-inserts the lookup collections on the current connection.
-// Also used by the backend tests to seed esms_test.
+// Inserts or updates the lookup collections on the current connection. Safe to re-run:
+// rows are matched by a stable key (category code, question text, indicator name,
+// job title name) and keep their _id. Also used by the backend tests to seed esms_test.
 async function seedLookupData() {
   const impactCategories = [
     { code: "A", name: "Air Quality", name_ar: "جودة الهواء" },
@@ -425,32 +426,51 @@ async function seedLookupData() {
     },
   ];
 
-  await ImpactCategory.deleteMany({});
-  const createdCategories = await ImpactCategory.insertMany(impactCategories);
-  const catByCode = createdCategories.reduce((acc, c) => {
+  await upsertAll(
+    ImpactCategory,
+    impactCategories.map((c) => ({ filter: { code: c.code }, set: c }))
+  );
+  const savedCategories = await ImpactCategory.find({}, "code");
+  const catByCode = savedCategories.reduce((acc, c) => {
     acc[c.code] = c._id;
     return acc;
   }, {});
 
-  await JobTitle.deleteMany({});
-  await JobTitle.insertMany(jobTitles.map((title_name) => ({ title_name })));
-
-  await ImpactQuestion.deleteMany({});
-  await ImpactQuestion.insertMany(
-    questions.map((q) => ({
-      category: catByCode[q.code],
-      question_text: q.text,
-    }))
+  await upsertAll(
+    JobTitle,
+    jobTitles.map((title_name) => ({ filter: { title_name }, set: { title_name } }))
   );
 
-  await Indicator.deleteMany({});
-  await Indicator.insertMany(
+  await upsertAll(
+    ImpactQuestion,
+    questions.map((q) => {
+      const doc = { category: catByCode[q.code], question_text: q.text };
+      return { filter: doc, set: doc };
+    })
+  );
+
+  await upsertAll(
+    Indicator,
     indicators.map((i) => ({
-      category: catByCode[i.code],
-      name: i.name,
-      definition: i.definition,
-      measurement: i.measurement,
+      filter: { category: catByCode[i.code], name: i.name },
+      set: {
+        category: catByCode[i.code],
+        name: i.name,
+        definition: i.definition,
+        measurement: i.measurement,
+      },
     }))
+  );
+}
+
+// Upserts each row by its stable key, so existing documents keep their _id
+// (assessment scores, monitoring records and users reference them).
+async function upsertAll(Model, rows) {
+  await Model.bulkWrite(
+    rows.map(({ filter, set }) => ({
+      updateOne: { filter, update: { $set: set }, upsert: true },
+    })),
+    { ordered: true }
   );
 }
 

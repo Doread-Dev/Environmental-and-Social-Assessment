@@ -34,12 +34,24 @@
 - `ProjectDetailsCard` renders values and "Not specified".
 
 ## Done when
-- [ ] No reference left to removed files (`grep` clean), build + lint + tests pass.
-- [ ] `multer`, `pdfkit`, backend `exceljs` gone from `backend/package.json` and lockfile.
-- [ ] Overview shows Project Details, no placeholder data.
-- [ ] Demo seed works.
+- [x] No reference left to removed files (`grep` clean), build + lint + tests pass.
+- [x] `multer`, `pdfkit`, backend `exceljs` gone from `backend/package.json` and lockfile.
+- [x] Overview shows Project Details, no placeholder data.
+- [x] Demo seed works.
 
 ## Out of scope
 New file module (phase 7), SEMP Plan (phase 9).
 
 ## Found during phase
+
+### Decisions taken during the phase
+- **`/reports/dashboard` removed too.** Phase 4 builds a new `GET /dashboard` (stats + latest projects with workflow state) with a different shape; the old counts-by-status endpoint was unused. The whole reports module is gone.
+- **Annex nav:** with Attachments gone, "Annex & Attachments" (expandable) became a plain "Annex" link in the sidebar and mobile menu; the Annex page title is now "Annex". `/app/projects/:id/files` now shows the 404 page.
+- **`components/ui/FileUpload.jsx`** removed (no other user).
+- **`ProjectDetailsCard`** ported from v2 with `bg-surface` instead of `bg-white` (style guide), and `<dl>/<dt>/<dd>` markup.
+- **Project delete** keeps its response (`204`); the cascade now covers screening, assessment (+ methods, consultations, scores), management, mitigation and monitoring only.
+
+### Findings for later phases
+- `utils/formatFileSize.js` has no user left (only the deprecated `src/data/` barrel). Kept for the file module → phase 7.
+- Idempotent seed: rows that are taken out of the seed list are **not** deleted, and changing a question's text or an indicator's name in the seed creates a new row (the old one stays, still referenced by old scores/records). Fine for now; if lookup content ever needs editing, it needs a decision (lookups admin or a migration) → owner.
+- Frontend `minimatch`/`uuid` audit findings come from `exceljs` → phase 8 (see `00-foundations.md`).

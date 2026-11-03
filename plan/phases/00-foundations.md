@@ -45,11 +45,11 @@ Any behavior change, removals, security fixes.
 
 ## Found during phase
 
-### `npm audit` leftovers (2026-11-03)
-Both apps: only **moderate** findings remain after `npm audit fix`; every offered fix is a breaking downgrade.
-- `minimatch <11.0.1` (GHSA-g3hv-75wg-m249, ReDoS on untrusted glob patterns) — pulled in by eslint, nodemon (dev only) and `exceljs → archiver → glob/readdir-glob`. Fix offered = downgrade nodemon to 1.x / eslint-plugin-prettier to 2.x. We never pass user input as a glob pattern.
-- `uuid <11.1.1` (GHSA-w5hq-g745-h8pq, only when a `buf` argument is passed) — via `exceljs`. Fix offered = downgrade exceljs to 3.4.0. Revisit when exceljs ships a release on uuid ≥ 11.1.1.
-- Follow-up: phase 1 re-runs audit after removing backend `exceljs`; phase 8 upgrades exceljs if possible; phase 11 requires no high/critical.
+### `npm audit` leftovers (2026-11-03, re-run after phase 1)
+Both apps: only **moderate** findings remain; every offered fix is a breaking downgrade.
+- **Backend:** `npm audit --omit=dev` → **0**. The 7 remaining findings are dev-only: `minimatch <11.0.1` (GHSA-g3hv-75wg-m249, ReDoS on untrusted glob patterns) via eslint and nodemon. Fix offered = downgrade nodemon to 1.x. We never pass user input as a glob pattern. Removing backend `exceljs` in phase 1 cleared `uuid` and the `archiver` → `minimatch` chain.
+- **Frontend:** 17 moderate. `minimatch <11.0.1` via `exceljs → archiver → glob/readdir-glob` (also in the production tree) and dev tooling; `uuid <11.1.1` (GHSA-w5hq-g745-h8pq, only when a `buf` argument is passed) via `exceljs`. Fix offered = downgrade exceljs to 3.4.0.
+- Follow-up: phase 8 upgrades frontend exceljs if possible; phase 11 requires no high/critical.
 
 ### Decisions taken during the phase
 - **Node:** pinned to **26 LTS** (owner: always the best current stack, not what is installed locally). Local machine upgraded to Node 26.13.0; Vercel supports Node 26 for builds and functions.

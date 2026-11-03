@@ -13,7 +13,6 @@ export const screeningCategories = {
     bgColor: 'bg-red-100 dark:bg-red-900/30',
     textColor: 'text-red-700 dark:text-red-400',
     borderColor: 'border-red-200 dark:border-red-800',
-    requiresAssessment: true,
     canProceed: true,
   },
   B: {
@@ -25,7 +24,6 @@ export const screeningCategories = {
     bgColor: 'bg-yellow-100 dark:bg-yellow-900/30',
     textColor: 'text-yellow-700 dark:text-yellow-400',
     borderColor: 'border-yellow-200 dark:border-yellow-800',
-    requiresAssessment: true,
     canProceed: true,
   },
   C: {
@@ -37,7 +35,6 @@ export const screeningCategories = {
     bgColor: 'bg-green-100 dark:bg-green-900/30',
     textColor: 'text-green-700 dark:text-green-400',
     borderColor: 'border-green-200 dark:border-green-800',
-    requiresAssessment: false,
     canProceed: true,
   },
   D: {
@@ -49,7 +46,6 @@ export const screeningCategories = {
     bgColor: 'bg-blue-100 dark:bg-blue-900/30',
     textColor: 'text-blue-700 dark:text-blue-400',
     borderColor: 'border-blue-200 dark:border-blue-800',
-    requiresAssessment: false,
     canProceed: true,
   },
   E: {
@@ -61,7 +57,6 @@ export const screeningCategories = {
     bgColor: 'bg-gray-50/50 dark:bg-white/5',
     textColor: 'text-gray-700 dark:text-gray-400',
     borderColor: 'border-border-default dark:border-border-dark',
-    requiresAssessment: false,
     canProceed: true,
   },
   F: {
@@ -73,7 +68,6 @@ export const screeningCategories = {
     bgColor: 'bg-emerald-100 dark:bg-emerald-900/30',
     textColor: 'text-emerald-700 dark:text-emerald-400',
     borderColor: 'border-emerald-200 dark:border-emerald-800',
-    requiresAssessment: false,
     canProceed: true,
   },
 }

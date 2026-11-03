@@ -43,8 +43,7 @@ export const ROUTES = {
   MONITORING: '/app/projects/:projectId/monitoring',
   MONITORING_DATA: '/app/projects/:projectId/monitoring/data-entry',
 
-  // Files & Annex
-  PROJECT_FILES: '/app/projects/:projectId/files',
+  // Annex
   PROJECT_ANNEX: '/app/projects/:projectId/annex',
 
   // Settings
@@ -131,12 +130,8 @@ export const PROJECT_WORKFLOW_NAV = [
 export const PROJECT_SECONDARY_NAV = [
   {
     id: 'annex',
-    label: 'Annex & Attachments',
+    label: 'Annex',
     icon: 'folder_open',
     path: 'annex',
-    children: [
-      { id: 'attachments', label: 'Attachments', path: 'files' },
-      { id: 'annex', label: 'Annex', path: 'annex' },
-    ],
   },
 ]

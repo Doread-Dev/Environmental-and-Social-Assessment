@@ -1,6 +1,6 @@
 /**
  * @deprecated For production UI, use utils/ (formatFileSize, workflowStatuses, screeningDisplay,
- * annexTypes, rankingHelp, assessmentMethods, attachmentsHelpers) and LookupContext (users,
+ * annexTypes, rankingHelp, assessmentMethods) and LookupContext (users,
  * impact categories, IMPACT_LEVEL_CONFIG). This barrel re-exports from utils for backward
  * compatibility only (e.g. documents or legacy scripts). Do not use in new code.
  */
@@ -21,4 +21,3 @@ export {
 export { getRankingDisplayLabel, RANKING_HELP } from '../utils/rankingHelp'
 export { assessmentMethods, consultationMethods } from '../utils/assessmentMethods'
 export { annexItems, getAnnexItemById } from '../utils/annexTypes'
-export { groupAttachmentsByType } from '../utils/attachmentsHelpers'

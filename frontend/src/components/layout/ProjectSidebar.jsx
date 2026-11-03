@@ -106,7 +106,7 @@ function ProjectSidebar({ project, className }) {
 
   // Render expandable nav item
   const renderExpandableItem = (item) => {
-    // Annex & Attachments should never be locked
+    // Annex is never locked
     const isLocked = item.id !== 'annex' && isStepLocked(item.id)
     const isCompleted = isStepCompleted(item.id)
     const hasActive = hasActiveChild(item.children)
@@ -403,7 +403,7 @@ function ProjectSidebar({ project, className }) {
 
         {/* Secondary Navigation */}
         {PROJECT_SECONDARY_NAV.map((item) => {
-          // Render expandable items (only Annex & Attachments)
+          // Render expandable items
           if (item.children) {
             return renderExpandableItem(item)
           }

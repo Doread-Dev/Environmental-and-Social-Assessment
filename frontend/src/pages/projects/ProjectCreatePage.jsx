@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { Breadcrumb, Card, Input, Textarea, Button, Alert, Icon } from '@/components/ui'
 import { validateProjectForm } from '@/utils/validators'
 import { projectService } from '@/services/projectService'
 import { extractErrorMessage } from '@/services/api'
+import { queryKeys } from '@/services/queryKeys'
 import { ROUTES, getProjectRoute } from '@/routes/routes.config'
 
 /**
@@ -12,6 +14,7 @@ import { ROUTES, getProjectRoute } from '@/routes/routes.config'
  */
 function ProjectCreatePage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   // State
   const [formData, setFormData] = useState({
@@ -71,6 +74,8 @@ function ProjectCreatePage() {
       }
 
       const newProject = await projectService.create(projectData)
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects })
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard })
 
       navigate(getProjectRoute(newProject._id, ROUTES.PROJECT_OVERVIEW))
     } catch (err) {

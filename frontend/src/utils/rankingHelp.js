@@ -196,7 +196,7 @@ export const RANKING_HELP = {
  * @param {string} rankingKey - negligible | low | medium | high | not_applicable
  * @param {string} categoryCode - Category code (A, B, C, D, E, F, J, H)
  * @param {number} questionNumber - 1-based question index
- * @param {Object} impactLevels - impactLevels from LookupContext (for label)
+ * @param {Object} impactLevels - IMPACT_LEVEL_CONFIG from utils/impactLevels (for label)
  * @returns {string}
  */
 export function getRankingDisplayLabel(rankingKey, categoryCode, questionNumber, impactLevels) {

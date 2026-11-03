@@ -11,11 +11,13 @@ import { Button } from '@/components/ui'
  * @param {string} props.status - حالة التقييم (not_started/in_progress/completed)
  * @param {Function} props.onStart - callback عند النقر على Start
  * @param {Function} props.onContinue - callback عند النقر على Continue
+ * @param {boolean} [props.canStart] - May the user create the assessment (`assessment.create`)
  */
 export default function AssessmentStartCard({
   status = 'not_started',
   onStart,
   onContinue,
+  canStart = true,
   className,
   ...props
 }) {
@@ -129,16 +131,18 @@ export default function AssessmentStartCard({
           </div>
         </div>
 
-        {/* Action Button */}
-        <div className="flex flex-col sm:flex-row gap-4 pt-2">
-          <Button
-            onClick={config.buttonAction}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2"
-          >
-            <span>{config.buttonText}</span>
-            <span className="material-symbols-outlined text-sm">arrow_forward</span>
-          </Button>
-        </div>
+        {/* Action Button (a read-only user cannot start the assessment) */}
+        {(status !== 'not_started' || canStart) && (
+          <div className="flex flex-col sm:flex-row gap-4 pt-2">
+            <Button
+              onClick={config.buttonAction}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2"
+            >
+              <span>{config.buttonText}</span>
+              <span className="material-symbols-outlined text-sm">arrow_forward</span>
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )

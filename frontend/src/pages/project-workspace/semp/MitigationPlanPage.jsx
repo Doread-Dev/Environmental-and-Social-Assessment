@@ -5,9 +5,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom'
-import { useSemp } from '@/hooks/useSemp'
+import { useMitigationPlans } from '@/hooks/useSemp'
 import { MitigationPlanTable } from '@/components/semp'
-import { useLookups, useAuth } from '@/contexts'
+import { useUsers } from '@/hooks'
 import { cn } from '@/utils/cn'
 import { useToast } from '@/components/ui'
 
@@ -16,20 +16,21 @@ export default function MitigationPlanPage() {
   const navigate = useNavigate()
   const toast = useToast()
   const outletContext = useOutletContext()
+  // From SempFullWidthLayout (workspace query)
   const project = outletContext?.project || null
-  const { activeUsers } = useLookups()
-  const { canEdit } = useAuth()
+  const canEdit = outletContext?.can?.('semp.edit') ?? false
+  const { activeUsers } = useUsers()
 
   const {
-    mitigationPlans,
+    rows: mitigationPlans,
     isLoading,
     isSaving,
     error,
-    addMitigationPlan,
-    updateMitigationPlan,
-    deleteMitigationPlan,
-    saveMitigationPlans,
-  } = useSemp(projectId)
+    addRow: addMitigationPlan,
+    updateRow: updateMitigationPlan,
+    deleteRow: deleteMitigationPlan,
+    saveRows: saveMitigationPlans,
+  } = useMitigationPlans(projectId)
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [justSaved, setJustSaved] = useState(false)
@@ -37,32 +38,20 @@ export default function MitigationPlanPage() {
 
   // Auto-create first row if empty on load
   useEffect(() => {
-    if (!isLoading && mitigationPlans.length === 0 && !hasInitialized.current) {
+    if (!isLoading && canEdit && mitigationPlans.length === 0 && !hasInitialized.current) {
       addMitigationPlan()
       hasInitialized.current = true
     } else if (!isLoading && mitigationPlans.length > 0) {
       hasInitialized.current = true
     }
-  }, [isLoading, mitigationPlans, addMitigationPlan])
+  }, [isLoading, canEdit, mitigationPlans, addMitigationPlan])
 
   // Handle export event from SempFullWidthLayout
   useEffect(() => {
     const handleExportEvent = async (event) => {
       if (event.detail?.toolType === 'tool4') {
         try {
-          // Get project from outlet context or load it
-          let exportProject = project
-          if (!exportProject && projectId) {
-            // Try to load project if not available from context
-            const { projectService } = await import('@/services')
-            try {
-              exportProject = await projectService.getById(projectId)
-            } catch (err) {
-              console.warn('Failed to load project, using fallback:', err)
-              exportProject = { _id: projectId, title: 'Unknown Project' }
-            }
-          }
-
+          const exportProject = project
           if (!exportProject) {
             throw new Error('Project data is not available')
           }
@@ -171,25 +160,27 @@ export default function MitigationPlanPage() {
             <span>Back</span>
           </button>
 
-          <button
-            onClick={handleSave}
-            disabled={isSaving || (justSaved && !hasUnsavedChanges)}
-            className={cn(
-              'flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-5 gap-2 text-sm font-bold leading-normal tracking-[0.015em] shadow-md transition-all transform',
-              isSaving
-                ? 'bg-primary/70 cursor-wait'
-                : justSaved && !hasUnsavedChanges
-                  ? 'bg-green-600 hover:bg-green-700 text-white border border-transparent'
-                  : 'bg-primary hover:bg-green-500 text-primary-content'
-            )}
-          >
-            {saveBtn.spinner ? (
-              <span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <span className="material-symbols-outlined text-lg">{saveBtn.icon}</span>
-            )}
-            <span className="truncate">{saveBtn.text}</span>
-          </button>
+          {canEdit && (
+            <button
+              onClick={handleSave}
+              disabled={isSaving || (justSaved && !hasUnsavedChanges)}
+              className={cn(
+                'flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-5 gap-2 text-sm font-bold leading-normal tracking-[0.015em] shadow-md transition-all transform',
+                isSaving
+                  ? 'bg-primary/70 cursor-wait'
+                  : justSaved && !hasUnsavedChanges
+                    ? 'bg-green-600 hover:bg-green-700 text-white border border-transparent'
+                    : 'bg-primary hover:bg-green-500 text-primary-content'
+              )}
+            >
+              {saveBtn.spinner ? (
+                <span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <span className="material-symbols-outlined text-lg">{saveBtn.icon}</span>
+              )}
+              <span className="truncate">{saveBtn.text}</span>
+            </button>
+          )}
         </div>
       </div>
 

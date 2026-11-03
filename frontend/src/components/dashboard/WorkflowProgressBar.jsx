@@ -5,18 +5,13 @@ import { workflowStepStatuses } from '@/utils/workflowStatuses'
  * WorkflowProgressBar - شريط تقدم سير العمل (S/A/M/R)
  *
  * @param {Object} props
- * @param {Object} props.progress - حالة كل خطوة
+ * @param {Object} props.progress - workflow state from the backend (`workflow.steps` is read)
  * @param {boolean} props.showLabels - عرض التسميات (default: true)
  * @param {'sm'|'md'} props.size - الحجم (default: 'md')
  *
  * @example
  * <WorkflowProgressBar
- *   progress={{
- *     screening: { status: 'approved' },
- *     assessment: { status: 'in_progress' },
- *     semp: { status: 'pending' },
- *     monitoring: { status: 'pending' }
- *   }}
+ *   progress={project.workflow}
  * />
  */
 function WorkflowProgressBar({ progress, showLabels = true, size = 'md', className, ...props }) {
@@ -28,7 +23,7 @@ function WorkflowProgressBar({ progress, showLabels = true, size = 'md', classNa
   ]
 
   const getStatusColor = (status) => {
-    const statusConfig = workflowStepStatuses[status] || workflowStepStatuses.pending
+    const statusConfig = workflowStepStatuses[status] || workflowStepStatuses.not_started
     return statusConfig.color || 'bg-gray-200 dark:bg-border-dark'
   }
 
@@ -40,15 +35,14 @@ function WorkflowProgressBar({ progress, showLabels = true, size = 'md', classNa
       {/* Progress Bar */}
       <div className={cn('flex gap-2', barHeight)}>
         {steps.map((step) => {
-          const stepProgress = progress[step.key]
-          const status = stepProgress?.status || 'pending'
+          const status = progress?.steps?.[step.key]?.status || 'not_started'
           const color = getStatusColor(status)
 
           return (
             <div
               key={step.key}
               className={cn('flex-1 rounded-full transition-colors', color)}
-              title={`${step.fullLabel}: ${status}`}
+              title={`${step.fullLabel}: ${workflowStepStatuses[status]?.label ?? status}`}
             />
           )
         })}

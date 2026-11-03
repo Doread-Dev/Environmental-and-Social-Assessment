@@ -14,7 +14,9 @@ import { validateAssessmentMetadata } from '@/utils'
 export default function AssessmentMetadataPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
-  const { project } = useProjectContext()
+  const { project, can } = useProjectContext()
+  // Editable only while draft/rejected and for editors (allowed actions from the backend)
+  const readOnly = !can('assessment.edit')
   const { screening } = useScreening(projectId)
   const { assessment, isLoading, isSaving, saveMetadata } = useAssessment(projectId)
   const { user } = useAuth()
@@ -114,7 +116,7 @@ export default function AssessmentMetadataPage() {
           formData={formData}
           onChange={handleChange}
           errors={errors}
-          readOnly={assessment?.status === 'approved' || assessment?.status === 'submitted'}
+          readOnly={readOnly}
         />
       </div>
 
@@ -130,9 +132,7 @@ export default function AssessmentMetadataPage() {
         </button>
         <button
           onClick={handleSave}
-          disabled={
-            isSaving || assessment?.status === 'approved' || assessment?.status === 'submitted'
-          }
+          disabled={isSaving || readOnly}
           className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-medium shadow-md transition-colors transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSaving ? (

@@ -5,8 +5,8 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useAssessment } from '@/hooks'
-import { useLookups } from '@/contexts'
+import { useAssessment, useProjectContext } from '@/hooks'
+import { useLookups } from '@/hooks'
 import { calculateTotalScore, calculateTotalImpact } from '@/utils/impactCalculations'
 import {
   ImpactCategoryAccordion,
@@ -18,6 +18,7 @@ import { Button, LoadingSpinner, StickyFooter, Modal, useToast } from '@/compone
 
 export default function AssessmentScoringPage() {
   const { projectId } = useParams()
+  const { can } = useProjectContext()
   const navigate = useNavigate()
   const { categoriesWithQuestions, isLoading: lookupsLoading } = useLookups()
   const {
@@ -217,7 +218,8 @@ export default function AssessmentScoringPage() {
 
   // Allow editing when rejected or draft, but not when approved or submitted
   // When rejected, user should be able to edit (rejected is not submitted, so it's editable)
-  const readOnly = assessment?.status === 'approved' || assessment?.status === 'submitted'
+  // Editable only while draft/rejected and for editors (allowed actions from the backend)
+  const readOnly = !can('assessment.edit')
 
   if (isLoading || lookupsLoading) {
     return (

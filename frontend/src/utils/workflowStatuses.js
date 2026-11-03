@@ -1,55 +1,24 @@
 /**
- * Workflow and project status display data
- * Moved from data/workflowStatuses for production use (no mock dependency)
+ * Workflow step and project status display data (labels and colors only: the statuses
+ * themselves come from the backend)
  */
 
-export const WORKFLOW_TOOLS = {
-  SCREENING: {
-    key: 'screening',
-    number: 1,
-    label: 'Screening',
-    labelAr: 'الفرز',
-    hasBackendStatus: true,
-  },
-  ASSESSMENT: {
-    key: 'assessment',
-    number: 2,
-    label: 'Assessment',
-    labelAr: 'التقييم',
-    hasBackendStatus: true,
-  },
-  SEMP: {
-    key: 'semp',
-    numbers: [3, 4],
-    label: 'SEMP',
-    labelAr: 'خطة الإدارة',
-    hasBackendStatus: false,
-    description: 'Management Activities (Tool 3) + Mitigation Plan (Tool 4)',
-  },
-  MONITORING: {
-    key: 'monitoring',
-    number: 5,
-    label: 'Monitoring',
-    labelAr: 'المراقبة',
-    hasBackendStatus: false,
-  },
-}
-
+// Display of the backend step statuses (workflow.steps.<step>.status, D30)
 export const workflowStepStatuses = {
-  pending: {
-    key: 'pending',
-    label: 'Pending',
-    labelAr: 'قيد الانتظار',
-    color: 'bg-gray-200 dark:bg-gray-700',
+  locked: {
+    key: 'locked',
+    label: 'Locked',
+    labelAr: 'مقفل',
+    color: 'bg-gray-200 dark:bg-white/10',
     textColor: 'text-gray-500 dark:text-gray-400',
     isComplete: false,
   },
-  draft: {
-    key: 'draft',
-    label: 'Draft',
-    labelAr: 'مسودة',
-    color: 'bg-gray-400 dark:bg-gray-400',
-    textColor: 'text-gray-600 dark:text-gray-300',
+  not_started: {
+    key: 'not_started',
+    label: 'Not Started',
+    labelAr: 'لم يبدأ',
+    color: 'bg-gray-200 dark:bg-white/10',
+    textColor: 'text-gray-500 dark:text-gray-400',
     isComplete: false,
   },
   in_progress: {
@@ -92,21 +61,6 @@ export const workflowStepStatuses = {
     textColor: 'text-primary',
     isComplete: true,
   },
-  needs_action: {
-    key: 'needs_action',
-    label: 'Needs Action',
-    labelAr: 'يحتاج إجراء',
-    color: 'bg-red-500',
-    textColor: 'text-red-600 dark:text-red-400',
-    isComplete: false,
-  },
-}
-
-export function mapBackendStatusToDisplay(backendStatus, toolKey) {
-  if (['screening', 'assessment'].includes(toolKey) && backendStatus === 'rejected') {
-    return 'needs_action'
-  }
-  return backendStatus
 }
 
 export const projectStatuses = {

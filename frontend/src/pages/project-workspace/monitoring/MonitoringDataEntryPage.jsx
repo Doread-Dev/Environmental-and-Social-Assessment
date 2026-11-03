@@ -6,8 +6,10 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
-import { useMonitoring, useAssessment, useScreening, useProjectContext } from '@/hooks'
-import { useLookups, useAuth } from '@/contexts'
+import { useQueryClient } from '@tanstack/react-query'
+import { useMonitoring, useProjectContext, useLookups, useUsers } from '@/hooks'
+import { assessmentQuery } from '@/hooks/useAssessment'
+import { isStepLocked } from '@/utils/workflowSteps'
 import { MonitoringDataTable } from '@/components/tables'
 import { Alert, useToast } from '@/components/ui'
 import { cn } from '@/utils/cn'
@@ -22,14 +24,13 @@ export default function MonitoringDataEntryPage() {
     categoriesWithIndicators,
     isLoading: lookupsLoading,
     IMPACT_LEVEL_CONFIG,
-    activeUsers,
   } = useLookups()
-  const { canEdit } = useAuth()
-  const { assessment, isLoading: isAssessmentLoading } = useAssessment(projectId)
-  const { screening } = useScreening(projectId)
-  const { project } = useProjectContext()
-  const isApproved = assessment?.status === 'approved'
-  const isLocked = !isApproved
+  const { activeUsers } = useUsers()
+  const queryClient = useQueryClient()
+  // Lock and permissions from the backend workflow (workspace, D30/D35)
+  const { project, workflow, can } = useProjectContext()
+  const isLocked = isStepLocked(workflow, 'monitoring')
+  const canEdit = can('monitoring.edit')
 
   const {
     getCategoryData,
@@ -112,9 +113,11 @@ export default function MonitoringDataEntryPage() {
   const handleExport = useCallback(async () => {
     try {
       const { exportMonitoringToExcel } = await import('@/utils/excelExport')
+      // The full assessment (officer) is only needed here: loaded on export, then cached
+      const { assessment } = await queryClient.ensureQueryData(assessmentQuery(projectId))
       await exportMonitoringToExcel(
         project,
-        screening,
+        project.screening,
         assessment,
         records,
         categoriesWithIndicators,
@@ -127,8 +130,8 @@ export default function MonitoringDataEntryPage() {
     }
   }, [
     project,
-    screening,
-    assessment,
+    projectId,
+    queryClient,
     records,
     categoriesWithIndicators,
     IMPACT_LEVEL_CONFIG,
@@ -157,7 +160,7 @@ export default function MonitoringDataEntryPage() {
 
   const saveBtn = getSaveButtonContent()
 
-  if (isLoading || isAssessmentLoading || lookupsLoading) {
+  if (isLoading || lookupsLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4">
@@ -192,28 +195,30 @@ export default function MonitoringDataEntryPage() {
               <span className="material-symbols-outlined text-lg">arrow_back</span>
               <span>Cancel</span>
             </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={isLocked || isSaving || (justSaved && !hasUnsavedChanges)}
-              className={cn(
-                'flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-5 gap-2 text-sm font-bold leading-normal tracking-[0.015em] shadow-md transition-all transform',
-                isLocked
-                  ? 'bg-primary/50 cursor-not-allowed'
-                  : isSaving
-                    ? 'bg-primary/70 cursor-wait'
-                    : justSaved && !hasUnsavedChanges
-                      ? 'bg-green-600 hover:bg-green-700 text-white border border-transparent'
-                      : 'bg-primary hover:bg-green-500 text-primary-content'
-              )}
-            >
-              {saveBtn.spinner ? (
-                <span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <span className="material-symbols-outlined text-lg">{saveBtn.icon}</span>
-              )}
-              <span className="truncate">{saveBtn.text}</span>
-            </button>
+            {canEdit && (
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={isLocked || isSaving || (justSaved && !hasUnsavedChanges)}
+                className={cn(
+                  'flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-5 gap-2 text-sm font-bold leading-normal tracking-[0.015em] shadow-md transition-all transform',
+                  isLocked
+                    ? 'bg-primary/50 cursor-not-allowed'
+                    : isSaving
+                      ? 'bg-primary/70 cursor-wait'
+                      : justSaved && !hasUnsavedChanges
+                        ? 'bg-green-600 hover:bg-green-700 text-white border border-transparent'
+                        : 'bg-primary hover:bg-green-500 text-primary-content'
+                )}
+              >
+                {saveBtn.spinner ? (
+                  <span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <span className="material-symbols-outlined text-lg">{saveBtn.icon}</span>
+                )}
+                <span className="truncate">{saveBtn.text}</span>
+              </button>
+            )}
           </div>
         </div>
 

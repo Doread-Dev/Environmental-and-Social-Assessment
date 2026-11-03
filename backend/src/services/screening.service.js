@@ -12,19 +12,15 @@ const POPULATE = [
   { path: "status_history.by", select: "name role" },
 ];
 
-const listScreenings = async () => Screening.find().populate(POPULATE);
-
 const getScreening = async (id) => {
   const screening = await Screening.findById(id).populate(POPULATE);
   if (!screening) throw new ApiError(404, "Screening not found");
   return screening;
 };
 
-const getByProject = async (projectId) => {
-  const screening = await Screening.findOne({ project: projectId }).populate(POPULATE);
-  if (!screening) throw new ApiError(404, "Screening not found for project");
-  return screening;
-};
+// null when the project has no screening yet: "not started" is not an error (D34).
+const getByProject = async (projectId) =>
+  Screening.findOne({ project: projectId }).populate(POPULATE);
 
 const createScreening = async (payload, createdBy) => {
   await assertProjectWritable(payload.project);
@@ -78,7 +74,6 @@ const rejectScreening = async (id, rejectBy, rejectReason = null) =>
   transition(id, "reject", rejectBy, { rejectReason });
 
 module.exports = {
-  listScreenings,
   getScreening,
   getByProject,
   createScreening,

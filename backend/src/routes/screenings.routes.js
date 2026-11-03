@@ -12,7 +12,6 @@ const { EDITOR_ROLES, SPECIALIST_ROLES } = require("../config/roles");
 
 const router = express.Router();
 
-router.get("/", controller.getAll);
 router.get("/:id", controller.getOne);
 router.get("/project/:projectId", controller.getByProject);
 router.post("/", requireRole(...EDITOR_ROLES), validate(createScreeningSchema), controller.create);

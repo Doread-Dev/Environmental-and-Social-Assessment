@@ -9,58 +9,17 @@ import api from './api'
  */
 export const lookupService = {
   /**
-   * Get all impact categories
-   * @returns {Promise<Array>} Array of impact categories
+   * All lookup data in one call (D31)
+   * @returns {Promise<{impactCategories: Array, impactQuestions: Array, indicators: Array, jobTitles: Array}>}
    */
-  async getImpactCategories() {
-    const response = await api.get('/lookups/impact-categories')
-    return response.data.data
-  },
-
-  /**
-   * Get all impact questions with category populated
-   * @returns {Promise<Array>} Array of impact questions
-   */
-  async getImpactQuestions() {
-    const response = await api.get('/lookups/impact-questions')
-    return response.data.data
-  },
-
-  /**
-   * Get all monitoring indicators with category populated
-   * @returns {Promise<Array>} Array of indicators
-   */
-  async getIndicators() {
-    const response = await api.get('/lookups/indicators')
-    return response.data.data
-  },
-
-  /**
-   * Get all job titles
-   * @returns {Promise<Array>} Array of job titles
-   */
-  async getJobTitles() {
-    const response = await api.get('/lookups/job-titles')
-    return response.data.data
-  },
-
-  /**
-   * Fetch all lookup data in parallel
-   * @returns {Promise<Object>} Object containing all lookup data
-   */
-  async getAllLookups() {
-    const [impactCategories, impactQuestions, indicators, jobTitles] = await Promise.all([
-      this.getImpactCategories(),
-      this.getImpactQuestions(),
-      this.getIndicators(),
-      this.getJobTitles(),
-    ])
-
+  async getAll() {
+    const response = await api.get('/lookups')
+    const { impact_categories, impact_questions, indicators, job_titles } = response.data.data
     return {
-      impactCategories,
-      impactQuestions,
+      impactCategories: impact_categories,
+      impactQuestions: impact_questions,
       indicators,
-      jobTitles,
+      jobTitles: job_titles,
     }
   },
 }

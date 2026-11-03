@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 import request from "supertest";
 import { app, require } from "./helpers/app.js";
-import { createProject, loginAs } from "./helpers/fixtures.js";
+import { createProject, loginAs, seedLookups } from "./helpers/fixtures.js";
 
 const { computeWorkflow } = require("../../src/services/workflow.service");
 const Screening = require("../../src/models/screening.model");
 const MonitoringRecord = require("../../src/models/monitoringRecord.model");
 const ManagementActivity = require("../../src/models/managementActivity.model");
+const Indicator = require("../../src/models/indicator.model");
 
 const auth = (token) => ({ Authorization: `Bearer ${token}` });
 
@@ -192,9 +193,25 @@ describe("computeWorkflow (D30)", () => {
     });
     expect(steps.semp).toMatchObject({
       tools: [3, 4],
-      management_activities: { count: 3, described: 2 },
-      mitigation_plans: { count: 1, described: 1 },
+      management_activities: { count: 3, described: 2, status: "in_progress" },
+      mitigation_plans: { count: 1, described: 1, status: "completed" },
     });
+  });
+
+  it("gives each SEMP table its own status", () => {
+    const { steps } = computeWorkflow({
+      screening: approved,
+      assessment: approved,
+      activities: [],
+      plans: [plan("")],
+    });
+    expect(steps.semp.status).toBe("in_progress");
+    expect(steps.semp.management_activities).toEqual({
+      count: 0,
+      described: 0,
+      status: "not_started",
+    });
+    expect(steps.semp.mitigation_plans.status).toBe("in_progress");
   });
 
   it("counts filled quarters per quarter and complete records", () => {
@@ -271,14 +288,17 @@ describe("workflow state through the API", () => {
     const project = await createProject({ stage: "semp_complete" });
     // One undescribed row makes SEMP in_progress → the monitoring gate closes.
     await ManagementActivity.collection.insertOne({ project: project._id });
-    const body = { project: project._id.toString(), indicator: project._id.toString() };
+    await seedLookups();
+    const body = { records: [{ indicator: String((await Indicator.findOne())._id) }] };
+    const save = () =>
+      request(app).put(`/api/v1/projects/${project._id}/monitoring`).set(auth(token)).send(body);
 
-    const blocked = await request(app).post("/api/v1/monitoring").set(auth(token)).send(body);
+    const blocked = await save();
     expect(blocked.status).toBe(409);
 
     await ManagementActivity.deleteMany({ project: project._id, activity_description: null });
-    const allowed = await request(app).post("/api/v1/monitoring").set(auth(token)).send(body);
-    expect(allowed.status).toBe(201);
+    const allowed = await save();
+    expect(allowed.status).toBe(200);
     expect(await MonitoringRecord.countDocuments({ project: project._id })).toBe(1);
   });
 });

@@ -45,7 +45,7 @@ describe("authentication on every route (D3)", () => {
     // Guards the walker itself: if it silently found nothing, the tests below would pass.
     expect(routes.length).toBeGreaterThan(40);
     expect(routes).toContainEqual({ method: "patch", path: "/api/v1/screenings/:id/submit" });
-    expect(routes).toContainEqual({ method: "get", path: "/api/v1/lookups/indicators" });
+    expect(routes).toContainEqual({ method: "put", path: "/api/v1/projects/:id/monitoring" });
   });
 
   it.each(protectedRoutes.map((r) => [r.method.toUpperCase(), r.path, r]))(

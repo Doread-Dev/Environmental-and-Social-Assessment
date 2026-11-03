@@ -19,8 +19,8 @@ function ScreeningSummaryPage() {
   const navigate = useNavigate()
   const { projectId } = useParams()
   const toast = useToast()
-  const { project: contextProject } = useProjectContext()
-  const { user: currentUser, canApprove } = useAuth()
+  const { project: contextProject, can } = useProjectContext()
+  const { user: currentUser } = useAuth()
   const {
     screening: hookScreening,
     isLoading: screeningLoading,
@@ -178,7 +178,8 @@ function ScreeningSummaryPage() {
   const status = screening.status || 'draft'
   const categoryInfo = getScreeningCategory(screening.category_code)
 
-  const canApproveScreening = canApprove && status === 'submitted'
+  // Allowed actions from the backend: specialist/admin, submitted, project not archived (D35)
+  const canApproveScreening = can('screening.approve')
 
   const officer =
     screening?.officer && typeof screening.officer === 'object' ? screening.officer : null
@@ -611,7 +612,7 @@ function ScreeningSummaryPage() {
                 </div>
               )}
 
-              {status === 'rejected' && (
+              {status === 'rejected' && can('screening.edit') && (
                 <div className="flex justify-end gap-4 no-print">
                   <button
                     type="button"

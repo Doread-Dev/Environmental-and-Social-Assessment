@@ -1,74 +1,98 @@
 import { describe, expect, it } from "vitest";
 import request from "supertest";
-import { app, mongoose, require } from "./helpers/app.js";
-import { createProject, loginAs } from "./helpers/fixtures.js";
+import { app, require } from "./helpers/app.js";
+import { createProject, loginAs, seedLookups } from "./helpers/fixtures.js";
 
 const Screening = require("../../src/models/screening.model");
 const Assessment = require("../../src/models/assessment.model");
 const ManagementActivity = require("../../src/models/managementActivity.model");
 const MitigationPlan = require("../../src/models/mitigationPlan.model");
 const MonitoringRecord = require("../../src/models/monitoringRecord.model");
+const Indicator = require("../../src/models/indicator.model");
 
 const auth = (token) => ({ Authorization: `Bearer ${token}` });
 
 // Each gated tool: the stage just before its prerequisite is met, the first stage that unlocks
-// it, how to create one, and how to insert an existing row directly (for update/delete).
+// it, and its writes: create, change an existing row, (for tables) delete one. Tools 3–5 save
+// through the bulk endpoints (D32).
+const put = (url, body) => (token) => request(app).put(url).set(auth(token)).send(body);
+
 const tools = [
   {
     name: "assessment (Tool 2)",
     blocked: "new",
     unlocked: "screening_approved",
-    base: "/api/v1/assessments",
-    body: (project) => ({ project, project_activity: "Pipes", description: "Replace pipes" }),
+    created: 201,
+    read: (project) => `/api/v1/assessments/project/${project}`,
+    create: (project) => (token) =>
+      request(app)
+        .post("/api/v1/assessments")
+        .set(auth(token))
+        .send({ project, project_activity: "Pipes", description: "Replace pipes" }),
     insert: (project) =>
       Assessment.create({ project, project_activity: "Pipes", description: "Replace pipes" }),
-    update: () => ({ description: "Changed" }),
+    writes: (project, row) => [put(`/api/v1/assessments/${row._id}`, { description: "Changed" })],
   },
   {
-    name: "management activity (Tool 3)",
+    name: "management activities (Tool 3)",
     blocked: "screening_approved",
     unlocked: "assessment_approved",
-    base: "/api/v1/management",
-    body: (project) => ({ project, activity_description: "Dig" }),
+    created: 200,
+    read: (project) => `/api/v1/management/project/${project}`,
+    create: (project) =>
+      put(`/api/v1/projects/${project}/management`, { rows: [{ activity_description: "Dig" }] }),
     insert: (project) => ManagementActivity.create({ project, activity_description: "Dig" }),
-    update: () => ({ notes: "Changed" }),
-    canDelete: true,
+    writes: (project, row) => [
+      put(`/api/v1/projects/${project}/management`, {
+        rows: [{ _id: String(row._id), activity_description: "Dig", notes: "Changed" }],
+      }),
+      put(`/api/v1/projects/${project}/management`, { rows: [] }),
+    ],
   },
   {
     name: "mitigation plan (Tool 4)",
     blocked: "screening_approved",
     unlocked: "assessment_approved",
-    base: "/api/v1/mitigation",
-    body: (project) => ({ project, output_description: "Network" }),
+    created: 200,
+    read: (project) => `/api/v1/mitigation/project/${project}`,
+    create: (project) =>
+      put(`/api/v1/projects/${project}/mitigation`, { rows: [{ output_description: "Network" }] }),
     insert: (project) => MitigationPlan.create({ project, output_description: "Network" }),
-    update: () => ({ notes: "Changed" }),
-    canDelete: true,
+    writes: (project, row) => [
+      put(`/api/v1/projects/${project}/mitigation`, {
+        rows: [{ _id: String(row._id), output_description: "Network", notes: "Changed" }],
+      }),
+      put(`/api/v1/projects/${project}/mitigation`, { rows: [] }),
+    ],
   },
   {
-    name: "monitoring record (Tool 5)",
+    name: "monitoring records (Tool 5)",
     blocked: "assessment_approved",
     unlocked: "semp_complete",
-    base: "/api/v1/monitoring",
-    body: (project, indicator) => ({ project, indicator }),
+    created: 200,
+    read: (project) => `/api/v1/monitoring/project/${project}`,
+    create: (project, indicator) =>
+      put(`/api/v1/projects/${project}/monitoring`, { records: [{ indicator }] }),
     insert: (project, indicator) => MonitoringRecord.create({ project, indicator }),
-    // The monitoring PUT schema requires project and indicator.
-    update: (project, indicator) => ({ project, indicator, note: "Changed" }),
+    writes: (project, row) => [
+      put(`/api/v1/projects/${project}/monitoring`, {
+        records: [{ indicator: String(row.indicator), note: "Changed" }],
+      }),
+    ],
   },
 ];
 
-// Monitoring does not look the indicator up, a fresh id is enough.
-const newIndicator = async () => ({ _id: new mongoose.Types.ObjectId() });
+const anIndicator = async () => {
+  await seedLookups();
+  return String((await Indicator.findOne())._id);
+};
 
 describe.each(tools)("$name gate (D2)", (tool) => {
   it("blocks create before the prerequisite (409)", async () => {
     const { token } = await loginAs("project_manager");
     const project = await createProject({ stage: tool.blocked });
-    const indicator = await newIndicator();
 
-    const res = await request(app)
-      .post(tool.base)
-      .set(auth(token))
-      .send(tool.body(project._id.toString(), indicator._id.toString()));
+    const res = await tool.create(String(project._id), await anIndicator())(token);
 
     expect(res.status).toBe(409);
     expect(res.body.success).toBe(false);
@@ -78,31 +102,19 @@ describe.each(tools)("$name gate (D2)", (tool) => {
   it("allows create once the prerequisite is met", async () => {
     const { token } = await loginAs("project_manager");
     const project = await createProject({ stage: tool.unlocked });
-    const indicator = await newIndicator();
 
-    const res = await request(app)
-      .post(tool.base)
-      .set(auth(token))
-      .send(tool.body(project._id.toString(), indicator._id.toString()));
+    const res = await tool.create(String(project._id), await anIndicator())(token);
 
-    expect(res.status).toBe(201);
+    expect(res.status).toBe(tool.created);
   });
 
-  it("blocks update (and delete) of a row whose prerequisite is no longer met (409)", async () => {
+  it("blocks changing (and deleting) rows whose prerequisite is no longer met (409)", async () => {
     const { token } = await loginAs("project_manager");
     const project = await createProject({ stage: tool.blocked });
-    const indicator = await newIndicator();
-    const row = await tool.insert(project._id, indicator._id);
+    const row = await tool.insert(project._id, await anIndicator());
 
-    const put = await request(app)
-      .put(`${tool.base}/${row._id}`)
-      .set(auth(token))
-      .send(tool.update(project._id.toString(), indicator._id.toString()));
-    expect(put.status).toBe(409);
-
-    if (tool.canDelete) {
-      const del = await request(app).delete(`${tool.base}/${row._id}`).set(auth(token));
-      expect(del.status).toBe(409);
+    for (const write of tool.writes(String(project._id), row)) {
+      expect((await write(token)).status).toBe(409);
     }
   });
 
@@ -110,9 +122,9 @@ describe.each(tools)("$name gate (D2)", (tool) => {
     const { token } = await loginAs("viewer");
     const project = await createProject({ stage: tool.blocked });
 
-    const res = await request(app).get(`${tool.base}/project/${project._id}`).set(auth(token));
+    const res = await request(app).get(tool.read(project._id)).set(auth(token));
 
-    expect(res.status).not.toBe(409);
+    expect(res.status).toBe(200);
   });
 });
 
@@ -139,10 +151,7 @@ describe("category E follows the same order (D12)", () => {
 
 describe("monitoring needs complete SEMP tables", () => {
   const post = async (token, project) =>
-    request(app)
-      .post("/api/v1/monitoring")
-      .set(auth(token))
-      .send({ project: project._id.toString(), indicator: (await newIndicator())._id.toString() });
+    tools[3].create(String(project._id), await anIndicator())(token);
 
   it("blocks when only one of Tools 3 and 4 has rows", async () => {
     const { token } = await loginAs("project_manager");

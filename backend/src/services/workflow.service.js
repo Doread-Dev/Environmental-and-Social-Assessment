@@ -25,13 +25,19 @@ const recordStatus = (record) => {
   return record.status === "draft" ? "in_progress" : record.status;
 };
 
-const tableSummary = (rows, field) => ({
-  count: rows.length,
-  described: rows.filter((row) => hasText(row[field])).length,
-});
+// Tools 3 and 4 are each complete when they have at least one row and every row has its
+// description. `status` (not_started | in_progress | completed) is shown per tool in the SEMP
+// overview.
+const tableSummary = (rows, field) => {
+  const count = rows.length;
+  const described = rows.filter((row) => hasText(row[field])).length;
+  let status = "in_progress";
+  if (count === 0) status = "not_started";
+  else if (described === count) status = "completed";
+  return { count, described, status };
+};
 
-// Tools 3 and 4 are complete when each has at least one row and every row has its description.
-const isTableComplete = ({ count, described }) => count > 0 && described === count;
+const isTableComplete = ({ status }) => status === "completed";
 
 const sempStatus = (assessmentStatus, management, mitigation) => {
   if (assessmentStatus !== "approved") return "locked";

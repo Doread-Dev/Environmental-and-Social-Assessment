@@ -4,7 +4,7 @@
  */
 
 import { cn } from '@/utils/cn'
-import { IMPACT_LEVELS, IMPACT_LEVEL_CONFIG } from '@/contexts/LookupContext'
+import { IMPACT_LEVELS, IMPACT_LEVEL_CONFIG } from '@/utils/impactLevels'
 import { Select, Textarea } from '@/components/ui'
 
 /**

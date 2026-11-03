@@ -31,7 +31,7 @@ export const authService = {
   },
 
   /**
-   * Register a new user (requires environmental_specialist role)
+   * Register a new user (needs the `manage_users` permission)
    * @param {Object} userData - User registration data
    * @param {string} userData.name - User full name
    * @param {string} userData.email - User email
@@ -43,6 +43,18 @@ export const authService = {
   async register(userData) {
     const response = await api.post('/auth/register', userData)
     return response.data.data
+  },
+
+  /**
+   * The signed-in user (job title populated) and what their role may do (D35)
+   * Keeps the stored user up to date.
+   * @returns {Promise<{user: Object, permissions: string[]}>}
+   */
+  async me() {
+    const response = await api.get('/auth/me')
+    const { user, permissions } = response.data.data
+    localStorage.setItem(USER_KEY, JSON.stringify(user))
+    return { user, permissions }
   },
 
   /**

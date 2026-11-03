@@ -26,19 +26,15 @@ const populateAssessment = (query) =>
 
 const isEmpty = (value) => value == null || String(value).trim() === "";
 
-const listAssessments = async () => populateAssessment(Assessment.find().sort({ createdAt: -1 }));
-
 const getAssessment = async (id) => {
   const assessment = await populateAssessment(Assessment.findById(id));
   if (!assessment) throw new ApiError(404, "Assessment not found");
   return assessment;
 };
 
-const getByProject = async (projectId) => {
-  const assessment = await populateAssessment(Assessment.findOne({ project: projectId }));
-  if (!assessment) throw new ApiError(404, "Assessment not found for project");
-  return assessment;
-};
+// null when the project has no assessment yet: "not started" is not an error (D34).
+const getByProject = async (projectId) =>
+  populateAssessment(Assessment.findOne({ project: projectId }));
 
 // Loads an assessment for a content edit: Tool 1 approved, project not archived, and the
 // assessment itself still draft or rejected.
@@ -124,16 +120,6 @@ const updateAssessment = async (id, payload, updatedBy) => {
   return updated;
 };
 
-const addMethod = async (assessmentId, payload) => {
-  await loadEditable(assessmentId);
-  return AssessmentMethod.create({ ...payload, assessment: assessmentId });
-};
-
-const addConsultation = async (assessmentId, payload) => {
-  await loadEditable(assessmentId);
-  return CommunityConsultation.create({ ...payload, assessment: assessmentId });
-};
-
 // Sets the level (and note) of the questions in the payload; questions not sent keep their
 // level. Recalculates the total impact. Returns all scores of the assessment.
 const addScores = async (assessmentId, scoresPayload) => {
@@ -159,13 +145,6 @@ const addScores = async (assessmentId, scoresPayload) => {
   );
   await recalculate(assessmentId);
   return AssessmentImpactScore.find({ assessment: assessmentId });
-};
-
-// Kept for clients that still call it: totals are already recalculated on every score change.
-const calculateImpact = async (assessmentId) => {
-  await loadEditable(assessmentId);
-  await recalculate(assessmentId);
-  return populateAssessment(Assessment.findById(assessmentId));
 };
 
 const transition = async (id, action, userId, options) => {
@@ -232,15 +211,11 @@ const listScores = async (assessmentId) => {
 };
 
 module.exports = {
-  listAssessments,
   getAssessment,
   getByProject,
   createAssessment,
   updateAssessment,
-  addMethod,
-  addConsultation,
   addScores,
-  calculateImpact,
   submitAssessment,
   approveAssessment,
   rejectAssessment,

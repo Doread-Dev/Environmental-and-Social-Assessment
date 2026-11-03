@@ -138,7 +138,8 @@ async function main() {
     },
   ]);
 
-  const questions = await call("GET", "/lookups/impact-questions");
+  const lookups = await call("GET", "/lookups");
+  const questions = lookups.impact_questions;
   // Only the questions that differ from Negligible: a few low/medium and one high, so the
   // total impact (recalculated by the backend) is meaningful.
   const scores = questions
@@ -176,18 +177,17 @@ async function main() {
       monitoring_requirements: "Complaint log review",
     },
   ];
-  for (const [i, a] of activities.entries()) {
-    await call("POST", "/management", {
-      project: projectId,
-      serial_number: i + 1,
+  // The whole table in one request (D32), numbered by position.
+  await call("PUT", `/projects/${projectId}/management`, {
+    rows: activities.map((a, i) => ({
       // Responsible is a user or an external party (D55); the last row uses the contractor.
       ...(i === activities.length - 1
         ? { responsible_text: "Contractor site engineer" }
         : { responsible: userId }),
       notes: "",
       ...a,
-    });
-  }
+    })),
+  });
   console.log(`Tool 3 (management activities): ${activities.length} rows`);
 
   // Tool 4 – Mitigation plan
@@ -215,24 +215,17 @@ async function main() {
       schedule: "Quarterly",
     },
   ];
-  for (const [i, p] of plans.entries()) {
-    await call("POST", "/mitigation", {
-      project: projectId,
-      serial_number: i + 1,
-      responsible: userId,
-      notes: "",
-      ...p,
-    });
-  }
+  await call("PUT", `/projects/${projectId}/mitigation`, {
+    rows: plans.map((p) => ({ responsible: userId, notes: "", ...p })),
+  });
   console.log(`Tool 4 (mitigation plan): ${plans.length} rows`);
 
   // Tool 5 – Monitoring: one record per indicator, all quarters filled
-  const indicators = await call("GET", "/lookups/indicators");
-  for (const [i, ind] of indicators.entries()) {
+  const { indicators } = lookups;
+  const records = indicators.map((ind, i) => {
     const base = 10 + i;
     const q = [base - 1, base - 2, base - 2, base - 3];
-    await call("POST", "/monitoring", {
-      project: projectId,
+    return {
       indicator: ind._id,
       scores: {
         baseline: String(base),
@@ -246,8 +239,9 @@ async function main() {
       ranking: LEVELS[i % 3],
       responsible: userId,
       note: "",
-    });
-  }
+    };
+  });
+  await call("PUT", `/projects/${projectId}/monitoring`, { records });
   console.log(`Tool 5 (monitoring): ${indicators.length} indicator records, Q1–Q4 filled`);
 
   console.log(`\nDone. Open http://localhost:5173/app/projects/${projectId}/overview`);

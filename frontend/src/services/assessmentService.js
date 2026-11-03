@@ -6,47 +6,13 @@ import api from './api'
 
 export const assessmentService = {
   /**
-   * Get all assessments
-   * @returns {Promise<Array>}
-   */
-  async getAll() {
-    const response = await api.get('/assessments')
-    return response.data.data
-  },
-
-  /**
-   * Get assessment by ID
-   * @param {string} id
-   * @returns {Promise<Object>}
-   */
-  async getById(id) {
-    const response = await api.get(`/assessments/${id}`)
-    return response.data.data
-  },
-
-  /**
    * Get assessment by project ID
    * @param {string} projectId
-   * @returns {Promise<Object|null>} Assessment object or null if not found
+   * @returns {Promise<Object|null>} Assessment, or null when not started yet
    */
   async getByProject(projectId) {
-    try {
-      const response = await api.get(`/assessments/project/${projectId}`, {
-        silent404: true, // Suppress console error for expected 404 (new project)
-        validateStatus: (status) => status === 200 || status === 404, // Don't throw on 404
-      })
-      // 404 means no assessment exists yet - return null
-      if (response.status === 404) {
-        return null
-      }
-      return response.data.data
-    } catch (error) {
-      // Only throw if it's not a 404
-      if (error.response?.status !== 404) {
-        throw error
-      }
-      return null
-    }
+    const response = await api.get(`/assessments/project/${projectId}`)
+    return response.data.data
   },
 
   /**
@@ -67,17 +33,6 @@ export const assessmentService = {
    */
   async update(id, data) {
     const response = await api.put(`/assessments/${id}`, data)
-    return response.data.data
-  },
-
-  /**
-   * Add a single method to an assessment
-   * @param {string} assessmentId
-   * @param {Object} method - Method data { method_type, details }
-   * @returns {Promise<Object>}
-   */
-  async addMethod(assessmentId, method) {
-    const response = await api.post(`/assessments/${assessmentId}/methods`, method)
     return response.data.data
   },
 
@@ -103,17 +58,6 @@ export const assessmentService = {
   },
 
   /**
-   * Add a single consultation to an assessment
-   * @param {string} assessmentId
-   * @param {Object} consultation - Consultation data { type, participants, notes }
-   * @returns {Promise<Object>}
-   */
-  async addConsultation(assessmentId, consultation) {
-    const response = await api.post(`/assessments/${assessmentId}/consultations`, consultation)
-    return response.data.data
-  },
-
-  /**
    * Replace all consultations for an assessment (bulk operation)
    * @param {string} assessmentId
    * @param {Array} consultations
@@ -135,7 +79,8 @@ export const assessmentService = {
   },
 
   /**
-   * Replace all impact scores for an assessment
+   * Set the level of the questions sent (others keep theirs); the backend recalculates the
+   * total impact and returns all scores
    * @param {string} assessmentId
    * @param {Array} scores
    * @returns {Promise<Array>}
@@ -152,16 +97,6 @@ export const assessmentService = {
    */
   async getScores(assessmentId) {
     const response = await api.get(`/assessments/${assessmentId}/scores`)
-    return response.data.data
-  },
-
-  /**
-   * Calculate total impact for an assessment
-   * @param {string} assessmentId
-   * @returns {Promise<Object>}
-   */
-  async calculate(assessmentId) {
-    const response = await api.patch(`/assessments/${assessmentId}/calculate`)
     return response.data.data
   },
 

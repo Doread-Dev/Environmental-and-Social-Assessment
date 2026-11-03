@@ -117,20 +117,17 @@ describe("assessment child edits are locked too (D13)", () => {
     return { token: editor.token, id };
   }
 
-  it("rejects methods, consultations, scores and calculate with 409", async () => {
+  it("rejects methods, consultations and scores with 409", async () => {
     const { token, id } = await submittedAssessment();
     const question = await ImpactQuestion.findOne();
     const base = `/api/v1/assessments/${id}`;
 
     const calls = [
-      request(app).post(`${base}/methods`).send({ method_type: "Survey" }),
       request(app).put(`${base}/methods`).send([]),
-      request(app).post(`${base}/consultations`).send({ type: "Meeting" }),
       request(app).put(`${base}/consultations`).send([]),
       request(app)
         .post(`${base}/scores`)
         .send([{ question: question._id.toString(), level: "high" }]),
-      request(app).patch(`${base}/calculate`),
     ];
     for (const call of calls) {
       const res = await call.set(auth(token));

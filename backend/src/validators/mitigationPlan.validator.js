@@ -1,7 +1,8 @@
 const Joi = require("joi");
 
-const createMitigationPlanSchema = Joi.object({
-  project: Joi.string().required(),
+// One table row (the project comes from the URL).
+const rowSchema = Joi.object({
+  _id: Joi.string().hex().length(24).optional(),
   serial_number: Joi.number().optional(),
   output_description: Joi.string().required(),
   potential_impact_and_significance: Joi.string().allow("", null),
@@ -13,17 +14,11 @@ const createMitigationPlanSchema = Joi.object({
   notes: Joi.string().allow("", null),
 });
 
-const updateMitigationPlanSchema = createMitigationPlanSchema.fork(
-  ["project", "output_description"],
-  (schema) => schema.optional()
-);
-
 // PUT /projects/:id/mitigation: the whole table. A row with `_id` updates that row.
 const replaceMitigationPlansSchema = Joi.object({
   rows: Joi.array()
     .items(
-      createMitigationPlanSchema.keys({
-        _id: Joi.string().hex().length(24).optional(),
+      rowSchema.keys({
         project: Joi.any().strip(),
       })
     )
@@ -31,7 +26,5 @@ const replaceMitigationPlansSchema = Joi.object({
 });
 
 module.exports = {
-  createMitigationPlanSchema,
-  updateMitigationPlanSchema,
   replaceMitigationPlansSchema,
 };

@@ -4,7 +4,7 @@
  */
 
 import { cn } from '@/utils/cn'
-import { useLookups } from '@/contexts'
+import { IMPACT_LEVEL_CONFIG } from '@/utils/impactLevels'
 import { RANKING_HELP } from '@/utils/rankingHelp'
 
 /**
@@ -24,7 +24,6 @@ function RankingSelect({
   disabled = false,
   className,
 }) {
-  const { IMPACT_LEVEL_CONFIG } = useLookups()
   const levelKeys = ['not_applicable', 'negligible', 'low', 'medium', 'high']
   const levels = levelKeys
     .map((key) => IMPACT_LEVEL_CONFIG[key] && { ...IMPACT_LEVEL_CONFIG[key], key })

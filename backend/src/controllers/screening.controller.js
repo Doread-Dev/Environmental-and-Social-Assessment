@@ -1,11 +1,6 @@
 const asyncHandler = require("../utils/asyncHandler");
 const service = require("../services/screening.service");
 
-exports.getAll = asyncHandler(async (req, res) => {
-  const data = await service.listScreenings();
-  res.json({ success: true, data });
-});
-
 exports.getOne = asyncHandler(async (req, res) => {
   const data = await service.getScreening(req.params.id);
   res.json({ success: true, data });

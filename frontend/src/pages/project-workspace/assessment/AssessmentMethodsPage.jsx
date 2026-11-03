@@ -5,24 +5,18 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useAssessment } from '@/hooks'
+import { useAssessment, useProjectContext } from '@/hooks'
 import { MethodChecklistItem, ConsultationChecklistItem } from '@/components/assessment'
 import { LoadingSpinner, StickyFooter, useToast } from '@/components/ui'
 import { assessmentMethods, consultationMethods } from '@/utils/assessmentMethods'
 
 export default function AssessmentMethodsPage() {
   const { projectId } = useParams()
+  const { can } = useProjectContext()
   const navigate = useNavigate()
   const toast = useToast()
-  const {
-    assessment,
-    methods,
-    consultations,
-    isLoading,
-    isSaving,
-    saveMethods,
-    saveConsultations,
-  } = useAssessment(projectId)
+  const { methods, consultations, isLoading, isSaving, saveMethods, saveConsultations } =
+    useAssessment(projectId)
 
   // State for methods
   const [selectedMethods, setSelectedMethods] = useState(() => {
@@ -163,7 +157,8 @@ export default function AssessmentMethodsPage() {
 
   // Allow editing when rejected or draft, but not when approved or submitted
   // When rejected, user should be able to edit (rejected is not submitted, so it's editable)
-  const readOnly = assessment?.status === 'approved' || assessment?.status === 'submitted'
+  // Editable only while draft/rejected and for editors (allowed actions from the backend)
+  const readOnly = !can('assessment.edit')
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

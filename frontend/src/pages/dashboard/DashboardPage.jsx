@@ -1,10 +1,9 @@
-import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, Card, Icon, Alert } from '@/components/ui'
 import { MetricCard, ProjectListItem } from '@/components/dashboard'
 import { ROUTES } from '@/routes/routes.config'
-import { useProjects } from '@/hooks'
-import { calculateProjectStatus } from '@/utils'
+import { useDashboard } from '@/hooks'
+import { useAuth } from '@/contexts'
 
 /**
  * DashboardPage - صفحة لوحة التحكم الرئيسية
@@ -12,38 +11,9 @@ import { calculateProjectStatus } from '@/utils'
  */
 function DashboardPage() {
   const navigate = useNavigate()
-  const { projects, isLoading, error, fetchProjects } = useProjects()
-
-  // Calculate statistics
-  const stats = useMemo(() => {
-    const totalProjects = projects.length
-    const inProgressProjects = projects.filter((p) => {
-      const status = calculateProjectStatus(p.workflow)
-      return status === 'in_progress'
-    }).length
-
-    const highRiskProjects = projects.filter((p) => {
-      const category = p.screening?.category_code
-      return category === 'A' || category === 'B'
-    }).length
-
-    const monitoringProjects = projects.filter((p) => {
-      const status = calculateProjectStatus(p.workflow)
-      return status === 'monitoring'
-    }).length
-
-    return {
-      totalProjects,
-      inProgressProjects,
-      highRiskProjects,
-      monitoringProjects,
-    }
-  }, [projects])
-
-  // Get latest 5 projects
-  const latestProjects = useMemo(() => {
-    return [...projects].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 5)
-  }, [projects])
+  const { canCreateProject } = useAuth()
+  // Stats and the latest 5 projects are computed by the backend (one request, D31)
+  const { stats, latestProjects, isLoading, error, refetch } = useDashboard()
 
   // Handlers
   const handleNewProject = () => {
@@ -69,11 +39,11 @@ function DashboardPage() {
     )
   }
 
-  if (error) {
+  if (error && !stats) {
     return (
       <div className="flex flex-col gap-4 max-w-md mx-auto mt-12">
         <Alert variant="error">Failed to load projects: {error}</Alert>
-        <Button onClick={fetchProjects} variant="primary">
+        <Button onClick={() => refetch()} variant="primary">
           Try Again
         </Button>
       </div>
@@ -92,32 +62,34 @@ function DashboardPage() {
             Overview of projects and environmental & social status.
           </p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="primary" leftIcon={<Icon name="add" />} onClick={handleNewProject}>
-            New Project
-          </Button>
-        </div>
+        {canCreateProject && (
+          <div className="flex gap-3">
+            <Button variant="primary" leftIcon={<Icon name="add" />} onClick={handleNewProject}>
+              New Project
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Metric Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           title="Total Projects"
-          value={stats.totalProjects}
+          value={stats.total_projects}
           icon="folder"
           iconBgColor="bg-blue-50 dark:bg-blue-900/20"
           iconColor="text-blue-600 dark:text-blue-400"
         />
         <MetricCard
           title="Projects In Progress"
-          value={stats.inProgressProjects}
+          value={stats.by_status.in_progress}
           icon="timelapse"
           iconBgColor="bg-purple-50 dark:bg-purple-900/20"
           iconColor="text-purple-600 dark:text-purple-400"
         />
         <MetricCard
           title="High Risk Projects"
-          value={stats.highRiskProjects}
+          value={stats.high_risk}
           icon="warning"
           iconBgColor="bg-red-50 dark:bg-red-900/20"
           iconColor="text-red-600 dark:text-red-400"
@@ -127,7 +99,7 @@ function DashboardPage() {
         />
         <MetricCard
           title="Monitoring Due"
-          value={stats.monitoringProjects}
+          value={stats.by_status.monitoring}
           icon="event_note"
           iconBgColor="bg-orange-50 dark:bg-orange-900/20"
           iconColor="text-orange-600 dark:text-orange-400"

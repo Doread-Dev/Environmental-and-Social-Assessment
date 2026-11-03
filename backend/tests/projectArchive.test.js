@@ -76,9 +76,15 @@ describe("archive / restore (D17)", () => {
 
     const writes = [
       request(app).put(`/api/v1/projects/${id}`).send({ title: "New" }),
-      request(app).post("/api/v1/management").send({ project: id, activity_description: "X" }),
-      request(app).post("/api/v1/mitigation").send({ project: id, output_description: "X" }),
-      request(app).post("/api/v1/monitoring").send({ project: id, indicator }),
+      request(app)
+        .put(`/api/v1/projects/${id}/management`)
+        .send({ rows: [{ activity_description: "X" }] }),
+      request(app)
+        .put(`/api/v1/projects/${id}/mitigation`)
+        .send({ rows: [{ output_description: "X" }] }),
+      request(app)
+        .put(`/api/v1/projects/${id}/monitoring`)
+        .send({ records: [{ indicator }] }),
     ];
     for (const write of writes) {
       const res = await write.set(auth(token));

@@ -2,7 +2,7 @@
  * Toast Component
  * Displays temporary notification messages
  */
-import { useState, useEffect, useCallback, createContext, useContext } from 'react'
+import { useState, useEffect, useCallback, useMemo, createContext, useContext } from 'react'
 import { cn } from '@/utils/cn'
 
 // Toast Context
@@ -122,13 +122,14 @@ export function ToastProvider({ children }) {
     setToasts((prev) => prev.filter((toast) => toast.id !== id))
   }, [])
 
-  const toast = useCallback(
-    {
+  // Stable object: consumers can list `toast` in effect dependencies
+  const toast = useMemo(
+    () => ({
       success: (message) => addToast(message, 'success'),
       error: (message) => addToast(message, 'error'),
       warning: (message) => addToast(message, 'warning'),
       info: (message) => addToast(message, 'info'),
-    },
+    }),
     [addToast]
   )
 

@@ -12,12 +12,22 @@ ESMS (Environmental and Social Management System) — a workflow app for environ
 The domain workflow is strictly ordered, and most code is organized around it:
 **Screening (Tool 1) → Assessment (Tool 2) → SEMP: Management Activities (Tool 3) + Mitigation Plan (Tool 4) → Monitoring (Tool 5)**, plus Annex/Files and Settings.
 
+## Active rework plan (read first)
+
+The app is being reworked in phases. Before any change:
+- [plan/DECISIONS.md](plan/DECISIONS.md) — what we build (D1–D59). Source of truth; don't diverge silently.
+- [plan/README.md](plan/README.md) — phase order, rules for every phase, progress table. Each phase = one conversation, scoped by its file in `plan/phases/`.
+- [plan/V2_INVENTORY.md](plan/V2_INVENTORY.md) — what the `Environmental-and-Social-Assessment-main version 2/` prototype contains. That folder is git-ignored, unreviewed third-party work: never edit or commit it; port from it only what a decision/phase names, otherwise keep this repo's behavior and ask the owner.
+
+Sections below describe the code **as it is today**; they change as phases land. `backend/docs/` and `frontend/docs/` are outdated (D44) — the code wins.
+
 ## Commands
 
 Backend (`cd backend`):
 - `npm run dev` — nodemon on `src/server.js` (port 3000). Health: `GET http://localhost:3000/health`.
 - `npm start` — production start.
 - `npm run seed` — **wipes and re-inserts** the 4 lookup collections (impact categories, impact questions, indicators, job titles). Does not create users.
+- `SEED_EMAIL=... SEED_PASSWORD=... node scripts/seed-demo-project.js` — (re)creates `[DEMO] Al-Salam Water Network Rehabilitation`, a project that has passed all 5 tools, through the real API (needs a specialist login; use the `DEV_LOGIN_*` values from `backend/.env`).
 - `node scripts/clean-test-data.js` — deletes ALL domain data (projects, screenings, assessments, SEMP, monitoring, attachments). Destructive; ask before running.
 
 Frontend (`cd frontend`):
@@ -98,7 +108,7 @@ Statuses for screening & assessment: `draft | submitted | approved | rejected`. 
 
 ## Documentation
 
-Detailed, mostly accurate docs exist — read the relevant one before working in an area, and update it when behavior changes:
+Outdated (D44: deleted and rewritten in phase 12). Useful only as background; when they disagree with the code, the code wins. Don't spend time updating them:
 - `backend/docs/`: `ARCHITECTURE`, `API_REFERENCE` (full endpoint list), `DATA_MODELS`, `AUTHENTICATION` (route → role map), `MIDDLEWARES`, `SERVICES_AND_VALIDATORS`, `CONFIGURATION_AND_DEPLOYMENT`.
 - `frontend/docs/`: `ARCHITECTURE`, `ROUTING_AND_PAGES`, `STATE_AND_CONTEXTS`, `SERVICES_AND_API`, `COMPONENTS`, `HOOKS_AND_UTILS`, `FEATURES` (per-tool workflow behavior), `STYLE_GUIDE` (Arabic).
 

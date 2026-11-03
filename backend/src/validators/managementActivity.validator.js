@@ -9,7 +9,8 @@ const createManagementActivitySchema = Joi.object({
     .try(Joi.string(), Joi.array().items(Joi.string()))
     .optional(),
   monitoring_requirements: Joi.string().allow("", null),
-  responsible: Joi.string().optional(),
+  responsible: Joi.string().allow("", null).optional(),
+  responsible_text: Joi.string().allow("", null).optional(),
   notes: Joi.string().allow("", null),
 });
 

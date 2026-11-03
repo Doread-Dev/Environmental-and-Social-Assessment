@@ -1,6 +1,6 @@
 # ESMS v2 — Phase plan
 
-What we build is decided in [DECISIONS.md](DECISIONS.md) (D1–D59). This file says **in which order**. Each phase is done in its own conversation: open the phase file, do exactly that scope, finish with its "Done when" list.
+What we build is decided in [DECISIONS.md](DECISIONS.md) (D1–D60). This file says **in which order**. Each phase is done in its own conversation: open the phase file, do exactly that scope, finish with its "Done when" list.
 
 The v2 prototype (`Environmental-and-Social-Assessment-main version 2/`, git-ignored) is a **reference only** — see [V2_INVENTORY.md](V2_INVENTORY.md). Port code from it only where a phase file names it; never edit it. Anything from v2 not covered by a decision: keep this repo's behavior and ask the owner.
 
@@ -11,7 +11,7 @@ The v2 prototype (`Environmental-and-Social-Assessment-main version 2/`, git-ign
 | 0 | [Foundations: tooling, tests, lint](phases/00-foundations.md) | D39–D42, D44 | — |
 | 1 | [Removals & cleanup](phases/01-removals.md) | D12, D26–D29, D50 | 0 |
 | 2 | [Security & authentication](phases/02-security.md) | D1, D3–D10, D24, D58 | 1 |
-| 3 | [Workflow rules on the backend](phases/03-workflow-rules.md) | D2, D12–D19, D53–D58 | 2 |
+| 3 | [Workflow rules on the backend](phases/03-workflow-rules.md) | D2, D12–D19, D53–D58, D60 | 2 |
 | 4 | [Workflow state & aggregate API](phases/04-aggregate-api.md) | D30–D32, D35, D36 | 3 |
 | 5 | [Frontend data layer](phases/05-frontend-data.md) | D28a, D30, D33–D35, D57 | 4 |
 | 6 | [Users & passwords](phases/06-users-passwords.md) | D9, D21–D25 | 2, 5 |
@@ -44,8 +44,8 @@ Order matters: removals before new code (less to secure), backend rules before t
 | 0 | Done | `phase-00-foundations` — [PR #4](https://github.com/Doread-Dev/Environmental-and-Social-Assessment/pull/4) | Node 26 LTS, lockfiles, Vitest in both apps (14 backend / 6 frontend tests), lint 0 errors, Prettier applied |
 | 1 | Done | `phase-01-removals` — [PR #5](https://github.com/Doread-Dev/Environmental-and-Social-Assessment/pull/5) | Attachments, old SEMP tree, reports (+ `multer`, `pdfkit`, backend `exceljs`) removed; idempotent lookup seed; Project Details card; 27 backend / 8 frontend tests |
 | 1a | Done | `ci-and-node-watch` — [PR #6](https://github.com/Doread-Dev/Environmental-and-Social-Assessment/pull/6) | Not a plan phase (owner request): GitHub Actions CI, coverage with never-lower thresholds (baseline lines: backend 62% / frontend 0.4%), `nodemon` → `node --watch` |
-| 2 | Done | `phase-02-security` | Auth on every route (table-driven test), `validate()` strips, submit/approve/reject endpoints with 409 rules, `admin` role, no open register, `create-admin` / `reset-password` CLI, `TRUST_PROXY`, per-user rate limit; 183 backend / 19 frontend tests, backend lines 78% |
-| 3 | Not started | | |
+| 2 | Done | `phase-02-security` — [PR #7](https://github.com/Doread-Dev/Environmental-and-Social-Assessment/pull/7) | Auth on every route (table-driven test), `validate()` strips, submit/approve/reject endpoints with 409 rules, `admin` role, no open register, `create-admin` / `reset-password` CLI, `TRUST_PROXY`, per-user rate limit; 183 backend / 19 frontend tests, backend lines 78% |
+| 3 | Done | `phase-03-workflow-rules` | Backend gates (409), locking, `status_history`, archive/restore + guarded delete + admin purge of archived projects with audit log (D60), unique indexes, assessment prefill + 50 Negligible scores + auto total, `responsible_text`; no min-length rules; 270 backend / 27 frontend tests, backend lines 90% |
 | 4 | Not started | | |
 | 5 | Not started | | |
 | 6 | Not started | | |

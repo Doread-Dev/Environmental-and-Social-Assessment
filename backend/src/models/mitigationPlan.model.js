@@ -14,6 +14,7 @@ const mitigationPlanSchema = new mongoose.Schema(
     monitoring: { type: String },
     schedule: { type: String },
     responsible: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    responsible_text: { type: String }, // external party, when no internal user (D55)
     notes: { type: String },
   },
   {

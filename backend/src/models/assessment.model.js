@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const statusHistorySchema = require("./statusHistory.schema");
 
 const scoreCountSchema = new mongoose.Schema(
   {
@@ -42,11 +43,15 @@ const assessmentSchema = new mongoose.Schema(
       enum: ["draft", "submitted", "approved", "rejected"],
       default: "draft",
     },
+    status_history: [statusHistorySchema],
   },
   {
     timestamps: true,
     versionKey: false,
   }
 );
+
+// One assessment per project (D18).
+assessmentSchema.index({ project: 1 }, { unique: true });
 
 module.exports = mongoose.model("Assessment", assessmentSchema);

@@ -56,10 +56,22 @@
 - Show 409 messages from the backend through `extractErrorMessage`.
 
 ## Done when
-- [ ] Tests pass; the whole workflow works in the browser; demo seed adapted (no manual scores needed for unchanged questions).
-- [ ] `CLAUDE.md` describes gates, locking, archive, history.
+- [x] Tests pass; the whole workflow works in the browser; demo seed adapted (no manual scores needed for unchanged questions). Checked in the UI: screening with short texts → submit → approve without recommendations → start assessment (project activity and impacts prefilled, 50 Negligible scores shown); the rest is covered by tests and the demo seed.
+- [x] `CLAUDE.md` describes gates, locking, archive, history.
 
 ## Out of scope
 Aggregate endpoints (phase 4), UI redesign.
 
 ## Found during phase
+
+Decisions taken here (documented in `CLAUDE.md`):
+- Gates, locks, archived-project writes and duplicates all answer **409** (not v2's 403). The global duplicate-key handler is 409 too (was 400).
+- `PATCH /assessments/:id/calculate` is kept but optional: totals are recalculated on every score change. `POST /assessments/:id/scores` now **upserts** only the questions sent (was: replace all), so a partial payload no longer deletes the other scores.
+- `status_history` uses `created | submitted | approved | rejected`; the reject reason is the entry's note.
+- Owner decision D60: `DELETE /projects/:id/purge` (admin only, archived projects only, approved work included) + `AuditLog` model and `GET /audit-logs` (admin). The demo seed deletes its previous copies straight in MongoDB (`removeProjectData`, dev only, refuses in production) instead of archiving them, so copies no longer pile up.
+- D57 also applied to `validateProjectForm` (project title ≥ 3, description ≥ 20), not only the four listed pages. The two page validators moved to `utils/validators.js` so they are tested.
+
+Open points for the owner / later phases:
+- No UI yet for archive/restore or the archived list (`?archived=true`); the delete button now gets a 409 for projects with approved work. Phase 5/8.
+- `PUT /monitoring/:id` still requires `project` and `indicator` (the update schema is the create schema), so partial updates → 400. Unchanged.
+- New screening form starts with an empty (required) screening date.

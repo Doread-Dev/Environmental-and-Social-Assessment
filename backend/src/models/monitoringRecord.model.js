@@ -31,6 +31,7 @@ const monitoringRecordSchema = new mongoose.Schema(
       enum: ["negligible", "low", "medium", "high", "not_applicable"],
     },
     responsible: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    responsible_text: { type: String }, // external party, when no internal user (D55)
     note: { type: String },
   },
   {
@@ -38,5 +39,8 @@ const monitoringRecordSchema = new mongoose.Schema(
     versionKey: false,
   }
 );
+
+// One record per indicator in a project (D58).
+monitoringRecordSchema.index({ project: 1, indicator: 1 }, { unique: true });
 
 module.exports = mongoose.model("MonitoringRecord", monitoringRecordSchema);

@@ -117,6 +117,7 @@ Inventory: [V2_INVENTORY.md](V2_INVENTORY.md). v2 was built by someone else and 
 | D58 | Port v2's backend hardening that matches D1–D18: unique score per (assessment, question) and monitoring record per (project, indicator), 409 on duplicate create, `project` cannot change on update, scores must reference real questions, clean 401/403/500 for auth errors. |
 
 | D59 | Navigation stays as in this repo: one sidebar entry "SEMP – Tools 3 & 4" (not split). The locked SEMP Plan button lives inside the SEMP overview page, where the "Coming soon" card is today. The overview metric keeps the label "Risk Level". |
+| D60 | (Owner, phase 3) An **archived** project can be deleted permanently, approved work included, by `admin` only (from the archive list, UI in phase 10). Each such delete is recorded in an audit log (who, when, project title and a snapshot of its state), readable by `admin`. Extends D17; the audit log starts with this one action, the full field-level log stays v3 (D16). The demo seed deletes its own previous copies straight in MongoDB (dev only) and does not use this. |
 
 ## Open items
 

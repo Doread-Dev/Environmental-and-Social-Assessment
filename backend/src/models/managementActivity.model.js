@@ -13,6 +13,7 @@ const managementActivitySchema = new mongoose.Schema(
     recommended_actions: { type: mongoose.Schema.Types.Mixed }, // string or array
     monitoring_requirements: { type: String },
     responsible: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    responsible_text: { type: String }, // external party, when no internal user (D55)
     notes: { type: String },
   },
   {

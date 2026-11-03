@@ -8,7 +8,8 @@ const createMitigationPlanSchema = Joi.object({
   mitigation_and_enhancement_measures: Joi.string().allow("", null),
   monitoring: Joi.string().allow("", null),
   schedule: Joi.string().allow("", null),
-  responsible: Joi.string().optional(),
+  responsible: Joi.string().allow("", null).optional(),
+  responsible_text: Joi.string().allow("", null).optional(),
   notes: Joi.string().allow("", null),
 });
 

@@ -1,48 +1,47 @@
 import { describe, expect, it } from "vitest";
 import request from "supertest";
-import { app, mongoose, require } from "./helpers/app.js";
-import { loginAs } from "./helpers/fixtures.js";
-
-const Project = require("../../src/models/project.model");
-
-const createProject = (title) =>
-  Project.create({
-    title,
-    location: "Aleppo",
-    start_date: new Date("2026-01-01"),
-    end_date: new Date("2026-12-31"),
-  });
+import { app, mongoose } from "./helpers/app.js";
+import { createProject, loginAs } from "./helpers/fixtures.js";
 
 // Every project-owned record that has an update endpoint (D58).
 const kinds = [
   {
     name: "screening",
+    stage: "new",
     base: "/api/v1/screenings",
     body: { category_code: "B", category_reason: "Urban works" },
   },
   {
     name: "assessment",
+    stage: "screening_approved",
     base: "/api/v1/assessments",
     body: { project_activity: "Pipes", description: "Replace pipes" },
   },
   {
     name: "management activity",
+    stage: "assessment_approved",
     base: "/api/v1/management",
     body: { activity_description: "Dig" },
   },
-  { name: "mitigation plan", base: "/api/v1/mitigation", body: { output_description: "Network" } },
+  {
+    name: "mitigation plan",
+    stage: "assessment_approved",
+    base: "/api/v1/mitigation",
+    body: { output_description: "Network" },
+  },
   {
     name: "monitoring record",
+    stage: "semp_complete",
     base: "/api/v1/monitoring",
     body: { indicator: new mongoose.Types.ObjectId().toString() },
   },
 ];
 
-describe.each(kinds)("PUT $name", ({ base, body }) => {
+describe.each(kinds)("PUT $name", ({ base, stage, body }) => {
   async function setup() {
     const { token } = await loginAs("project_manager");
-    const project = await createProject("Own");
-    const other = await createProject("Other");
+    const project = await createProject({ stage, title: "Own" });
+    const other = await createProject({ stage, title: "Other" });
     const created = await request(app)
       .post(base)
       .set("Authorization", `Bearer ${token}`)

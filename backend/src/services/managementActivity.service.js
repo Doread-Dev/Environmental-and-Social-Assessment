@@ -1,20 +1,26 @@
 const ManagementActivity = require("../models/managementActivity.model");
 const ApiError = require("../utils/ApiError");
 const assertSameProject = require("../utils/assertSameProject");
+const normalizeResponsible = require("../utils/responsible");
+const { requireAssessmentApproved } = require("./workflow.service");
 
 const listByProject = async (projectId) =>
   ManagementActivity.find({ project: projectId })
     .populate("project responsible")
     .sort({ serial_number: 1, createdAt: -1 });
 
-const createActivity = async (payload) => ManagementActivity.create(payload);
+const createActivity = async (payload) => {
+  await requireAssessmentApproved(payload.project);
+  return ManagementActivity.create(normalizeResponsible(payload));
+};
 
 const updateActivity = async (id, payload) => {
   const existing = await ManagementActivity.findById(id);
   if (!existing) throw new ApiError(404, "Management activity not found");
   assertSameProject(existing, payload);
+  await requireAssessmentApproved(existing.project);
 
-  const updated = await ManagementActivity.findByIdAndUpdate(id, payload, {
+  const updated = await ManagementActivity.findByIdAndUpdate(id, normalizeResponsible(payload), {
     new: true,
     runValidators: true,
   });
@@ -25,6 +31,7 @@ const updateActivity = async (id, payload) => {
 const deleteActivity = async (id) => {
   const activity = await ManagementActivity.findById(id);
   if (!activity) throw new ApiError(404, "Management activity not found");
+  await requireAssessmentApproved(activity.project);
   await activity.deleteOne();
   return true;
 };

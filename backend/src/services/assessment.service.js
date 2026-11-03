@@ -2,9 +2,18 @@ const Assessment = require("../models/assessment.model");
 const AssessmentMethod = require("../models/assessmentMethod.model");
 const CommunityConsultation = require("../models/communityConsultation.model");
 const AssessmentImpactScore = require("../models/assessmentImpactScore.model");
+const ImpactQuestion = require("../models/impactQuestion.model");
+const Project = require("../models/project.model");
+const Screening = require("../models/screening.model");
 const ApiError = require("../utils/ApiError");
 const assertSameProject = require("../utils/assertSameProject");
-const { applyTransition } = require("../utils/statusTransition");
+const { applyTransition, assertEditable, historyEntry } = require("../utils/statusTransition");
+const { assertProjectWritable, requireScreeningApproved } = require("./workflow.service");
+
+const LEVELS = ["negligible", "low", "medium", "high", "not_applicable"];
+// total_project_impact is the highest level scored, not an average or a majority.
+const PRIORITY = ["high", "medium", "low", "negligible", "not_applicable"];
+const DEFAULT_LEVEL = "negligible"; // D54
 
 const populateAssessment = (query) =>
   query.populate([
@@ -12,7 +21,10 @@ const populateAssessment = (query) =>
     { path: "officer", populate: { path: "job_title" } },
     { path: "approved_by", populate: { path: "job_title" } },
     { path: "reject_by", populate: { path: "job_title" } },
+    { path: "status_history.by", select: "name role" },
   ]);
+
+const isEmpty = (value) => value == null || String(value).trim() === "";
 
 const listAssessments = async () => populateAssessment(Assessment.find().sort({ createdAt: -1 }));
 
@@ -28,12 +40,66 @@ const getByProject = async (projectId) => {
   return assessment;
 };
 
+// Loads an assessment for a content edit: Tool 1 approved, project not archived, and the
+// assessment itself still draft or rejected.
+const loadEditable = async (id) => {
+  const assessment = await Assessment.findById(id);
+  if (!assessment) throw new ApiError(404, "Assessment not found");
+  await requireScreeningApproved(assessment.project);
+  assertEditable(assessment);
+  return assessment;
+};
+
+// Recomputes the per-level counts and total_project_impact from the saved scores.
+const recalculate = async (assessmentId) => {
+  const scores = await AssessmentImpactScore.find({ assessment: assessmentId }).select("level");
+  const counts = Object.fromEntries(LEVELS.map((level) => [level, 0]));
+  scores.forEach((score) => {
+    counts[score.level] += 1;
+  });
+  const impact = PRIORITY.find((level) => counts[level] > 0) ?? null;
+  await Assessment.updateOne(
+    { _id: assessmentId },
+    { total_project_score: counts, total_project_impact: impact }
+  );
+};
+
 const createAssessment = async (payload, createdBy) => {
-  const assessmentData = { ...payload };
-  if (createdBy) {
-    assessmentData.officer = createdBy;
+  await requireScreeningApproved(payload.project);
+  if (await Assessment.exists({ project: payload.project })) {
+    throw new ApiError(409, "An assessment already exists for this project");
   }
-  const created = await Assessment.create(assessmentData);
+
+  // Prefill once, on create, only the fields the payload leaves empty (D53).
+  const [project, screening] = await Promise.all([
+    Project.findById(payload.project).select("project_component"),
+    Screening.findOne({ project: payload.project }).select("potential_negative potential_positive"),
+  ]);
+  const data = { ...payload };
+  if (isEmpty(data.project_activity)) data.project_activity = project.project_component;
+  if (isEmpty(data.potential_negative_impact)) {
+    data.potential_negative_impact = screening.potential_negative;
+  }
+  if (isEmpty(data.potential_positive_impact)) {
+    data.potential_positive_impact = screening.potential_positive;
+  }
+  if (isEmpty(data.project_activity)) {
+    throw new ApiError(400, "Project activity is required (the project has no component to use)");
+  }
+
+  const created = await Assessment.create({
+    ...data,
+    officer: createdBy,
+    status_history: [historyEntry("created", createdBy)],
+  });
+
+  // Every question starts as Negligible; users change only what differs (D54).
+  const questions = await ImpactQuestion.find().select("_id");
+  await AssessmentImpactScore.insertMany(
+    questions.map((q) => ({ assessment: created._id, question: q._id, level: DEFAULT_LEVEL }))
+  );
+  await recalculate(created._id);
+
   return populateAssessment(Assessment.findById(created._id));
 };
 
@@ -41,6 +107,7 @@ const updateAssessment = async (id, payload, updatedBy) => {
   const assessment = await Assessment.findById(id);
   if (!assessment) throw new ApiError(404, "Assessment not found");
   assertSameProject(assessment, payload);
+  await loadEditable(id);
 
   const updateData = { ...payload };
   if (updatedBy && !assessment.officer) {
@@ -58,79 +125,77 @@ const updateAssessment = async (id, payload, updatedBy) => {
 };
 
 const addMethod = async (assessmentId, payload) => {
-  const assessment = await Assessment.findById(assessmentId);
-  if (!assessment) throw new ApiError(404, "Assessment not found");
+  await loadEditable(assessmentId);
   return AssessmentMethod.create({ ...payload, assessment: assessmentId });
 };
 
 const addConsultation = async (assessmentId, payload) => {
-  const assessment = await Assessment.findById(assessmentId);
-  if (!assessment) throw new ApiError(404, "Assessment not found");
+  await loadEditable(assessmentId);
   return CommunityConsultation.create({ ...payload, assessment: assessmentId });
 };
 
+// Sets the level (and note) of the questions in the payload; questions not sent keep their
+// level. Recalculates the total impact. Returns all scores of the assessment.
 const addScores = async (assessmentId, scoresPayload) => {
-  const assessment = await Assessment.findById(assessmentId);
-  if (!assessment) throw new ApiError(404, "Assessment not found");
-  // Replace all scores for this assessment
-  await AssessmentImpactScore.deleteMany({ assessment: assessmentId });
-  const docs = scoresPayload.map((s) => ({ ...s, assessment: assessmentId }));
-  return AssessmentImpactScore.insertMany(docs);
+  await loadEditable(assessmentId);
+
+  const questionIds = scoresPayload.map((s) => String(s.question));
+  if (new Set(questionIds).size !== questionIds.length) {
+    throw new ApiError(400, "Each question can only be scored once per payload");
+  }
+  const realCount = await ImpactQuestion.countDocuments({ _id: { $in: questionIds } });
+  if (realCount !== questionIds.length) {
+    throw new ApiError(400, "One or more scores reference an unknown impact question");
+  }
+
+  await AssessmentImpactScore.bulkWrite(
+    scoresPayload.map(({ question, level, note }) => ({
+      updateOne: {
+        filter: { assessment: assessmentId, question },
+        update: { $set: { level, note: note ?? "" } },
+        upsert: true,
+      },
+    }))
+  );
+  await recalculate(assessmentId);
+  return AssessmentImpactScore.find({ assessment: assessmentId });
 };
 
+// Kept for clients that still call it: totals are already recalculated on every score change.
 const calculateImpact = async (assessmentId) => {
-  const assessment = await Assessment.findById(assessmentId);
-  if (!assessment) throw new ApiError(404, "Assessment not found");
-
-  const scores = await AssessmentImpactScore.find({ assessment: assessmentId });
-  if (!scores.length) throw new ApiError(400, "No scores to calculate");
-
-  // حساب عدد كل مستوى
-  const scoreCount = {
-    negligible: 0,
-    low: 0,
-    medium: 0,
-    high: 0,
-    not_applicable: 0,
-  };
-
-  scores.forEach((score) => {
-    if (Object.hasOwn(scoreCount, score.level)) {
-      scoreCount[score.level]++;
-    }
-  });
-
-  // اختيار total_project_impact حسب أولوية الفئة (وليس عدد النقاط)
-  // أولوية: high > medium > low > negligible > not_applicable
-  const priorityLevels = ["high", "medium", "low", "negligible", "not_applicable"];
-
-  let impactLevel = null;
-
-  for (const level of priorityLevels) {
-    if (scoreCount[level] > 0) {
-      impactLevel = level;
-      break;
-    }
-  }
-
-  // إذا لم يوجد أي مستوى له قيمة > 0 (حالة استثنائية جداً)
-  if (!impactLevel) {
-    impactLevel = "negligible"; // قيمة افتراضية
-  }
-
-  assessment.total_project_score = scoreCount;
-  assessment.total_project_impact = impactLevel;
-  await assessment.save();
-
+  await loadEditable(assessmentId);
+  await recalculate(assessmentId);
   return populateAssessment(Assessment.findById(assessmentId));
 };
 
 const transition = async (id, action, userId, options) => {
+  const assessment = await Assessment.findById(id).select("project");
+  if (!assessment) throw new ApiError(404, "Assessment not found");
+  await assertProjectWritable(assessment.project);
+
   const updated = await applyTransition(Assessment, id, action, userId, options);
   return populateAssessment(Assessment.findById(updated._id));
 };
 
-const submitAssessment = async (id, submittedBy) => transition(id, "submit", submittedBy);
+// Safety check (D54): every distinct question has a level. Always true with the defaults.
+const assertAllQuestionsScored = async (id) => {
+  const [total, scored] = await Promise.all([
+    ImpactQuestion.countDocuments(),
+    AssessmentImpactScore.distinct("question", { assessment: id }),
+  ]);
+  if (scored.length < total) {
+    throw new ApiError(
+      400,
+      `All ${total} impact questions need a level before submitting (${total - scored.length} missing)`
+    );
+  }
+};
+
+const submitAssessment = async (id, submittedBy) => {
+  if (!(await Assessment.exists({ _id: id }))) throw new ApiError(404, "Assessment not found");
+  await assertAllQuestionsScored(id);
+  return transition(id, "submit", submittedBy);
+};
 
 const approveAssessment = async (id, approvedBy, recommendations) =>
   transition(id, "approve", approvedBy, { recommendations });
@@ -143,6 +208,7 @@ const listMethods = async (assessmentId) => {
 };
 
 const replaceMethods = async (assessmentId, payload) => {
+  await loadEditable(assessmentId);
   await AssessmentMethod.deleteMany({ assessment: assessmentId });
   if (!payload.length) return [];
   const docs = payload.map((item) => ({ ...item, assessment: assessmentId }));
@@ -154,6 +220,7 @@ const listConsultations = async (assessmentId) => {
 };
 
 const replaceConsultations = async (assessmentId, payload) => {
+  await loadEditable(assessmentId);
   await CommunityConsultation.deleteMany({ assessment: assessmentId });
   if (!payload.length) return [];
   const docs = payload.map((item) => ({ ...item, assessment: assessmentId }));

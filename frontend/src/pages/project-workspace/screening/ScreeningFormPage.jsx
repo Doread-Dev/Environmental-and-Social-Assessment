@@ -12,44 +12,7 @@ import { Alert, StickyFooter, Modal, Button, useToast } from '@/components/ui'
 import { ScreeningInfoSection, RiskCategorySelector, ImpactSection } from '@/components/screening'
 import { useScreening } from '@/hooks'
 import { cn } from '@/utils/cn'
-
-/**
- * التحقق من صحة النموذج
- */
-function validateScreeningForm(data) {
-  const errors = {}
-
-  if (!data.screeningDate) {
-    errors.screeningDate = 'Screening date is required'
-  }
-
-  if (!data.categoryCode) {
-    errors.categoryCode = 'Risk category selection is required'
-  }
-
-  if (!data.categoryReason?.trim()) {
-    errors.categoryReason = 'Category justification is required'
-  } else if (data.categoryReason.trim().length < 50) {
-    errors.categoryReason = 'Justification must be at least 50 characters'
-  }
-
-  if (!data.potentialNegative?.trim()) {
-    errors.potentialNegative = 'Potential negative impacts are required'
-  } else if (data.potentialNegative.trim().length < 20) {
-    errors.potentialNegative = 'Please provide at least 20 characters'
-  }
-
-  if (!data.potentialPositive?.trim()) {
-    errors.potentialPositive = 'Potential positive impacts are required'
-  } else if (data.potentialPositive.trim().length < 20) {
-    errors.potentialPositive = 'Please provide at least 20 characters'
-  }
-
-  return {
-    valid: Object.keys(errors).length === 0,
-    errors,
-  }
-}
+import { validateScreeningForm } from '@/utils'
 
 function ScreeningFormPage() {
   const navigate = useNavigate()

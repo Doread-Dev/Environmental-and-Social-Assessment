@@ -2,6 +2,11 @@ import request from "supertest";
 import { app, require } from "./app.js";
 
 const User = require("../../src/models/user.model");
+const Project = require("../../src/models/project.model");
+const Screening = require("../../src/models/screening.model");
+const Assessment = require("../../src/models/assessment.model");
+const ManagementActivity = require("../../src/models/managementActivity.model");
+const MitigationPlan = require("../../src/models/mitigationPlan.model");
 const { seedLookupData } = require("../../src/db/seed");
 
 const { ROLES, EDITOR_ROLES, SPECIALIST_ROLES } = require("../../src/config/roles");
@@ -31,8 +36,55 @@ async function loginAs(role = "environmental_specialist", overrides = {}) {
   return { user, token: res.body.data.token };
 }
 
+// Workflow stages a test project can start at, in order (D2). Records are written straight to
+// the database: tests of a later tool don't depend on the API of the earlier ones.
+const STAGES = ["new", "screening_approved", "assessment_approved", "semp_complete"];
+
+async function createProject({ stage = "new", ...fields } = {}) {
+  const level = STAGES.indexOf(stage);
+  if (level < 0) throw new Error(`Unknown stage ${stage}`);
+  const project = await Project.create({
+    title: "Test project",
+    location: "Aleppo",
+    start_date: new Date("2026-01-01"),
+    end_date: new Date("2026-12-31"),
+    ...fields,
+  });
+  if (level >= 1) {
+    await Screening.create({
+      project: project._id,
+      category_code: "B",
+      category_reason: "Urban works",
+      status: "approved",
+    });
+  }
+  if (level >= 2) {
+    await Assessment.create({
+      project: project._id,
+      project_activity: "Pipes",
+      description: "Replace pipes",
+      status: "approved",
+    });
+  }
+  if (level >= 3) {
+    await ManagementActivity.create({ project: project._id, activity_description: "Dig" });
+    await MitigationPlan.create({ project: project._id, output_description: "Network" });
+  }
+  return project;
+}
+
 async function seedLookups() {
   await seedLookupData();
 }
 
-export { ROLES, EDITOR_ROLES, SPECIALIST_ROLES, TEST_PASSWORD, createUser, loginAs, seedLookups };
+export {
+  ROLES,
+  EDITOR_ROLES,
+  SPECIALIST_ROLES,
+  STAGES,
+  TEST_PASSWORD,
+  createUser,
+  createProject,
+  loginAs,
+  seedLookups,
+};

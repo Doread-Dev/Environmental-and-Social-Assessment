@@ -1,11 +1,22 @@
 // Creates a demo project that has gone through all five workflow tools
 // (screening → assessment → SEMP tools 3 & 4 → monitoring), using the real HTTP API.
-// Re-running deletes the previous demo project (matched by title) and recreates it.
+// Re-running first deletes every previous demo project (matched by title, archived ones too)
+// straight in MongoDB: the API refuses to delete approved work (D17), and the admin purge endpoint
+// is for real projects (D60). Dev-only: refuses to run with NODE_ENV=production.
 //
 // Usage (backend must be running, lookups seeded):
 //   SEED_EMAIL=... SEED_PASSWORD=... node scripts/seed-demo-project.js
 // The account must be an admin or environmental_specialist (needed to approve).
 require("dotenv").config();
+
+if (process.env.NODE_ENV === "production") {
+  console.error("seed-demo-project.js refuses to run with NODE_ENV=production.");
+  process.exit(1);
+}
+
+const mongoose = require("mongoose");
+const Project = require("../src/models/project.model");
+const { removeProjectData } = require("../src/services/project.service");
 
 const API_URL = process.env.API_URL || `http://localhost:${process.env.PORT || 3000}/api/v1`;
 const EMAIL = process.env.SEED_EMAIL;
@@ -13,6 +24,19 @@ const PASSWORD = process.env.SEED_PASSWORD;
 const DEMO_TITLE = "[DEMO] Al-Salam Water Network Rehabilitation";
 
 let token;
+
+async function removePreviousDemos() {
+  await mongoose.connect(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 10000 });
+  try {
+    const previous = await Project.find({ title: DEMO_TITLE }, "_id");
+    for (const p of previous) {
+      await removeProjectData(p._id);
+      console.log(`Deleted previous demo project ${p._id}`);
+    }
+  } finally {
+    await mongoose.disconnect();
+  }
+}
 
 async function call(method, path, body) {
   const res = await fetch(`${API_URL}${path}`, {
@@ -45,11 +69,7 @@ async function main() {
     throw new Error("SEED account must be an admin or environmental_specialist");
   }
 
-  const existing = (await call("GET", "/projects")).filter((p) => p.title === DEMO_TITLE);
-  for (const p of existing) {
-    await call("DELETE", `/projects/${p._id}`);
-    console.log(`Deleted previous demo project ${p._id}`);
-  }
+  await removePreviousDemos();
 
   // Project
   const project = await call("POST", "/projects", {
@@ -80,10 +100,11 @@ async function main() {
   });
   console.log("Tool 1 (screening): approved");
 
-  // Tool 2 – Assessment: metadata, methods, consultations, scores, calculate, submit, approve
+  // Tool 2 – Assessment: metadata, methods, consultations, scores, submit, approve.
+  // Project activity and potential impacts are prefilled from the project and the screening;
+  // every question starts as Negligible (D53, D54).
   const assessment = await call("POST", "/assessments", {
     project: projectId,
-    project_activity: "Replacement of 8 km of distribution pipes and 2 pumping units",
     description:
       "Excavation of trenches, removal of damaged pipes, installation of HDPE pipes, house connections and road reinstatement.",
     environmental_setting:
@@ -118,24 +139,21 @@ async function main() {
   ]);
 
   const questions = await call("GET", "/lookups/impact-questions");
-  const scores = questions.map((q, i) => ({
-    question: q._id,
-    // Mostly low/negligible with a few medium and one high, so the total is meaningful
-    level: i === 3 ? "high" : i % 7 === 0 ? "medium" : LEVELS[i % 2],
-    note: "",
-  }));
+  // Only the questions that differ from Negligible: a few low/medium and one high, so the
+  // total impact (recalculated by the backend) is meaningful.
+  const scores = questions
+    .map((q, i) => ({
+      question: q._id,
+      level: i === 3 ? "high" : i % 7 === 0 ? "medium" : LEVELS[i % 2],
+      note: "",
+    }))
+    .filter((s) => s.level !== "negligible");
   await call("POST", `/assessments/${assessmentId}/scores`, scores);
-  await call("PATCH", `/assessments/${assessmentId}/calculate`);
-  await call("PUT", `/assessments/${assessmentId}`, {
-    potential_negative_impact:
-      "Dust, noise and traffic disruption during works; temporary interruption of water supply.",
-    potential_positive_impact: "Improved water quality and continuity of supply.",
-  });
   await call("PATCH", `/assessments/${assessmentId}/submit`);
   await call("PATCH", `/assessments/${assessmentId}/approve`, {
     recommendations: "Prepare SEMP with dust, noise and traffic management measures.",
   });
-  console.log(`Tool 2 (assessment): approved with ${scores.length} scored questions`);
+  console.log(`Tool 2 (assessment): approved, ${scores.length} questions above Negligible`);
 
   // Tool 3 – Management activities
   const activities = [
@@ -162,7 +180,10 @@ async function main() {
     await call("POST", "/management", {
       project: projectId,
       serial_number: i + 1,
-      responsible: userId,
+      // Responsible is a user or an external party (D55); the last row uses the contractor.
+      ...(i === activities.length - 1
+        ? { responsible_text: "Contractor site engineer" }
+        : { responsible: userId }),
       notes: "",
       ...a,
     });

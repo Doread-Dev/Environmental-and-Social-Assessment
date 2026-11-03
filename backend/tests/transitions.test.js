@@ -1,36 +1,34 @@
 import { describe, expect, it } from "vitest";
 import request from "supertest";
-import { app, mongoose, require } from "./helpers/app.js";
-import { EDITOR_ROLES, createUser, loginAs } from "./helpers/fixtures.js";
-
-const Project = require("../../src/models/project.model");
+import { app, mongoose } from "./helpers/app.js";
+import {
+  EDITOR_ROLES,
+  createProject as createStagedProject,
+  createUser,
+  loginAs,
+} from "./helpers/fixtures.js";
 
 const auth = (token) => ({ Authorization: `Bearer ${token}` });
-
-async function createProject() {
-  return Project.create({
-    title: "Transitions",
-    location: "Aleppo",
-    start_date: new Date("2026-01-01"),
-    end_date: new Date("2026-12-31"),
-  });
-}
 
 // Screening and assessment share the same transition rules; run every test for both.
 const kinds = [
   {
     name: "screening",
     base: "/api/v1/screenings",
+    stage: "new",
     body: (project) => ({ project, category_code: "B", category_reason: "Urban works" }),
   },
   {
     name: "assessment",
     base: "/api/v1/assessments",
+    stage: "screening_approved",
     body: (project) => ({ project, project_activity: "Pipes", description: "Replace pipes" }),
   },
 ];
 
-describe.each(kinds)("$name status transitions", ({ base, body }) => {
+describe.each(kinds)("$name status transitions", ({ base, stage, body }) => {
+  const createProject = () => createStagedProject({ stage });
+
   async function setup() {
     const editor = await loginAs("project_manager");
     const specialist = await loginAs("environmental_specialist");

@@ -69,14 +69,14 @@ export default function AssessmentScoringPage() {
         })
         setScores(scoreMap)
       } else {
-        // Auto-fill all questions with N/A for new assessment
+        // Same default as the backend: every question starts as Negligible (D54)
         const allQuestions = categoriesWithQuestions.flatMap((cat) =>
           cat.questions.map((q) => q.id)
         )
         const defaultScores = {}
         allQuestions.forEach((questionId) => {
           defaultScores[questionId] = {
-            level: 'not_applicable',
+            level: 'negligible',
             note: '',
           }
         })
@@ -141,7 +141,7 @@ export default function AssessmentScoringPage() {
       }
       return {
         question: questionId,
-        level: 'not_applicable',
+        level: 'negligible',
         note: '',
       }
     })
@@ -161,14 +161,10 @@ export default function AssessmentScoringPage() {
     const validationErrors = {}
     if (!negativeImpact?.trim()) {
       validationErrors.negativeImpact = 'Potential negative impact is required'
-    } else if (negativeImpact.trim().length < 20) {
-      validationErrors.negativeImpact = 'Please provide at least 20 characters'
     }
 
     if (!positiveImpact?.trim()) {
       validationErrors.positiveImpact = 'Potential positive impact is required'
-    } else if (positiveImpact.trim().length < 20) {
-      validationErrors.positiveImpact = 'Please provide at least 20 characters'
     }
 
     if (Object.keys(validationErrors).length > 0) {
@@ -185,7 +181,7 @@ export default function AssessmentScoringPage() {
       setShowSubmitModal(false)
       return
     }
-    // Auto-fill unanswered questions with 'not_applicable'
+    // Unanswered questions keep the backend default, Negligible (D54)
     const finalScores = allQuestionIds.map((questionId) => {
       const existingScore = scoresArray.find((s) => s.question === questionId)
       if (existingScore && existingScore.level) {
@@ -194,7 +190,7 @@ export default function AssessmentScoringPage() {
       // Auto-fill with N/A
       return {
         question: questionId,
-        level: 'not_applicable',
+        level: 'negligible',
         note: '',
       }
     })

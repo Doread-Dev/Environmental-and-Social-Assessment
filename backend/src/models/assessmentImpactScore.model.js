@@ -17,4 +17,7 @@ const assessmentImpactScoreSchema = new mongoose.Schema(
   }
 );
 
+// One score per question in an assessment (D58).
+assessmentImpactScoreSchema.index({ assessment: 1, question: 1 }, { unique: true });
+
 module.exports = mongoose.model("AssessmentImpactScore", assessmentImpactScoreSchema);

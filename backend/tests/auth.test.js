@@ -67,8 +67,11 @@ describe("protected routes", () => {
 describe("test helpers", () => {
   it("seedLookups fills the lookup collections", async () => {
     await seedLookups();
+    const { token } = await loginAs("viewer");
 
-    const res = await request(app).get("/api/v1/lookups/impact-categories");
+    const res = await request(app)
+      .get("/api/v1/lookups/impact-categories")
+      .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(200);
     expect(res.body.data.length).toBeGreaterThan(0);

@@ -3,6 +3,8 @@ const AssessmentMethod = require("../models/assessmentMethod.model");
 const CommunityConsultation = require("../models/communityConsultation.model");
 const AssessmentImpactScore = require("../models/assessmentImpactScore.model");
 const ApiError = require("../utils/ApiError");
+const assertSameProject = require("../utils/assertSameProject");
+const { applyTransition } = require("../utils/statusTransition");
 
 const populateAssessment = (query) =>
   query.populate([
@@ -36,14 +38,12 @@ const createAssessment = async (payload, createdBy) => {
 };
 
 const updateAssessment = async (id, payload, updatedBy) => {
-  // إذا كان status يتغير إلى submitted أو لم يكن officer موجوداً، نحدّث officer
   const assessment = await Assessment.findById(id);
   if (!assessment) throw new ApiError(404, "Assessment not found");
+  assertSameProject(assessment, payload);
 
   const updateData = { ...payload };
-
-  // إذا تغير status إلى submitted أو لم يكن officer موجوداً، نحدّث officer
-  if (updatedBy && (payload.status === "submitted" || !assessment.officer)) {
+  if (updatedBy && !assessment.officer) {
     updateData.officer = updatedBy;
   }
 
@@ -125,43 +125,18 @@ const calculateImpact = async (assessmentId) => {
   return populateAssessment(Assessment.findById(assessmentId));
 };
 
-const setStatus = async (id, status, approvedBy, recommendations = null, rejectReason = null) => {
-  const updateData = {
-    status,
-  };
-
-  // في حالة الموافقة: تسجيل approved_by و recommendations
-  if (status === "approved") {
-    updateData.approved_by = approvedBy;
-    if (recommendations) {
-      updateData.recommendations = recommendations;
-    }
-  }
-
-  // في حالة الرفض: تسجيل reject_by و reject_reason فقط
-  if (status === "rejected") {
-    updateData.reject_by = approvedBy;
-    updateData.reject_reason = rejectReason ?? "";
-  }
-
-  const updated = await populateAssessment(
-    Assessment.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    })
-  );
-
-  if (!updated) throw new ApiError(404, "Assessment not found");
-  return updated;
+const transition = async (id, action, userId, options) => {
+  const updated = await applyTransition(Assessment, id, action, userId, options);
+  return populateAssessment(Assessment.findById(updated._id));
 };
 
-const approveAssessment = async (id, approvedBy, recommendations) => {
-  return setStatus(id, "approved", approvedBy, recommendations, null);
-};
+const submitAssessment = async (id, submittedBy) => transition(id, "submit", submittedBy);
 
-const rejectAssessment = async (id, rejectBy, rejectReason = null) => {
-  return setStatus(id, "rejected", rejectBy, null, rejectReason);
-};
+const approveAssessment = async (id, approvedBy, recommendations) =>
+  transition(id, "approve", approvedBy, { recommendations });
+
+const rejectAssessment = async (id, rejectBy, rejectReason = null) =>
+  transition(id, "reject", rejectBy, { rejectReason });
 
 const listMethods = async (assessmentId) => {
   return AssessmentMethod.find({ assessment: assessmentId });
@@ -199,6 +174,7 @@ module.exports = {
   addConsultation,
   addScores,
   calculateImpact,
+  submitAssessment,
   approveAssessment,
   rejectAssessment,
   listMethods,

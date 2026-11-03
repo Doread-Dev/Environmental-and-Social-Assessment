@@ -60,6 +60,16 @@ export const screeningService = {
   },
 
   /**
+   * Submit a screening for approval (draft|rejected → submitted)
+   * @param {string} id
+   * @returns {Promise<Object>}
+   */
+  async submit(id) {
+    const response = await api.patch(`/screenings/${id}/submit`)
+    return response.data.data
+  },
+
+  /**
    * Approve a screening
    * @param {string} id
    * @param {string|null} recommendations

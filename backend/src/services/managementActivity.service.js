@@ -1,5 +1,6 @@
 const ManagementActivity = require("../models/managementActivity.model");
 const ApiError = require("../utils/ApiError");
+const assertSameProject = require("../utils/assertSameProject");
 
 const listByProject = async (projectId) =>
   ManagementActivity.find({ project: projectId })
@@ -9,6 +10,10 @@ const listByProject = async (projectId) =>
 const createActivity = async (payload) => ManagementActivity.create(payload);
 
 const updateActivity = async (id, payload) => {
+  const existing = await ManagementActivity.findById(id);
+  if (!existing) throw new ApiError(404, "Management activity not found");
+  assertSameProject(existing, payload);
+
   const updated = await ManagementActivity.findByIdAndUpdate(id, payload, {
     new: true,
     runValidators: true,

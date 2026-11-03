@@ -20,6 +20,8 @@ const login = async (email, password) => {
   if (!user) throw new ApiError(401, "Invalid credentials");
   const ok = await user.comparePassword(password);
   if (!ok) throw new ApiError(401, "Invalid credentials");
+  // Checked after the password, so the message never reveals account state to a guesser.
+  if (!user.is_active) throw new ApiError(403, "Account is deactivated");
   const token = signToken(user);
   return { user, token };
 };

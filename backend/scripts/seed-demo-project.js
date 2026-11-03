@@ -4,7 +4,7 @@
 //
 // Usage (backend must be running, lookups seeded):
 //   SEED_EMAIL=... SEED_PASSWORD=... node scripts/seed-demo-project.js
-// The account must be an environmental_specialist (needed to approve).
+// The account must be an admin or environmental_specialist (needed to approve).
 require("dotenv").config();
 
 const API_URL = process.env.API_URL || `http://localhost:${process.env.PORT || 3000}/api/v1`;
@@ -35,14 +35,14 @@ const LEVELS = ["negligible", "low", "medium", "high", "not_applicable"];
 
 async function main() {
   if (!EMAIL || !PASSWORD) {
-    throw new Error("Set SEED_EMAIL and SEED_PASSWORD (an environmental_specialist account)");
+    throw new Error("Set SEED_EMAIL and SEED_PASSWORD (an admin or environmental_specialist)");
   }
 
   const login = await call("POST", "/auth/login", { email: EMAIL, password: PASSWORD });
   token = login.token;
   const userId = login.user._id;
-  if (login.user.role !== "environmental_specialist") {
-    throw new Error("SEED account must be an environmental_specialist");
+  if (!["admin", "environmental_specialist"].includes(login.user.role)) {
+    throw new Error("SEED account must be an admin or environmental_specialist");
   }
 
   const existing = (await call("GET", "/projects")).filter((p) => p.title === DEMO_TITLE);
@@ -73,9 +73,8 @@ async function main() {
     potential_positive:
       "Reliable access to safe drinking water for ~12,000 residents, reduced network leakage and lower waterborne disease risk.",
     screening_date: "2026-01-20",
-    status: "draft",
   });
-  await call("PUT", `/screenings/${screening._id}`, { status: "submitted" });
+  await call("PATCH", `/screenings/${screening._id}/submit`);
   await call("PATCH", `/screenings/${screening._id}/approve`, {
     recommendations: "Proceed to a full environmental & social assessment (Tool 2).",
   });
@@ -91,7 +90,6 @@ async function main() {
       "Dense residential area with a primary school and a small market along the pipe route.",
     legal_requirements:
       "Local municipality excavation permit; national drinking water quality standard; AKF environmental guidelines.",
-    status: "draft",
   });
   const assessmentId = assessment._id;
 
@@ -132,8 +130,8 @@ async function main() {
     potential_negative_impact:
       "Dust, noise and traffic disruption during works; temporary interruption of water supply.",
     potential_positive_impact: "Improved water quality and continuity of supply.",
-    status: "submitted",
   });
+  await call("PATCH", `/assessments/${assessmentId}/submit`);
   await call("PATCH", `/assessments/${assessmentId}/approve`, {
     recommendations: "Prepare SEMP with dust, noise and traffic management measures.",
   });

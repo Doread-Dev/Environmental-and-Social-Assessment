@@ -27,7 +27,9 @@ Backend (`cd backend`):
 - `npm run dev` — `node --watch src/server.js` (port 3000). Health: `GET http://localhost:3000/health`.
 - `npm start` — production start.
 - `npm run seed` — upserts the 4 lookup collections (impact categories, impact questions, indicators, job titles) by a stable key (category `code`, question text, indicator name, job title name). Safe to re-run: existing rows keep their `_id`, so scores, monitoring records and users stay linked. Does not delete rows that are no longer in the seed, and does not create users.
-- `SEED_EMAIL=... SEED_PASSWORD=... node scripts/seed-demo-project.js` — (re)creates `[DEMO] Al-Salam Water Network Rehabilitation`, a project that has passed all 5 tools, through the real API (needs a specialist login; use the `DEV_LOGIN_*` values from `backend/.env`).
+- `SEED_EMAIL=... SEED_PASSWORD=... node scripts/seed-demo-project.js` — (re)creates `[DEMO] Al-Salam Water Network Rehabilitation`, a project that has passed all 5 tools, through the real API, using the submit/approve endpoints (needs an admin or specialist login; use the `DEV_LOGIN_*` values from `backend/.env`).
+- `node scripts/create-admin.js` — creates an admin (the only way to create the first user). Asks for name/email/password, or reads `ADMIN_NAME` / `ADMIN_EMAIL` / `ADMIN_PASSWORD`. Never prints the password; fails if the email exists.
+- `node scripts/reset-password.js [--activate]` — break-glass reset of any account's password, straight in MongoDB (asks, or `RESET_EMAIL` / `RESET_PASSWORD`). `--activate` also reactivates a deactivated account.
 - `node scripts/clean-test-data.js` — deletes ALL domain data (projects, screenings, assessments, management activities, mitigation plans, monitoring). Destructive; ask before running. Refuses to run when `NODE_ENV=production`.
 - `npm test` (`npm run test:watch`, `npm run test:coverage`) — Vitest + Supertest, see "Tests" below. Needs MongoDB running.
 - `npm run lint` / `npm run lint:fix` — ESLint flat config (CommonJS, Node globals, `eslint-config-prettier`).
@@ -64,34 +66,36 @@ Line endings: the repo is LF (Prettier `endOfLine: lf`). This clone sets `core.a
 ## Local environment
 
 - MongoDB runs locally as the Windows service `MongoDB` (8.3). Start with `Start-Service MongoDB` if stopped. DB name: `esms`.
-- `backend/.env` (gitignored): `MONGODB_URI`, `JWT_SECRET` (server exits if < 32 chars), `PORT`, `NODE_ENV`, `JWT_EXPIRES_IN` (default 12h), `FRONTEND_URL` (CORS origin, default http://localhost:5173).
+- `backend/.env` (gitignored): `MONGODB_URI`, `JWT_SECRET` (server exits if < 32 chars), `PORT`, `NODE_ENV`, `JWT_EXPIRES_IN` (default 12h), `FRONTEND_URL` (CORS origin, default http://localhost:5173), `TRUST_PROXY` (default off; `true` = one proxy hop, or a hop count / IP list — set only behind IIS/nginx).
 - `frontend/.env` (gitignored): `VITE_API_URL` (must include `/api/v1`), `VITE_API_TIMEOUT`. In dev `api.js` falls back to `http://localhost:3000/api/v1`; in prod there is no fallback.
-- Users: the seed creates none. The **first** `POST /api/v1/auth/register` succeeds without auth; after that only an `environmental_specialist` can register users (Settings page → Users). A local dev specialist login is stored as comments in `backend/.env` (`DEV_LOGIN_EMAIL` / `DEV_LOGIN_PASSWORD`).
+- Users: the seed creates none. There is no open registration: create the first admin with `scripts/create-admin.js`; then an `admin` or `environmental_specialist` registers users (Settings page → Users; `admin` cannot be registered through the API). A local dev specialist login is stored as comments in `backend/.env` (`DEV_LOGIN_EMAIL` / `DEV_LOGIN_PASSWORD`).
 - Joi `email()` validates TLDs, so `@*.local` / `@*.test` addresses are rejected — use `@example.com` for test users.
 
 ## Backend architecture
 
-Request pipeline (`src/app.js`): helmet → cors → body parsers (10mb) → morgan (off when `NODE_ENV=test`) → `GET /health` → `app.use('/api/v1', apiLimiter, routes)` → 404 → `errorHandler` (must stay last). `server.js` validates env and connects to Mongo **before** `listen`.
+Request pipeline (`src/app.js`): `trust proxy` from `TRUST_PROXY` → helmet → cors → body parsers (10mb) → morgan (off when `NODE_ENV=test`) → `GET /health` → `app.use('/api/v1', apiLimiter, routes)` → 404 → `errorHandler` (must stay last). Inside `routes/index.js`: `/auth` first, then `router.use(auth)` — **every other `/api/v1` route requires a valid token of an active user**, including all GETs and unknown paths (401 before 404). `server.js` validates env and connects to Mongo **before** `listen`.
 
 Layering, one file per domain in each folder:
 `routes/<domain>.routes.js` → `controllers/<domain>.controller.js` → `services/<domain>.service.js` → `models/<entity>.model.js`, with `validators/<domain>.validator.js` (Joi).
 
 Conventions to follow when adding endpoints:
 - Mount new routers in `src/routes/index.js`; never register API routes on `app` directly.
-- Protected route order: `auth, requireRole(...roles), validate(schema), controller.fn`.
-- `validate()` checks **`req.body` only** (`abortEarly:false, stripUnknown:true`) and does **not** write the stripped value back — controllers receive the raw body.
+- Route order: `requireRole(...ROLES_LIST), validate(schema), controller.fn` — `auth` is applied once in `routes/index.js`, don't repeat it. Role lists come from `src/config/roles.js` (`EDITOR_ROLES`, `SPECIALIST_ROLES`). A GET with no `requireRole` is open to every signed-in role, viewer included.
+- `validate()` checks **`req.body` only** (`abortEarly:false, stripUnknown:true`) and **replaces `req.body` with the stripped value**: a field not in the schema never reaches the controller. Keep server-owned fields (`status`, `officer`, `approved_by`, `reject_by`, `reject_reason`, totals, `is_active`) out of the schemas.
+- Updates of project-owned records (screening, assessment, management, mitigation, monitoring) call `assertSameProject` (`src/utils/assertSameProject.js`): changing `project` → 400.
+- Auth errors: bad/expired/forged token, unknown or inactive user → 401; wrong role → 403; unexpected verify error → 500 `Server Error` (no stack, no details).
 - Controllers are wrapped in `asyncHandler` and respond `{ success: true, data }`; errors are thrown as `new ApiError(status, msg)` (`src/utils/ApiError.js`) and become `{ success: false, error }`. Mongoose CastError → 404, duplicate key → 400.
 - Models use snake_case fields, `timestamps: true`, `versionKey: false`. References use `ObjectId` + `ref`.
 
-Roles (`user.model.js`): `environmental_specialist`, `program_manager`, `project_manager`, `environmental_focal_point`, `viewer`.
-- Writes (create/update) → the first four roles. Approve/reject screening & assessment, delete project, register users → `environmental_specialist` only.
-- Most `GET` endpoints are **unauthenticated** by design (projects, screenings, assessments, management, mitigation, monitoring, lookups). There is no per-resource ownership check.
+Roles (`src/config/roles.js`): `admin`, `environmental_specialist`, `program_manager`, `project_manager`, `environmental_focal_point`, `viewer`.
+- `EDITOR_ROLES` (all but viewer): create/update and submit. `SPECIALIST_ROLES` (`admin` + `environmental_specialist`): approve/reject screening & assessment, delete project, register users. Viewers read only. There is no per-resource ownership check.
+- Inactive users (`is_active: false`): login → 403 `Account is deactivated` (only after a correct password); existing tokens → 401 on the next request.
 
-Rate limits: 1000 req / 7 min per IP on `/api/v1`; login 10 failed attempts / 15 min.
+Rate limits: 1000 req / 7 min on `/api/v1`, keyed per user id when the token is valid, per IP otherwise; login 10 failed attempts / 15 min per IP.
 
-Each project has at most one screening and one assessment. `GET /<domain>/project/:projectId` returns **404 when none exists yet** — the frontend treats that as "not started" (axios `silent404` + a `console.error` filter in `api.js`), so don't change it to `200 null` without updating the hooks. Services populate user refs (`officer`, `approved_by`, `reject_by`, `responsible`) with `job_title`; `officer` is set on create/submit. `PATCH /assessments/:id/calculate` derives `total_project_impact` as the highest scored level (high > medium > low > negligible > not_applicable).
+Each project has at most one screening and one assessment. `GET /<domain>/project/:projectId` returns **404 when none exists yet** — the frontend treats that as "not started" (axios `silent404` + a `console.error` filter in `api.js`), so don't change it to `200 null` without updating the hooks. Services populate user refs (`officer`, `approved_by`, `reject_by`, `responsible`) with `job_title`; `officer` is set on create and on submit. `PATCH /assessments/:id/calculate` derives `total_project_impact` as the highest scored level (high > medium > low > negligible > not_applicable).
 
-Statuses for screening & assessment: `draft | submitted | approved | rejected`. Impact levels everywhere: `negligible | low | medium | high | not_applicable`. Screening category codes: `A`–`F`.
+Statuses for screening & assessment: `draft | submitted | approved | rejected`, changed **only** through `PATCH /<screenings|assessments>/:id/submit|approve|reject` (`src/utils/statusTransition.js`): `draft|rejected → submitted` (editors; sets `officer`), `submitted → approved|rejected` (specialist/admin; sets `approved_by` or `reject_by` + `reject_reason`; a specialist may approve their own work). Any other transition → 409. `status` in a create/PUT body is ignored. Impact levels everywhere: `negligible | low | medium | high | not_applicable`. Screening category codes: `A`–`F`.
 
 ## Frontend architecture
 
@@ -101,7 +105,7 @@ Statuses for screening & assessment: `draft | submitted | approved | rejected`. 
 - Layering: `services/<domain>Service.js` (thin API calls) → `hooks/use<Domain>.js` (loading/error/data + actions) → `pages/` and feature `components/<domain>/`. No global store; only Auth/Lookup/Theme contexts. Lookups load once per session via `useLookups()` — don't refetch reference data in pages.
 - Routing: `src/routes/index.jsx` (all pages lazy-loaded) + `routes.config.js` (`ROUTES` constants, `getProjectRoute(id, ROUTES.X)`, sidebar nav config). Use `ROUTES` constants rather than hardcoded paths.
 - Workflow gates are enforced client-side by route guards: `AssessmentRouteGuard` (screening approved) → `SempRouteGuard` (+ assessment approved) → `MonitoringRouteGuard` (+ SEMP completed). `SettingsRouteGuard` = specialist only. Project status/next step derivation lives in `utils/workflowDerivation.js` + `hooks/useWorkflow.js`.
-- Permission helpers come from `useAuth()`: `canEdit`, `canApprove`, `canManageUsers`, `canDeleteProject`, `canUpdateMonitoring`. Keep them aligned with backend `requireRole` lists.
+- Permission helpers come from `useAuth()`: `canEdit`, `canApprove`, `canManageUsers`, `canDeleteProject`, `canUpdateMonitoring`. Keep them aligned with backend `requireRole` lists: `admin` passes everything a specialist does (`canApprove`, `canManageUsers` — also gates Settings —, `canDeleteProject`). Screening/assessment are submitted with `screeningService.submit` / `assessmentService.submit` (save first, then the transition endpoint); never send `status` in a create/PUT.
 - Excel export is fully client-side (`utils/excelExport/`, ExcelJS lazy-loaded into the `vendor-excel` chunk). Layout headers trigger exports via window events: `screening-export`, `assessment-export`, `semp-export` (`detail.toolType: 'tool3'|'tool4'`), `monitoring-export`; `monitoring-data-updated` tells `useWorkflow` to refetch.
 - `src/data/` is deprecated (re-exports from `utils/`); don't use it in new code.
 - Production build strips `console.log/info/debug` (terser). ESLint warns on `console` except `warn`/`error`.

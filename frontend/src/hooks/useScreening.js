@@ -52,10 +52,10 @@ export function useScreening(projectId) {
       setIsSaving(true)
       setError(null)
       try {
+        // status is server-owned: a new screening starts as draft
         const payload = {
           project: projectId,
           ...data,
-          status: 'draft',
         }
 
         if (!screening?._id) {
@@ -92,18 +92,17 @@ export function useScreening(projectId) {
         const payload = {
           project: projectId,
           ...data,
-          status: 'submitted',
         }
 
-        if (!screening?._id) {
-          const created = await screeningService.create(payload)
-          setScreening(created)
-          return { success: true, data: created }
-        }
+        // Save the form first, then move it to submitted through the transition endpoint
+        const saved = screening?._id
+          ? await screeningService.update(screening._id, payload)
+          : await screeningService.create(payload)
+        setScreening(saved)
 
-        const updated = await screeningService.update(screening._id, payload)
-        setScreening(updated)
-        return { success: true, data: updated }
+        const submitted = await screeningService.submit(saved._id)
+        setScreening(submitted)
+        return { success: true, data: submitted }
       } catch (err) {
         const errorMessage = extractErrorMessage(err)
         setError(errorMessage)

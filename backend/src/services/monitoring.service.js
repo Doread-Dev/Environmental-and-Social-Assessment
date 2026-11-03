@@ -1,5 +1,6 @@
 const MonitoringRecord = require("../models/monitoringRecord.model");
 const ApiError = require("../utils/ApiError");
+const assertSameProject = require("../utils/assertSameProject");
 
 const listMonitoring = async () =>
   MonitoringRecord.find().populate("project indicator responsible").sort({ createdAt: -1 });
@@ -21,6 +22,10 @@ const createRecord = async (payload) => {
 };
 
 const updateRecord = async (id, payload) => {
+  const existing = await MonitoringRecord.findById(id);
+  if (!existing) throw new ApiError(404, "Monitoring record not found");
+  assertSameProject(existing, payload);
+
   const updated = await MonitoringRecord.findByIdAndUpdate(id, payload, {
     new: true,
     runValidators: true,

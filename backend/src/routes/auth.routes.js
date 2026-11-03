@@ -4,22 +4,18 @@ const validate = require("../middlewares/validate");
 const { auth, requireRole } = require("../middlewares/auth");
 const { loginLimiter } = require("../middlewares/rateLimiter");
 const { registerSchema, loginSchema } = require("../validators/auth.validator");
-const User = require("../models/user.model");
-const asyncHandler = require("../utils/asyncHandler");
+const { SPECIALIST_ROLES } = require("../config/roles");
 
 const router = express.Router();
 
-// Allow first-ever user to register without auth; afterwards require env specialist
-const guardRegister = asyncHandler(async (req, res, next) => {
-  const count = await User.countDocuments();
-  if (count === 0) return next();
-  return auth(req, res, (err) => {
-    if (err) return next(err);
-    return requireRole("environmental_specialist")(req, res, next);
-  });
-});
-
-router.post("/register", guardRegister, validate(registerSchema), controller.register);
+// No open first-user registration (D7): the first admin is created with scripts/create-admin.js.
+router.post(
+  "/register",
+  auth,
+  requireRole(...SPECIALIST_ROLES),
+  validate(registerSchema),
+  controller.register
+);
 router.post("/login", loginLimiter, validate(loginSchema), controller.login);
 
 module.exports = router;

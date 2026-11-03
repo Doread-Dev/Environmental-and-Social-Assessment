@@ -96,7 +96,6 @@ export function useAssessment(projectId) {
         project: projectId,
         project_activity: '(To be filled)',
         description: '(To be filled)',
-        status: 'draft',
       })
 
       setAssessment(newAssessment)
@@ -129,7 +128,6 @@ export function useAssessment(projectId) {
         if (!assessment?._id) {
           const created = await assessmentService.create({
             project: projectId,
-            status: 'draft',
             ...data,
           })
           setAssessment(created)
@@ -297,7 +295,7 @@ export function useAssessment(projectId) {
         setError(message)
         return { success: false, error: message }
       }
-      const updated = await assessmentService.update(assessment._id, { status: 'submitted' })
+      const updated = await assessmentService.submit(assessment._id)
       setAssessment(updated)
       return { success: true, data: updated }
     } catch (err) {

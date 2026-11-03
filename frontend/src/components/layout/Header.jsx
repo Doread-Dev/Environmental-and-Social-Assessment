@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/utils'
-import { useTheme, useAuth, ROLE_LABELS, USER_ROLES } from '@/contexts'
+import { useTheme, useAuth, ROLE_LABELS } from '@/contexts'
 import { Avatar } from '@/components/ui'
 import { ROUTES } from '@/routes/routes.config'
 
@@ -16,7 +16,7 @@ import { ROUTES } from '@/routes/routes.config'
  */
 function Header({ onMenuClick, showMobileMenu = true, className }) {
   const { isDark, toggleTheme } = useTheme()
-  const { user, logout } = useAuth()
+  const { user, logout, canManageUsers } = useAuth()
   const navigate = useNavigate()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
@@ -27,8 +27,8 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
   const userMenuItems = useMemo(() => {
     const items = []
 
-    // Settings - only for Environmental Specialist
-    if (user?.role === USER_ROLES.ENVIRONMENTAL_SPECIALIST) {
+    // Settings - only for Environmental Specialist / Admin
+    if (canManageUsers) {
       items.push({ id: 'settings', label: 'Settings', icon: 'settings' })
       items.push({ id: 'divider', type: 'divider' })
     }
@@ -36,7 +36,7 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
     items.push({ id: 'logout', label: 'Sign Out', icon: 'logout' })
 
     return items
-  }, [user?.role])
+  }, [canManageUsers])
 
   const handleLogout = () => {
     logout()

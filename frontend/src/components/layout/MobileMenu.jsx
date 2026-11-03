@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { NavLink, useLocation, useParams, useNavigate } from 'react-router-dom'
 import { cn } from '@/utils'
-import { useTheme, useAuth, ROLE_LABELS, USER_ROLES } from '@/contexts'
+import { useTheme, useAuth, ROLE_LABELS } from '@/contexts'
 import {
   MAIN_NAV_ITEMS,
   PROJECT_WORKFLOW_NAV,
@@ -25,15 +25,15 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
   const { projectId } = useParams()
   const navigate = useNavigate()
   const { isDark, toggleTheme } = useTheme()
-  const { user, logout } = useAuth()
+  const { user, logout, canManageUsers } = useAuth()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
   // User menu items (filtered by role)
   const userMenuItems = useMemo(() => {
     const items = []
 
-    // Settings - only for Environmental Specialist
-    if (user?.role === USER_ROLES.ENVIRONMENTAL_SPECIALIST) {
+    // Settings - only for Environmental Specialist / Admin
+    if (canManageUsers) {
       items.push({ id: 'settings', label: 'Settings', icon: 'settings' })
       items.push({ id: 'divider', type: 'divider' })
     }
@@ -43,7 +43,7 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
     items.push({ id: 'logout', label: 'Sign Out', icon: 'logout' })
 
     return items
-  }, [user?.role])
+  }, [canManageUsers])
 
   // Close menu on route change
   useEffect(() => {

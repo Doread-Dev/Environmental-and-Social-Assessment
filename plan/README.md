@@ -40,7 +40,7 @@ Order matters: removals before new code (less to secure), backend rules before t
 | # | Status | Branch / PR | Notes |
 |---|---|---|---|
 | 0 | Done | `phase-00-foundations` — [PR #4](https://github.com/Doread-Dev/Environmental-and-Social-Assessment/pull/4) | Node 26 LTS, lockfiles, Vitest in both apps (14 backend / 6 frontend tests), lint 0 errors, Prettier applied |
-| 1 | Done | `phase-01-removals` | Attachments, old SEMP tree, reports (+ `multer`, `pdfkit`, backend `exceljs`) removed; idempotent lookup seed; Project Details card; 27 backend / 8 frontend tests |
+| 1 | Done | `phase-01-removals` — [PR #5](https://github.com/Doread-Dev/Environmental-and-Social-Assessment/pull/5) | Attachments, old SEMP tree, reports (+ `multer`, `pdfkit`, backend `exceljs`) removed; idempotent lookup seed; Project Details card; 27 backend / 8 frontend tests |
 | 2 | Not started | | |
 | 3 | Not started | | |
 | 4 | Not started | | |

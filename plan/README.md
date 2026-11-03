@@ -43,7 +43,7 @@ Order matters: removals before new code (less to secure), backend rules before t
 |---|---|---|---|
 | 0 | Done | `phase-00-foundations` — [PR #4](https://github.com/Doread-Dev/Environmental-and-Social-Assessment/pull/4) | Node 26 LTS, lockfiles, Vitest in both apps (14 backend / 6 frontend tests), lint 0 errors, Prettier applied |
 | 1 | Done | `phase-01-removals` — [PR #5](https://github.com/Doread-Dev/Environmental-and-Social-Assessment/pull/5) | Attachments, old SEMP tree, reports (+ `multer`, `pdfkit`, backend `exceljs`) removed; idempotent lookup seed; Project Details card; 27 backend / 8 frontend tests |
-| 1a | Done | `ci-and-node-watch` | Not a plan phase (owner request): GitHub Actions CI, coverage with never-lower thresholds (baseline lines: backend 62% / frontend 0.4%), `nodemon` → `node --watch` |
+| 1a | Done | `ci-and-node-watch` — [PR #6](https://github.com/Doread-Dev/Environmental-and-Social-Assessment/pull/6) | Not a plan phase (owner request): GitHub Actions CI, coverage with never-lower thresholds (baseline lines: backend 62% / frontend 0.4%), `nodemon` → `node --watch` |
 | 2 | Not started | | |
 | 3 | Not started | | |
 | 4 | Not started | | |

@@ -9,39 +9,7 @@ import { useAssessment, useScreening, useProjectContext } from '@/hooks'
 import { useAuth } from '@/contexts'
 import { MetadataInfoSection, MetadataFormSection } from '@/components/assessment'
 import { LoadingSpinner, StickyFooter } from '@/components/ui'
-
-/**
- * التحقق من صحة البيانات الوصفية
- */
-function validateMetadata(data) {
-  const errors = {}
-
-  if (!data.project_activity?.trim()) {
-    errors.project_activity = 'Project activity is required'
-  } else if (data.project_activity.trim().length < 10) {
-    errors.project_activity = 'Project activity must be at least 10 characters'
-  }
-
-  if (!data.description?.trim()) {
-    errors.description = 'Description is required'
-  } else if (data.description.trim().length < 50) {
-    errors.description = 'Description must be at least 50 characters'
-  }
-
-  if (!data.environmental_setting?.trim()) {
-    errors.environmental_setting = 'Environmental setting is required'
-  } else if (data.environmental_setting.trim().length < 30) {
-    errors.environmental_setting = 'Environmental setting must be at least 30 characters'
-  }
-
-  if (!data.legal_requirements?.trim()) {
-    errors.legal_requirements = 'Legal requirements are required'
-  } else if (data.legal_requirements.trim().length < 20) {
-    errors.legal_requirements = 'Legal requirements must be at least 20 characters'
-  }
-
-  return { valid: Object.keys(errors).length === 0, errors }
-}
+import { validateAssessmentMetadata } from '@/utils'
 
 export default function AssessmentMetadataPage() {
   const { projectId } = useParams()
@@ -101,7 +69,7 @@ export default function AssessmentMetadataPage() {
   }
 
   const handleSave = async () => {
-    const validation = validateMetadata(formData)
+    const validation = validateAssessmentMetadata(formData)
     if (!validation.valid) {
       setErrors(validation.errors)
       return

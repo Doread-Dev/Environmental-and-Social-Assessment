@@ -1,13 +1,15 @@
 const Screening = require("../models/screening.model");
 const ApiError = require("../utils/ApiError");
 const assertSameProject = require("../utils/assertSameProject");
-const { applyTransition } = require("../utils/statusTransition");
+const { applyTransition, assertEditable, historyEntry } = require("../utils/statusTransition");
+const { assertProjectWritable } = require("./workflow.service");
 
 const POPULATE = [
   { path: "project" },
   { path: "approved_by", populate: { path: "job_title" } },
   { path: "reject_by", populate: { path: "job_title" } },
   { path: "officer", populate: { path: "job_title" } },
+  { path: "status_history.by", select: "name role" },
 ];
 
 const listScreenings = async () => Screening.find().populate(POPULATE);
@@ -25,11 +27,16 @@ const getByProject = async (projectId) => {
 };
 
 const createScreening = async (payload, createdBy) => {
-  const screeningData = { ...payload };
-  if (createdBy) {
-    screeningData.officer = createdBy;
+  await assertProjectWritable(payload.project);
+  if (await Screening.exists({ project: payload.project })) {
+    throw new ApiError(409, "A screening already exists for this project");
   }
-  const created = await Screening.create(screeningData);
+
+  const created = await Screening.create({
+    ...payload,
+    officer: createdBy,
+    status_history: [historyEntry("created", createdBy)],
+  });
   return Screening.findById(created._id).populate(POPULATE);
 };
 
@@ -37,6 +44,8 @@ const updateScreening = async (id, payload, updatedBy) => {
   const screening = await Screening.findById(id);
   if (!screening) throw new ApiError(404, "Screening not found");
   assertSameProject(screening, payload);
+  await assertProjectWritable(screening.project);
+  assertEditable(screening);
 
   const updateData = { ...payload };
   if (updatedBy && !screening.officer) {
@@ -52,6 +61,10 @@ const updateScreening = async (id, payload, updatedBy) => {
 };
 
 const transition = async (id, action, userId, options) => {
+  const screening = await Screening.findById(id).select("project");
+  if (!screening) throw new ApiError(404, "Screening not found");
+  await assertProjectWritable(screening.project);
+
   const updated = await applyTransition(Screening, id, action, userId, options);
   return updated.populate(POPULATE);
 };

@@ -12,7 +12,7 @@
 - Responsive check (mobile menu, tables scroll horizontally).
 - Accessibility basics: labels on inputs, focus rings, keyboard on locked buttons and dialogs, contrast in both themes.
 - Remove leftover dev pages (`ComponentShowcase` if present), dead components, unused utils.
-- Archive UI: archived badge, filter on project list, restore button (D17).
+- Archive UI: archived badge, filter on project list, restore button (D17); in the archive list a "Delete permanently" action for `admin` only, with a confirm dialog (`DELETE /projects/:id/purge`, D60). An admin page for the audit log (`GET /audit-logs`).
 
 ## Process
 - Walk every screen with the demo project in light and dark mode; list issues at the bottom of this file first, agree the list with the owner, then fix.

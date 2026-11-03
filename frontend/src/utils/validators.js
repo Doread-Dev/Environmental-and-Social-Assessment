@@ -43,10 +43,6 @@ export function validateProjectTitle(title) {
     return { valid: false, error: 'Project title is required' }
   }
 
-  if (title.trim().length < 3) {
-    return { valid: false, error: 'Project title must be at least 3 characters' }
-  }
-
   if (title.trim().length > 100) {
     return { valid: false, error: 'Project title must be less than 100 characters' }
   }
@@ -75,10 +71,6 @@ export function validateLocation(location) {
 export function validateProjectDescription(description) {
   if (!description || !description.trim()) {
     return { valid: false, error: 'Project description is required' }
-  }
-
-  if (description.trim().length < 20) {
-    return { valid: false, error: 'Project description must be at least 20 characters' }
   }
 
   return { valid: true, error: null }
@@ -148,4 +140,61 @@ export function validateProjectForm(formData) {
     valid: Object.keys(errors).length === 0,
     errors,
   }
+}
+
+/**
+ * التحقق من صحة النموذج
+ */
+export function validateScreeningForm(data) {
+  const errors = {}
+
+  if (!data.screeningDate) {
+    errors.screeningDate = 'Screening date is required'
+  }
+
+  if (!data.categoryCode) {
+    errors.categoryCode = 'Risk category selection is required'
+  }
+
+  if (!data.categoryReason?.trim()) {
+    errors.categoryReason = 'Category justification is required'
+  }
+
+  if (!data.potentialNegative?.trim()) {
+    errors.potentialNegative = 'Potential negative impacts are required'
+  }
+
+  if (!data.potentialPositive?.trim()) {
+    errors.potentialPositive = 'Potential positive impacts are required'
+  }
+
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors,
+  }
+}
+
+/**
+ * التحقق من صحة البيانات الوصفية
+ */
+export function validateAssessmentMetadata(data) {
+  const errors = {}
+
+  if (!data.project_activity?.trim()) {
+    errors.project_activity = 'Project activity is required'
+  }
+
+  if (!data.description?.trim()) {
+    errors.description = 'Description is required'
+  }
+
+  if (!data.environmental_setting?.trim()) {
+    errors.environmental_setting = 'Environmental setting is required'
+  }
+
+  if (!data.legal_requirements?.trim()) {
+    errors.legal_requirements = 'Legal requirements are required'
+  }
+
+  return { valid: Object.keys(errors).length === 0, errors }
 }

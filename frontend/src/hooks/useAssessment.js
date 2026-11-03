@@ -75,42 +75,47 @@ export function useAssessment(projectId) {
    * بدء تقييم جديد
    * ينشئ assessment حقيقي في الباك إند
    */
-  const startAssessment = useCallback(async () => {
-    setIsSaving(true)
-    setError(null)
-    try {
-      if (assessment?._id) {
-        return { success: true, data: assessment }
+  const startAssessment = useCallback(
+    async (project) => {
+      setIsSaving(true)
+      setError(null)
+      try {
+        if (assessment?._id) {
+          return { success: true, data: assessment }
+        }
+
+        if (!user?._id) {
+          const message = 'User ID is required to start assessment.'
+          setError(message)
+          return { success: false, error: message }
+        }
+
+        // The backend sets officer, prefills project activity (from the project component) and
+        // the potential impacts (from the screening), and creates all scores as Negligible
+        // (D53, D54). Description is required, so it starts as a placeholder; so does project
+        // activity when the project has no component to prefill it from.
+        const newAssessment = await assessmentService.create({
+          project: projectId,
+          description: '(To be filled)',
+          ...(!project?.project_component?.trim() && { project_activity: '(To be filled)' }),
+        })
+        const scores = await assessmentService.getScores(newAssessment._id)
+
+        setAssessment(newAssessment)
+        setMethods([])
+        setConsultations([])
+        setImpactScores(normalizeImpactScores(scores))
+        return { success: true, data: newAssessment }
+      } catch (err) {
+        const errorMessage = extractErrorMessage(err)
+        setError(errorMessage)
+        return { success: false, error: errorMessage }
+      } finally {
+        setIsSaving(false)
       }
-
-      if (!user?._id) {
-        const message = 'User ID is required to start assessment.'
-        setError(message)
-        return { success: false, error: message }
-      }
-
-      // Create assessment in backend
-      // Note: officer is set automatically by backend from req.user._id
-      // project_activity and description are required, so we use placeholders
-      const newAssessment = await assessmentService.create({
-        project: projectId,
-        project_activity: '(To be filled)',
-        description: '(To be filled)',
-      })
-
-      setAssessment(newAssessment)
-      setMethods([])
-      setConsultations([])
-      setImpactScores([])
-      return { success: true, data: newAssessment }
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setIsSaving(false)
-    }
-  }, [assessment?._id, projectId, user?._id])
+    },
+    [assessment, projectId, user?._id, normalizeImpactScores]
+  )
 
   /**
    * حفظ البيانات الوصفية (Metadata)

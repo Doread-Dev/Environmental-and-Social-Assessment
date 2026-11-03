@@ -78,7 +78,7 @@ export default function AssessmentGatewayPage() {
   }
 
   const handleStart = async () => {
-    const result = await startAssessment()
+    const result = await startAssessment(project)
     if (result.success) {
       navigate(`/app/projects/${projectId}/assessment/metadata`)
     }

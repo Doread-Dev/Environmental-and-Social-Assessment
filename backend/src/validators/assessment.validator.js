@@ -2,7 +2,8 @@ const Joi = require("joi");
 
 const createAssessmentSchema = Joi.object({
   project: Joi.string().required(),
-  project_activity: Joi.string().required(),
+  // Left empty, project_activity is prefilled from the project component on create (D53).
+  project_activity: Joi.string().allow("", null),
   description: Joi.string().required(),
   environmental_setting: Joi.string().allow("", null),
   legal_requirements: Joi.string().allow("", null),
@@ -13,10 +14,12 @@ const createAssessmentSchema = Joi.object({
   // server-owned: stripped from create/update bodies.
 });
 
-const updateAssessmentSchema = createAssessmentSchema.fork(
-  ["project", "project_activity", "description"],
-  (schema) => schema.optional()
-);
+const updateAssessmentSchema = createAssessmentSchema
+  .fork(["project", "description"], (schema) => schema.optional())
+  .keys({
+    // Required (D57): an update may omit it, but not empty it.
+    project_activity: Joi.string(),
+  });
 
 const addMethodSchema = Joi.object({
   method_type: Joi.string().required(),
@@ -36,7 +39,7 @@ const replaceConsultationsSchema = Joi.array().items(addConsultationSchema).min(
 const addScoresSchema = Joi.array()
   .items(
     Joi.object({
-      question: Joi.string().required(),
+      question: Joi.string().hex().length(24).required(),
       level: Joi.string().valid("negligible", "low", "medium", "high", "not_applicable").required(),
       note: Joi.string().allow("", null),
     })

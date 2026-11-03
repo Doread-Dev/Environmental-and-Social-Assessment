@@ -10,6 +10,7 @@ const mitigationRoutes = require("./mitigation.routes");
 const lookupsRoutes = require("./lookups.routes");
 const authRoutes = require("./auth.routes");
 const usersRoutes = require("./users.routes");
+const auditLogsRoutes = require("./auditLogs.routes");
 
 const router = express.Router();
 
@@ -27,5 +28,6 @@ router.use("/monitoring", monitoringRoutes);
 router.use("/management", managementRoutes);
 router.use("/mitigation", mitigationRoutes);
 router.use("/lookups", lookupsRoutes);
+router.use("/audit-logs", auditLogsRoutes);
 
 module.exports = router;

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const statusHistorySchema = require("./statusHistory.schema");
 
 const screeningSchema = new mongoose.Schema(
   {
@@ -18,11 +19,15 @@ const screeningSchema = new mongoose.Schema(
       enum: ["draft", "submitted", "approved", "rejected"],
       default: "draft",
     },
+    status_history: [statusHistorySchema],
   },
   {
     timestamps: true,
     versionKey: false,
   }
 );
+
+// One screening per project (D18).
+screeningSchema.index({ project: 1 }, { unique: true });
 
 module.exports = mongoose.model("Screening", screeningSchema);

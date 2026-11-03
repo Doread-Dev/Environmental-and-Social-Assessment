@@ -20,4 +20,3 @@ exports.getJobTitles = asyncHandler(async (req, res) => {
   const data = await service.getJobTitles();
   res.json({ success: true, data });
 });
-

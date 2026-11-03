@@ -9,4 +9,3 @@ router.get("/indicators", controller.getIndicators);
 router.get("/job-titles", controller.getJobTitles);
 
 module.exports = router;
-

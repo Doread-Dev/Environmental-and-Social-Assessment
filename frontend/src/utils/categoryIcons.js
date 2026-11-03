@@ -52,7 +52,9 @@ export const CATEGORY_ICONS = {
  * @returns {Object} Icon configuration
  */
 export function getCategoryIcon(code) {
-  return CATEGORY_ICONS[code] || { icon: 'help', iconColor: 'text-gray-500', iconBg: 'bg-gray-500/10' }
+  return (
+    CATEGORY_ICONS[code] || { icon: 'help', iconColor: 'text-gray-500', iconBg: 'bg-gray-500/10' }
+  )
 }
 
 export default CATEGORY_ICONS

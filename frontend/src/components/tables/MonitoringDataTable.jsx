@@ -104,25 +104,25 @@ function MonitoringDataTable({
               const indicatorId = item.indicator._id || item.indicator.id
 
               return (
-              <IndicatorDataRow
+                <IndicatorDataRow
                   key={indicatorId}
-                indicator={item.indicator}
-                record={item.record}
-                categoryCode={item.indicator.categoryCode || item.indicator.code}
-                questionNumber={index + 1}
-                onUpdateScore={(quarter, value) => {
-                  if (onUpdateScore) {
-                    onUpdateScore(item.record._id, quarter, value, indicatorId)
-                  }
-                }}
-                onUpdateField={(field, value) => {
-                  if (onUpdateField) {
-                    onUpdateField(item.record._id, field, value, indicatorId)
-                  }
-                }}
-                isEditable={isEditable}
-                users={users}
-              />
+                  indicator={item.indicator}
+                  record={item.record}
+                  categoryCode={item.indicator.categoryCode || item.indicator.code}
+                  questionNumber={index + 1}
+                  onUpdateScore={(quarter, value) => {
+                    if (onUpdateScore) {
+                      onUpdateScore(item.record._id, quarter, value, indicatorId)
+                    }
+                  }}
+                  onUpdateField={(field, value) => {
+                    if (onUpdateField) {
+                      onUpdateField(item.record._id, field, value, indicatorId)
+                    }
+                  }}
+                  isEditable={isEditable}
+                  users={users}
+                />
               )
             })}
           </tbody>

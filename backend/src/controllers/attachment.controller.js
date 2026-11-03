@@ -28,4 +28,3 @@ exports.upload = asyncHandler(async (req, res) => {
   const data = await service.createAttachment(payload);
   res.status(201).json({ success: true, data });
 });
-

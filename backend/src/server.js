@@ -1,7 +1,7 @@
-require('dotenv').config();
-const mongoose = require('mongoose');
-const app = require('./app');
-const connectDB = require('./config/database');
+require("dotenv").config();
+const mongoose = require("mongoose");
+const app = require("./app");
+const connectDB = require("./config/database");
 
 const PORT = process.env.PORT || 3000;
 
@@ -9,13 +9,13 @@ const PORT = process.env.PORT || 3000;
 function validateEnv() {
   const missing = [];
   if (!process.env.JWT_SECRET || process.env.JWT_SECRET.trim().length < 32) {
-    missing.push('JWT_SECRET (must be set and at least 32 characters)');
+    missing.push("JWT_SECRET (must be set and at least 32 characters)");
   }
   if (!process.env.MONGODB_URI || !process.env.MONGODB_URI.trim()) {
-    missing.push('MONGODB_URI');
+    missing.push("MONGODB_URI");
   }
   if (missing.length > 0) {
-    console.error('Missing or invalid required environment variables:', missing.join(', '));
+    console.error("Missing or invalid required environment variables:", missing.join(", "));
     process.exit(1);
   }
 }
@@ -29,15 +29,16 @@ validateEnv();
   });
 
   // Handle unhandled promise rejections
-  process.on('unhandledRejection', (err) => {
-    console.error('Unhandled rejection:', err.message);
+  process.on("unhandledRejection", (err) => {
+    console.error("Unhandled rejection:", err.message);
     server.close(() => process.exit(1));
   });
 
   // Handle SIGTERM: close server then MongoDB for clean shutdown
-  process.on('SIGTERM', () => {
+  process.on("SIGTERM", () => {
     server.close(() => {
-      mongoose.connection.close()
+      mongoose.connection
+        .close()
         .then(() => process.exit(0))
         .catch(() => process.exit(0));
     });

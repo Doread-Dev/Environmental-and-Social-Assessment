@@ -31,17 +31,17 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
   // User menu items (filtered by role)
   const userMenuItems = useMemo(() => {
     const items = []
-    
+
     // Settings - only for Environmental Specialist
     if (user?.role === USER_ROLES.ENVIRONMENTAL_SPECIALIST) {
       items.push({ id: 'settings', label: 'Settings', icon: 'settings' })
       items.push({ id: 'divider', type: 'divider' })
     }
-    
+
     items.push({ id: 'theme', label: 'Theme', icon: 'dark_mode', type: 'theme-toggle' })
     items.push({ id: 'divider2', type: 'divider' })
     items.push({ id: 'logout', label: 'Sign Out', icon: 'logout' })
-    
+
     return items
   }, [user?.role])
 
@@ -507,11 +507,7 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                       'transition-colors'
                     )}
                   >
-                    <Avatar
-                      alt={userName}
-                      size="sm"
-                      
-                    />
+                    <Avatar alt={userName} size="sm" />
                     <div className="flex flex-col min-w-0 flex-1 text-left">
                       <span className="text-sm font-bold text-text-main dark:text-white truncate">
                         {userName}
@@ -601,8 +597,8 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                                   navigate(ROUTES.SETTINGS)
                                   onClose()
                                 }
-                              if (item.id === 'logout') {
-                                handleLogout()
+                                if (item.id === 'logout') {
+                                  handleLogout()
                                 }
                               }}
                               className={cn(

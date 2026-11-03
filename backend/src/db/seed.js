@@ -38,7 +38,7 @@ async function seedLookupData() {
     "Program Manager",
     "Project Manager",
     "Environmental focal point",
-    "Viewer"
+    "Viewer",
   ];
 
   // Minimal starter set of questions and indicators; can be extended later
@@ -243,8 +243,7 @@ async function seedLookupData() {
     {
       code: "A",
       name: "Presence of Visible Air Pollution from Project Activities",
-      definition:
-        "Assesses if dust, smoke, or emissions are noticeable in the project area.",
+      definition: "Assesses if dust, smoke, or emissions are noticeable in the project area.",
       measurement:
         "Observation of visible pollution (e.g., smoke from fuel use, industrial processes, construction dust).",
     },
@@ -253,8 +252,7 @@ async function seedLookupData() {
       name: "Complaints from the Community About Air Quality Issues",
       definition:
         "Tracks whether residents, workers, or local authorities report air pollution problems",
-      measurement:
-        "Count and nature of complaints (from community meetings, surveys, or records).",
+      measurement: "Count and nature of complaints (from community meetings, surveys, or records).",
     },
     {
       code: "A",
@@ -269,16 +267,14 @@ async function seedLookupData() {
       name: "Presence of Visible Water Contamination",
       definition:
         "Assesses whether water in local rivers, lakes, or streams near the project appears polluted (e.g., oil, foam, discoloration).",
-      measurement:
-        "Visual inspection of water bodies for signs of contamination.",
+      measurement: "Visual inspection of water bodies for signs of contamination.",
     },
     {
       code: "B",
       name: "Community Reports of Water Issues (Quality or Availability)",
       definition:
         "Monitors whether locals experience water-related problems linked to the project (e.g., bad smell, reduced supply, health concerns).",
-      measurement:
-        "Number and type of complaints from community surveys or meetings.",
+      measurement: "Number and type of complaints from community surveys or meetings.",
     },
     {
       code: "B",
@@ -293,8 +289,7 @@ async function seedLookupData() {
       name: "Number of Community Complaints About Noise",
       definition:
         "Tracks reports from residents, workers, or local institutions (e.g., schools, hospitals) about noise disturbances caused by the project.",
-      measurement:
-        "Review community feedback, complaints, or surveys regarding noise issues.",
+      measurement: "Review community feedback, complaints, or surveys regarding noise issues.",
     },
     {
       code: "C",
@@ -309,8 +304,7 @@ async function seedLookupData() {
       name: "Change in Noise Levels at Different Times of the Day",
       definition:
         "Evaluates whether noise from the project increases significantly during specific times (e.g., early morning, late night).",
-      measurement:
-        "Field observation of noise patterns at various times of the day and week.",
+      measurement: "Field observation of noise patterns at various times of the day and week.",
     },
     {
       code: "D",
@@ -325,8 +319,7 @@ async function seedLookupData() {
       name: "Visibility of Solid Waste Accumulation Near the Project Site",
       definition:
         "Assesses whether solid waste from the project is noticeable and whether proper disposal methods are followed.",
-      measurement:
-        "Visual inspection of waste accumulation in and around the project area.",
+      measurement: "Visual inspection of waste accumulation in and around the project area.",
     },
     {
       code: "D",
@@ -340,8 +333,7 @@ async function seedLookupData() {
       name: "Number of Community Complaints About Radiation Concerns",
       definition:
         "Tracks reports from residents, workers, or local authorities about concerns related to radiation exposure from the project.",
-      measurement:
-        "Review community feedback, complaints, or surveys regarding radiation risks.",
+      measurement: "Review community feedback, complaints, or surveys regarding radiation risks.",
     },
     {
       code: "E",

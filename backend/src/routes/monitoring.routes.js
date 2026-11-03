@@ -16,14 +16,24 @@ router.get("/:id", controller.getOne);
 router.post(
   "/",
   auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
+  requireRole(
+    "environmental_specialist",
+    "program_manager",
+    "project_manager",
+    "environmental_focal_point"
+  ),
   validate(createMonitoringSchema),
   controller.create
 );
 router.put(
   "/:id",
   auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
+  requireRole(
+    "environmental_specialist",
+    "program_manager",
+    "project_manager",
+    "environmental_focal_point"
+  ),
   validate(updateMonitoringSchema),
   controller.update
 );
@@ -41,4 +51,3 @@ router.patch(
 );
 
 module.exports = router;
-

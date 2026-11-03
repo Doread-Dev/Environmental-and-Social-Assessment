@@ -35,4 +35,3 @@ exports.updateAction = asyncHandler(async (req, res) => {
   const data = await service.updateAction(req.params.id, req.body);
   res.json({ success: true, data });
 });
-

@@ -76,7 +76,7 @@ export function calculateSempStatus(hasManagementActivities, hasMitigationPlans)
  */
 export function calculateMonitoringStatus(quarters) {
   if (!quarters) return 'pending'
-  
+
   const completedQuarters = Object.values(quarters).filter(Boolean).length
   if (completedQuarters === 4) return 'completed'
   if (completedQuarters > 0) return 'in_progress'

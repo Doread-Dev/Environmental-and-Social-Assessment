@@ -17,14 +17,15 @@ const auth = async (req, res, next) => {
   }
 };
 
-const requireRole = (...roles) => (req, res, next) => {
-  if (!req.user) return next(new ApiError(401, "Unauthorized"));
-  if (!roles.length || roles.includes(req.user.role)) return next();
-  return next(new ApiError(403, "Forbidden"));
-};
+const requireRole =
+  (...roles) =>
+  (req, res, next) => {
+    if (!req.user) return next(new ApiError(401, "Unauthorized"));
+    if (!roles.length || roles.includes(req.user.role)) return next();
+    return next(new ApiError(403, "Forbidden"));
+  };
 
 module.exports = {
   auth,
   requireRole,
 };
-

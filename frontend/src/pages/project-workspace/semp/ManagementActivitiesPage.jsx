@@ -66,7 +66,7 @@ export default function ManagementActivitiesPage() {
               exportProject = { _id: projectId, title: 'Unknown Project' }
             }
           }
-          
+
           if (!exportProject) {
             throw new Error('Project data is not available')
           }
@@ -74,7 +74,11 @@ export default function ManagementActivitiesPage() {
           // Filter out placeholder/temporary activities (those with _isNew flag or temp IDs)
           const validActivities = (managementActivities || []).filter((activity) => {
             // Skip activities with temporary IDs (starting with "temp_")
-            if (activity._id && typeof activity._id === 'string' && activity._id.startsWith('temp_')) {
+            if (
+              activity._id &&
+              typeof activity._id === 'string' &&
+              activity._id.startsWith('temp_')
+            ) {
               return false
             }
             return true
@@ -98,7 +102,7 @@ export default function ManagementActivitiesPage() {
         }
       }
     }
-    
+
     window.addEventListener('semp-export', handleExportEvent)
     return () => {
       window.removeEventListener('semp-export', handleExportEvent)

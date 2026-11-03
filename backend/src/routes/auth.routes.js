@@ -19,12 +19,7 @@ const guardRegister = asyncHandler(async (req, res, next) => {
   });
 });
 
-router.post(
-  "/register",
-  guardRegister,
-  validate(registerSchema),
-  controller.register
-);
+router.post("/register", guardRegister, validate(registerSchema), controller.register);
 router.post("/login", loginLimiter, validate(loginSchema), controller.login);
 
 module.exports = router;

@@ -71,8 +71,7 @@ export async function exportScreeningToExcel(project, screening) {
   // Row 6: Project Components
   worksheet.getCell(currentRow, 1).value = 'Project Components/Activities:'
   worksheet.getCell(currentRow, 1).font = { bold: true }
-  const componentValue =
-    project?.project_component || project?.description || ''
+  const componentValue = project?.project_component || project?.description || ''
   worksheet.getCell(currentRow, 2).value = safeString(componentValue)
   mergeCells(worksheet, currentRow, 2, currentRow, 10)
   currentRow++
@@ -80,7 +79,6 @@ export async function exportScreeningToExcel(project, screening) {
   // Row 8: Category headers
   worksheet.getCell(currentRow, 1).value = 'Screening Project Category:'
   worksheet.getCell(currentRow, 1).font = { bold: true }
-  
 
   worksheet.getCell(currentRow, 2).value = 'Assessment Result:'
   worksheet.getCell(currentRow, 2).font = { bold: true }
@@ -97,33 +95,27 @@ export async function exportScreeningToExcel(project, screening) {
   const categories = [
     {
       code: 'A',
-      description:
-        'High potential environmental risk',
+      description: 'High potential environmental risk',
     },
     {
       code: 'B',
-      description:
-        'Low to moderate environmental risk',
+      description: 'Low to moderate environmental risk',
     },
     {
       code: 'C',
-      description:
-        'Negligible environmental risk',
+      description: 'Negligible environmental risk',
     },
     {
       code: 'D',
-      description:
-        'Emergency cases and initiatives',
+      description: 'Emergency cases and initiatives',
     },
     {
       code: 'E',
-      description:
-        'Not enough information.',
+      description: 'Not enough information.',
     },
     {
       code: 'F',
-      description:
-        'Positive Environmental Impact',
+      description: 'Positive Environmental Impact',
     },
   ]
 

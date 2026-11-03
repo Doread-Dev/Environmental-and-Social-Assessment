@@ -12,4 +12,3 @@ const sempObjectiveSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("SempObjective", sempObjectiveSchema);
-

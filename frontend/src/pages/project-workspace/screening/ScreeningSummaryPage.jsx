@@ -521,7 +521,9 @@ function ScreeningSummaryPage() {
                       rows={3}
                       value={recommendations}
                       onChange={(e) => setRecommendations(e.target.value)}
-                      disabled={status === 'approved' || status === 'rejected' || !canApproveScreening}
+                      disabled={
+                        status === 'approved' || status === 'rejected' || !canApproveScreening
+                      }
                     />
                     {status === 'submitted' && canApproveScreening && (
                       <p className="text-xs text-text-secondary mt-1">

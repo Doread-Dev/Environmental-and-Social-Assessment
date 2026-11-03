@@ -12,7 +12,9 @@ import axios from 'axios'
 // Create Axios instance with base configuration
 const api = axios.create({
   // No localhost fallback: set VITE_API_URL in .env / Vercel so production fails fast if missing
-  baseURL: import.meta.env.DEV ? (import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1') : import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.DEV
+    ? import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
+    : import.meta.env.VITE_API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -30,12 +32,12 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
-    
+
     // Mark requests with silent404 for console error suppression
     if (config.silent404) {
       silent404Requests.add(config)
     }
-    
+
     return config
   },
   (error) => Promise.reject(error)
@@ -72,7 +74,7 @@ api.interceptors.response.use(
     if (error.response?.status === 404 && error.config?.silent404) {
       // Mark error as handled to prevent default console.error
       error.isExpected404 = true
-      
+
       // The error will still be returned to the caller for proper handling
       return Promise.reject(error)
     }
@@ -94,37 +96,39 @@ const silent404Requests = new WeakSet()
 const originalConsoleError = console.error
 console.error = (...args) => {
   // Convert all arguments to string for pattern matching
-  const allArgsAsString = args.map(arg => {
-    if (typeof arg === 'string') return arg
-    if (typeof arg === 'object' && arg !== null) {
-      // Check axios error objects
-      if (arg.config?.silent404 && arg.response?.status === 404) {
-        return 'SUPPRESS_404'
+  const allArgsAsString = args
+    .map((arg) => {
+      if (typeof arg === 'string') return arg
+      if (typeof arg === 'object' && arg !== null) {
+        // Check axios error objects
+        if (arg.config?.silent404 && arg.response?.status === 404) {
+          return 'SUPPRESS_404'
+        }
+        // Check error messages
+        if (arg.message) return arg.message
+        if (arg.stack) return arg.stack
+        return JSON.stringify(arg)
       }
-      // Check error messages
-      if (arg.message) return arg.message
-      if (arg.stack) return arg.stack
-      return JSON.stringify(arg)
-    }
-    return String(arg)
-  }).join(' ')
-  
+      return String(arg)
+    })
+    .join(' ')
+
   // Check if this is a 404 error for a /project/ endpoint (expected 404s)
   // These are legitimate "resource doesn't exist yet" scenarios for new projects
-  const isExpected404 = 
-    allArgsAsString.includes('404') && 
-    (allArgsAsString.includes('/screenings/project/') || 
-     allArgsAsString.includes('/assessments/project/') ||
-     allArgsAsString.includes('/management/project/') ||
-     allArgsAsString.includes('/mitigation/project/') ||
-     allArgsAsString.includes('/monitoring/project/') ||
-     allArgsAsString.includes('SUPPRESS_404'))
-  
+  const isExpected404 =
+    allArgsAsString.includes('404') &&
+    (allArgsAsString.includes('/screenings/project/') ||
+      allArgsAsString.includes('/assessments/project/') ||
+      allArgsAsString.includes('/management/project/') ||
+      allArgsAsString.includes('/mitigation/project/') ||
+      allArgsAsString.includes('/monitoring/project/') ||
+      allArgsAsString.includes('SUPPRESS_404'))
+
   if (isExpected404) {
     // Suppress this specific error - it's an expected 404 for new projects
     return
   }
-  
+
   // Call original console.error for all other errors
   originalConsoleError.apply(console, args)
 }

@@ -97,8 +97,14 @@ async function main() {
 
   await call("PUT", `/assessments/${assessmentId}/methods`, [
     { method_type: "field_visits", details: "Site walk-through on 2026-02-03 and 2026-02-10" },
-    { method_type: "technical_reports", details: "Water authority network condition survey (2025)" },
-    { method_type: "akfs_guidelines", details: "AKF environmental screening & assessment guidelines" },
+    {
+      method_type: "technical_reports",
+      details: "Water authority network condition survey (2025)",
+    },
+    {
+      method_type: "akfs_guidelines",
+      details: "AKF environmental screening & assessment guidelines",
+    },
   ]);
   await call("PUT", `/assessments/${assessmentId}/consultations`, [
     {
@@ -170,7 +176,8 @@ async function main() {
     {
       output_description: "Rehabilitated distribution network (8 km)",
       potential_impact_and_significance: "Dust and noise – medium, temporary",
-      mitigation_and_enhancement_measures: "Dust suppression, restricted working hours, noise barriers near school",
+      mitigation_and_enhancement_measures:
+        "Dust suppression, restricted working hours, noise barriers near school",
       monitoring: "Weekly dust/noise observation checklist",
       schedule: "Throughout construction (Feb–Dec 2026)",
     },

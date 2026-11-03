@@ -12,8 +12,7 @@ const populateAssessment = (query) =>
     { path: "reject_by", populate: { path: "job_title" } },
   ]);
 
-const listAssessments = async () =>
-  populateAssessment(Assessment.find().sort({ createdAt: -1 }));
+const listAssessments = async () => populateAssessment(Assessment.find().sort({ createdAt: -1 }));
 
 const getAssessment = async (id) => {
   const assessment = await populateAssessment(Assessment.findById(id));
@@ -22,9 +21,7 @@ const getAssessment = async (id) => {
 };
 
 const getByProject = async (projectId) => {
-  const assessment = await populateAssessment(
-    Assessment.findOne({ project: projectId })
-  );
+  const assessment = await populateAssessment(Assessment.findOne({ project: projectId }));
   if (!assessment) throw new ApiError(404, "Assessment not found for project");
   return assessment;
 };
@@ -42,14 +39,14 @@ const updateAssessment = async (id, payload, updatedBy) => {
   // إذا كان status يتغير إلى submitted أو لم يكن officer موجوداً، نحدّث officer
   const assessment = await Assessment.findById(id);
   if (!assessment) throw new ApiError(404, "Assessment not found");
-  
+
   const updateData = { ...payload };
-  
+
   // إذا تغير status إلى submitted أو لم يكن officer موجوداً، نحدّث officer
   if (updatedBy && (payload.status === "submitted" || !assessment.officer)) {
     updateData.officer = updatedBy;
   }
-  
+
   const updated = await populateAssessment(
     Assessment.findByIdAndUpdate(id, updateData, {
       new: true,

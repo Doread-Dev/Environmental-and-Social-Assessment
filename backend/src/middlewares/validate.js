@@ -6,7 +6,7 @@ const validate = (schema) => {
     });
 
     if (error) {
-      const errorMessages = error.details.map((detail) => detail.message).join(', ');
+      const errorMessages = error.details.map((detail) => detail.message).join(", ");
       return res.status(400).json({
         success: false,
         error: errorMessages,
@@ -18,4 +18,3 @@ const validate = (schema) => {
 };
 
 module.exports = validate;
-

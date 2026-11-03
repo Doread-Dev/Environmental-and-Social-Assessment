@@ -15,9 +15,7 @@ export default function SettingsPage() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <span className="material-symbols-outlined text-3xl text-primary">settings</span>
-            <h1 className="text-3xl font-bold text-text-main dark:text-white">
-              Settings
-            </h1>
+            <h1 className="text-3xl font-bold text-text-main dark:text-white">Settings</h1>
           </div>
           <p className="text-text-secondary dark:text-gray-400 text-sm">
             Manage users and projects (Environmental Specialist only)

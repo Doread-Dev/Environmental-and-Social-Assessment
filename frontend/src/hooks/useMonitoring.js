@@ -12,11 +12,7 @@ import { useLookups } from '@/contexts'
  * @param {string} projectId - Project ID
  */
 export function useMonitoring(projectId) {
-  const {
-    impactCategories,
-    categoriesWithIndicators,
-    isLoading: lookupsLoading,
-  } = useLookups()
+  const { impactCategories, categoriesWithIndicators, isLoading: lookupsLoading } = useLookups()
   const [records, setRecords] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -24,13 +20,14 @@ export function useMonitoring(projectId) {
 
   // Build lookup map: indicator ID → record
   const recordMap = useMemo(() => {
-    return new Map(records.map((record) => {
-      // Handle both populated and non-populated indicator field
-      const indicatorId = typeof record.indicator === 'object'
-        ? record.indicator._id
-        : record.indicator
-      return [indicatorId, record]
-    }))
+    return new Map(
+      records.map((record) => {
+        // Handle both populated and non-populated indicator field
+        const indicatorId =
+          typeof record.indicator === 'object' ? record.indicator._id : record.indicator
+        return [indicatorId, record]
+      })
+    )
   }, [records])
 
   const loadData = useCallback(async () => {
@@ -68,10 +65,10 @@ export function useMonitoring(projectId) {
 
       // Check if recordId is a placeholder (starts with "placeholder_")
       const isPlaceholder = typeof recordId === 'string' && recordId.startsWith('placeholder_')
-      
+
       // If placeholder, extract indicatorId from recordId or use provided indicatorId
-      const actualIndicatorId = isPlaceholder 
-        ? (indicatorId || recordId.replace('placeholder_', ''))
+      const actualIndicatorId = isPlaceholder
+        ? indicatorId || recordId.replace('placeholder_', '')
         : null
 
       // Check if this is an existing record (not a placeholder)
@@ -98,9 +95,7 @@ export function useMonitoring(projectId) {
         // No existing record - create local placeholder record (no API call)
         setRecords((prev) => {
           // Check if placeholder already exists
-          const existingPlaceholder = prev.find(
-            (r) => r._id === `placeholder_${actualIndicatorId}`
-          )
+          const existingPlaceholder = prev.find((r) => r._id === `placeholder_${actualIndicatorId}`)
           if (existingPlaceholder) {
             return prev.map((record) => {
               if (record._id === `placeholder_${actualIndicatorId}`) {
@@ -116,7 +111,7 @@ export function useMonitoring(projectId) {
               return record
             })
           }
-          
+
           // Create new placeholder record
           return [
             ...prev,
@@ -157,10 +152,10 @@ export function useMonitoring(projectId) {
 
       // Check if recordId is a placeholder (starts with "placeholder_")
       const isPlaceholder = typeof recordId === 'string' && recordId.startsWith('placeholder_')
-      
+
       // If placeholder, extract indicatorId from recordId or use provided indicatorId
-      const actualIndicatorId = isPlaceholder 
-        ? (indicatorId || recordId.replace('placeholder_', ''))
+      const actualIndicatorId = isPlaceholder
+        ? indicatorId || recordId.replace('placeholder_', '')
         : null
 
       // Check if this is an existing record (not a placeholder)
@@ -184,9 +179,7 @@ export function useMonitoring(projectId) {
         // No existing record - create local placeholder record (no API call)
         setRecords((prev) => {
           // Check if placeholder already exists
-          const existingPlaceholder = prev.find(
-            (r) => r._id === `placeholder_${actualIndicatorId}`
-          )
+          const existingPlaceholder = prev.find((r) => r._id === `placeholder_${actualIndicatorId}`)
           if (existingPlaceholder) {
             return prev.map((record) => {
               if (record._id === `placeholder_${actualIndicatorId}`) {
@@ -199,7 +192,7 @@ export function useMonitoring(projectId) {
               return record
             })
           }
-          
+
           // Create new placeholder record
           return [
             ...prev,

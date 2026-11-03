@@ -164,9 +164,7 @@ export function useSemp(projectId) {
 
       // إذا كان الصف موجوداً مسبقاً في الباك، نضيفه لقائمة المحذوفين
       if (target && !target._isNew) {
-        setManagementDeletedIds((ids) =>
-          ids.includes(rowId) ? ids : [...ids, rowId]
-        )
+        setManagementDeletedIds((ids) => (ids.includes(rowId) ? ids : [...ids, rowId]))
       }
 
       const filtered = prev.filter((row) => row._id !== rowId)
@@ -310,9 +308,7 @@ export function useSemp(projectId) {
       const target = prev.find((row) => row._id === rowId)
 
       if (target && !target._isNew) {
-        setMitigationDeletedIds((ids) =>
-          ids.includes(rowId) ? ids : [...ids, rowId]
-        )
+        setMitigationDeletedIds((ids) => (ids.includes(rowId) ? ids : [...ids, rowId]))
       }
 
       const filtered = prev.filter((row) => row._id !== rowId)

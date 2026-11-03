@@ -138,8 +138,7 @@ const exportExcel = async ({ type, projectId }) => {
   return {
     filename: `${filename}.xlsx`,
     content: buffer,
-    contentType:
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   };
 };
 

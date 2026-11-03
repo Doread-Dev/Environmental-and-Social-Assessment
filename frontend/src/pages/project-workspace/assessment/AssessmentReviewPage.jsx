@@ -54,7 +54,16 @@ export default function AssessmentReviewPage() {
       console.error('Export error:', error)
       toast.error('Failed to export Excel file')
     }
-  }, [project, screening, assessment, methods, consultations, impactScores, categoriesWithQuestions, toast])
+  }, [
+    project,
+    screening,
+    assessment,
+    methods,
+    consultations,
+    impactScores,
+    categoriesWithQuestions,
+    toast,
+  ])
 
   // Expose export handler to parent layout via custom event
   useEffect(() => {

@@ -20,4 +20,3 @@ exports.remove = asyncHandler(async (req, res) => {
   await service.deletePlan(req.params.id);
   res.status(204).send();
 });
-

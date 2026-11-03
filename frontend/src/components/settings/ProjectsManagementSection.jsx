@@ -118,9 +118,7 @@ export function ProjectsManagementSection() {
       {/* Header */}
       <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-gray-50/50 dark:bg-white/5">
         <div>
-          <h2 className="text-lg font-bold text-text-main dark:text-white">
-            Projects Management
-          </h2>
+          <h2 className="text-lg font-bold text-text-main dark:text-white">Projects Management</h2>
           <p className="text-sm text-text-secondary dark:text-gray-400 mt-1">
             View and manage all projects
           </p>
@@ -181,11 +179,7 @@ export function ProjectsManagementSection() {
               <Table.Body>
                 {paginatedProjects.length === 0 ? (
                   <Table.Empty
-                    message={
-                      searchQuery
-                        ? 'No projects match your search'
-                        : 'No projects found'
-                    }
+                    message={searchQuery ? 'No projects match your search' : 'No projects found'}
                   />
                 ) : (
                   paginatedProjects.map((project) => (

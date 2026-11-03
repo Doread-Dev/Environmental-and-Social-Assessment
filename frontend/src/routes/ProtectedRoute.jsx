@@ -26,7 +26,9 @@ function ProtectedRoute({ children, allowedRoles }) {
       <div className="min-h-screen flex items-center justify-center bg-background dark:bg-background-dark">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Verifying authentication...</p>
+          <p className="text-text-secondary dark:text-gray-400 text-sm">
+            Verifying authentication...
+          </p>
         </div>
       </div>
     )

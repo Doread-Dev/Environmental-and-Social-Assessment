@@ -26,4 +26,3 @@ const screeningSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Screening", screeningSchema);
-

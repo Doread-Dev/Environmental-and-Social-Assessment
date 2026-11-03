@@ -73,8 +73,7 @@ export function deriveSempStatus(managementActivities, mitigationPlans, assessme
 
   // Check if activities are completed (all have activity_description)
   const activitiesCompleted =
-    hasActivities &&
-    managementActivities.every((activity) => activity.activity_description?.trim())
+    hasActivities && managementActivities.every((activity) => activity.activity_description?.trim())
 
   // Check if plans are completed (all have output_description)
   const plansCompleted =
@@ -251,7 +250,10 @@ export function getNextAction(workflow) {
     }
   }
 
-  if (assessmentStatus === WORKFLOW_STATUS.DRAFT || assessmentStatus === WORKFLOW_STATUS.IN_PROGRESS) {
+  if (
+    assessmentStatus === WORKFLOW_STATUS.DRAFT ||
+    assessmentStatus === WORKFLOW_STATUS.IN_PROGRESS
+  ) {
     return {
       tool: 2,
       path: 'assessment',
@@ -320,7 +322,9 @@ export function calculateProjectStatusFromWorkflow(workflow) {
   if (!workflow) return 'draft'
 
   // Check for any rejected status (needs action)
-  const hasRejected = Object.values(workflow).some((step) => step.status === WORKFLOW_STATUS.REJECTED)
+  const hasRejected = Object.values(workflow).some(
+    (step) => step.status === WORKFLOW_STATUS.REJECTED
+  )
   if (hasRejected) return 'needs_action'
 
   // Check if all steps are completed

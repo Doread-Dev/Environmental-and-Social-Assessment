@@ -14,4 +14,3 @@ const indicatorSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Indicator", indicatorSchema);
-

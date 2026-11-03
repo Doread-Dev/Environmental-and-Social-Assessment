@@ -24,12 +24,7 @@ function ProjectLayout() {
   const [error, setError] = useState(null)
 
   // Get workflow data from hook (derives from actual entities)
-  const {
-    workflow,
-    screening,
-    assessment,
-    isLoading: workflowLoading,
-  } = useWorkflow(projectId)
+  const { workflow, screening, assessment, isLoading: workflowLoading } = useWorkflow(projectId)
 
   // Check if we're on screening page and get screening status for Export button
   const isScreeningPage = location.pathname.includes('/screening')

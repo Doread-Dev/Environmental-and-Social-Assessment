@@ -125,7 +125,15 @@ export default function MonitoringDataEntryPage() {
       console.error('Export error:', error)
       toast.error('Failed to export Excel file')
     }
-  }, [project, screening, assessment, records, categoriesWithIndicators, IMPACT_LEVEL_CONFIG, toast])
+  }, [
+    project,
+    screening,
+    assessment,
+    records,
+    categoriesWithIndicators,
+    IMPACT_LEVEL_CONFIG,
+    toast,
+  ])
 
   useEffect(() => {
     const handleExportEvent = () => {
@@ -258,13 +266,12 @@ export default function MonitoringDataEntryPage() {
               })
               .filter(Boolean)
               .filter((level) => level.key !== 'not_applicable')
-            const defaultRanking =
-              IMPACT_LEVEL_CONFIG.not_applicable &&
-              { ...IMPACT_LEVEL_CONFIG.not_applicable, key: 'not_applicable' }
-            const currentRanking =
-              rankingLevels.sort((a, b) => b.value - a.value)[0] ||
-              defaultRanking ||
-              { key: 'not_applicable', label: 'N/A', value: -1 }
+            const defaultRanking = IMPACT_LEVEL_CONFIG.not_applicable && {
+              ...IMPACT_LEVEL_CONFIG.not_applicable,
+              key: 'not_applicable',
+            }
+            const currentRanking = rankingLevels.sort((a, b) => b.value - a.value)[0] ||
+              defaultRanking || { key: 'not_applicable', label: 'N/A', value: -1 }
             const rankingStyles = {
               negligible: 'bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-400',
               low: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',

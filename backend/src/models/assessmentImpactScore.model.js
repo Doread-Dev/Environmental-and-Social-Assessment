@@ -18,4 +18,3 @@ const assessmentImpactScoreSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("AssessmentImpactScore", assessmentImpactScoreSchema);
-

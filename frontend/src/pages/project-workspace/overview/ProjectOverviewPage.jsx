@@ -28,7 +28,7 @@ function ProjectOverviewPage() {
   const { projectId } = useParams()
   const { project: contextProject, setProject: setContextProject, workflow } = useProjectContext()
   const [project, setProject] = useState(contextProject)
-  
+
   // Get Management Activities count from SEMP hook
   const { managementActivities } = useSemp(projectId)
 

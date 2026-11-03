@@ -47,7 +47,7 @@ const deleteFile = async (filePath) => {
     // Check if path is absolute (starts with / on Unix or C:\ on Windows)
     const isAbsolute = path.isAbsolute(filePath);
     const fullPath = isAbsolute ? filePath : path.join(process.cwd(), filePath);
-    
+
     await fs.unlink(fullPath);
   } catch (error) {
     // Ignore errors if file doesn't exist or already deleted
@@ -108,9 +108,18 @@ const deleteProject = async (id) => {
   // Step 9: Delete attachments and their files
   // Get all attachments related to this project
   const projectAttachments = await Attachment.find({ entity_type: "project", entity_id: id });
-  const screeningAttachments = await Attachment.find({ entity_type: "screening", entity_id: { $in: screeningIds } });
-  const assessmentAttachments = await Attachment.find({ entity_type: "assessment", entity_id: { $in: assessmentIds } });
-  const monitoringAttachments = await Attachment.find({ entity_type: "monitoring", entity_id: { $in: monitoringIds } });
+  const screeningAttachments = await Attachment.find({
+    entity_type: "screening",
+    entity_id: { $in: screeningIds },
+  });
+  const assessmentAttachments = await Attachment.find({
+    entity_type: "assessment",
+    entity_id: { $in: assessmentIds },
+  });
+  const monitoringAttachments = await Attachment.find({
+    entity_type: "monitoring",
+    entity_id: { $in: monitoringIds },
+  });
 
   // Delete files from filesystem
   const allAttachments = [
@@ -121,9 +130,7 @@ const deleteProject = async (id) => {
   ];
 
   // Delete all files in parallel (with error handling)
-  await Promise.allSettled(
-    allAttachments.map((attachment) => deleteFile(attachment.file_path))
-  );
+  await Promise.allSettled(allAttachments.map((attachment) => deleteFile(attachment.file_path)));
 
   // Delete attachment records from database
   await Attachment.deleteMany({ entity_type: "project", entity_id: id });
@@ -144,4 +151,3 @@ module.exports = {
   updateProject,
   deleteProject,
 };
-

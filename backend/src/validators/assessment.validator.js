@@ -10,9 +10,7 @@ const createAssessmentSchema = Joi.object({
   potential_positive_impact: Joi.string().allow("", null),
   approved_by: Joi.string().optional(),
   recommendations: Joi.string().allow("", null),
-  status: Joi.string()
-    .valid("draft", "submitted", "approved", "rejected")
-    .optional(),
+  status: Joi.string().valid("draft", "submitted", "approved", "rejected").optional(),
   // officer is set automatically by the service, not from client (will be stripped by stripUnknown)
 });
 
@@ -40,9 +38,7 @@ const addScoresSchema = Joi.array()
   .items(
     Joi.object({
       question: Joi.string().required(),
-      level: Joi.string()
-        .valid("negligible", "low", "medium", "high", "not_applicable")
-        .required(),
+      level: Joi.string().valid("negligible", "low", "medium", "high", "not_applicable").required(),
       note: Joi.string().allow("", null),
     })
   )

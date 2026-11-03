@@ -24,9 +24,7 @@ export function useAssessment(projectId) {
     return scores.map((score) => ({
       ...score,
       question:
-        score?.question && typeof score.question === 'object'
-          ? score.question._id
-          : score.question,
+        score?.question && typeof score.question === 'object' ? score.question._id : score.question,
     }))
   }, [])
   const [isLoading, setIsLoading] = useState(true)
@@ -53,9 +51,7 @@ export function useAssessment(projectId) {
         assessmentService.getScores(data._id),
       ])
       setMethods(methodsResult.status === 'fulfilled' ? methodsResult.value : [])
-      setConsultations(
-        consultationsResult.status === 'fulfilled' ? consultationsResult.value : []
-      )
+      setConsultations(consultationsResult.status === 'fulfilled' ? consultationsResult.value : [])
       setImpactScores(
         scoresResult.status === 'fulfilled' ? normalizeImpactScores(scoresResult.value) : []
       )
@@ -120,61 +116,67 @@ export function useAssessment(projectId) {
   /**
    * حفظ البيانات الوصفية (Metadata)
    */
-  const saveMetadata = useCallback(async (data) => {
-    setIsSaving(true)
-    try {
-      if (!projectId) {
-        const message = 'Missing project id.'
-        setError(message)
-        return { success: false, error: message }
-      }
+  const saveMetadata = useCallback(
+    async (data) => {
+      setIsSaving(true)
+      try {
+        if (!projectId) {
+          const message = 'Missing project id.'
+          setError(message)
+          return { success: false, error: message }
+        }
 
-      if (!assessment?._id) {
-        const created = await assessmentService.create({
-          project: projectId,
-          status: 'draft',
-          ...data,
-        })
-        setAssessment(created)
-        return { success: true, data: created }
-      }
+        if (!assessment?._id) {
+          const created = await assessmentService.create({
+            project: projectId,
+            status: 'draft',
+            ...data,
+          })
+          setAssessment(created)
+          return { success: true, data: created }
+        }
 
-      const updated = await assessmentService.update(assessment._id, data)
-      setAssessment(updated)
-      return { success: true, data: updated }
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setIsSaving(false)
-    }
-  }, [assessment?._id, projectId])
+        const updated = await assessmentService.update(assessment._id, data)
+        setAssessment(updated)
+        return { success: true, data: updated }
+      } catch (err) {
+        const errorMessage = extractErrorMessage(err)
+        setError(errorMessage)
+        return { success: false, error: errorMessage }
+      } finally {
+        setIsSaving(false)
+      }
+    },
+    [assessment?._id, projectId]
+  )
 
   /**
    * حفظ طرق التقييم (AssessmentMethod)
    * @param {Array} newMethods - طرق التقييم البيئي
    * Structure: [{ method_type, details }]
    */
-  const saveMethods = useCallback(async (newMethods) => {
-    setIsSaving(true)
-    try {
-      if (!assessment?._id) {
-        const message = 'Assessment record not found.'
-        setError(message)
-        return { success: false, error: message }
+  const saveMethods = useCallback(
+    async (newMethods) => {
+      setIsSaving(true)
+      try {
+        if (!assessment?._id) {
+          const message = 'Assessment record not found.'
+          setError(message)
+          return { success: false, error: message }
+        }
+        const updatedMethods = await assessmentService.setMethods(assessment._id, newMethods)
+        setMethods(updatedMethods)
+        return { success: true, data: updatedMethods }
+      } catch (err) {
+        const errorMessage = extractErrorMessage(err)
+        setError(errorMessage)
+        return { success: false, error: errorMessage }
+      } finally {
+        setIsSaving(false)
       }
-      const updatedMethods = await assessmentService.setMethods(assessment._id, newMethods)
-      setMethods(updatedMethods)
-      return { success: true, data: updatedMethods }
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setIsSaving(false)
-    }
-  }, [assessment?._id])
+    },
+    [assessment?._id]
+  )
 
   /**
    * حفظ الاستشارات المجتمعية (CommunityConsultation)
@@ -182,95 +184,107 @@ export function useAssessment(projectId) {
    * Structure متوافق مع communityConsultation.model.js:
    * [{ type, participants, notes }]
    */
-  const saveConsultations = useCallback(async (newConsultations) => {
-    setIsSaving(true)
-    try {
-      if (!assessment?._id) {
-        const message = 'Assessment record not found.'
-        setError(message)
-        return { success: false, error: message }
+  const saveConsultations = useCallback(
+    async (newConsultations) => {
+      setIsSaving(true)
+      try {
+        if (!assessment?._id) {
+          const message = 'Assessment record not found.'
+          setError(message)
+          return { success: false, error: message }
+        }
+        const updatedConsultations = await assessmentService.setConsultations(
+          assessment._id,
+          newConsultations
+        )
+        setConsultations(updatedConsultations)
+        return { success: true, data: updatedConsultations }
+      } catch (err) {
+        const errorMessage = extractErrorMessage(err)
+        setError(errorMessage)
+        return { success: false, error: errorMessage }
+      } finally {
+        setIsSaving(false)
       }
-      const updatedConsultations = await assessmentService.setConsultations(
-        assessment._id,
-        newConsultations
-      )
-      setConsultations(updatedConsultations)
-      return { success: true, data: updatedConsultations }
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setIsSaving(false)
-    }
-  }, [assessment?._id])
+    },
+    [assessment?._id]
+  )
 
   /**
    * دالة داخلية مشتركة لحفظ النتائج
    * @private
    */
-  const saveScoresInternal = useCallback(async (scores, negativeImpact, positiveImpact) => {
-    if (!assessment?._id) {
-      const message = 'Assessment record not found.'
-      setError(message)
-      return { success: false, error: message }
-    }
+  const saveScoresInternal = useCallback(
+    async (scores, negativeImpact, positiveImpact) => {
+      if (!assessment?._id) {
+        const message = 'Assessment record not found.'
+        setError(message)
+        return { success: false, error: message }
+      }
 
-    const savedScores = await assessmentService.addScores(assessment._id, scores)
-    setImpactScores(normalizeImpactScores(savedScores))
+      const savedScores = await assessmentService.addScores(assessment._id, scores)
+      setImpactScores(normalizeImpactScores(savedScores))
 
-    const updated = await assessmentService.update(assessment._id, {
-      potential_negative_impact: negativeImpact,
-      potential_positive_impact: positiveImpact,
-    })
+      const updated = await assessmentService.update(assessment._id, {
+        potential_negative_impact: negativeImpact,
+        potential_positive_impact: positiveImpact,
+      })
 
-    setAssessment(updated)
+      setAssessment(updated)
 
-    // Try to calculate, but don't fail if calculation fails
-    try {
-      const calculated = await assessmentService.calculate(assessment._id)
-      setAssessment(calculated)
-      return { success: true, data: calculated }
-    } catch {
-      return { success: true, data: updated }
-    }
-  }, [assessment?._id, normalizeImpactScores])
+      // Try to calculate, but don't fail if calculation fails
+      try {
+        const calculated = await assessmentService.calculate(assessment._id)
+        setAssessment(calculated)
+        return { success: true, data: calculated }
+      } catch {
+        return { success: true, data: updated }
+      }
+    },
+    [assessment?._id, normalizeImpactScores]
+  )
 
   /**
    * حفظ نتائج التأثير كمسودة (Draft)
    * يحفظ النتائج بدون تغيير الحالة
    */
-  const saveImpactScoresDraft = useCallback(async (scores, negativeImpact, positiveImpact) => {
-    setIsSaving(true)
-    setError(null)
-    try {
-      return await saveScoresInternal(scores, negativeImpact, positiveImpact)
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setIsSaving(false)
-    }
-  }, [saveScoresInternal])
+  const saveImpactScoresDraft = useCallback(
+    async (scores, negativeImpact, positiveImpact) => {
+      setIsSaving(true)
+      setError(null)
+      try {
+        return await saveScoresInternal(scores, negativeImpact, positiveImpact)
+      } catch (err) {
+        const errorMessage = extractErrorMessage(err)
+        setError(errorMessage)
+        return { success: false, error: errorMessage }
+      } finally {
+        setIsSaving(false)
+      }
+    },
+    [saveScoresInternal]
+  )
 
   /**
    * حفظ نتائج التأثير
    * للاستخدام عند Submit
    */
-  const saveImpactScores = useCallback(async (scores, negativeImpact, positiveImpact) => {
-    setIsSaving(true)
-    setError(null)
-    try {
-      return await saveScoresInternal(scores, negativeImpact, positiveImpact)
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setIsSaving(false)
-    }
-  }, [saveScoresInternal])
+  const saveImpactScores = useCallback(
+    async (scores, negativeImpact, positiveImpact) => {
+      setIsSaving(true)
+      setError(null)
+      try {
+        return await saveScoresInternal(scores, negativeImpact, positiveImpact)
+      } catch (err) {
+        const errorMessage = extractErrorMessage(err)
+        setError(errorMessage)
+        return { success: false, error: errorMessage }
+      } finally {
+        setIsSaving(false)
+      }
+    },
+    [saveScoresInternal]
+  )
 
   /**
    * إرسال التقييم للموافقة
@@ -298,51 +312,57 @@ export function useAssessment(projectId) {
   /**
    * الموافقة على التقييم
    */
-  const approveAssessment = useCallback(async (recommendations) => {
-    setIsSaving(true)
-    try {
-      if (!assessment?._id) {
-        const message = 'Assessment record not found.'
-        setError(message)
-        return { success: false, error: message }
+  const approveAssessment = useCallback(
+    async (recommendations) => {
+      setIsSaving(true)
+      try {
+        if (!assessment?._id) {
+          const message = 'Assessment record not found.'
+          setError(message)
+          return { success: false, error: message }
+        }
+        const updated = await assessmentService.approve(assessment._id, recommendations)
+        setAssessment(updated)
+        return { success: true, data: updated }
+      } catch (err) {
+        const errorMessage = extractErrorMessage(err)
+        setError(errorMessage)
+        return { success: false, error: errorMessage }
+      } finally {
+        setIsSaving(false)
       }
-      const updated = await assessmentService.approve(assessment._id, recommendations)
-      setAssessment(updated)
-      return { success: true, data: updated }
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setIsSaving(false)
-    }
-  }, [assessment?._id])
+    },
+    [assessment?._id]
+  )
 
   /**
    * رفض التقييم
    */
-  const rejectAssessment = useCallback(async (rejectReason) => {
-    setIsSaving(true)
-    try {
-      if (!assessment?._id) {
-        const message = 'Assessment record not found.'
-        setError(message)
-        return { success: false, error: message }
+  const rejectAssessment = useCallback(
+    async (rejectReason) => {
+      setIsSaving(true)
+      try {
+        if (!assessment?._id) {
+          const message = 'Assessment record not found.'
+          setError(message)
+          return { success: false, error: message }
+        }
+        const updated = await assessmentService.reject(
+          assessment._id,
+          rejectReason === undefined ? '' : rejectReason
+        )
+        setAssessment(updated)
+        return { success: true, data: updated }
+      } catch (err) {
+        const errorMessage = extractErrorMessage(err)
+        setError(errorMessage)
+        return { success: false, error: errorMessage }
+      } finally {
+        setIsSaving(false)
       }
-      const updated = await assessmentService.reject(
-        assessment._id,
-        rejectReason === undefined ? '' : rejectReason
-      )
-      setAssessment(updated)
-      return { success: true, data: updated }
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setIsSaving(false)
-    }
-  }, [assessment?._id])
+    },
+    [assessment?._id]
+  )
 
   return {
     assessment,

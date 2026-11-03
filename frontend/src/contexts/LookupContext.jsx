@@ -79,7 +79,6 @@ export const IMPACT_LEVEL_CONFIG = {
   },
 }
 
-
 /**
  * LookupProvider Component
  * Wraps the application to provide lookup data

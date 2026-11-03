@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useLookups, useAuth } from '@/contexts'
 import { assessmentService } from '@/services'
 import { extractErrorMessage } from '@/services/api'
+import { notifyWorkflowChanged } from '@/utils/workflowEvents'
 
 /**
  * Hook لإدارة حالة التقييم
@@ -105,6 +106,7 @@ export function useAssessment(projectId) {
         setMethods([])
         setConsultations([])
         setImpactScores(normalizeImpactScores(scores))
+        notifyWorkflowChanged(projectId)
         return { success: true, data: newAssessment }
       } catch (err) {
         const errorMessage = extractErrorMessage(err)
@@ -136,11 +138,13 @@ export function useAssessment(projectId) {
             ...data,
           })
           setAssessment(created)
+          notifyWorkflowChanged(projectId)
           return { success: true, data: created }
         }
 
         const updated = await assessmentService.update(assessment._id, data)
         setAssessment(updated)
+        notifyWorkflowChanged(projectId)
         return { success: true, data: updated }
       } catch (err) {
         const errorMessage = extractErrorMessage(err)
@@ -302,6 +306,7 @@ export function useAssessment(projectId) {
       }
       const updated = await assessmentService.submit(assessment._id)
       setAssessment(updated)
+      notifyWorkflowChanged(projectId)
       return { success: true, data: updated }
     } catch (err) {
       const errorMessage = extractErrorMessage(err)
@@ -310,7 +315,7 @@ export function useAssessment(projectId) {
     } finally {
       setIsSaving(false)
     }
-  }, [assessment?._id])
+  }, [projectId, assessment?._id])
 
   /**
    * الموافقة على التقييم
@@ -326,6 +331,7 @@ export function useAssessment(projectId) {
         }
         const updated = await assessmentService.approve(assessment._id, recommendations)
         setAssessment(updated)
+        notifyWorkflowChanged(projectId)
         return { success: true, data: updated }
       } catch (err) {
         const errorMessage = extractErrorMessage(err)
@@ -335,7 +341,7 @@ export function useAssessment(projectId) {
         setIsSaving(false)
       }
     },
-    [assessment?._id]
+    [projectId, assessment?._id]
   )
 
   /**
@@ -355,6 +361,7 @@ export function useAssessment(projectId) {
           rejectReason === undefined ? '' : rejectReason
         )
         setAssessment(updated)
+        notifyWorkflowChanged(projectId)
         return { success: true, data: updated }
       } catch (err) {
         const errorMessage = extractErrorMessage(err)
@@ -364,7 +371,7 @@ export function useAssessment(projectId) {
         setIsSaving(false)
       }
     },
-    [assessment?._id]
+    [projectId, assessment?._id]
   )
 
   return {

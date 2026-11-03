@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { projectService } from '@/services/projectService'
 import { screeningService, assessmentService, sempService, monitoringService } from '@/services'
 import { extractErrorMessage } from '@/services/api'
+import { WORKFLOW_CHANGED_EVENT } from '@/utils/workflowEvents'
 import {
   deriveWorkflowStatus,
   calculateProjectStatusFromWorkflow,
@@ -164,16 +165,16 @@ export function useProjects() {
   }, [fetchProjects])
 
   /**
-   * Listen for monitoring data updates and refetch projects
+   * Refetch projects when a tool's data changes (save, submit, approve)
    */
   useEffect(() => {
-    const handleMonitoringUpdate = () => {
+    const handleWorkflowChange = () => {
       fetchProjects()
     }
 
-    window.addEventListener('monitoring-data-updated', handleMonitoringUpdate)
+    window.addEventListener(WORKFLOW_CHANGED_EVENT, handleWorkflowChange)
     return () => {
-      window.removeEventListener('monitoring-data-updated', handleMonitoringUpdate)
+      window.removeEventListener(WORKFLOW_CHANGED_EVENT, handleWorkflowChange)
     }
   }, [fetchProjects])
 

@@ -23,6 +23,8 @@
 
 ## Security for production
 - `NODE_ENV=production` checks: strong `JWT_SECRET`, no dev scripts, `clean-test-data` refused, helmet CSP that works with self-hosted assets.
+- `npm audit --omit=dev` in both apps: no high/critical findings; anything moderate left is listed with a reason in this file.
+- Server runs the Node LTS pinned in `.nvmrc` (26 as of phase 0); check it is still the current LTS and bump if a newer LTS line exists.
 
 ## Done when
 - [ ] A clean machine with only Node + MongoDB can install and run the app from the docs, offline.

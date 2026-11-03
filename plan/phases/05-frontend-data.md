@@ -27,6 +27,8 @@
 ### Clean-up
 - Remove backend endpoints no longer used by anyone (check with grep and the tests), and their tests.
 - `src/data/` deprecated folder: delete if nothing imports it.
+- Race conditions found in phase 0: `hooks/useScreening.js` (`isMounted`) and `hooks/useSemp.js` (`cancelled`) set a cancellation flag in the effect cleanup but never check it, so a stale/unmounted request can still set state. Gone once these hooks sit on TanStack Query — make sure no manual flag pattern survives.
+- Clear the 4 `react-hooks/exhaustive-deps` warnings left from phase 0 (`components/settings/ProjectsManagementSection.jsx`, `UsersManagementSection.jsx`, `components/ui/Toast.jsx`, `hooks/useAssessment.js`) — by moving the loads to queries, not by disabling the rule.
 
 ## Tests
 - Hooks: loading / data / error with mocked API (MSW or axios mock).

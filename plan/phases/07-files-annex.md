@@ -6,6 +6,7 @@
 
 ## Design
 - Model `ProjectFile`: `project`, `area` (`annex` | `semp_record`), `category` (annex: `annex_a`…`annex_h`; semp_record: the 11 §6.1 categories or `null`), `original_name`, `stored_name` (server-generated), `mime_type`, `size`, `uploaded_by`, timestamps.
+- Upload parsing: `multer` **2.x** (1.x is deprecated with known vulnerabilities; phase 1 removes the old 1.x dependency) or the current best maintained alternative — check `npm audit` is clean for it.
 - Storage: `UPLOADS_DIR` env (default `backend/uploads`), files at `<project>/<stored_name>`. Never trust client paths or names. Size limit from env (default 10 MB). Allow-list of extensions/MIME types (PDF, Office, images, text, zip — confirm with the owner when implementing).
 - Endpoints: `GET /projects/:id/files?area=annex`, `POST /projects/:id/files` (multipart, `area`, `category`), `GET /files/:fileId/download` (auth, `Content-Disposition` with UTF-8 name), `DELETE /files/:fileId`, `PATCH /files/:fileId` (category only, semp_record area only).
 - Roles: read = all logged-in roles; upload/delete = editor roles + admin. Archived projects read-only.

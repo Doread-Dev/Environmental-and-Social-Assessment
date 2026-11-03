@@ -19,6 +19,6 @@
 
 ## Done when
 - [ ] Issue list closed or explicitly deferred by the owner.
-- [ ] Lint 0 warnings in `src/` (or remaining ones listed with reason).
+- [ ] Lint 0 warnings in `src/` (or remaining ones listed with reason). Known from phase 0: 10 × `react-refresh/only-export-components` (contexts export hooks/constants next to providers, `components/ui/Toast.jsx`, `routes/index.jsx`) — split hooks/constants into their own files.
 
 ## Found during phase

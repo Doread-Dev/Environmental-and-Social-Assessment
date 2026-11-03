@@ -39,7 +39,7 @@ Order matters: removals before new code (less to secure), backend rules before t
 
 | # | Status | Branch / PR | Notes |
 |---|---|---|---|
-| 0 | In progress — reformat commit pending | `phase-00-foundations` (from `chore/claude-code-setup`) | |
+| 0 | Done | `phase-00-foundations` (from `chore/claude-code-setup`) | Node 26 LTS, lockfiles, Vitest in both apps (14 backend / 6 frontend tests), lint 0 errors, Prettier applied |
 | 1 | Not started | | |
 | 2 | Not started | | |
 | 3 | Not started | | |

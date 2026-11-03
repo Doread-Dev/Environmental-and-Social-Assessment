@@ -23,7 +23,9 @@
 - Delete `components/project/ProjectSiteCard.jsx`; port `ProjectDetailsCard.jsx` from v2 (`frontend/src/components/project/ProjectDetailsCard.jsx`) — real project data only (location, component, start, end; "Not specified" when empty). Keep the "Risk Level" label (D59).
 
 ### Scripts
-- `clean-test-data.js`: drop the removed models and the uploads cleanup.
+- `clean-test-data.js`: drop the removed models and the uploads cleanup (its `removeUploads()` also resolved `process.cwd()/backend/uploads`, so it only worked from the repo root — found in phase 0).
+- `src/db/seed.js` (`npm run seed`): make it **idempotent** — upsert lookups by a stable key (category `code`, question text/order, indicator name, job title name) instead of `deleteMany` + `insertMany`. Today every run gives lookups new `_id`s and breaks `assessmentImpactScore.question`, `monitoringRecord.indicator` and `user.job_title` (found in phase 0). Test: running `seedLookupData()` twice keeps the same `_id`s and counts.
+- After the removals, re-run `npm audit` in both apps and update the leftover list in `00-foundations.md` (removing backend `exceljs` should clear backend `uuid` and most `minimatch` findings).
 - `seed-demo-project.js`: still works (it doesn't use removed endpoints — verify).
 
 ## Tests

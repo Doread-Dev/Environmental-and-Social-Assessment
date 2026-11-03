@@ -36,7 +36,7 @@
 ## Done when
 - [x] Fresh clone + `npm ci` works in both apps with the pinned Node.
 - [x] `npm test` passes in both apps; backend tests cannot touch `esms`.
-- [ ] `npm run lint` passes (0 errors) in both apps; frontend Prettier check passes.
+- [x] `npm run lint` passes (0 errors) in both apps; frontend Prettier check passes.
 - [x] `clean-test-data.js` refuses production.
 - [x] Demo seed still works.
 
@@ -49,13 +49,17 @@ Any behavior change, removals, security fixes.
 Both apps: only **moderate** findings remain after `npm audit fix`; every offered fix is a breaking downgrade.
 - `minimatch <11.0.1` (GHSA-g3hv-75wg-m249, ReDoS on untrusted glob patterns) — pulled in by eslint, nodemon (dev only) and `exceljs → archiver → glob/readdir-glob`. Fix offered = downgrade nodemon to 1.x / eslint-plugin-prettier to 2.x. We never pass user input as a glob pattern.
 - `uuid <11.1.1` (GHSA-w5hq-g745-h8pq, only when a `buf` argument is passed) — via `exceljs`. Fix offered = downgrade exceljs to 3.4.0. Revisit when exceljs ships a release on uuid ≥ 11.1.1.
+- Follow-up: phase 1 re-runs audit after removing backend `exceljs`; phase 8 upgrades exceljs if possible; phase 11 requires no high/critical.
 
-### Notes for the owner / later phases
-- **Node pin:** pinned to **24** (the version installed here; LTS until 2028-04). Node 26 has been Active LTS since 2026-10 — switch `.nvmrc` + `engines` if you want the newer line.
-- **Backend quote style:** most files use double quotes (the Prettier config follows them); `app.js`, `server.js`, `config/database.js`, `middlewares/errorHandler.js` and `middlewares/rateLimiter.js` used single quotes and change in the reformat commit.
-- **Mass reformat** (Prettier on backend `src/ scripts/` and frontend `src/`) is kept for its own commit, after the logic commit.
-- `scripts/clean-test-data.js` → `removeUploads()` resolves `process.cwd()/backend/uploads`, so it only finds uploads when run from the repo root (phase 1 reworks uploads cleanup).
-- Frontend: cancellation flags that are set but never read — `isMounted` in `hooks/useScreening.js` and `cancelled` in `hooks/useSemp.js` — so state can update after unmount / a stale request can win. Not mechanical; left for phase 5 (data layer).
-- Frontend lint warnings left on purpose (not mechanical): 4 × `react-hooks/exhaustive-deps` (`ProjectsManagementSection`, `UsersManagementSection`, `Toast`, `useAssessment`), 10 × `react-refresh/only-export-components` (contexts, `Toast`, `routes/index.jsx`).
-- Frontend build warns that `vendor-excel` is ~930 kB (lazy-loaded on export; pre-existing).
-- `npm run seed` replaces lookup documents with new `_id`s, so existing projects (incl. the demo project) lose their question/indicator references (`assessmentImpactScore.question`, `monitoringRecord.indicator`), and users lose `job_title` — re-run the demo seed after it.
+### Decisions taken during the phase
+- **Node:** pinned to **26 LTS** (owner: always the best current stack, not what is installed locally). Local machine upgraded to Node 26.13.0; Vercel supports Node 26 for builds and functions.
+- **Backend quote style:** most files used double quotes, so Prettier follows them; `app.js`, `server.js`, `config/database.js`, `middlewares/errorHandler.js`, `middlewares/rateLimiter.js` were converted in the reformat commit.
+- **Mass reformat** done in its own commit ("Format backend and frontend with Prettier").
+
+### Findings moved to later phases
+- `clean-test-data.js` `removeUploads()` only works from the repo root → phase 1 (uploads cleanup removed).
+- `npm run seed` re-creates lookups with new `_id`s and breaks question/indicator/job-title references → phase 1 (idempotent seed + test).
+- Unused cancellation flags in `useScreening` / `useSemp` (stale requests can set state) → phase 5.
+- 4 × `react-hooks/exhaustive-deps` → phase 5; 10 × `react-refresh/only-export-components` → phase 10.
+- `multer` 1.x deprecated / vulnerable → removed in phase 1, phase 7 uses 2.x.
+- `vendor-excel` chunk ≈ 930 kB → phase 8.

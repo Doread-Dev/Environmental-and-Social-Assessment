@@ -27,13 +27,15 @@ Order matters: removals before new code (less to secure), backend rules before t
 ## Rules for every phase
 
 - **Branch:** `phase-NN-short-name` from the latest integration branch. Commit or push only when the owner asks. No Claude/AI attribution in commits or PRs, ever.
-- **Tests:** from phase 0 on, every behavior change and every fix ships with a test (D39). Backend tests run against `esms_test`, never `esms`.
+- **Tests:** from phase 0 on, every behavior change and every fix ships with a test (D39). Backend tests run against `esms_test`, never `esms`. New code without a test is not done, even if CI is green: CI only proves existing tests pass.
+- **CI:** `.github/workflows/ci.yml` runs lint, Prettier check, tests with coverage (+ frontend build) on every PR. A PR is merged only when CI is green. New `*.test.js(x)` files run automatically; a new **kind** of check (e.g. Playwright E2E) is added to the workflow in the phase that introduces it.
+- **Coverage never goes down:** `thresholds` in `backend/vitest.config.mjs` and `frontend/vitest.config.js` are the floor. At the end of each phase, run `npm run test:coverage` in each app touched and raise the thresholds to the new numbers (rounded down). Never lower them; if a removal drops coverage, add tests instead.
 - **Keep it running:** at the end of a phase the app starts, `npm run lint`, `npm run build` and all tests pass, and `backend/scripts/seed-demo-project.js` still creates the full demo project (update the script when the API changes).
 - **Data:** no real data exists (see DECISIONS context). Schema changes need no migration; wiping local data is fine — ask before running destructive scripts.
 - **Scope:** do only what the phase file lists. Something found outside scope → write it under "Found during phase" at the bottom of that phase file and tell the owner; don't fix it silently.
 - **Docs:** old `backend/docs` and `frontend/docs` are outdated (D44) — code wins. Update `CLAUDE.md` when a convention it describes changes (routes, roles, responses, commands).
 - **Language:** UI and code in English (see DECISIONS context). Replies to the owner in Arabic.
-- **Close a phase:** tick its "Done when" list in the phase file, add a one-line result to the table below.
+- **Close a phase:** tick its "Done when" list in the phase file, raise the coverage thresholds, add a one-line result (incl. coverage) to the table below.
 
 ## Progress
 
@@ -41,6 +43,7 @@ Order matters: removals before new code (less to secure), backend rules before t
 |---|---|---|---|
 | 0 | Done | `phase-00-foundations` — [PR #4](https://github.com/Doread-Dev/Environmental-and-Social-Assessment/pull/4) | Node 26 LTS, lockfiles, Vitest in both apps (14 backend / 6 frontend tests), lint 0 errors, Prettier applied |
 | 1 | Done | `phase-01-removals` — [PR #5](https://github.com/Doread-Dev/Environmental-and-Social-Assessment/pull/5) | Attachments, old SEMP tree, reports (+ `multer`, `pdfkit`, backend `exceljs`) removed; idempotent lookup seed; Project Details card; 27 backend / 8 frontend tests |
+| 1a | Done | `ci-and-node-watch` | Not a plan phase (owner request): GitHub Actions CI, coverage with never-lower thresholds (baseline lines: backend 62% / frontend 0.4%), `nodemon` → `node --watch` |
 | 2 | Not started | | |
 | 3 | Not started | | |
 | 4 | Not started | | |

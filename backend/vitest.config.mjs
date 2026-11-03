@@ -10,5 +10,12 @@ export default defineConfig({
     silent: "passed-only",
     testTimeout: 20000,
     hookTimeout: 30000,
+    coverage: {
+      provider: "v8",
+      include: ["src/**/*.js"],
+      reporter: ["text-summary", "html", "json-summary"],
+      // Floor = current coverage, rounded down. Raise it when a phase adds tests; never lower it.
+      thresholds: { statements: 59, branches: 19, functions: 25, lines: 62 },
+    },
   },
 });

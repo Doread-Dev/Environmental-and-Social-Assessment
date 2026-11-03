@@ -47,7 +47,7 @@ Any behavior change, removals, security fixes.
 
 ### `npm audit` leftovers (2026-11-03, re-run after phase 1)
 Both apps: only **moderate** findings remain; every offered fix is a breaking downgrade.
-- **Backend:** `npm audit --omit=dev` → **0**. The 7 remaining findings are dev-only: `minimatch <11.0.1` (GHSA-g3hv-75wg-m249, ReDoS on untrusted glob patterns) via eslint and nodemon. Fix offered = downgrade nodemon to 1.x. We never pass user input as a glob pattern. Removing backend `exceljs` in phase 1 cleared `uuid` and the `archiver` → `minimatch` chain.
+- **Backend:** `npm audit --omit=dev` → **0**. The 6 remaining findings are dev-only: `minimatch <11.0.1` (GHSA-g3hv-75wg-m249, ReDoS on untrusted glob patterns) via eslint; they clear when eslint ships on minimatch ≥ 11.0.1. `nodemon` was replaced by `node --watch` (branch `ci-and-node-watch`). We never pass user input as a glob pattern. Removing backend `exceljs` in phase 1 cleared `uuid` and the `archiver` → `minimatch` chain.
 - **Frontend:** 17 moderate. `minimatch <11.0.1` via `exceljs → archiver → glob/readdir-glob` (also in the production tree) and dev tooling; `uuid <11.1.1` (GHSA-w5hq-g745-h8pq, only when a `buf` argument is passed) via `exceljs`. Fix offered = downgrade exceljs to 3.4.0.
 - Follow-up: phase 8 upgrades frontend exceljs if possible; phase 11 requires no high/critical.
 

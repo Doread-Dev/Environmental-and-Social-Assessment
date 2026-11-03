@@ -1,0 +1,86 @@
+# Runs on every PR and every push to main/Development.
+# npm test picks up every *.test.js(x) file on its own, so new tests need no change here.
+# Add a job or step only for a new kind of check (e.g. Playwright E2E in phase 12).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, Development]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      mongo:
+        image: mongo:8
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      MONGODB_URI_TEST: mongodb://localhost:27017/esms_test
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - name: Tests with coverage
+        run: npm run test:coverage
+      - name: Coverage summary
+        if: ${{ !cancelled() && hashFiles('backend/coverage/coverage-summary.json') != '' }}
+        run: node ../.github/scripts/coverage-summary.js Backend coverage/coverage-summary.json >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() && hashFiles('backend/coverage/index.html') != '' }}
+        with:
+          name: backend-coverage
+          path: backend/coverage/
+          retention-days: 14
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - name: Tests with coverage
+        run: npm run test:coverage
+      - name: Coverage summary
+        if: ${{ !cancelled() && hashFiles('frontend/coverage/coverage-summary.json') != '' }}
+        run: node ../.github/scripts/coverage-summary.js Frontend coverage/coverage-summary.json >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() && hashFiles('frontend/coverage/index.html') != '' }}
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/
+          retention-days: 14
+      - run: npm run build

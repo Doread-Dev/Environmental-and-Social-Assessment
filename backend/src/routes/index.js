@@ -1,5 +1,5 @@
 const express = require("express");
-const { auth } = require("../middlewares/auth");
+const { auth, requirePasswordChanged } = require("../middlewares/auth");
 
 const projectsRoutes = require("./projects.routes");
 const screeningsRoutes = require("./screenings.routes");
@@ -15,11 +15,13 @@ const dashboardRoutes = require("./dashboard.routes");
 
 const router = express.Router();
 
-// /auth handles its own auth (login is public, register is protected).
+// /auth handles its own auth (login is public, /me and /password need a token).
 router.use("/auth", authRoutes);
 
-// Everything below requires a valid token of an active user (D3). Routers add requireRole().
+// Everything below requires a valid token of an active user (D3) who has no pending forced
+// password change (D22, 403 PASSWORD_CHANGE_REQUIRED). Routers add requireRole().
 router.use(auth);
+router.use(requirePasswordChanged);
 
 router.use("/users", usersRoutes);
 router.use("/projects", projectsRoutes);

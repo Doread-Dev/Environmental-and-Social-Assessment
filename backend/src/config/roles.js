@@ -18,10 +18,10 @@ const EDITOR_ROLES = [
   "environmental_focal_point",
 ];
 
-// Approve/reject screenings & assessments, delete/archive/restore projects, register users.
+// Approve/reject screenings & assessments, delete/archive/restore projects.
 const SPECIALIST_ROLES = ["admin", "environmental_specialist"];
 
-// Permanently delete archived projects, read the audit log (D60).
+// Manage users (D21), permanently delete archived projects, read the audit log (D60).
 const ADMIN_ROLES = ["admin"];
 
 module.exports = { ROLES, EDITOR_ROLES, SPECIALIST_ROLES, ADMIN_ROLES };

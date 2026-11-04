@@ -87,6 +87,9 @@ const AnnexOverviewPage = lazy(() => import('@/pages/project-workspace/annex/Ann
 // Settings Pages
 const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'))
 
+// Profile Page (own password, D23)
+const ProfilePage = lazy(() => import('@/pages/profile/ProfilePage'))
+
 // Not Found Page (inline - small component)
 const NotFoundPage = () => (
   <div className="min-h-screen flex items-center justify-center bg-background dark:bg-background-dark">
@@ -121,6 +124,11 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.LOGIN,
         element: lazyLoad(() => import('@/pages/auth/LoginPage')),
+      },
+      {
+        // Forced password change (D22): signed in only, checked by the page itself
+        path: ROUTES.CHANGE_PASSWORD,
+        element: lazyLoad(() => import('@/pages/auth/ChangePasswordPage')),
       },
     ],
   },
@@ -162,6 +170,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <ProjectCreatePage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'profile',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <ProfilePage />
           </Suspense>
         ),
       },

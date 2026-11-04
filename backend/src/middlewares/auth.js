@@ -66,9 +66,22 @@ const requireRole =
     return forwardAuthError(res, next, new ApiError(403, "Forbidden"));
   };
 
+// D22: after an admin reset (or on a new account) the user must pick their own password first.
+// Mounted after auth() for every /api/v1 route except GET /auth/me and PUT /auth/password.
+const PASSWORD_CHANGE_REQUIRED = "PASSWORD_CHANGE_REQUIRED";
+
+const requirePasswordChanged = (req, res, next) => {
+  if (!req.user?.must_change_password) return next();
+  const error = new ApiError(403, "You must change your password before continuing");
+  error.code = PASSWORD_CHANGE_REQUIRED;
+  return next(error);
+};
+
 module.exports = {
   auth,
   requireRole,
+  requirePasswordChanged,
+  PASSWORD_CHANGE_REQUIRED,
   bearerToken,
   verifyToken,
 };

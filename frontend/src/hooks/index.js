@@ -2,6 +2,7 @@
 
 export { useProjectContext } from './useProjectContext'
 export { useLookups, useUsers } from './useLookups'
+export { useUserManagement } from './useUserManagement'
 export { useWorkspace } from './useWorkspace'
 export { useDashboard } from './useDashboard'
 export { useProjects } from './useProjects'

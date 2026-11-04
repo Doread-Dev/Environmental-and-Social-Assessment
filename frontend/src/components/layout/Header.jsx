@@ -16,7 +16,7 @@ import { ROUTES } from '@/routes/routes.config'
  */
 function Header({ onMenuClick, showMobileMenu = true, className }) {
   const { isDark, toggleTheme } = useTheme()
-  const { user, logout, canManageUsers } = useAuth()
+  const { user, logout, canAccessSettings } = useAuth()
   const navigate = useNavigate()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
@@ -27,16 +27,17 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
   const userMenuItems = useMemo(() => {
     const items = []
 
-    // Settings - only for Environmental Specialist / Admin
-    if (canManageUsers) {
+    items.push({ id: 'profile', label: 'Profile', icon: 'person' })
+    // Settings: user management (admin) and project deletion (specialist / admin)
+    if (canAccessSettings) {
       items.push({ id: 'settings', label: 'Settings', icon: 'settings' })
-      items.push({ id: 'divider', type: 'divider' })
     }
+    items.push({ id: 'divider', type: 'divider' })
 
     items.push({ id: 'logout', label: 'Sign Out', icon: 'logout' })
 
     return items
-  }, [canManageUsers])
+  }, [canAccessSettings])
 
   const handleLogout = () => {
     logout()
@@ -168,6 +169,7 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
                       key={item.id}
                       onClick={() => {
                         setIsUserMenuOpen(false)
+                        if (item.id === 'profile') navigate(ROUTES.PROFILE)
                         if (item.id === 'settings') {
                           navigate(ROUTES.SETTINGS)
                         }

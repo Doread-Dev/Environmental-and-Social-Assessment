@@ -9,7 +9,7 @@ const ID = "000000000000000000000000";
 // removed what the frontend no longer calls: the tool lists (GET /projects carries the
 // summaries), the single lookups (GET /lookups), the row writes of Tools 3–5 (bulk saves, D32),
 // the single method/consultation adds (PUT replaces the list) and calculate (totals are
-// recalculated on every score change).
+// recalculated on every score change). Phase 6 moved user creation to POST /users (admin only).
 describe("removed endpoints", () => {
   it.each([
     ["post", "/api/v1/attachments"],
@@ -40,6 +40,7 @@ describe("removed endpoints", () => {
     ["post", `/api/v1/assessments/${ID}/methods`],
     ["post", `/api/v1/assessments/${ID}/consultations`],
     ["patch", `/api/v1/assessments/${ID}/calculate`],
+    ["post", "/api/v1/auth/register"],
   ])("%s %s returns 404", async (method, url) => {
     const { token } = await loginAs("environmental_specialist");
 

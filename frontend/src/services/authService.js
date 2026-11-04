@@ -1,6 +1,6 @@
 /**
  * Authentication Service
- * Handles login, logout, and user registration API calls
+ * Handles login, logout, the current user and own-password API calls
  */
 import api from './api'
 
@@ -31,30 +31,31 @@ export const authService = {
   },
 
   /**
-   * Register a new user (needs the `manage_users` permission)
-   * @param {Object} userData - User registration data
-   * @param {string} userData.name - User full name
-   * @param {string} userData.email - User email
-   * @param {string} userData.password - User password
-   * @param {string} userData.role - User role
-   * @param {string} userData.job_title - Job title ID
-   * @returns {Promise<{user: Object, token: string}>}
-   */
-  async register(userData) {
-    const response = await api.post('/auth/register', userData)
-    return response.data.data
-  },
-
-  /**
-   * The signed-in user (job title populated) and what their role may do (D35)
-   * Keeps the stored user up to date.
-   * @returns {Promise<{user: Object, permissions: string[]}>}
+   * The signed-in user (job title populated, must_change_password), what their role may do
+   * (D35) and the password policy. Keeps the stored user up to date.
+   * @returns {Promise<{user: Object, permissions: string[], password_rules: {min_length: number}}>}
    */
   async me() {
     const response = await api.get('/auth/me')
-    const { user, permissions } = response.data.data
-    localStorage.setItem(USER_KEY, JSON.stringify(user))
-    return { user, permissions }
+    const data = response.data.data
+    localStorage.setItem(USER_KEY, JSON.stringify(data.user))
+    return data
+  },
+
+  /**
+   * Change own password (D23); also ends a forced change (D22)
+   * @param {string} currentPassword
+   * @param {string} newPassword
+   * @returns {Promise<Object>} Same shape as me()
+   */
+  async changePassword(currentPassword, newPassword) {
+    const response = await api.put('/auth/password', {
+      current_password: currentPassword,
+      new_password: newPassword,
+    })
+    const data = response.data.data
+    localStorage.setItem(USER_KEY, JSON.stringify(data.user))
+    return data
   },
 
   /**

@@ -9,6 +9,7 @@ import { ROUTES } from './routes.config'
  * Features:
  * - Validates user authentication via AuthContext (and waits for the user's permissions)
  * - Redirects to login with return URL preservation
+ * - Sends a user with a pending forced password change (D22) to the change-password screen
  * - Shows loading state while verifying auth status
  *
  * @param {Object} props
@@ -16,7 +17,7 @@ import { ROUTES } from './routes.config'
  */
 function ProtectedRoute({ children }) {
   const location = useLocation()
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, isLoading, mustChangePassword } = useAuth()
 
   // Show loading state while checking auth
   if (isLoading) {
@@ -36,6 +37,11 @@ function ProtectedRoute({ children }) {
   if (!isAuthenticated) {
     // Redirect to login with return URL
     return <Navigate to={ROUTES.LOGIN} state={{ from: location }} replace />
+  }
+
+  // The backend answers 403 everywhere until the password is changed
+  if (mustChangePassword) {
+    return <Navigate to={ROUTES.CHANGE_PASSWORD} replace />
   }
 
   return children

@@ -17,17 +17,14 @@ export function validateEmail(email) {
 }
 
 /**
- * التحقق من صحة كلمة المرور
+ * Login password: required only. The password policy lives on the backend (GET /auth/me
+ * password_rules) and applies when a password is set, not when signing in.
  * @param {string} password
  * @returns {{ valid: boolean, error: string | null }}
  */
 export function validatePassword(password) {
   if (!password) {
     return { valid: false, error: 'Password is required' }
-  }
-
-  if (password.length < 6) {
-    return { valid: false, error: 'Password must be at least 6 characters' }
   }
 
   return { valid: true, error: null }

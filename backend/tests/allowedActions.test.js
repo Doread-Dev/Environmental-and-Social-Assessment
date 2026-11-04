@@ -154,13 +154,9 @@ describe("GET /auth/me (D35)", () => {
   const expectedPermissions = (role) =>
     [
       EDITOR_ROLES.includes(role) && ["create_project", "edit", "export"],
-      SPECIALIST_ROLES.includes(role) && [
-        "approve",
-        "manage_users",
-        "delete_project",
-        "archive_project",
-      ],
-      ADMIN_ROLES.includes(role) && ["purge_project", "read_audit_log"],
+      SPECIALIST_ROLES.includes(role) && ["approve", "delete_project", "archive_project"],
+      // User management is admin only (D21).
+      ADMIN_ROLES.includes(role) && ["manage_users", "purge_project", "read_audit_log"],
     ]
       .filter(Boolean)
       .flat()
@@ -180,6 +176,7 @@ describe("GET /auth/me (D35)", () => {
     });
     expect(res.body.data.user).not.toHaveProperty("password");
     expect([...res.body.data.permissions].sort()).toEqual(expectedPermissions(role));
+    expect(res.body.data.password_rules).toEqual({ min_length: 6 });
   });
 
   it("viewers have no export permission (D28a)", async () => {

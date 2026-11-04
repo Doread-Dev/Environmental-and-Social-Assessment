@@ -8,6 +8,8 @@ export const ROUTES = {
   // Auth Routes
   // ==========================================
   LOGIN: '/login',
+  // Forced password change after an admin reset or on a new account (D22)
+  CHANGE_PASSWORD: '/change-password',
 
   // ==========================================
   // Main App Routes
@@ -48,6 +50,9 @@ export const ROUTES = {
 
   // Settings
   SETTINGS: '/app/settings',
+
+  // Own profile and password (D23)
+  PROFILE: '/app/profile',
 }
 
 /**

@@ -14,7 +14,14 @@ export default function ResponsibleSelect({
 }) {
   // Handle both object (populated from API) and string ID
   const responsibleId = typeof value === 'object' && value !== null ? value._id : value
-  const selectedUser = users.find((u) => u._id === responsibleId)
+  const listedUser = users.find((u) => u._id === responsibleId)
+  // The pickers list active users only (D4); a row keeps the name of a since-deactivated user
+  // (the populated value carries is_active)
+  const unlistedUser =
+    !listedUser && typeof value === 'object' && value?.name
+      ? { ...value, name: value.is_active === false ? `${value.name} (inactive)` : value.name }
+      : null
+  const selectedUser = listedUser || unlistedUser
 
   return (
     <div className={cn('h-full flex items-center relative', className)}>
@@ -49,6 +56,11 @@ export default function ResponsibleSelect({
             <option value="" className="text-text-secondary dark:text-gray-400">
               Select...
             </option>
+            {unlistedUser && (
+              <option value={unlistedUser._id} disabled>
+                {unlistedUser.name}
+              </option>
+            )}
             {users.map((user) => (
               <option
                 key={user._id}

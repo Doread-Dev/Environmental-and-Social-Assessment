@@ -226,19 +226,10 @@ function LoginPage() {
             </div>
           </div>
 
-          {/* Forgot Password Link */}
-          <div className="flex justify-end">
-            <a
-              href="#"
-              className="text-sm font-medium text-text-muted hover:text-primary dark:text-emerald-400 dark:hover:text-primary transition-colors"
-              onClick={(e) => {
-                e.preventDefault()
-                // TODO: Navigate to forgot password page
-              }}
-            >
-              Forgot password?
-            </a>
-          </div>
+          {/* No self-service reset offline (D25): an admin resets the password */}
+          <p className="text-sm text-text-secondary dark:text-gray-400 text-right">
+            Forgot your password? Contact your system administrator.
+          </p>
 
           {/* Submit Button */}
           <Button

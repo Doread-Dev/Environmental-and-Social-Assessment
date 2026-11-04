@@ -4,7 +4,6 @@ import { app, require } from "./helpers/app.js";
 import { loginAs } from "./helpers/fixtures.js";
 
 const Project = require("../../src/models/project.model");
-const User = require("../../src/models/user.model");
 
 const auth = (token) => ({ Authorization: `Bearer ${token}` });
 
@@ -62,60 +61,6 @@ describe("admin role (D9)", () => {
     const project = await Project.create(projectBody);
     const res = await request(app).delete(`/api/v1/projects/${project._id}`).set(auth(token));
     expect(res.status).toBe(403);
-  });
-});
-
-describe("POST /api/v1/auth/register (D7)", () => {
-  const newUser = (n) => ({
-    name: `New ${n}`,
-    email: `new.${n}@example.com`,
-    password: "secret-123",
-    role: "viewer",
-  });
-
-  it("is closed without a token, even when there are no users yet", async () => {
-    expect(await User.countDocuments()).toBe(0);
-    const res = await request(app).post("/api/v1/auth/register").send(newUser(1));
-    expect(res.status).toBe(401);
-    expect(await User.countDocuments()).toBe(0);
-  });
-
-  it.each(["admin", "environmental_specialist"])("%s can register users", async (role) => {
-    const { token } = await loginAs(role);
-    const res = await request(app).post("/api/v1/auth/register").set(auth(token)).send(newUser(2));
-    expect(res.status).toBe(201);
-    expect(res.body.data.user.role).toBe("viewer");
-  });
-
-  it.each(["program_manager", "project_manager", "environmental_focal_point", "viewer"])(
-    "%s cannot register users (403)",
-    async (role) => {
-      const { token } = await loginAs(role);
-      const res = await request(app)
-        .post("/api/v1/auth/register")
-        .set(auth(token))
-        .send(newUser(3));
-      expect(res.status).toBe(403);
-    }
-  );
-
-  it("cannot create an admin (admins come from scripts/create-admin.js)", async () => {
-    const { token } = await loginAs("environmental_specialist");
-    const res = await request(app)
-      .post("/api/v1/auth/register")
-      .set(auth(token))
-      .send({ ...newUser(4), role: "admin" });
-    expect(res.status).toBe(400);
-  });
-
-  it("strips server-owned fields such as is_active", async () => {
-    const { token } = await loginAs("environmental_specialist");
-    const res = await request(app)
-      .post("/api/v1/auth/register")
-      .set(auth(token))
-      .send({ ...newUser(5), is_active: false });
-    expect(res.status).toBe(201);
-    expect(res.body.data.user.is_active).toBe(true);
   });
 });
 

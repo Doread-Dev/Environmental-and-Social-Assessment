@@ -26,25 +26,26 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
   const { projectId } = useParams()
   const navigate = useNavigate()
   const { isDark, toggleTheme } = useTheme()
-  const { user, logout, canManageUsers } = useAuth()
+  const { user, logout, canAccessSettings } = useAuth()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
   // User menu items (filtered by role)
   const userMenuItems = useMemo(() => {
     const items = []
 
-    // Settings - only for Environmental Specialist / Admin
-    if (canManageUsers) {
+    items.push({ id: 'profile', label: 'Profile', icon: 'person' })
+    // Settings: user management (admin) and project deletion (specialist / admin)
+    if (canAccessSettings) {
       items.push({ id: 'settings', label: 'Settings', icon: 'settings' })
-      items.push({ id: 'divider', type: 'divider' })
     }
+    items.push({ id: 'divider', type: 'divider' })
 
     items.push({ id: 'theme', label: 'Theme', icon: 'dark_mode', type: 'theme-toggle' })
     items.push({ id: 'divider2', type: 'divider' })
     items.push({ id: 'logout', label: 'Sign Out', icon: 'logout' })
 
     return items
-  }, [canManageUsers])
+  }, [canAccessSettings])
 
   // Close menu on route change
   useEffect(() => {
@@ -574,6 +575,10 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                               onClick={() => {
                                 setIsUserMenuOpen(false)
                                 // Handle action
+                                if (item.id === 'profile') {
+                                  navigate(ROUTES.PROFILE)
+                                  onClose()
+                                }
                                 if (item.id === 'settings') {
                                   navigate(ROUTES.SETTINGS)
                                   onClose()

@@ -42,6 +42,8 @@ const errorHandler = (err, req, res, next) => {
   res.status(statusCode).json({
     success: false,
     error: message,
+    // A machine-readable reason when the client must react, e.g. PASSWORD_CHANGE_REQUIRED.
+    ...(err instanceof ApiError && typeof err.code === "string" && { code: err.code }),
     ...(!authError && process.env.NODE_ENV === "development" && { stack: err.stack }),
   });
 };

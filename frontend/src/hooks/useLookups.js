@@ -86,7 +86,8 @@ export function useLookups() {
 }
 
 /**
- * All users (every signed-in role may list them), e.g. for the "Responsible" pickers
+ * Users: admins get every account (inactive included), other roles the active users only.
+ * `activeUsers` is what the "Responsible" pickers offer (D4).
  */
 export function useUsers() {
   const query = useQuery({

@@ -72,6 +72,9 @@ export function AuthProvider({ children }) {
 
   const user = meQuery.data?.user ?? session.user
   const permissions = meQuery.data?.permissions ?? NO_PERMISSIONS
+  const passwordRules = meQuery.data?.password_rules ?? null
+  // Set by an admin reset or on a new account (D22): the app shows only the change-password screen
+  const mustChangePassword = !!user?.must_change_password
   // Wait for the permissions once per session so guards and buttons don't flicker.
   const isLoading = isLoggingIn || (isAuthenticated && meQuery.isPending)
 
@@ -110,6 +113,22 @@ export function AuthProvider({ children }) {
   }, [queryClient])
 
   /**
+   * Change own password (D23). Puts the fresh user/permissions into the cache, which also lifts a
+   * forced change (D22). Throws the API error so the form can show it.
+   * @param {string} currentPassword
+   * @param {string} newPassword
+   */
+  const changePassword = useCallback(
+    async (currentPassword, newPassword) => {
+      const data = await authService.changePassword(currentPassword, newPassword)
+      queryClient.setQueryData(queryKeys.me, data)
+      setSession((prev) => ({ ...prev, user: data.user }))
+      return data
+    },
+    [queryClient]
+  )
+
+  /**
    * Clear any auth errors
    */
   const clearError = useCallback(() => {
@@ -133,10 +152,13 @@ export function AuthProvider({ children }) {
       isLoading,
       error,
       permissions,
+      passwordRules,
+      mustChangePassword,
 
       // Actions
       login,
       logout,
+      changePassword,
       clearError,
 
       // Permission helpers
@@ -147,6 +169,8 @@ export function AuthProvider({ children }) {
       canApprove: can('approve'),
       canManageUsers: can('manage_users'),
       canDeleteProject: can('delete_project'),
+      // Settings holds user management (admin) and project deletion (specialist/admin)
+      canAccessSettings: can('manage_users') || can('delete_project'),
 
       // Constants
       USER_ROLES,
@@ -159,8 +183,11 @@ export function AuthProvider({ children }) {
       isLoading,
       error,
       permissions,
+      passwordRules,
+      mustChangePassword,
       login,
       logout,
+      changePassword,
       clearError,
       can,
     ]

@@ -2,12 +2,21 @@
 
 **Goal:** every screen behaves correctly outside the happy path, not only when the user does everything in the expected order. Found by walking the whole app on purpose, not one bug at a time (D61).
 
-**Decisions:** D61 (+ D13, D17, D28a, D39).
+**Decisions:** D61, D62 (+ D13, D17, D28a, D39).
 
 **Why a phase:** the owner found that in Tool 5 "Cancel" after an edit neither leaves nor asks to save or discard. Fixing that one button is not enough: the same kind of gap is likely on every page that edits data.
 
 ## Known so far
 - **Tool 5 – Monitoring Data Entry** (`MonitoringDataEntryPage.jsx`): Cancel with unsaved changes uses `window.confirm`, which an embedded browser can block, so the button does nothing and nothing is shown. The sidebar links and the browser Back button skip the check completely, so changes are lost without a warning.
+- **Silent overwrite between users/tabs (D62, found in the review of phases 0–5):** Tools 3 and 4 save the whole table, so a second tab or user that saves later deletes the rows the first one added; screening, assessment, project and monitoring saves also overwrite each other without a warning.
+
+## Stale saves (D62) — build first, the other cases rely on it
+- **Backend:** every write of project data takes the version the client loaded and answers **409** when it no longer matches (message: changed by someone else since you opened it).
+  - Project, screening, assessment: the record's `updatedAt`, sent as `version` (PUT bodies, assessment methods/consultations/scores, submit). Approve/reject are not blocked by it (the record is locked while submitted).
+  - Tools 3, 4, Monitoring: a revision counter per project and table (e.g. `table_revisions.management|mitigation|monitoring` on the project, or a small collection), returned by the table GETs and the bulk save responses, required in the bulk `PUT` bodies, raised by every successful bulk save. Check and raise in one conditional update so two saves at the same moment can't both pass.
+  - Validators require `version` on these writes; missing → 400. Update `seed-demo-project.js` and the tests.
+- **Frontend:** the tool hooks send the version they hold. On this 409 one shared handler (in `useProjectSave`) shows the message in the app `Modal` with **Reload** (refetches the tool and workspace queries) and **Keep editing** (the user can copy what they typed); no automatic merge.
+- **Tests:** two clients load the same record/table, the first saves, the second gets 409 and nothing is written; after reload the second save works. Same for each table and for each record type.
 
 ## Tasks
 1. **Inventory.** List every screen and every action on it (create, edit, save, submit, approve, reject, delete, archive, export, navigation away). Write the list at the bottom of this file.

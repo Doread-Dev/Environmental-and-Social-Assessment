@@ -1,6 +1,6 @@
 # ESMS v2 — Phase plan
 
-What we build is decided in [DECISIONS.md](DECISIONS.md) (D1–D61). This file says **in which order**. Each phase is done in its own conversation: open the phase file, do exactly that scope, finish with its "Done when" list.
+What we build is decided in [DECISIONS.md](DECISIONS.md) (D1–D63). This file says **in which order**. Each phase is done in its own conversation: open the phase file, do exactly that scope, finish with its "Done when" list.
 
 The v2 prototype (`Environmental-and-Social-Assessment-main version 2/`, git-ignored) is a **reference only** — see [V2_INVENTORY.md](V2_INVENTORY.md). Port code from it only where a phase file names it; never edit it. Anything from v2 not covered by a decision: keep this repo's behavior and ask the owner.
 
@@ -16,11 +16,11 @@ The v2 prototype (`Environmental-and-Social-Assessment-main version 2/`, git-ign
 | 5 | [Frontend data layer](phases/05-frontend-data.md) | D28a, D30, D33–D35, D57 | 4 |
 | 6 | [Users & passwords](phases/06-users-passwords.md) | D9, D21–D25 | 2, 5 |
 | 7 | [File module & Annex](phases/07-files-annex.md) | D47 | 5 |
-| 8 | [UI & Excel from v2](phases/08-ui-excel.md) | D49–D52, D54, D55, D59 | 5 |
+| 8 | [UI & Excel from v2](phases/08-ui-excel.md) | D49–D52, D54, D55, D59, D63 a–c | 5 |
 | 9 | [v3 modules as locked code](phases/09-v3-locked.md) | D46, D48 | 7, 8 |
 | 10 | [UI polish](phases/10-ui-polish.md) | D43 | 9 |
-| 10a | [Unhappy paths & edge cases](phases/10a-unhappy-paths.md) | D61 | 10 |
-| 11 | [Offline & server deployment](phases/11-offline-deploy.md) | D6, D37, D38 | 10a |
+| 10a | [Unhappy paths & edge cases](phases/10a-unhappy-paths.md) | D61, D62 | 10 |
+| 11 | [Offline & server deployment](phases/11-offline-deploy.md) | D6, D37, D38, D63 d | 10a |
 | 12 | [E2E tests & documentation](phases/12-e2e-docs.md) | D39, D44 | 11 |
 
 Order matters: removals before new code (less to secure), backend rules before the frontend switches to them, data layer before the UI work that sits on it, deployment last because Vercel stays in use until then (D38).

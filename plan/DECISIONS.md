@@ -43,7 +43,7 @@ Decisions agreed during planning (2026-11-03). This file is the source of truth 
 | D17 | Projects: hard delete only when nothing in the project is approved; otherwise **archive** (hidden from default lists, read-only, restorable). Delete/archive: `admin` + `environmental_specialist`. |
 | D18 | Each project has at most one screening and one assessment — enforced by unique indexes. |
 | D19 | Monitoring quarter values and `total` stay **free text** (clients mix numbers and text). Backend must not parse or compute them. |
-| D20 | Concurrent edits to the same SEMP table: last save wins (known limitation, not handled now). |
+| D20 | ~~Concurrent edits to the same SEMP table: last save wins.~~ Replaced by D62 (stale saves are refused). |
 
 ## Users & passwords (offline, no email)
 
@@ -119,6 +119,8 @@ Inventory: [V2_INVENTORY.md](V2_INVENTORY.md). v2 was built by someone else and 
 | D59 | Navigation stays as in this repo: one sidebar entry "SEMP – Tools 3 & 4" (not split). The locked SEMP Plan button lives inside the SEMP overview page, where the "Coming soon" card is today. The overview metric keeps the label "Risk Level". |
 | D60 | (Owner, phase 3) An **archived** project can be deleted permanently, approved work included, by `admin` only (from the archive list, UI in phase 10). Each such delete is recorded in an audit log (who, when, project title and a snapshot of its state), readable by `admin`. Extends D17; the audit log starts with this one action, the full field-level log stays v3 (D16). The demo seed deletes its own previous copies straight in MongoDB (dev only) and does not use this. |
 | D61 | (Owner) Every screen is checked outside the happy path too — unsaved changes (Cancel / Back / sidebar / refresh), double clicks, every server error (400/401/403/404/409/500/offline), two users on one project, each role, empty and large data — and fixed with a shared mechanism, not one bug at a time. Own phase (10a) after UI polish; key unhappy paths join the phase 12 E2E suite. |
+| D62 | (Review of phases 0–5) **No silent overwrite.** Since phase 5 Tools 3 and 4 save the whole table, so with "last save wins" (old D20) a second user or tab deletes rows the other added. Every save of project data now carries the version the client loaded, and the backend refuses a stale save with **409** ("changed by someone else since you opened it"). Versions: `updatedAt` of the record for project, screening, assessment (+ its methods, consultations, scores); a revision counter per project and table for Tools 3, 4 and Monitoring, raised by every bulk save and returned with the table. The page shows the message, keeps what the user typed visible, and offers Reload. No merging of edits. Built in phase 10a (backend + shared frontend handling). |
+| D63 | (Review of phases 0–5) Small rules: (a) `recommendations` on screening and assessment is the approver's field — set only through the approve endpoint, dropped from create/PUT bodies; (b) a new screening form starts with today's date (editable); (c) the assessment pages read the assessment with its methods, consultations and scores in **one** request instead of four; (d) `express-rate-limit` upgraded to 8.x with `ipKeyGenerator` for the IP fallback key (IPv6 grouped by subnet). (a)–(c) in phase 8, (d) in phase 11. |
 
 ## Open items
 

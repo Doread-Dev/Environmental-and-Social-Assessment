@@ -2,7 +2,7 @@
 
 **Goal:** bring the approved v2 visuals and the official-format Excel exports into this repo.
 
-**Decisions:** D49, D51, D52, D54, D55, D59 (+ D25 already done in phase 6).
+**Decisions:** D49, D51, D52, D54, D55, D59, D63 (a)–(c) (+ D25 already done in phase 6).
 
 ## Tasks
 
@@ -27,9 +27,17 @@
 - Navigation stays as this repo: one "SEMP – Tools 3 & 4" entry; overview label "Risk Level" (D59).
 - Viewers: no Start/Edit buttons anywhere (from `allowed_actions`).
 
+### Leftovers from the review of phases 0–5 (D63)
+- **Recommendations belong to the approver (a):** remove `recommendations` from the create and update schemas of screening and assessment (`validators/screening.validator.js`, `validators/assessment.validator.js`); it is set only by `PATCH …/approve`. The forms never send it; the approval sections keep their field.
+- **Screening date (b):** a new screening form starts with today's date instead of empty (`ScreeningFormPage.jsx`); still editable, still required.
+- **One request for the assessment (c):** `GET /assessments/project/:projectId` returns the assessment with `methods`, `consultations` and `scores` embedded (null when not started). `useAssessment` reads only that and keeps the separate GETs out of the frontend; remove those GET endpoints if nothing else uses them (`tests/removedEndpoints.test.js`). Update the request-count table in `05-frontend-data.md` (assessment gateway 5 → 3 when the assessment exists: `/auth/me`, workspace, assessment; + `/lookups` / screening only where the page needs them).
+
 ## Tests
 - Workbook builders run in Node tests: sheet names, header rows, merges, one data row, responsible user vs text.
 - Responsible control switches modes and clears the other value.
+- `recommendations` in a create/PUT body is ignored; approve still stores it.
+- New screening form shows today's date.
+- The assessment read returns methods, consultations and scores; the assessment pages make one assessment request (`requestCounts.test.jsx`).
 
 ## Done when
 - [ ] Owner has checked light/dark screens, login page and one export of each tool against the official workbook.

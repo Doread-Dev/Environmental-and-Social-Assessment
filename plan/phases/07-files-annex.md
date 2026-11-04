@@ -4,6 +4,8 @@
 
 **Decisions:** D47 (and D46/D48 for the §7 part).
 
+> **Superseded in part (review of phase 7, D64):** the Annex A–H titles were placeholder data. Annexes become an organisation reference library and the per-project page becomes "Project documents" grouped by tool — phase 7b. The file module itself stays. File writes get activity-log entries in phase 7a (D65).
+
 ## Design
 - Model `ProjectFile`: `project`, `area` (`annex` | `semp_record`), `category` (annex: `annex_a`…`annex_h`; semp_record: the 11 §6.1 categories or `null`), `original_name`, `stored_name` (server-generated), `mime_type`, `size`, `uploaded_by`, timestamps.
 - Upload parsing: `multer` **2.x** (1.x is deprecated with known vulnerabilities; phase 1 removes the old 1.x dependency) or the current best maintained alternative — check `npm audit` is clean for it.

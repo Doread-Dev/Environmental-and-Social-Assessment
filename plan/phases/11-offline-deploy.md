@@ -2,7 +2,7 @@
 
 **Goal:** the app runs on one internal server with no internet. Vercel is dropped here.
 
-**Decisions:** D6, D37, D38 (+ D47 backups).
+**Decisions:** D6, D37, D38 (+ D47 backups, D64 viewer, D65 activity log).
 
 ## Offline (D37)
 - Self-host Inter and Material Symbols (font files in the repo or via npm packages like `@fontsource/inter` / `material-symbols`); remove the Google Fonts `@import`s in `index.css` and any `<link>` in `index.html`.
@@ -19,13 +19,15 @@
 - Health check and log location documented.
 
 ## Backups
-- Daily `mongodump` + copy of `UPLOADS_DIR`, retention N days, restore procedure tested once (script in `deploy/`).
+- Daily `mongodump` (includes the activity log) + copy of `UPLOADS_DIR` (project files and `library/`), retention N days, restore procedure tested once (script in `deploy/`).
 
 ## Atomic bulk saves (owner, phase 4)
 - Run MongoDB as a **single-node replica set** on the server (`replication.replSetName: rs0` in `mongod.cfg` + `rs.initiate()` once; connection string with `replicaSet=rs0`). Document it in `deploy/`.
+- Put each write and its activity-log entry (D65) in the same transaction, so a write never exists without its entry; keep the purge entry written first.
 - Then wrap the phase 4 bulk saves (`utils/replaceProjectRows.js`, `upsertForProject` in `monitoring.service.js`) in a transaction when the connection supports one, and keep today's path (validate everything, then one `bulkWrite`) as the fallback. Test both (CI needs a replica-set MongoDB for the transaction path).
 
 ## Security for production
+- Helmet CSP must allow the in-app PDF viewer (D64): `blob:` for `frame-src`/`object-src` (or whatever the viewer uses), nothing wider. Test it in the production build.
 - `NODE_ENV=production` checks: strong `JWT_SECRET`, no dev scripts, `clean-test-data` refused, helmet CSP that works with self-hosted assets.
 - `npm audit --omit=dev` in both apps: no high/critical findings; anything moderate left is listed with a reason in this file.
 - Server runs the Node LTS pinned in `.nvmrc` (26 as of phase 0); check it is still the current LTS and bump if a newer LTS line exists.

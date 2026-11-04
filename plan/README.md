@@ -1,6 +1,6 @@
 # ESMS v2 — Phase plan
 
-What we build is decided in [DECISIONS.md](DECISIONS.md) (D1–D63). This file says **in which order**. Each phase is done in its own conversation: open the phase file, do exactly that scope, finish with its "Done when" list.
+What we build is decided in [DECISIONS.md](DECISIONS.md) (D1–D65). This file says **in which order**. Each phase is done in its own conversation: open the phase file, do exactly that scope, finish with its "Done when" list.
 
 The v2 prototype (`Environmental-and-Social-Assessment-main version 2/`, git-ignored) is a **reference only** — see [V2_INVENTORY.md](V2_INVENTORY.md). Port code from it only where a phase file names it; never edit it. Anything from v2 not covered by a decision: keep this repo's behavior and ask the owner.
 
@@ -16,8 +16,10 @@ The v2 prototype (`Environmental-and-Social-Assessment-main version 2/`, git-ign
 | 5 | [Frontend data layer](phases/05-frontend-data.md) | D28a, D30, D33–D35, D57 | 4 |
 | 6 | [Users & passwords](phases/06-users-passwords.md) | D9, D21–D25 | 2, 5 |
 | 7 | [File module & Annex](phases/07-files-annex.md) | D47 | 5 |
-| 8 | [UI & Excel from v2](phases/08-ui-excel.md) | D49–D52, D54, D55, D59, D63 a–c | 5 |
-| 9 | [v3 modules as locked code](phases/09-v3-locked.md) | D46, D48 | 7, 8 |
+| 7a | [Activity log](phases/07a-activity-log.md) | D65 | 7 |
+| 7b | [Reference library & project documents](phases/07b-library-documents.md) | D64 | 7a |
+| 8 | [UI & Excel from v2](phases/08-ui-excel.md) | D49–D52, D54, D55, D59, D63 a–c | 7b |
+| 9 | [v3 modules as locked code](phases/09-v3-locked.md) | D46, D48 | 7b, 8 |
 | 10 | [UI polish](phases/10-ui-polish.md) | D43 | 9 |
 | 10a | [Unhappy paths & edge cases](phases/10a-unhappy-paths.md) | D61, D62 | 10 |
 | 11 | [Offline & server deployment](phases/11-offline-deploy.md) | D6, D37, D38, D63 d | 10a |
@@ -36,6 +38,7 @@ Order matters: removals before new code (less to secure), backend rules before t
 - **Scope:** do only what the phase file lists. Something found outside scope → write it under "Found during phase" at the bottom of that phase file and tell the owner; don't fix it silently.
 - **Docs:** old `backend/docs` and `frontend/docs` are outdated (D44) — code wins. Update `CLAUDE.md` when a convention it describes changes (routes, roles, responses, commands).
 - **Language:** UI and code in English (see DECISIONS context). Replies to the owner in Arabic.
+- **Activity log (D65, from phase 7a):** every new or changed write records its entry through `audit.record` (who, action, project, target, what changed; deletes keep a snapshot; never passwords or tokens), adds its label to `activityLabels.js`, and ships with a test for the entry. Each phase file lists the actions it adds; a write without its entry is not done.
 - **Close a phase:** tick its "Done when" list in the phase file, raise the coverage thresholds, add a one-line result (incl. coverage) to the table below.
 
 ## Progress
@@ -50,7 +53,9 @@ Order matters: removals before new code (less to secure), backend rules before t
 | 4 | Done | `phase-04-aggregate-api` — [PR #11](https://github.com/Doread-Dev/Environmental-and-Social-Assessment/pull/11) | Backend workflow state (`computeWorkflow`, also used by the gates), `GET /auth/me` permissions, `allowed_actions`, `GET /dashboard`, `GET /projects` with workflow + filters + pagination, `GET /projects/:id/workspace`, `GET /lookups`, bulk `PUT /projects/:id/management|mitigation|monitoring` (validated before any write); monitoring "in progress" from its first record (owner); 419 backend / 40 frontend tests, backend lines 92% |
 | 5 | Done | `phase-05-frontend-data` — [PR #12](https://github.com/Doread-Dev/Environmental-and-Social-Assessment/pull/12) | TanStack Query cache + shared workspace query, permissions from `/auth/me` / `allowed_actions`, no workflow rule or role list in the frontend, bulk saves for Tools 3–5, `200 {data:null}` for not started, unused endpoints removed; dashboard 2 requests, overview 2; 419 backend / 73 frontend tests, lines backend 94% / frontend 25% |
 | 6 | Done | `phase-06-users-passwords` — [PR #13](https://github.com/Doread-Dev/Environmental-and-Social-Assessment/pull/13) | Admin-only user management (`POST/PUT /users`, deactivate/reactivate, reset → one-time temporary password, last-active-admin guard), forced change (403 `PASSWORD_CHANGE_REQUIRED`), `PUT /auth/password`, new accounts get a temporary password; Settings → Users, Profile, forced change screen, login "Contact your system administrator", inactive users out of pickers; demo seed creates a user per role; 495 backend / 100 frontend tests, lines backend 94% / frontend 32%; confirmations in an in-app dialog (the browser pane suppresses `window.confirm`) |
-| 7 | Done | `phase-07-files-annex` | File module (`ProjectFile`, multer 2, memory parse → disk under `<UPLOADS_DIR>/<project>/<uuid>.<ext>`): PDF + Office only, 10 MB (owner), extension + first-bytes check, UTF-8 names, authenticated download, `files.edit` action + `upload_rules` in `/auth/me`; `semp_record` area modelled but 404 until v3; files removed with the project (delete/purge/demo reset); Annex A–H page with multi-file upload, download, delete; 558 backend / 115 frontend tests, lines backend 95% / frontend 34% |
+| 7 | Done | `phase-07-files-annex` — [PR #15](https://github.com/Doread-Dev/Environmental-and-Social-Assessment/pull/15) | File module (`ProjectFile`, multer 2, memory parse → disk under `<UPLOADS_DIR>/<project>/<uuid>.<ext>`): PDF + Office only, 10 MB (owner), extension + first-bytes check, UTF-8 names, authenticated download, `files.edit` action + `upload_rules` in `/auth/me`; `semp_record` area modelled but 404 until v3; files removed with the project (delete/purge/demo reset); Annex A–H page with multi-file upload, download, delete; 558 backend / 115 frontend tests, lines backend 95% / frontend 34% |
+| 7a | Not started | | |
+| 7b | Not started | | |
 | 8 | Not started | | |
 | 9 | Not started | | |
 | 10 | Not started | | |

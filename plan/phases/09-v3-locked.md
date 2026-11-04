@@ -2,7 +2,7 @@
 
 **Goal:** port the four v3 modules so v3 only has to switch them on, while in v2 they are **unreachable**: no mounted endpoint, no route, not in the frontend bundle. The UI shows locked buttons.
 
-**Decisions:** D46, D48 (+ D47 §7 area already in the file module).
+**Decisions:** D46, D48 (+ D47 §7 area already in the file module, D64 places, D65 activity log).
 
 ## Modules and v2 sources
 
@@ -19,6 +19,10 @@
 - One constant `V3_LOCKED_NAV` in `routes.config.js` describes the locked buttons (label, icon, location). Locked buttons are not links: lock icon + "Available in v3" tooltip, keyboard-accessible.
 - No env variable, query flag or role can enable them. Enabling = a code change in v3.
 - While porting, align the code with our rules so v3 needs little rework: `admin` role in writer lists, auth on every route, no `status`-style client fields, shared `normalizeResponsibility`, project delete cascade includes SEMP Plan, Stakeholder reports and `semp_record` files (cascade code written but only active when the module is), files via our `ProjectFile` module (not v2 attachments), no v2 feature-flag code (`featureAccess.js`, `FeatureRouteGuard`).
+
+## Places and activity log (D64, D65)
+- Each module's page uses its place key from `config/places.js` (`semp_plan`, `stakeholder_awareness`, `ghg_emissions`, `environmental_data`) for its "Guidance" button, so library documents already linked to it show up when v3 opens.
+- Every write in the ported (dead) code calls `audit.record` with its own actions (e.g. `semp_plan.update`, `ghg_report.save`) and labels, with unit tests, so v3 starts with a complete log.
 
 ## Tests
 - A test that lists the mounted Express routes and fails if any v3 path (`/semp-plan`, `/stakeholder-awareness`, `/organization-*`) is reachable.

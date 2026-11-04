@@ -73,6 +73,8 @@ export function AuthProvider({ children }) {
   const user = meQuery.data?.user ?? session.user
   const permissions = meQuery.data?.permissions ?? NO_PERMISSIONS
   const passwordRules = meQuery.data?.password_rules ?? null
+  // Allowed file types and size, to check a file before uploading it (D47)
+  const uploadRules = meQuery.data?.upload_rules ?? null
   // Set by an admin reset or on a new account (D22): the app shows only the change-password screen
   const mustChangePassword = !!user?.must_change_password
   // Wait for the permissions once per session so guards and buttons don't flicker.
@@ -153,6 +155,7 @@ export function AuthProvider({ children }) {
       error,
       permissions,
       passwordRules,
+      uploadRules,
       mustChangePassword,
 
       // Actions
@@ -184,6 +187,7 @@ export function AuthProvider({ children }) {
       error,
       permissions,
       passwordRules,
+      uploadRules,
       mustChangePassword,
       login,
       logout,

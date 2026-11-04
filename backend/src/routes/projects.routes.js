@@ -3,7 +3,10 @@ const controller = require("../controllers/project.controller");
 const managementController = require("../controllers/managementActivity.controller");
 const mitigationController = require("../controllers/mitigationPlan.controller");
 const monitoringController = require("../controllers/monitoring.controller");
+const fileController = require("../controllers/projectFile.controller");
 const validate = require("../middlewares/validate");
+const { singleFile } = require("../middlewares/upload");
+const { listFilesQuerySchema, uploadFileSchema } = require("../validators/projectFile.validator");
 const {
   createProjectSchema,
   updateProjectSchema,
@@ -45,6 +48,16 @@ router.put(
   requireRole(...EDITOR_ROLES),
   validate(upsertMonitoringSchema),
   monitoringController.upsertForProject
+);
+
+// Project files (D47): Annex A–H; area semp_record answers 404 until v3 (D48).
+router.get("/:id/files", validate(listFilesQuerySchema, "query"), fileController.list);
+router.post(
+  "/:id/files",
+  requireRole(...EDITOR_ROLES),
+  singleFile("file"),
+  validate(uploadFileSchema),
+  fileController.upload
 );
 
 module.exports = router;

@@ -3,6 +3,7 @@ const User = require("../models/user.model");
 const ApiError = require("../utils/ApiError");
 const { permissionsFor } = require("../config/permissions");
 const { PASSWORD_MIN_LENGTH } = require("../validators/auth.validator");
+const { maxUploadBytes, ALLOWED_EXTENSIONS } = require("../config/files");
 
 const signToken = (user) =>
   jwt.sign({ sub: user._id, role: user.role }, process.env.JWT_SECRET, {
@@ -27,6 +28,8 @@ const getMe = async (userId) => {
     user,
     permissions: permissionsFor(user.role),
     password_rules: { min_length: PASSWORD_MIN_LENGTH },
+    // So the client can check a file before sending it; the server checks again (D47).
+    upload_rules: { max_bytes: maxUploadBytes(), extensions: ALLOWED_EXTENSIONS },
   };
 };
 

@@ -17,6 +17,7 @@ export const queryKeys = {
   management: (projectId) => ['management', projectId],
   mitigation: (projectId) => ['mitigation', projectId],
   monitoring: (projectId) => ['monitoring', projectId],
+  files: (projectId, area) => ['files', projectId, area],
 }
 
 /**

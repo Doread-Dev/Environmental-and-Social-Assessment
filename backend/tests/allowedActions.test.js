@@ -118,8 +118,10 @@ const states = [
 const cases = states.flatMap((state) =>
   ROLES.map((role) => {
     const group = GROUP[role];
-    const expected =
+    const listed =
       group === "viewer" ? [] : (state[group] ?? (group === "admin" ? state.specialist : []));
+    // Project files (Annex, D47) have no workflow lock: whoever may edit the project may upload.
+    const expected = state.archived || group === "viewer" ? listed : [...listed, "files.edit"];
     return { ...state, role, expected };
   })
 );
@@ -177,6 +179,10 @@ describe("GET /auth/me (D35)", () => {
     expect(res.body.data.user).not.toHaveProperty("password");
     expect([...res.body.data.permissions].sort()).toEqual(expectedPermissions(role));
     expect(res.body.data.password_rules).toEqual({ min_length: 6 });
+    expect(res.body.data.upload_rules).toEqual({
+      max_bytes: 10 * 1024 * 1024,
+      extensions: ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "odt", "ods", "odp"],
+    });
   });
 
   it("viewers have no export permission (D28a)", async () => {

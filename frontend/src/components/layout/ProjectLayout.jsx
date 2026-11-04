@@ -3,6 +3,7 @@ import { Outlet, useParams, useLocation, useNavigate } from 'react-router-dom'
 import { cn } from '@/utils'
 import { ROUTES } from '@/routes/routes.config'
 import { useWorkspace } from '@/hooks'
+import { GuidanceButton, useCurrentPlace } from '@/components/library'
 import ProjectSidebar from './ProjectSidebar'
 import MobileMenu from './MobileMenu'
 
@@ -33,6 +34,8 @@ function ProjectLayout() {
     refetch,
   } = useWorkspace(projectId)
   const canExport = can('export')
+  // The place of the current page (route handle), for its Guidance button (D64 c)
+  const place = useCurrentPlace()
 
   // Check if we're on screening page and get screening status for Export button
   const isScreeningPage = location.pathname.includes('/screening')
@@ -152,7 +155,7 @@ function ProjectLayout() {
             'bg-surface dark:bg-surface-dark',
             'border-b border-border-default dark:border-border-dark',
             'flex items-center justify-between',
-            'px-6 lg:px-10'
+            'px-4 sm:px-6 lg:px-10'
           )}
         >
           {/* Left Section - Mobile Menu Button & Logo */}
@@ -169,11 +172,11 @@ function ProjectLayout() {
             </div>
 
             {/* Logo & Title */}
-            <div className="flex items-center gap-3 px-2">
+            <div className="flex items-center gap-3 sm:px-2">
               <div className="flex items-center justify-center size-10 rounded-xl bg-primary text-white">
                 <span className="material-symbols-outlined text-2xl">eco</span>
               </div>
-              <div className="flex flex-col">
+              <div className="hidden sm:flex flex-col">
                 <h1 className="text-lg font-bold leading-tight text-text-main dark:text-white">
                   ESMS System
                 </h1>
@@ -182,7 +185,8 @@ function ProjectLayout() {
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3 sm:gap-6">
+            <GuidanceButton place={place} />
             {/* Export Excel Button - Only show on Screening Summary page when status is submitted */}
             {showExportButton && (
               <button

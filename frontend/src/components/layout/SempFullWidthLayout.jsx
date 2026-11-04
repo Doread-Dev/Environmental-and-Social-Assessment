@@ -6,6 +6,7 @@
 import { Outlet, useParams, useNavigate } from 'react-router-dom'
 import { useWorkspace } from '@/hooks'
 import { isStepLocked } from '@/utils/workflowSteps'
+import { GuidanceButton, useCurrentPlace } from '@/components/library'
 
 export default function SempFullWidthLayout() {
   const { projectId } = useParams()
@@ -13,6 +14,8 @@ export default function SempFullWidthLayout() {
 
   // Same workspace query as the route guard above (no extra request)
   const { project, workflow, can, isLoading } = useWorkspace(projectId)
+  // Tool 3 or Tool 4 (route handle), for its Guidance button (D64 c)
+  const place = useCurrentPlace()
 
   const handleExport = () => {
     // Determine which tool is active from route
@@ -84,19 +87,20 @@ export default function SempFullWidthLayout() {
   return (
     <div className="flex flex-col min-h-screen bg-background dark:bg-background-dark">
       {/* Global Header */}
-      <header className="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-border-default dark:border-border-dark bg-surface dark:bg-surface-dark px-6 md:px-10 py-3 shadow-sm h-16 shrink-0">
-        <div className="flex items-center gap-3 px-2">
+      <header className="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-border-default dark:border-border-dark bg-surface dark:bg-surface-dark px-4 sm:px-6 md:px-10 py-3 shadow-sm h-16 shrink-0">
+        <div className="flex items-center gap-3 sm:px-2">
           <div className="flex items-center justify-center size-10 rounded-xl bg-primary text-white">
             <span className="material-symbols-outlined text-2xl">eco</span>
           </div>
-          <div className="flex flex-col">
+          <div className="hidden sm:flex flex-col">
             <h1 className="text-lg font-bold leading-tight text-text-main dark:text-white">
               ESMS System
             </h1>
           </div>
         </div>
 
-        <div className="flex flex-1 justify-end gap-6 items-center">
+        <div className="flex flex-1 justify-end gap-3 sm:gap-6 items-center">
+          <GuidanceButton place={place} />
           {can('export') && (
             <button
               onClick={handleExport}

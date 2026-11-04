@@ -28,7 +28,8 @@ const PROJECT_SCOPED = [
   "/dashboard",
 ];
 // Not about a project: own account, users, lookups, the admin-wide audit log.
-const NOT_PROJECT_SCOPED = ["/auth", "/users", "/lookups", "/audit-logs"];
+// The reference library is organisation guidance, not tied to a project (D64 b).
+const NOT_PROJECT_SCOPED = ["/auth", "/users", "/lookups", "/audit-logs", "/library"];
 // Creating a project is a permission, there is no project to check yet.
 const NO_PROJECT_YET = new Set(["post /projects"]);
 const LISTS = new Set(["get /projects", "get /dashboard"]);
@@ -81,8 +82,8 @@ async function fixture() {
   const record = await MonitoringRecord.create({ project: project._id, indicator: indicator._id });
   const file = await ProjectFile.create({
     project: project._id,
-    area: "annex",
-    category: "annex_a",
+    area: "documents",
+    category: "screening",
     original_name: "a.pdf",
     stored_name: "11111111-1111-4111-8111-111111111111.pdf",
     mime_type: "application/pdf",

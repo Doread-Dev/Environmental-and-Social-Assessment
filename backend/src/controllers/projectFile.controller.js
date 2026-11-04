@@ -1,5 +1,6 @@
 const asyncHandler = require("../utils/asyncHandler");
 const fileService = require("../services/projectFile.service");
+const storage = require("../services/fileStorage.service");
 
 exports.list = asyncHandler(async (req, res) => {
   const data = await fileService.listFiles(req.params.id, req.query.area);
@@ -13,13 +14,7 @@ exports.upload = asyncHandler(async (req, res) => {
 
 exports.download = asyncHandler(async (req, res, next) => {
   const { file, fullPath } = await fileService.getDownload(req.params.fileId);
-  // attachment() writes both filename= (ASCII fallback) and filename*=UTF-8'' (Arabic names).
-  res.attachment(file.original_name);
-  res.type(file.mime_type);
-  res.set("Cache-Control", "private, no-store");
-  res.sendFile(fullPath, { dotfiles: "deny" }, (err) => {
-    if (err && !res.headersSent) next(err);
-  });
+  storage.send(res, next, { name: file.original_name, mime: file.mime_type, fullPath });
 });
 
 exports.remove = asyncHandler(async (req, res) => {

@@ -71,7 +71,7 @@ router.put(
   monitoringController.upsertForProject
 );
 
-// Project files (D47): Annex A–H; area semp_record answers 404 until v3 (D48).
+// Project documents (D47, D64 d); area semp_record answers 404 until v3 (D48).
 router.get("/:id/files", project, validate(listFilesQuerySchema, "query"), fileController.list);
 router.post(
   "/:id/files",

@@ -8,7 +8,7 @@ import { createProject, loginAs } from "./helpers/fixtures.js";
 const Project = require("../../src/models/project.model");
 const ProjectFile = require("../../src/models/projectFile.model");
 const AuditLog = require("../../src/models/auditLog.model");
-const { cleanOriginalName } = require("../../src/services/projectFile.service");
+const { cleanOriginalName } = require("../../src/services/fileStorage.service");
 
 const auth = (token) => ({ Authorization: `Bearer ${token}` });
 const uploads = () => process.env.UPLOADS_DIR;
@@ -27,7 +27,7 @@ const XLS = Buffer.concat([
 
 const upload = (projectId, token, { name = "report.pdf", data = PDF, fields } = {}) => {
   const req = request(app).post(`/api/v1/projects/${projectId}/files`).set(auth(token));
-  const sent = fields ?? { area: "annex", category: "annex_a" };
+  const sent = fields ?? { area: "documents", category: "screening" };
   Object.entries(sent).forEach(([key, value]) => req.field(key, value));
   return name === null ? req : req.attach("file", data, name);
 };
@@ -43,7 +43,7 @@ afterEach(() => {
 });
 
 describe("POST /projects/:id/files (D47)", () => {
-  it("stores an annex file under a server-generated name and returns its row", async () => {
+  it("stores a project document under a server-generated name and returns its row", async () => {
     const { user, token, project } = await setup();
 
     const res = await upload(project._id, token, { name: "Policy.pdf" });
@@ -51,8 +51,8 @@ describe("POST /projects/:id/files (D47)", () => {
     expect(res.status).toBe(201);
     expect(res.body.data).toMatchObject({
       project: project._id.toString(),
-      area: "annex",
-      category: "annex_a",
+      area: "documents",
+      category: "screening",
       original_name: "Policy.pdf",
       mime_type: "application/pdf",
       size: PDF.length,
@@ -147,12 +147,26 @@ describe("POST /projects/:id/files (D47)", () => {
     expect(res.status).toBe(400);
   });
 
+  it.each(["screening", "assessment", "management", "mitigation", "monitoring", "other"])(
+    "accepts the project-workflow place %s as category (D64 d)",
+    async (category) => {
+      const { token, project } = await setup();
+      const res = await upload(project._id, token, { fields: { area: "documents", category } });
+      expect(res.status).toBe(201);
+      expect(res.body.data.category).toBe(category);
+    }
+  );
+
   it.each([
-    ["missing category", { area: "annex" }, /category/],
-    ["unknown category", { area: "annex", category: "annex_z" }, /category/],
-    ["SEMP category on an annex file", { area: "annex", category: "legal_register" }, /category/],
-    ["missing area", { category: "annex_a" }, /area/],
-    ["unknown area", { area: "photos", category: "annex_a" }, /area/],
+    ["missing category", { area: "documents" }, /category/],
+    ["unknown category", { area: "documents", category: "photos" }, /category/],
+    ["old annex category", { area: "documents", category: "annex_a" }, /category/],
+    ["v3 place", { area: "documents", category: "semp_plan" }, /category/],
+    ["organization place", { area: "documents", category: "ghg_emissions" }, /category/],
+    ["SEMP category on a document", { area: "documents", category: "legal_register" }, /category/],
+    ["missing area", { category: "screening" }, /area/],
+    ["old annex area", { area: "annex", category: "annex_a" }, /area/],
+    ["unknown area", { area: "photos", category: "screening" }, /area/],
   ])("400 on %s", async (_label, fields, message) => {
     const { token, project } = await setup();
     const res = await upload(project._id, token, { fields });
@@ -180,8 +194,8 @@ describe("POST /projects/:id/files (D47)", () => {
     const res = await request(app)
       .post(`/api/v1/projects/${project._id}/files`)
       .set(auth(token))
-      .field("area", "annex")
-      .field("category", "annex_a")
+      .field("area", "documents")
+      .field("category", "screening")
       .attach("document", PDF, "a.pdf");
     expect(res.status).toBe(400);
   });
@@ -206,37 +220,37 @@ describe("POST /projects/:id/files (D47)", () => {
     expect(fs.existsSync(uploads()) ? fs.readdirSync(uploads()) : []).toEqual([]);
   });
 
-  it("does not need any workflow step (Annex is open from the start)", async () => {
+  it("does not need any workflow step (Documents are open from the start)", async () => {
     const { token, project } = await setup();
     expect((await upload(project._id, token)).status).toBe(201);
   });
 });
 
 describe("GET /projects/:id/files", () => {
-  it("lists the project's annex files oldest first, for every role", async () => {
+  it("lists the project's documents oldest first, for every role", async () => {
     const { token, project } = await setup();
     const other = await createProject();
     await upload(project._id, token, { name: "first.pdf" });
     await upload(project._id, token, {
       name: "second.pdf",
-      fields: { area: "annex", category: "annex_h" },
+      fields: { area: "documents", category: "other" },
     });
     await upload(other._id, token, { name: "elsewhere.pdf" });
 
     const viewer = await loginAs("viewer");
     const res = await request(app)
-      .get(`/api/v1/projects/${project._id}/files?area=annex`)
+      .get(`/api/v1/projects/${project._id}/files?area=documents`)
       .set(auth(viewer.token));
 
     expect(res.status).toBe(200);
     expect(res.body.data.map((file) => [file.original_name, file.category])).toEqual([
-      ["first.pdf", "annex_a"],
-      ["second.pdf", "annex_h"],
+      ["first.pdf", "screening"],
+      ["second.pdf", "other"],
     ]);
     expect(res.body.data[0].uploaded_by).toHaveProperty("name");
   });
 
-  it("defaults to the annex area and answers [] when empty", async () => {
+  it("defaults to the documents area and answers [] when empty", async () => {
     const { token, project } = await setup();
     const res = await request(app).get(`/api/v1/projects/${project._id}/files`).set(auth(token));
     expect(res.status).toBe(200);
@@ -378,7 +392,7 @@ describe("SEMP Plan §7 records are locked until v3 (D48)", () => {
       uploaded_by: user._id,
     });
     await expect(uncategorised.validate()).resolves.toBeUndefined();
-    uncategorised.category = "annex_a";
+    uncategorised.category = "screening";
     await expect(uncategorised.validate()).rejects.toThrow(/Invalid category/);
   });
 
@@ -406,7 +420,7 @@ describe("SEMP Plan §7 records are locked until v3 (D48)", () => {
     expect((await ProjectFile.findById(record._id)).category).toBe("legal_register");
   });
 
-  it("an annex file cannot change category (400)", async () => {
+  it("a project document cannot change category (400)", async () => {
     const { token, project } = await setup();
     const { body } = await upload(project._id, token);
     const res = await request(app)

@@ -22,5 +22,5 @@ export { SempOverviewPage, ManagementActivitiesPage, MitigationPlanPage } from '
 // Monitoring
 export { MonitoringOverviewPage, MonitoringDataEntryPage } from './monitoring'
 
-// Annex & Files
-export { AnnexOverviewPage } from './annex'
+// Project documents (D64 d)
+export { ProjectDocumentsPage } from './documents'

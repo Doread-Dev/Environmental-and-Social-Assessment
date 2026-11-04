@@ -84,7 +84,7 @@ function ProjectSidebar({ project, className }) {
   // Render expandable nav item
   const renderExpandableItem = (item) => {
     // Annex is never locked
-    const isLocked = item.id !== 'annex' && isStepLocked(item.id)
+    const isLocked = item.id !== 'documents' && isStepLocked(item.id)
     const isCompleted = isStepCompleted(item.id)
     const hasActive = hasActiveChild(item.children)
     const isParentActive = isNavActive(item.path)

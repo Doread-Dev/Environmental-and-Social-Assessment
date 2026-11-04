@@ -77,11 +77,19 @@ Reworking phase 7 code is fine (owner): choose the clean design, not the smalles
 - Request counts: a tool page adds at most one library request, and none when it's cached (`requestCounts.test.jsx`).
 
 ## Done when
-- [ ] Owner has uploaded Annex 1 and opened it from Tool 4 without leaving the page, as an editor and as a viewer, in light and dark mode.
-- [ ] Project documents page grouped by place; PDF preview works; Office downloads.
-- [ ] `CLAUDE.md` describes places, the library, project documents and the viewer.
+- [ ] Owner has uploaded Annex 1 and opened it from Tool 4 without leaving the page, as an editor and as a viewer, in light and dark mode. *(Owner step after merge. The same flow was checked in the browser with the demo sample PDF: editor and viewer, light and dark, desktop and 375 px, unsaved Tool 4 input kept.)*
+- [x] Project documents page grouped by place; PDF preview works; Office downloads.
+- [x] `CLAUDE.md` describes places, the library, project documents and the viewer.
 
 ## Out of scope
 Showing project documents inside each tool (later, owner decides); Office preview; server-side conversion; v3 pages themselves (phase 9 — but their places already exist).
 
 ## Found during phase
+- **Owner question (Annex 1):** after uploading it linked to `mitigation` (Tool 4), should it also be linked to `management` (Tool 3)? Either is one click in the Library (Edit → Show in).
+- **Old Annex rows:** project files uploaded in phase 7 (area `annex`, categories `annex_a…h`) are not migrated (no real data, README rule). In a database that still has them they are not listed and answer 404 (the area is no longer open); they go with their project's delete/purge. Old `file.delete` log entries still read well ("Annex C (before phase 7b)").
+- **Escape inside the PDF:** when the keyboard focus is inside the browser's PDF frame, Escape goes to the browser's PDF viewer, not the page, so it does not close the viewer. The viewer puts focus on its Close button when it opens, so Escape works until the user clicks into the PDF; the Close button always works.
+- **"Download to view" fallback:** the browser pane's mobile emulation still reports `navigator.pdfViewerEnabled = true` (desktop Chrome), so the fallback is covered by the `PdfViewer` test only. Check it once on a real phone (Android Chrome) in phase 10/12.
+- **Mobile headers:** with the Guidance button, the Tool 3/4 header did not fit at 375 px ("Export Excel" cut off). Both layout headers now hide the "ESMS System" text below the `sm` breakpoint (the logo stays) and use less side padding. Phase 10 may revisit the header as a whole.
+- **Library search:** the Library page loads the list once and searches/filters in the browser (instant, no request per keystroke). `GET /library?search=` exists and is tested as the phase asked, but the frontend does not call it yet.
+- **Activity log:** the page now also loads `/lookups` (once, cached) to label file categories and library links by place.
+- **SEMP overview** (`/semp`) is not a place, so it shows no Guidance button; Tools 3 and 4 have theirs.

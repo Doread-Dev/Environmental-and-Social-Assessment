@@ -18,6 +18,9 @@ export const queryKeys = {
   mitigation: (projectId) => ['mitigation', projectId],
   monitoring: (projectId) => ['monitoring', projectId],
   files: (projectId, area) => ['files', projectId, area],
+  // Reference library (D64): every document, or those linked to one place. Writes refresh
+  // ['library'] (all of them).
+  library: (place = null) => ['library', place ?? 'all'],
   auditLogs: (params) => ['audit-logs', params],
 }
 

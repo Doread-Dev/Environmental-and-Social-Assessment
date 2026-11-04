@@ -224,7 +224,7 @@ describe("GET /projects/:id/workspace (D31)", () => {
 });
 
 describe("GET /lookups (D31)", () => {
-  it("returns all four lookup collections in one response", async () => {
+  it("returns all four lookup collections and the places registry in one response", async () => {
     await seedLookups();
 
     const res = await get("/api/v1/lookups");
@@ -235,6 +235,8 @@ describe("GET /lookups (D31)", () => {
       "impact_questions",
       "indicators",
       "job_titles",
+      "place_groups",
+      "places",
     ]);
     expect(res.body.data.impact_categories).toHaveLength(await ImpactCategory.countDocuments());
     expect(res.body.data.impact_questions).toHaveLength(await ImpactQuestion.countDocuments());

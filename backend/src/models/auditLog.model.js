@@ -10,6 +10,8 @@ const AUDIT_ACTIONS = [
   "project.archive",
   "project.restore",
   "file.delete",
+  "library.replace_file",
+  "library.delete",
   "management.rows_removed",
   "mitigation.rows_removed",
   "user.create",
@@ -22,7 +24,14 @@ const AUDIT_ACTIONS = [
 // The prefixes GET /audit-logs accepts as a filter ("user." → every user action).
 const AUDIT_ACTION_PREFIXES = [...new Set(AUDIT_ACTIONS.map((a) => `${a.split(".")[0]}.`))];
 
-const TARGET_TYPES = ["project", "file", "management_activity", "mitigation_plan", "user"];
+const TARGET_TYPES = [
+  "project",
+  "file",
+  "library_document",
+  "management_activity",
+  "mitigation_plan",
+  "user",
+];
 
 const { ObjectId, Mixed } = mongoose.Schema.Types;
 

@@ -1,7 +1,7 @@
 /**
  * useProjectFiles Hook
- * Files of one project area (Annex A–H, D47): list, upload (several files, one after the other,
- * one refresh at the end), download (authenticated) and delete.
+ * Files of one project area (project documents, D47 / D64 d): list, upload (several files, one
+ * after the other, one refresh at the end), download (authenticated) and delete.
  *
  * Files don't change the workflow state, so writes refresh only this list (not the workspace).
  */
@@ -12,24 +12,13 @@ import { extractErrorMessage } from '@/services/api'
 import { queryKeys } from '@/services/queryKeys'
 import { useAuth } from '@/contexts'
 import { checkFile } from '@/utils/fileRules'
-
-/** Save a Blob under the given name through a temporary link. */
-function saveBlob(blob, name) {
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = name
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  setTimeout(() => URL.revokeObjectURL(url), 0)
-}
+import { saveBlob } from '@/utils/saveBlob'
 
 /**
  * @param {string} projectId
- * @param {'annex'} [area]
+ * @param {'documents'} [area]
  */
-export function useProjectFiles(projectId, area = 'annex') {
+export function useProjectFiles(projectId, area = 'documents') {
   const queryClient = useQueryClient()
   const { uploadRules } = useAuth()
   const queryKey = queryKeys.files(projectId, area)
@@ -49,7 +38,8 @@ export function useProjectFiles(projectId, area = 'annex') {
   })
 
   /**
-   * Upload the given files to one category, sequentially. Never throws.
+   * Upload the given files to one category (a project-workflow place key or "other"),
+   * sequentially. Never throws.
    * @param {string} category
    * @param {File[]} files
    * @returns {Promise<{uploaded: number, failed: {name: string, error: string}[]}>}

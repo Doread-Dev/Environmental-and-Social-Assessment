@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { spawn, spawnSync } from "node:child_process";
 import path from "node:path";
@@ -10,12 +11,15 @@ const Project = require("../../src/models/project.model");
 const Screening = require("../../src/models/screening.model");
 const AuditLog = require("../../src/models/auditLog.model");
 const User = require("../../src/models/user.model");
+const LibraryDocument = require("../../src/models/libraryDocument.model");
+const { samplePdf } = require("../../scripts/lib/samplePdf");
 
 const script = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../scripts/seed-demo-project.js"
 );
 const DEMO_TITLE = "[DEMO] Al-Salam Water Network Rehabilitation";
+const DEMO_LIBRARY_TITLE = "[DEMO] Sample guidance";
 
 // Async spawn: the script calls this test's own server, which spawnSync would block.
 function run(env) {
@@ -60,6 +64,22 @@ describe("scripts/seed-demo-project.js", () => {
     const oldArchived = await createProject({ title: DEMO_TITLE, stage: "screening_approved" });
     await Project.updateOne({ _id: oldArchived._id }, { archived: true });
     const other = await createProject({ title: "Real project", stage: "screening_approved" });
+    // A previous demo library document (row + file) and a real one.
+    const libraryDir = path.join(process.env.UPLOADS_DIR, "library");
+    fs.mkdirSync(libraryDir, { recursive: true });
+    const oldStored = "00000000-0000-4000-8000-000000000001.pdf";
+    fs.writeFileSync(path.join(libraryDir, oldStored), "%PDF-1.4\n");
+    const libraryRow = (title, stored_name) => ({
+      title,
+      places: ["mitigation"],
+      original_name: "a.pdf",
+      stored_name,
+      mime_type: "application/pdf",
+      size: 9,
+      uploaded_by: user._id,
+    });
+    const oldDemoDoc = await LibraryDocument.create(libraryRow(DEMO_LIBRARY_TITLE, oldStored));
+    await LibraryDocument.create(libraryRow("Annex 1", "00000000-0000-4000-8000-000000000002.pdf"));
 
     const result = await run({ API_URL: apiUrl, SEED_EMAIL: user.email, SEED_PASSWORD: password });
 
@@ -73,7 +93,17 @@ describe("scripts/seed-demo-project.js", () => {
     expect(await Screening.exists({ project: other._id })).not.toBeNull();
     // A dev-script cleanup is not an admin purge or delete: no project entry in the audit log.
     // (The demo users go through the admin endpoints, so their user.* entries are logged.)
-    expect(await AuditLog.countDocuments({ action: /^project./ })).toBe(0);
+    expect(await AuditLog.countDocuments({ action: /^(project|library)\./ })).toBe(0);
+
+    // One generated sample PDF linked to Tool 4 replaces the previous demo copy (D64).
+    const demoDocs = await LibraryDocument.find({ title: DEMO_LIBRARY_TITLE });
+    expect(demoDocs).toHaveLength(1);
+    expect(demoDocs[0]._id.toString()).not.toBe(oldDemoDoc._id.toString());
+    expect(demoDocs[0]).toMatchObject({ places: ["mitigation"], mime_type: "application/pdf" });
+    expect(await LibraryDocument.exists({ title: "Annex 1" })).not.toBeNull();
+    expect(fs.existsSync(path.join(libraryDir, oldStored))).toBe(false);
+    const sample = fs.readFileSync(path.join(libraryDir, demoDocs[0].stored_name));
+    expect(sample.subarray(0, 5).toString()).toBe("%PDF-");
     expect(await AuditLog.countDocuments({ action: "user.create" })).toBeGreaterThan(0);
   }, 60000);
 
@@ -106,6 +136,19 @@ describe("scripts/seed-demo-project.js", () => {
       expect(res.status, email).toBe(200);
     }
   }, 60000);
+
+  it("the sample PDF is well-formed: xref offsets point at each object", () => {
+    const pdf = samplePdf("Title (demo)", ["Line one", "Back\\slash"]).toString("latin1");
+    const xref = Number(/startxref\n(\d+)/.exec(pdf)[1]);
+    expect(pdf.slice(xref, xref + 4)).toBe("xref");
+    const offsets = [...pdf.slice(xref).matchAll(/^(\d{10}) 00000 n $/gm)].map((m) => Number(m[1]));
+    expect(offsets).toHaveLength(5);
+    offsets.forEach((offset, i) =>
+      expect(pdf.slice(offset)).toMatch(new RegExp(`^${i + 1} 0 obj`))
+    );
+    expect(pdf).toContain("(Title \\(demo\\)) Tj");
+    expect(pdf.endsWith("%%EOF\n")).toBe(true);
+  });
 
   it("refuses a seed account that is not an admin", async () => {
     const { user, password } = await createUser("environmental_specialist");

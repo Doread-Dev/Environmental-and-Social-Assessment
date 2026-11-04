@@ -112,3 +112,39 @@ export function workspaceFixture({ steps = {}, allowed_actions = [], project = {
     counts: { management_activities: 0, mitigation_plans: 0, monitoring_records: 0 },
   }
 }
+
+/**
+ * GET /lookups with the places registry (D64 a) — a test copy of backend config/places.js, so
+ * pages that group or label by place can be rendered.
+ */
+export function lookupsFixture() {
+  const place = (key, label, group, locked = false) => ({
+    key,
+    label,
+    group,
+    scope: group === 'organization' ? 'organization' : 'project',
+    locked,
+  })
+  return {
+    impact_categories: [],
+    impact_questions: [],
+    indicators: [],
+    job_titles: [],
+    place_groups: [
+      { key: 'project_workflow', label: 'Project workflow' },
+      { key: 'project_support', label: 'Project support' },
+      { key: 'organization', label: 'Organization' },
+    ],
+    places: [
+      place('screening', 'Screening – Tool 1', 'project_workflow'),
+      place('assessment', 'Assessment – Tool 2', 'project_workflow'),
+      place('management', 'Management activities – Tool 3', 'project_workflow'),
+      place('mitigation', 'Mitigation plan – Tool 4', 'project_workflow'),
+      place('monitoring', 'Monitoring – Tool 5', 'project_workflow'),
+      place('semp_plan', 'SEMP Plan', 'project_support', true),
+      place('stakeholder_awareness', 'Stakeholder Awareness', 'project_support', true),
+      place('ghg_emissions', 'GHG Emissions', 'organization', true),
+      place('environmental_data', 'Environmental Data Collection', 'organization', true),
+    ],
+  }
+}

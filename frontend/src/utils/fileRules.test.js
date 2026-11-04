@@ -32,3 +32,14 @@ describe('fileRules', () => {
     expect(checkFile(fakeFile('a.exe', 10), null)).toBeNull()
   })
 })
+
+describe('libraryRules (D64 b)', () => {
+  it('keeps the size limit and allows the library extensions only', async () => {
+    const { libraryRules } = await import('./fileRules')
+    const rules = libraryRules({ ...RULES, library_extensions: ['pdf'] })
+    expect(rules).toEqual({ ...RULES, library_extensions: ['pdf'], extensions: ['pdf'] })
+    expect(checkFile(fakeFile('plan.docx', 10), rules)).toMatch(/Allowed: \.pdf$/)
+    expect(checkFile(fakeFile('guide.pdf', 10), rules)).toBeNull()
+    expect(libraryRules(null)).toBeNull()
+  })
+})

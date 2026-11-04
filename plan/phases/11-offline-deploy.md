@@ -27,7 +27,7 @@
 - Then wrap the phase 4 bulk saves (`utils/replaceProjectRows.js`, `upsertForProject` in `monitoring.service.js`) in a transaction when the connection supports one, and keep today's path (validate everything, then one `bulkWrite`) as the fallback. Test both (CI needs a replica-set MongoDB for the transaction path).
 
 ## Security for production
-- Helmet CSP must allow the in-app PDF viewer (D64): `blob:` for `frame-src`/`object-src` (or whatever the viewer uses), nothing wider. Test it in the production build.
+- Helmet CSP must allow the in-app PDF viewer (D64): it shows the PDF in an `iframe` on a `blob:` URL (`components/files/PdfViewer.jsx`), so `frame-src blob:` (and `object-src blob:` only if the viewer ever moves to `<object>`), nothing wider. Test it in the production build.
 - `NODE_ENV=production` checks: strong `JWT_SECRET`, no dev scripts, `clean-test-data` refused, helmet CSP that works with self-hosted assets.
 - `npm audit --omit=dev` in both apps: no high/critical findings; anything moderate left is listed with a reason in this file.
 - Server runs the Node LTS pinned in `.nvmrc` (26 as of phase 0); check it is still the current LTS and bump if a newer LTS line exists.

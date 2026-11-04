@@ -6,7 +6,7 @@
  */
 
 import { Fragment, useState } from 'react'
-import { useAuditLogs } from '@/hooks'
+import { useAuditLogs, useLookups } from '@/hooks'
 import { ROLE_LABELS } from '@/contexts'
 import { Table, Badge, Pagination, Button, Icon } from '@/components/ui'
 import { cn } from '@/utils/cn'
@@ -23,7 +23,9 @@ const PAGE_SIZE = 20
 const COLUMNS = 6
 
 function EntryDetails({ entry }) {
-  const { fields, rows } = describeAuditEntry(entry)
+  // Place labels for file categories and library links (GET /lookups, cached)
+  const { placeLabel } = useLookups()
+  const { fields, rows } = describeAuditEntry(entry, { placeLabel })
   if (fields.length === 0 && rows.length === 0) {
     return (
       <p className="text-sm text-text-secondary dark:text-gray-400">

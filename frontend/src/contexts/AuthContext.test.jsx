@@ -29,7 +29,14 @@ describe('useAuth permissions come from GET /auth/me (D35)', () => {
 
   it('waits for the permissions, then exposes them', async () => {
     signIn()
-    const { result } = renderAuth(['edit', 'export', 'approve', 'manage_users', 'delete_project'])
+    const { result } = renderAuth([
+      'edit',
+      'export',
+      'approve',
+      'manage_users',
+      'delete_project',
+      'manage_library',
+    ])
 
     expect(result.current.isLoading).toBe(true)
     await waitFor(() => expect(result.current.isLoading).toBe(false))
@@ -40,6 +47,7 @@ describe('useAuth permissions come from GET /auth/me (D35)', () => {
       canApprove: true,
       canManageUsers: true,
       canDeleteProject: true,
+      canManageLibrary: true,
     })
     expect(result.current.can('purge_project')).toBe(false)
     expect(result.current.user.name).toBe('Rana')
@@ -56,6 +64,7 @@ describe('useAuth permissions come from GET /auth/me (D35)', () => {
       canApprove: false,
       canManageUsers: false,
       canCreateProject: false,
+      canManageLibrary: false,
     })
   })
 

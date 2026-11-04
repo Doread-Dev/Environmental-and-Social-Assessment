@@ -17,6 +17,8 @@ export const ROUTES = {
   APP: '/app',
   DASHBOARD: '/app/dashboard',
   PROJECTS: '/app/projects',
+  // Reference library (D64): organisation guidance
+  LIBRARY: '/app/library',
   PROJECT_NEW: '/app/projects/new',
 
   // ==========================================
@@ -45,8 +47,8 @@ export const ROUTES = {
   MONITORING: '/app/projects/:projectId/monitoring',
   MONITORING_DATA: '/app/projects/:projectId/monitoring/data-entry',
 
-  // Annex
-  PROJECT_ANNEX: '/app/projects/:projectId/annex',
+  // Project documents (D64 d)
+  PROJECT_DOCUMENTS: '/app/projects/:projectId/documents',
 
   // Settings
   SETTINGS: '/app/settings',
@@ -86,6 +88,12 @@ export const MAIN_NAV_ITEMS = [
     label: 'Projects',
     icon: 'folder_open',
     path: ROUTES.PROJECTS,
+  },
+  {
+    id: 'library',
+    label: 'Library',
+    icon: 'menu_book',
+    path: ROUTES.LIBRARY,
   },
 ]
 
@@ -136,9 +144,9 @@ export const PROJECT_WORKFLOW_NAV = [
  */
 export const PROJECT_SECONDARY_NAV = [
   {
-    id: 'annex',
-    label: 'Annex',
+    id: 'documents',
+    label: 'Documents',
     icon: 'folder_open',
-    path: 'annex',
+    path: 'documents',
   },
 ]

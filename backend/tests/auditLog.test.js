@@ -12,6 +12,7 @@ const User = require("../../src/models/user.model");
 const ManagementActivity = require("../../src/models/managementActivity.model");
 const MitigationPlan = require("../../src/models/mitigationPlan.model");
 const ProjectFile = require("../../src/models/projectFile.model");
+const LibraryDocument = require("../../src/models/libraryDocument.model");
 const apiRouter = require("../../src/routes");
 const { AUDIT_ACTIONS } = AuditLog;
 
@@ -120,8 +121,8 @@ describe("file.delete (D65)", () => {
     const { user, token } = await loginAs("program_manager");
     const project = await createProject({ title: "Clinic" });
     const uploaded = await api("post", `/projects/${project._id}/files`, uploader.token)
-      .field("area", "annex")
-      .field("category", "annex_c")
+      .field("area", "documents")
+      .field("category", "mitigation")
       .attach("file", PDF, "Permit.pdf");
     expect(uploaded.status).toBe(201);
     const fileId = uploaded.body.data._id;
@@ -135,8 +136,8 @@ describe("file.delete (D65)", () => {
     });
     expect(entry.snapshot).toMatchObject({
       name: "Permit.pdf",
-      area: "annex",
-      category: "annex_c",
+      area: "documents",
+      category: "mitigation",
       size: PDF.length,
       mime_type: "application/pdf",
       uploaded_by_name: uploader.user.name,
@@ -151,8 +152,8 @@ describe("file.delete (D65)", () => {
     const project = await createProject({ archived: true });
     const file = await ProjectFile.create({
       project: project._id,
-      area: "annex",
-      category: "annex_a",
+      area: "documents",
+      category: "other",
       original_name: "a.pdf",
       stored_name: "00000000-0000-4000-8000-000000000000.pdf",
       mime_type: "application/pdf",
@@ -166,6 +167,126 @@ describe("file.delete (D65)", () => {
       404
     );
     expect(await AuditLog.countDocuments()).toBe(0);
+  });
+});
+
+describe("library actions (D65, D64 b)", () => {
+  const PDF_2 = Buffer.concat([PDF, Buffer.from("% second version\n")]);
+  const create = (token, fields = {}) => {
+    const req = api("post", "/library", token);
+    Object.entries({ title: "Annex 1 — Climate", places: "mitigation", ...fields }).forEach(
+      ([key, value]) => req.field(key, value)
+    );
+    return req.attach("file", PDF, "annex-1.pdf");
+  };
+
+  it("library.replace_file: old and new name and size", async () => {
+    const { user, token } = await loginAs("environmental_specialist");
+    const created = await create(token);
+    expect(created.status).toBe(201);
+    const docId = created.body.data._id;
+
+    const res = await api("put", `/library/${docId}/file`, token).attach(
+      "file",
+      PDF_2,
+      "annex-1 v2.pdf"
+    );
+    expect(res.status).toBe(200);
+
+    const entry = await expectOneEntry("library.replace_file", {
+      by: user,
+      project: null,
+      target: { type: "library_document", id: docId, label: "Annex 1 — Climate" },
+    });
+    expect(entry.snapshot).toEqual({
+      title: "Annex 1 — Climate",
+      old_name: "annex-1.pdf",
+      old_size: PDF.length,
+    });
+    expect(entry.details).toEqual({ new_name: "annex-1 v2.pdf", new_size: PDF_2.length });
+  });
+
+  it("library.delete: snapshot of the document, uploader included", async () => {
+    const uploader = await loginAs("environmental_specialist");
+    const { user, token } = await loginAs("admin");
+    const created = await create(uploader.token, { description: "Examples", order: "2" });
+    const docId = created.body.data._id;
+
+    expect((await api("delete", `/library/${docId}`, token)).status).toBe(204);
+
+    const entry = await expectOneEntry("library.delete", {
+      by: user,
+      project: null,
+      target: { type: "library_document", id: docId, label: "Annex 1 — Climate" },
+    });
+    expect(entry.snapshot).toMatchObject({
+      title: "Annex 1 — Climate",
+      description: "Examples",
+      places: ["mitigation"],
+      order: 2,
+      name: "annex-1.pdf",
+      size: PDF.length,
+      mime_type: "application/pdf",
+      uploaded_by_name: uploader.user.name,
+    });
+    expect(id(entry.snapshot.uploaded_by)).toBe(id(uploader.user._id));
+    expect(entry.snapshot.uploaded_at).toBeInstanceOf(Date);
+  });
+
+  it("create and edit are not logged (D65)", async () => {
+    const { token } = await loginAs("admin");
+    const created = await create(token);
+    const docId = created.body.data._id;
+    const edited = await api("patch", `/library/${docId}`, token).send({
+      title: "Renamed",
+      places: ["mitigation", "management", "ghg_emissions"],
+    });
+    expect(edited.status).toBe(200);
+    expect(await AuditLog.countDocuments()).toBe(0);
+  });
+
+  it("nothing is logged when a replace or delete fails", async () => {
+    const { token } = await loginAs("admin");
+    const viewer = await loginAs("viewer");
+    const created = await create(token);
+    const docId = created.body.data._id;
+    const unknown = new mongoose.Types.ObjectId();
+
+    const statuses = [
+      (await api("delete", `/library/${docId}`, viewer.token)).status,
+      (await api("delete", `/library/${unknown}`, token)).status,
+      (
+        await api("put", `/library/${docId}/file`, token).attach(
+          "file",
+          Buffer.from("<html/>"),
+          "x.pdf"
+        )
+      ).status,
+      (await api("put", `/library/${unknown}/file`, token).attach("file", PDF, "x.pdf")).status,
+    ];
+
+    expect(statuses).toEqual([403, 404, 400, 404]);
+    expect(await AuditLog.countDocuments()).toBe(0);
+    expect(await LibraryDocument.countDocuments()).toBe(1);
+  });
+
+  it("GET /audit-logs?action=library. lists both", async () => {
+    const { token } = await loginAs("admin");
+    const created = await create(token);
+    const docId = created.body.data._id;
+    await api("put", `/library/${docId}/file`, token).attach("file", PDF_2, "b.pdf");
+    await api("delete", `/library/${docId}`, token);
+    await AuditLog.create({
+      action: "project.archive",
+      by: new mongoose.Types.ObjectId(),
+      by_name: "X",
+      by_role: "admin",
+      target_type: "project",
+    });
+
+    const res = await api("get", "/audit-logs?action=library.", token);
+    expect(res.status).toBe(200);
+    expect(res.body.data.map((e) => e.action)).toEqual(["library.delete", "library.replace_file"]);
   });
 });
 
@@ -543,6 +664,8 @@ describe("append-only (D65)", () => {
       "project.archive",
       "project.restore",
       "file.delete",
+      "library.replace_file",
+      "library.delete",
       "management.rows_removed",
       "mitigation.rows_removed",
       "user.create",

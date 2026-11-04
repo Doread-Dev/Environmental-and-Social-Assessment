@@ -80,6 +80,31 @@ describe.each(kinds)("$name status transitions", ({ base, stage, body }) => {
     expect(res.body.data.approved_by).toBeUndefined();
   });
 
+  it("ignores recommendations on create and PUT; only approve sets them (D63 a)", async () => {
+    const editor = await loginAs("project_manager");
+    const specialist = await loginAs("environmental_specialist");
+    const project = await createProject();
+
+    const created = await request(app)
+      .post(base)
+      .set(auth(editor.token))
+      .send({ ...body(project._id.toString()), recommendations: "Self-recommended" });
+    expect(created.status).toBe(201);
+    expect(created.body.data.recommendations).toBeUndefined();
+    const id = created.body.data._id;
+
+    const put = await request(app)
+      .put(`${base}/${id}`)
+      .set(auth(editor.token))
+      .send({ recommendations: "Edited by the editor" });
+    expect(put.status).toBe(200);
+    expect(put.body.data.recommendations).toBeUndefined();
+
+    await patch(id, "submit", editor.token);
+    const approved = await patch(id, "approve", specialist.token, { recommendations: "Approver" });
+    expect(approved.body.data.recommendations).toBe("Approver");
+  });
+
   it("goes draft → submitted → approved and records who did what", async () => {
     const { editor, specialist, id } = await setup();
 

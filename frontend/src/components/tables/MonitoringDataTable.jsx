@@ -26,7 +26,7 @@ function MonitoringDataTable({
 }) {
   if (data.length === 0) {
     return (
-      <div className="bg-white dark:bg-[#152a1d] rounded-xl shadow-sm border border-border-default dark:border-border-dark p-8">
+      <div className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark p-8">
         <div className="text-center">
           <span className="material-symbols-outlined text-5xl text-text-secondary dark:text-gray-500 mb-3 block">
             inventory_2
@@ -40,7 +40,7 @@ function MonitoringDataTable({
   }
 
   return (
-    <div className="bg-white dark:bg-[#152a1d] rounded-b-xl rounded-t-none shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
+    <div className="bg-white dark:bg-card-dark rounded-b-xl rounded-t-none shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
       {/* Header */}
       {(categoryCode || categoryName) && (
         <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-gray-50/50 dark:bg-white/5">

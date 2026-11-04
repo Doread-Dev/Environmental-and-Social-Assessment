@@ -11,7 +11,6 @@ import { useQuery } from '@tanstack/react-query'
 import { assessmentService } from '@/services'
 import { extractErrorMessage } from '@/services/api'
 import { queryKeys } from '@/services/queryKeys'
-import { useLookups } from './useLookups'
 import { useProjectSave } from './useProjectSave'
 
 const NOT_STARTED = { assessment: null, methods: [], consultations: [], impactScores: [] }
@@ -26,15 +25,21 @@ function normalizeImpactScores(scores) {
   }))
 }
 
+// The backend embeds methods, consultations and scores in the project read and in the create
+// response (D63 c): one request for Tool 2.
+function splitAssessment(data) {
+  if (!data) return NOT_STARTED
+  const { methods, consultations, scores, ...assessment } = data
+  return {
+    assessment,
+    methods: methods ?? [],
+    consultations: consultations ?? [],
+    impactScores: normalizeImpactScores(scores),
+  }
+}
+
 async function loadAssessment(projectId) {
-  const assessment = await assessmentService.getByProject(projectId)
-  if (!assessment) return NOT_STARTED
-  const [methods, consultations, scores] = await Promise.all([
-    assessmentService.getMethods(assessment._id),
-    assessmentService.getConsultations(assessment._id),
-    assessmentService.getScores(assessment._id),
-  ])
-  return { assessment, methods, consultations, impactScores: normalizeImpactScores(scores) }
+  return splitAssessment(await assessmentService.getByProject(projectId))
 }
 
 /**
@@ -51,7 +56,6 @@ export const assessmentQuery = (projectId) => ({
  * @param {string} projectId - معرف المشروع
  */
 export function useAssessment(projectId) {
-  const { categoriesWithQuestions, isLoading: lookupsLoading } = useLookups()
   const query = useQuery({ ...assessmentQuery(projectId), enabled: !!projectId })
   const { assessment, methods, consultations, impactScores } = query.data ?? NOT_STARTED
   const assessmentId = assessment?._id
@@ -89,23 +93,16 @@ export function useAssessment(projectId) {
       // (D53, D54). Description is required, so it starts as a placeholder; so does project
       // activity when the project has no component to prefill it from.
       return save(
-        async () => {
-          const created = await assessmentService.create({
+        () =>
+          assessmentService.create({
             project: projectId,
             description: '(To be filled)',
             ...(!project?.project_component?.trim() && { project_activity: '(To be filled)' }),
-          })
-          const scores = await assessmentService.getScores(created._id)
-          return { created, scores }
-        },
-        ({ created, scores }) =>
-          store({
-            assessment: created,
-            methods: [],
-            consultations: [],
-            impactScores: normalizeImpactScores(scores),
-          })
-      ).then((result) => (result.success ? { ...result, data: result.data.created } : result))
+          }),
+        (created) => store(splitAssessment(created))
+      ).then((result) =>
+        result.success ? { ...result, data: splitAssessment(result.data).assessment } : result
+      )
     },
     [assessment, projectId, save, store]
   )
@@ -212,8 +209,6 @@ export function useAssessment(projectId) {
     methods,
     consultations,
     impactScores,
-    categoriesWithQuestions,
-    lookupsLoading,
     isLoading: !!projectId && query.isPending,
     isSaving,
     error: error ?? (query.error ? extractErrorMessage(query.error) : null),

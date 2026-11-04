@@ -19,7 +19,7 @@ function ScreeningSummaryPage() {
   const navigate = useNavigate()
   const { projectId } = useParams()
   const toast = useToast()
-  const { project: contextProject, can } = useProjectContext()
+  const { project: contextProject, workflow, can } = useProjectContext()
   const { user: currentUser } = useAuth()
   const {
     screening: hookScreening,
@@ -43,14 +43,18 @@ function ScreeningSummaryPage() {
   // Handlers - must be defined before conditional returns
   const handleExport = useCallback(async () => {
     try {
-      const { exportScreeningToExcel } = await import('@/utils/excelExport')
-      await exportScreeningToExcel(project, screening)
-      toast.success('Excel file downloaded successfully!')
+      const { exportTool, exportStatus } = await import('@/utils/excelExport')
+      const fileName = await exportTool(
+        'tool1',
+        { project, screening },
+        exportStatus(workflow, 'tool1', screening)
+      )
+      toast.success(`Downloaded ${fileName}`)
     } catch (error) {
       toast.error('Failed to export Excel file')
       console.error('Export error:', error)
     }
-  }, [project, screening, toast])
+  }, [project, screening, workflow, toast])
 
   const handleEdit = useCallback(() => {
     // Navigate to form with edit mode - router will show form for rejected status

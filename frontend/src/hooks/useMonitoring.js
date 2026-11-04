@@ -28,6 +28,7 @@ const emptyRecord = (projectId, indicatorId) => ({
   final_assessment: '',
   ranking: null,
   responsible: null,
+  responsible_text: '',
   note: '',
   isNew: true,
 })

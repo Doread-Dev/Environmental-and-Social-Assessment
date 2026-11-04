@@ -114,6 +114,7 @@ export default function AssessmentGatewayPage() {
             onStart={handleStart}
             onContinue={handleContinue}
             canStart={can('assessment.create')}
+            canEdit={can('assessment.edit')}
           />
         </div>
 

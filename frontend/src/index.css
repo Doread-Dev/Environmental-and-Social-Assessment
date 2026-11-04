@@ -18,34 +18,36 @@
    ========================================== */
 :root {
   /* Primary Colors */
-  --color-primary: #11d452;
-  --color-primary-hover: #0eb646;
+  --color-primary: #008c54;
+  --color-primary-hover: #006f42;
   --color-primary-content: #ffffff;
+  --color-primary-soft: #e8f6ef;
+  --color-primary-border: #b8e1cc;
 
   /* Background Colors */
-  --color-background: #f6f8f6;
-  --color-background-dark: #102216;
+  --color-background: #f7fbf8;
+  --color-background-dark: #0b2419;
 
   /* Surface Colors */
   --color-surface: #ffffff;
-  --color-surface-dark: #1c2e22;
-  --color-card-dark: #152a1d;
+  --color-surface-dark: #113523;
+  --color-card-dark: #0e2c1d;
 
   /* Text Colors */
   --color-text-main: #111813;
-  --color-text-secondary: #61896f;
-  --color-text-muted: #61896f;
+  --color-text-secondary: #5b7969;
+  --color-text-muted: #5b7969;
   --color-text-disabled: #9ca3af;
 
   /* Border Colors */
-  --color-border: #dbe6df;
-  --color-border-dark: #2a4234;
-  --color-input-border: #dbe6df;
-  --color-input-border-dark: #2a4234;
+  --color-border: #c9e6d7;
+  --color-border-dark: #264d38;
+  --color-input-border: #c9e6d7;
+  --color-input-border-dark: #264d38;
 
   /* Semantic Colors */
-  --color-success: #10b981;
-  --color-success-dark: #34d399;
+  --color-success: #008c54;
+  --color-success-dark: #6cc89a;
   --color-warning: #f59e0b;
   --color-warning-dark: #fbbf24;
   --color-error: #ef4444;
@@ -109,30 +111,32 @@ html:not(.dark) body {
    ========================================== */
 @theme {
   /* Colors */
-  --color-primary: #11d452;
-  --color-primary-hover: #0eb646;
+  --color-primary: #008c54;
+  --color-primary-hover: #006f42;
   --color-primary-content: #ffffff;
+  --color-primary-soft: #e8f6ef;
+  --color-primary-border: #b8e1cc;
 
-  --color-background: #f6f8f6;
-  --color-background-dark: #102216;
+  --color-background: #f7fbf8;
+  --color-background-dark: #0b2419;
 
   --color-surface: #ffffff;
-  --color-surface-dark: #1c2e22;
-  --color-card-dark: #152a1d;
+  --color-surface-dark: #113523;
+  --color-card-dark: #0e2c1d;
 
   --color-text-main: #111813;
-  --color-text-secondary: #61896f;
-  --color-text-muted: #61896f;
+  --color-text-secondary: #5b7969;
+  --color-text-muted: #5b7969;
   --color-text-disabled: #9ca3af;
 
-  --color-border-default: #dbe6df;
-  --color-border-color: #dbe6df;
-  --color-border-dark: #2a4234;
-  --color-input-border: #dbe6df;
-  --color-input-border-dark: #2a4234;
+  --color-border-default: #c9e6d7;
+  --color-border-color: #c9e6d7;
+  --color-border-dark: #264d38;
+  --color-input-border: #c9e6d7;
+  --color-input-border-dark: #264d38;
 
   /* Semantic Colors */
-  --color-success: #10b981;
+  --color-success: #008c54;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
   --color-info: #3b82f6;
@@ -144,14 +148,27 @@ html:not(.dark) body {
   --color-risk-b-plus-text: #c2410c;
   --color-risk-b-bg: #fef3c7;
   --color-risk-b-text: #b45309;
-  --color-risk-c-bg: #dcfce7;
-  --color-risk-c-text: #15803d;
+  --color-risk-c-bg: #e8f6ef;
+  --color-risk-c-text: #006f42;
   --color-risk-d-bg: #dbeafe;
   --color-risk-d-text: #1d4ed8;
   --color-risk-e-bg: #f3f4f6;
   --color-risk-e-text: #374151;
-  --color-risk-f-bg: #d1fae5;
-  --color-risk-f-text: #047857;
+  --color-risk-f-bg: #d8f0e4;
+  --color-risk-f-text: #007a49;
+
+  /* Institutional green scale, derived from the AKF logo (#00ab67). */
+  --color-green-50: #f0faf5;
+  --color-green-100: #d8f0e4;
+  --color-green-200: #b8e1cc;
+  --color-green-300: #8acdab;
+  --color-green-400: #4db57f;
+  --color-green-500: #00ab67;
+  --color-green-600: #008c54;
+  --color-green-700: #006f42;
+  --color-green-800: #005735;
+  --color-green-900: #003f27;
+  --color-green-950: #002b1b;
 
   /* Font Families */
   --font-family-display: 'Inter', system-ui, -apple-system, sans-serif;
@@ -167,7 +184,7 @@ html:not(.dark) body {
   --radius-full: 9999px;
 
   /* Box Shadows */
-  --shadow-primary: 0 4px 14px 0 rgba(17, 212, 82, 0.3);
+  --shadow-primary: 0 4px 14px 0 rgba(0, 140, 84, 0.3);
 }
 
 /* ==========================================
@@ -294,8 +311,8 @@ html.dark .excel-scroll::-webkit-scrollbar-thumb {
 }
 
 .excel-cell:focus {
-  box-shadow: inset 0 0 0 2px #11d452;
-  background-color: rgba(17, 212, 82, 0.05);
+  box-shadow: inset 0 0 0 2px var(--color-primary);
+  background-color: rgb(0 140 84 / 0.05);
   /* Using rgba directly as in static */
   z-index: 10;
   position: relative;
@@ -313,7 +330,7 @@ select.excel-cell {
 }
 
 select.excel-cell:focus {
-  box-shadow: inset 0 0 0 2px #11d452;
+  box-shadow: inset 0 0 0 2px var(--color-primary);
   outline: none;
 }
 
@@ -416,11 +433,11 @@ html.dark .monitoring-table thead th {
 
 /* Row Hover Effect */
 .monitoring-table tbody tr:hover {
-  background-color: rgba(17, 212, 82, 0.03);
+  background-color: rgb(0 140 84 / 0.03);
 }
 
 html.dark .monitoring-table tbody tr:hover {
-  background-color: rgba(17, 212, 82, 0.05);
+  background-color: rgb(0 140 84 / 0.05);
 }
 
 /* Cell Borders */

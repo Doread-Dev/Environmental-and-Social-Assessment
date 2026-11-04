@@ -65,7 +65,7 @@ function MonitoringCategoryCard({
         'flex flex-col justify-between p-5 rounded-xl border border-border-default dark:border-border-dark transition-shadow h-full',
         isInactive
           ? 'bg-gray-50/50 dark:bg-background-dark opacity-75'
-          : 'bg-white dark:bg-[#152a1d]'
+          : 'bg-white dark:bg-card-dark'
       )}
     >
       <div>

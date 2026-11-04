@@ -10,6 +10,7 @@ const ID = "000000000000000000000000";
 // summaries), the single lookups (GET /lookups), the row writes of Tools 3–5 (bulk saves, D32),
 // the single method/consultation adds (PUT replaces the list) and calculate (totals are
 // recalculated on every score change). Phase 6 moved user creation to POST /users (admin only).
+// Phase 8 removed the separate method/consultation/score reads (embedded in the project read).
 describe("removed endpoints", () => {
   it.each([
     ["post", "/api/v1/attachments"],
@@ -40,6 +41,10 @@ describe("removed endpoints", () => {
     ["post", `/api/v1/assessments/${ID}/methods`],
     ["post", `/api/v1/assessments/${ID}/consultations`],
     ["patch", `/api/v1/assessments/${ID}/calculate`],
+    // phase 8 (D63 c): read with the assessment by project
+    ["get", `/api/v1/assessments/${ID}/methods`],
+    ["get", `/api/v1/assessments/${ID}/consultations`],
+    ["get", `/api/v1/assessments/${ID}/scores`],
     ["post", "/api/v1/auth/register"],
   ])("%s %s returns 404", async (method, url) => {
     const { token } = await loginAs("environmental_specialist");

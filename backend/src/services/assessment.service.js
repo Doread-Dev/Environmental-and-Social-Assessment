@@ -32,9 +32,21 @@ const getAssessment = async (id) => {
   return assessment;
 };
 
+// The assessment with its methods, consultations and scores embedded, so a page reads Tool 2 in
+// one request (D63 c).
+const withChildren = async (assessment) => {
+  if (!assessment) return null;
+  const [methods, consultations, scores] = await Promise.all([
+    AssessmentMethod.find({ assessment: assessment._id }),
+    CommunityConsultation.find({ assessment: assessment._id }),
+    AssessmentImpactScore.find({ assessment: assessment._id }),
+  ]);
+  return { ...assessment.toObject(), methods, consultations, scores };
+};
+
 // null when the project has no assessment yet: "not started" is not an error (D34).
 const getByProject = async (projectId) =>
-  populateAssessment(Assessment.findOne({ project: projectId }));
+  withChildren(await populateAssessment(Assessment.findOne({ project: projectId })));
 
 // Loads an assessment for a content edit: Tool 1 approved, project not archived, and the
 // assessment itself still draft or rejected.
@@ -96,7 +108,7 @@ const createAssessment = async (payload, createdBy) => {
   );
   await recalculate(created._id);
 
-  return populateAssessment(Assessment.findById(created._id));
+  return withChildren(await populateAssessment(Assessment.findById(created._id)));
 };
 
 const updateAssessment = async (id, payload, updatedBy) => {
@@ -182,10 +194,6 @@ const approveAssessment = async (id, approvedBy, recommendations) =>
 const rejectAssessment = async (id, rejectBy, rejectReason = null) =>
   transition(id, "reject", rejectBy, { rejectReason });
 
-const listMethods = async (assessmentId) => {
-  return AssessmentMethod.find({ assessment: assessmentId });
-};
-
 const replaceMethods = async (assessmentId, payload) => {
   await loadEditable(assessmentId);
   await AssessmentMethod.deleteMany({ assessment: assessmentId });
@@ -194,20 +202,12 @@ const replaceMethods = async (assessmentId, payload) => {
   return AssessmentMethod.insertMany(docs);
 };
 
-const listConsultations = async (assessmentId) => {
-  return CommunityConsultation.find({ assessment: assessmentId });
-};
-
 const replaceConsultations = async (assessmentId, payload) => {
   await loadEditable(assessmentId);
   await CommunityConsultation.deleteMany({ assessment: assessmentId });
   if (!payload.length) return [];
   const docs = payload.map((item) => ({ ...item, assessment: assessmentId }));
   return CommunityConsultation.insertMany(docs);
-};
-
-const listScores = async (assessmentId) => {
-  return AssessmentImpactScore.find({ assessment: assessmentId });
 };
 
 module.exports = {
@@ -219,9 +219,6 @@ module.exports = {
   submitAssessment,
   approveAssessment,
   rejectAssessment,
-  listMethods,
   replaceMethods,
-  listConsultations,
   replaceConsultations,
-  listScores,
 };

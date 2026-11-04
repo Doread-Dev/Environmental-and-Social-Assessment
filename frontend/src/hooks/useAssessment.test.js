@@ -4,19 +4,12 @@ import { useAssessment } from './useAssessment'
 import { assessmentService } from '@/services'
 import { withQueryClient } from '@/test/utils'
 
-vi.mock('./useLookups', () => ({
-  useLookups: () => ({ categoriesWithQuestions: [], isLoading: false }),
-}))
-
 vi.mock('@/services', () => ({
   assessmentService: {
     getByProject: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     addScores: vi.fn(),
-    getScores: vi.fn(),
-    getMethods: vi.fn(),
-    getConsultations: vi.fn(),
     approve: vi.fn(),
   },
 }))
@@ -39,26 +32,33 @@ async function renderLoaded(existing = null) {
   return { ...hook, invalidate }
 }
 
+// The backend embeds the children in the read and in the create response (D63 c)
+const withChildren = (assessment, children = {}) => ({
+  ...assessment,
+  methods: [],
+  consultations: [],
+  scores: defaultScores,
+  ...children,
+})
+
 beforeEach(() => {
   vi.clearAllMocks()
-  assessmentService.getMethods.mockResolvedValue([])
-  assessmentService.getConsultations.mockResolvedValue([])
-  assessmentService.getScores.mockResolvedValue(defaultScores)
 })
 
 describe('useAssessment loading', () => {
-  it('not started: no assessment and no sub-requests', async () => {
+  it('not started: no assessment', async () => {
     const { result } = await renderLoaded(null)
 
     expect(result.current.assessment).toBeNull()
     expect(result.current.impactScores).toEqual([])
-    expect(assessmentService.getScores).not.toHaveBeenCalled()
   })
 
-  it('loads the assessment with its methods, consultations and scores', async () => {
-    assessmentService.getMethods.mockResolvedValue([{ method_type: 'site_visit' }])
-    const { result } = await renderLoaded({ _id: 'a1', status: 'draft' })
+  it('loads the assessment with its methods, consultations and scores in one request', async () => {
+    const { result } = await renderLoaded(
+      withChildren({ _id: 'a1', status: 'draft' }, { methods: [{ method_type: 'site_visit' }] })
+    )
 
+    expect(assessmentService.getByProject).toHaveBeenCalledTimes(1)
     expect(result.current.assessment).toEqual({ _id: 'a1', status: 'draft' })
     expect(result.current.methods).toEqual([{ method_type: 'site_visit' }])
     expect(result.current.impactScores).toEqual(normalizedScores)
@@ -67,7 +67,7 @@ describe('useAssessment loading', () => {
 
 describe('useAssessment.startAssessment', () => {
   beforeEach(() => {
-    assessmentService.create.mockResolvedValue({ _id: 'a1', status: 'draft' })
+    assessmentService.create.mockResolvedValue(withChildren({ _id: 'a1', status: 'draft' }))
   })
 
   it('leaves project activity to the backend prefill when the project has a component (D53)', async () => {
@@ -101,7 +101,6 @@ describe('useAssessment.startAssessment', () => {
       outcome = await result.current.startAssessment({ project_component: 'Water network' })
     })
 
-    expect(assessmentService.getScores).toHaveBeenCalledWith('a1')
     expect(result.current.impactScores).toEqual(normalizedScores)
     expect(outcome).toEqual({ success: true, data: { _id: 'a1', status: 'draft' } })
   })
@@ -125,7 +124,7 @@ describe('useAssessment writes', () => {
   it('saving scores stores the totals the backend recalculated (no calculate call)', async () => {
     assessmentService.addScores.mockResolvedValue([{ question: 'q1', level: 'high' }])
     assessmentService.update.mockResolvedValue({ _id: 'a1', total_project_impact: 'high' })
-    const { result } = await renderLoaded({ _id: 'a1', status: 'draft' })
+    const { result } = await renderLoaded(withChildren({ _id: 'a1', status: 'draft' }))
 
     await act(() => result.current.saveImpactScores([{ question: 'q1', level: 'high' }], 'N', 'P'))
 

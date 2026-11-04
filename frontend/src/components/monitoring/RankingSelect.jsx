@@ -41,7 +41,7 @@ function RankingSelect({
       disabled={disabled}
       className={cn(
         'w-full rounded-lg border border-border-default dark:border-border-dark',
-        'bg-white dark:bg-[#102216] text-text-main dark:text-white',
+        'bg-white dark:bg-background-dark text-text-main dark:text-white',
         'focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary',
         'px-3 py-2 text-sm font-medium',
         'disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50/50 dark:disabled:bg-white/5',

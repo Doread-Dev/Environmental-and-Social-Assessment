@@ -44,7 +44,7 @@ function IndicatorDataRow({
   return (
     <tr className="group border-b border-border-default dark:border-border-dark hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
       {/* Indicator Name */}
-      <td className="sticky left-0 z-20 px-4 py-3 text-sm text-text-main dark:text-white font-medium whitespace-normal min-w-[280px] max-w-[360px] bg-white dark:bg-[#152a1d] group-hover:bg-white dark:group-hover:bg-[#152a1d]">
+      <td className="sticky left-0 z-20 px-4 py-3 text-sm text-text-main dark:text-white font-medium whitespace-normal min-w-[280px] max-w-[360px] bg-white dark:bg-card-dark group-hover:bg-white dark:group-hover:bg-card-dark">
         <div className="flex flex-col gap-1">
           <p className="font-medium">{indicator.name}</p>
           {indicator.definition && (
@@ -67,7 +67,7 @@ function IndicatorDataRow({
               value={record.scores[quarter] || ''}
               onChange={(e) => handleScoreChange(quarter, e.target.value)}
               placeholder={quarter === 'baseline' ? 'Baseline' : quarter}
-              className="w-full rounded-lg border border-border-default dark:border-border-dark bg-white dark:bg-[#102216] text-text-main dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary px-3 py-2 text-sm text-center"
+              className="w-full rounded-lg border border-border-default dark:border-border-dark bg-white dark:bg-background-dark text-text-main dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary px-3 py-2 text-sm text-center"
             />
           ) : (
             <span className="text-sm text-text-main dark:text-white text-center block">
@@ -85,7 +85,7 @@ function IndicatorDataRow({
             value={record.total || ''}
             onChange={(e) => handleFieldChange('total', e.target.value)}
             placeholder="Total"
-            className="w-full rounded-lg border border-border-default dark:border-border-dark bg-white dark:bg-[#102216] text-text-main dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary px-3 py-2 text-sm font-medium text-center"
+            className="w-full rounded-lg border border-border-default dark:border-border-dark bg-white dark:bg-background-dark text-text-main dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary px-3 py-2 text-sm font-medium text-center"
           />
         ) : (
           <span className="text-sm text-text-main dark:text-white font-medium text-center block">
@@ -101,7 +101,7 @@ function IndicatorDataRow({
             value={record.final_assessment || ''}
             onChange={(e) => handleFieldChange('final_assessment', e.target.value)}
             placeholder="Final assessment"
-            className="w-full rounded-lg border border-border-default dark:border-border-dark bg-white dark:bg-[#102216] text-text-main dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary px-3 py-2 text-sm text-left"
+            className="w-full rounded-lg border border-border-default dark:border-border-dark bg-white dark:bg-background-dark text-text-main dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary px-3 py-2 text-sm text-left"
           />
         ) : (
           <span className="text-sm text-text-main dark:text-white">
@@ -130,7 +130,11 @@ function IndicatorDataRow({
       <td className="px-3 py-3 min-w-[160px]">
         <ResponsibleSelect
           value={record.responsible}
-          onChange={(value) => handleFieldChange('responsible', value)}
+          valueText={record.responsible_text}
+          onChange={({ responsible, responsible_text }) => {
+            handleFieldChange('responsible', responsible)
+            handleFieldChange('responsible_text', responsible_text)
+          }}
           users={users}
           readOnly={!isEditable}
           className="w-full"
@@ -144,7 +148,7 @@ function IndicatorDataRow({
             value={record.note || ''}
             onChange={(e) => handleFieldChange('note', e.target.value)}
             placeholder="Additional notes..."
-            className="w-full rounded-lg border border-border-default dark:border-border-dark bg-white dark:bg-[#102216] text-text-main dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary px-3 py-2 text-sm"
+            className="w-full rounded-lg border border-border-default dark:border-border-dark bg-white dark:bg-background-dark text-text-main dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary px-3 py-2 text-sm"
           />
         ) : (
           <span className="text-sm text-text-secondary dark:text-gray-400">

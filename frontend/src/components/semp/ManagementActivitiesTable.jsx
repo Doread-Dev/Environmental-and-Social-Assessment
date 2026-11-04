@@ -60,7 +60,7 @@ export default function ManagementActivitiesTable({
         {/* Scrollable Table Area */}
         <div className="flex-1 overflow-auto excel-scroll w-full">
           <table className="w-full border-collapse table-fixed min-w-[1200px]">
-            <thead className="sticky top-0 z-30 shadow-sm bg-gray-50/50 dark:bg-[#15231a]">
+            <thead className="sticky top-0 z-30 shadow-sm bg-gray-50/50 dark:bg-card-dark">
               <tr className="border-b border-border-default dark:border-border-dark">
                 <th className="w-12 px-2 py-3 text-xs font-bold text-text-secondary dark:text-gray-300 uppercase tracking-wider text-center border-r border-border-default dark:border-border-dark relative group">
                   #
@@ -77,7 +77,7 @@ export default function ManagementActivitiesTable({
                 <th className="w-[15%] px-3 py-3 text-xs font-bold text-text-secondary dark:text-gray-300 uppercase tracking-wider text-center border-r border-border-default dark:border-border-dark relative group">
                   Monitoring Requirements
                 </th>
-                <th className="w-[150px] px-3 py-3 text-xs font-bold text-text-secondary dark:text-gray-300 uppercase tracking-wider text-center border-r border-border-default dark:border-border-dark relative group">
+                <th className="w-[190px] px-3 py-3 text-xs font-bold text-text-secondary dark:text-gray-300 uppercase tracking-wider text-center border-r border-border-default dark:border-border-dark relative group">
                   Responsibility
                 </th>
                 <th className="w-[150px] px-3 py-3 text-xs font-bold text-text-secondary dark:text-gray-300 uppercase tracking-wider text-center border-r border-border-default dark:border-border-dark relative group">
@@ -93,7 +93,7 @@ export default function ManagementActivitiesTable({
                   onMouseEnter={(e) => handleMouseEnterRow(e, activity._id)}
                 >
                   {/* Serial Number */}
-                  <td className="bg-gray-50 dark:bg-[#0d1b12] text-center text-xs text-text-secondary dark:text-gray-400 font-medium border-r border-border-default dark:border-border-dark select-none relative">
+                  <td className="bg-gray-50 dark:bg-background-dark text-center text-xs text-text-secondary dark:text-gray-400 font-medium border-r border-border-default dark:border-border-dark select-none relative">
                     {index + 1}
                   </td>
 
@@ -149,7 +149,11 @@ export default function ManagementActivitiesTable({
                   <td className="p-0 border-r border-border-default dark:border-border-dark relative h-full">
                     <ResponsibleSelect
                       value={activity.responsible}
-                      onChange={(val) => onUpdate(activity._id, 'responsible', val)}
+                      valueText={activity.responsible_text}
+                      onChange={({ responsible, responsible_text }) => {
+                        onUpdate(activity._id, 'responsible', responsible)
+                        onUpdate(activity._id, 'responsible_text', responsible_text)
+                      }}
                       users={users}
                       readOnly={readOnly}
                       className="excel-cell text-sm text-text-main dark:text-gray-100 bg-transparent w-full h-full text-center"
@@ -175,7 +179,7 @@ export default function ManagementActivitiesTable({
 
         {/* Add Row Button Area */}
         {!readOnly && (
-          <div className="bg-gray-50 dark:bg-[#15231a] border-t border-border-default dark:border-border-dark p-2 w-full z-20 shrink-0">
+          <div className="bg-gray-50 dark:bg-card-dark border-t border-border-default dark:border-border-dark p-2 w-full z-20 shrink-0">
             <button
               onClick={onAddRow}
               className="w-full py-2 bg-white dark:bg-white/5 border border-dashed border-border-default dark:border-border-dark rounded text-primary text-sm font-bold hover:bg-green-50 dark:hover:bg-green-900/10 hover:border-primary transition-all flex items-center justify-center gap-2"

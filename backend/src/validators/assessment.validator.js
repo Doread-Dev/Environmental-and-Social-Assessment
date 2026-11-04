@@ -9,9 +9,9 @@ const createAssessmentSchema = Joi.object({
   legal_requirements: Joi.string().allow("", null),
   potential_negative_impact: Joi.string().allow("", null),
   potential_positive_impact: Joi.string().allow("", null),
-  recommendations: Joi.string().allow("", null),
-  // status, officer, approved_by, reject_by, reject_reason and the calculated totals are
-  // server-owned: stripped from create/update bodies.
+  // status, officer, approved_by, reject_by, reject_reason, recommendations (the approver's
+  // field, set only by approve — D63 a) and the calculated totals are server-owned: stripped
+  // from create/update bodies.
 });
 
 const updateAssessmentSchema = createAssessmentSchema

@@ -7,7 +7,11 @@ import { useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment, useProjectContext } from '@/hooks'
 import { useLookups } from '@/hooks'
-import { calculateTotalScore, calculateTotalImpact } from '@/utils/impactCalculations'
+import {
+  calculateTotalScore,
+  calculateTotalImpact,
+  changedQuestionsSummary,
+} from '@/utils/impactCalculations'
 import {
   ImpactCategoryAccordion,
   TotalScoreCard,
@@ -337,8 +341,8 @@ export default function AssessmentScoringPage() {
         isOpen={showSubmitModal}
         onClose={() => setShowSubmitModal(false)}
         title="Confirm Submission"
-        description="Are you sure you want to submit the assessment?"
-        sub_description="*Editing will not be possible after submission unless the screening is rejected by an administrator."
+        description={`${changedQuestionsSummary(allQuestionIds, scoresArray)} Submit the assessment?`}
+        sub_description="*Editing will not be possible after submission unless the assessment is rejected by a reviewer."
       >
         <Modal.Footer>
           <Button variant="outline" onClick={() => setShowSubmitModal(false)} disabled={isSaving}>

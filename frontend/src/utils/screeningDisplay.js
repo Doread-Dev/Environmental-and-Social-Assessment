@@ -65,9 +65,9 @@ export const screeningCategories = {
     labelAr: 'أثر بيئي إيجابي',
     description: 'Net positive environmental or social impact',
     descriptionAr: 'أثر بيئي إيجابي صافي',
-    bgColor: 'bg-emerald-100 dark:bg-emerald-900/30',
-    textColor: 'text-emerald-700 dark:text-emerald-400',
-    borderColor: 'border-emerald-200 dark:border-emerald-800',
+    bgColor: 'bg-risk-f-bg dark:bg-primary/20',
+    textColor: 'text-risk-f-text dark:text-green-300',
+    borderColor: 'border-primary-border dark:border-green-800',
     canProceed: true,
   },
 }

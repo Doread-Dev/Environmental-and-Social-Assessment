@@ -90,7 +90,7 @@ export function ProjectsManagementSection() {
   }
 
   return (
-    <section className="bg-white dark:bg-[#152a1d] rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
+    <section className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
       {/* Header */}
       <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-gray-50/50 dark:bg-white/5">
         <div>
@@ -121,7 +121,7 @@ export function ProjectsManagementSection() {
                 className={cn(
                   'w-full rounded-lg border pl-10 pr-3 py-2.5 text-sm',
                   'border-border-default dark:border-border-dark',
-                  'bg-white dark:bg-[#102216]',
+                  'bg-white dark:bg-background-dark',
                   'text-text-main dark:text-white',
                   'focus:ring-primary focus:border-primary',
                   'placeholder:text-text-secondary dark:placeholder:text-gray-500'

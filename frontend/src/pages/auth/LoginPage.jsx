@@ -4,6 +4,9 @@ import { Button, Input, Alert, Icon } from '@/components/ui'
 import { validateEmail, validatePassword } from '@/utils/validators'
 import { useAuth } from '@/contexts'
 import { ROUTES } from '@/routes/routes.config'
+// Local assets: the login page works offline (D37, D51)
+import akfLogo from '@/assets/auth/akf-logo.png'
+import syriaMap from '@/assets/auth/syria-map.png'
 
 /**
  * LoginPage - صفحة تسجيل الدخول
@@ -117,36 +120,32 @@ function LoginPage() {
 
   return (
     <div className="w-full max-w-[960px] bg-white dark:bg-card-dark rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row min-h-[600px] border border-border-default dark:border-border-dark">
-      {/* Left Side: Visual Panel */}
-      <div className="relative w-full md:w-5/12 bg-emerald-50 dark:bg-emerald-900/20 flex flex-col items-center justify-center p-8 md:p-12 overflow-hidden group">
+      {/* Left Side: AKF logo and map of Syria (D51) */}
+      <div className="relative w-full md:w-5/12 bg-primary-soft dark:bg-primary/10 flex flex-col items-center justify-center p-8 md:p-12 overflow-hidden">
         {/* Abstract Background Pattern */}
         <div
           className="absolute inset-0 opacity-10 dark:opacity-5 pointer-events-none"
           style={{
-            backgroundImage: 'radial-gradient(circle at 2px 2px, #11d452 1px, transparent 0)',
+            backgroundImage:
+              'radial-gradient(circle at 2px 2px, var(--color-green-500) 1px, transparent 0)',
             backgroundSize: '24px 24px',
           }}
         />
 
-        {/* Hero Icon */}
         <div className="relative z-10 flex flex-col items-center text-center">
-          <div className="w-24 h-24 rounded-full bg-white dark:bg-emerald-800 flex items-center justify-center shadow-sm mb-6">
-            <Icon name="eco" className="text-[50px] text-primary" />
+          {/* The logo keeps a light backing so it reads in dark mode too */}
+          <div className="rounded-2xl bg-white/90 p-3 mb-6 shadow-sm">
+            <img src={akfLogo} alt="Aga Khan Foundation logo" className="w-52 max-w-full h-auto" />
           </div>
 
-          {/* Hero Image/Illustration */}
-          <div className="w-full aspect-video rounded-lg overflow-hidden shadow-sm opacity-90 hidden md:block mt-8">
-            <div
-              className="w-full h-full bg-center bg-cover"
-              style={{
-                backgroundImage:
-                  'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAWLS_HZQdBss0QYgByPrzVhjmm3gppMnQkwrT2K4Ufn4Q1TrWGxJ1hJHIEcw1fdjK7qlzR22EgH1JJ6qjz8WnO6QzXn_X_dGuqiAlc69-6DeFgqBmpv7lrsP3ei6fYwPjWRsS0MTKDsrYKOQfkxxfNimubAQX4ApKjKfSNPeFrFkw-KSbKzNlA_1k2jc5pJkoSofm_ZsNep21lOSOL-XBwJZgiAUATsRB5CrjorykNzTdz6OjnXFbrU0ZyidurRcnWXwGbiHmmhozm")',
-              }}
-            />
-          </div>
+          <img
+            src={syriaMap}
+            alt="Map of Syria"
+            className="w-52 max-w-full h-auto rounded-2xl drop-shadow-sm mt-4 hidden md:block"
+          />
 
-          <p className="mt-8 text-sm font-medium text-emerald-800 dark:text-emerald-300 max-w-[200px] leading-relaxed hidden md:block">
-            Securing our future through sustainable practices.
+          <p className="mt-8 text-sm font-medium text-green-800 dark:text-green-300 max-w-[240px] leading-relaxed hidden md:block">
+            Securing the future through sustainable practices.
           </p>
         </div>
 
@@ -161,7 +160,7 @@ function LoginPage() {
           <h1 className="text-text-main dark:text-white tracking-tight text-3xl font-bold leading-tight mb-2">
             Environmental & Social Management System
           </h1>
-          <h2 className="text-text-muted dark:text-emerald-400 text-base font-medium">
+          <h2 className="text-primary dark:text-green-300 text-lg font-medium">
             Aga Khan Foundation – Syria
           </h2>
         </div>

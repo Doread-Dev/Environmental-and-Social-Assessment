@@ -50,7 +50,7 @@ function RiskCategorySelector({
                 className={cn(
                   'relative flex items-start p-4 cursor-pointer rounded-lg',
                   'border border-border-default dark:border-border-dark',
-                  'hover:bg-gray-50 dark:hover:bg-[#1a3322]',
+                  'hover:bg-gray-50 dark:hover:bg-surface-dark',
                   'transition-all',
                   'has-[:checked]:border-primary has-[:checked]:bg-primary/5 has-[:checked]:ring-1 has-[:checked]:ring-primary',
                   readOnly && 'cursor-not-allowed opacity-50'
@@ -101,7 +101,7 @@ function RiskCategorySelector({
           <textarea
             className={cn(
               'w-full rounded-lg border border-border-default dark:border-border-dark',
-              'bg-white dark:bg-[#102216]',
+              'bg-white dark:bg-background-dark',
               'text-text-main dark:text-white',
               'focus:ring-primary focus:border-primary',
               'px-3 py-2.5 text-sm',

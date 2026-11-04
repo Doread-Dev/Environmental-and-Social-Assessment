@@ -15,6 +15,7 @@ import {
   ProjectMetricCard,
   ProjectCTACard,
   ProjectDetailsCard,
+  ProjectWorkbookCard,
 } from '@/components/project'
 import { useProjectContext } from '@/hooks'
 import { getScreeningCategory } from '@/utils/screeningDisplay'
@@ -141,6 +142,8 @@ function ProjectOverviewPage() {
             startDate={project.start_date}
             endDate={project.end_date}
           />
+          {/* One file with every tool that has data (D67 b); never for viewers (D28a) */}
+          {can('export') && <ProjectWorkbookCard projectId={projectId} />}
         </div>
       </div>
     </div>

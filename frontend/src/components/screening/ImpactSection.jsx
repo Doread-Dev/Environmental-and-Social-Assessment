@@ -41,7 +41,7 @@ function ImpactSection({
         <textarea
           className={cn(
             'w-full rounded-lg border',
-            'bg-white dark:bg-[#102216]',
+            'bg-white dark:bg-background-dark',
             'text-text-main dark:text-white',
             'focus:ring-primary focus:border-primary',
             'px-3 py-2.5 text-sm',
@@ -74,7 +74,7 @@ function ImpactSection({
         <textarea
           className={cn(
             'w-full rounded-lg border',
-            'bg-white dark:bg-[#102216]',
+            'bg-white dark:bg-background-dark',
             'text-text-main dark:text-white',
             'focus:ring-primary focus:border-primary',
             'px-3 py-2.5 text-sm',

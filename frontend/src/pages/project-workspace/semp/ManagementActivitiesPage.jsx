@@ -18,6 +18,7 @@ export default function ManagementActivitiesPage() {
   const outletContext = useOutletContext()
   // From SempFullWidthLayout (workspace query)
   const project = outletContext?.project || null
+  const workflow = outletContext?.workflow
   const canEdit = outletContext?.can?.('semp.edit') ?? false
   const { activeUsers } = useUsers()
 
@@ -82,9 +83,13 @@ export default function ManagementActivitiesPage() {
             }
           }
 
-          const { exportManagementActivitiesToExcel } = await import('@/utils/excelExport')
-          await exportManagementActivitiesToExcel(exportProject, validActivities)
-          toast.success('Excel file downloaded successfully!')
+          const { exportTool, exportStatus } = await import('@/utils/excelExport')
+          const fileName = await exportTool(
+            'tool3',
+            { project: exportProject, rows: validActivities },
+            exportStatus(workflow, 'tool3')
+          )
+          toast.success(`Downloaded ${fileName}`)
         } catch (error) {
           console.error('[ManagementActivitiesPage] Export error:', error)
           toast.error(`Failed to export Excel file: ${error.message || 'Unknown error'}`)
@@ -96,7 +101,7 @@ export default function ManagementActivitiesPage() {
     return () => {
       window.removeEventListener('semp-export', handleExportEvent)
     }
-  }, [project, projectId, managementActivities, toast])
+  }, [project, projectId, workflow, managementActivities, toast])
 
   // Handlers
   const handleUpdate = (rowId, field, value) => {

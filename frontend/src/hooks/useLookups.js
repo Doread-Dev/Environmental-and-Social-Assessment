@@ -17,25 +17,60 @@ const EMPTY = []
 const byCategory = (items, category) =>
   items.filter((item) => item.category?._id === category._id || item.category === category._id)
 
+/** Impact categories sorted by code, with their icon */
+export function sortedCategories(data) {
+  if (!data) return EMPTY
+  return [...data.impactCategories]
+    .sort((a, b) => String(a.code || '').localeCompare(String(b.code || '')))
+    .map((category) => ({ ...category, ...(CATEGORY_ICONS[category.code] || {}) }))
+}
+
+/** Categories with their questions, in the shape the scoring UI and Tool 2 export use */
+export function withQuestions(categories, questions) {
+  return categories.map((category) => ({
+    ...category,
+    id: category.code, // Backward compatibility
+    questions: byCategory(questions, category).map((q, index) => ({
+      id: q._id,
+      legacyId: `${category.code}_q${index + 1}`,
+      _id: q._id,
+      question: q.question_text,
+      question_ar: q.question_text_ar,
+    })),
+  }))
+}
+
+/** Categories with their monitoring indicators (Tool 5) */
+export function withIndicators(categories, indicators) {
+  return categories.map((category) => ({
+    ...category,
+    id: category.code,
+    indicators: byCategory(indicators, category).map((ind, index) => ({
+      ...ind,
+      id: `indicator_${category.code}_${index + 1}`,
+      legacyId: `indicator_${category.code}_${index + 1}`,
+      categoryCode: category.code,
+    })),
+  }))
+}
+
+/** Query options of GET /lookups (also for loading it outside a component, e.g. on export) */
+export const lookupsQuery = {
+  queryKey: queryKeys.lookups,
+  queryFn: lookupService.getAll,
+  staleTime: Infinity,
+}
+
 /**
  * Impact categories (sorted by code, with their icon), questions and indicators, and the places
  * registry (D64 a: where library guidance can appear, with groups and labels — the frontend keeps
  * no copy of it)
  */
 export function useLookups() {
-  const query = useQuery({
-    queryKey: queryKeys.lookups,
-    queryFn: lookupService.getAll,
-    staleTime: Infinity,
-  })
+  const query = useQuery(lookupsQuery)
   const data = query.data
 
-  const impactCategories = useMemo(() => {
-    if (!data) return EMPTY
-    return [...data.impactCategories]
-      .sort((a, b) => String(a.code || '').localeCompare(String(b.code || '')))
-      .map((category) => ({ ...category, ...(CATEGORY_ICONS[category.code] || {}) }))
-  }, [data])
+  const impactCategories = useMemo(() => sortedCategories(data), [data])
   const impactQuestions = data?.impactQuestions ?? EMPTY
   const indicators = data?.indicators ?? EMPTY
   const places = data?.places ?? EMPTY
@@ -57,34 +92,13 @@ export function useLookups() {
 
   // Categories with their questions, in the shape the scoring UI uses
   const categoriesWithQuestions = useMemo(
-    () =>
-      impactCategories.map((category) => ({
-        ...category,
-        id: category.code, // Backward compatibility
-        questions: byCategory(impactQuestions, category).map((q, index) => ({
-          id: q._id,
-          legacyId: `${category.code}_q${index + 1}`,
-          _id: q._id,
-          question: q.question_text,
-          question_ar: q.question_text_ar,
-        })),
-      })),
+    () => withQuestions(impactCategories, impactQuestions),
     [impactCategories, impactQuestions]
   )
 
   // Categories with their monitoring indicators
   const categoriesWithIndicators = useMemo(
-    () =>
-      impactCategories.map((category) => ({
-        ...category,
-        id: category.code,
-        indicators: byCategory(indicators, category).map((ind, index) => ({
-          ...ind,
-          id: `indicator_${category.code}_${index + 1}`,
-          legacyId: `indicator_${category.code}_${index + 1}`,
-          categoryCode: category.code,
-        })),
-      })),
+    () => withIndicators(impactCategories, indicators),
     [impactCategories, indicators]
   )
 

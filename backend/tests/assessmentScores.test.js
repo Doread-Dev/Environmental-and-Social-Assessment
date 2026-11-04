@@ -73,9 +73,13 @@ describe("default scores and total impact (D54)", () => {
     const id = res.body.data._id;
 
     expect(questions).toBe(50);
-    const list = await request(app).get(`/api/v1/assessments/${id}/scores`).set(auth(token));
-    expect(list.body.data).toHaveLength(50);
-    expect(list.body.data.every((s) => s.level === "negligible")).toBe(true);
+    expect(res.body.data.scores).toHaveLength(50);
+    const read = await request(app)
+      .get(`/api/v1/assessments/project/${res.body.data.project._id}`)
+      .set(auth(token));
+    expect(read.body.data._id).toBe(id);
+    expect(read.body.data.scores).toHaveLength(50);
+    expect(read.body.data.scores.every((s) => s.level === "negligible")).toBe(true);
     expect(res.body.data.total_project_impact).toBe("negligible");
     expect(res.body.data.total_project_score.negligible).toBe(50);
   });

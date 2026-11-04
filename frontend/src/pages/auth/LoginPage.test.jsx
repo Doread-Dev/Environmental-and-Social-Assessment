@@ -15,4 +15,15 @@ describe('LoginPage (D25)', () => {
     expect(screen.getByText(/Contact your system administrator/)).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /Forgot password/ })).not.toBeInTheDocument()
   })
+
+  it('shows the local AKF logo and map of Syria (D51)', () => {
+    renderApp([{ path: '/login', element: <LoginPage /> }], '/login')
+
+    const logo = screen.getByRole('img', { name: 'Aga Khan Foundation logo' })
+    expect(logo.getAttribute('src')).toMatch(/akf-logo/)
+    expect(screen.getByRole('img', { name: 'Map of Syria' }).getAttribute('src')).toMatch(
+      /syria-map/
+    )
+    expect(screen.getByText('Aga Khan Foundation – Syria')).toBeInTheDocument()
+  })
 })

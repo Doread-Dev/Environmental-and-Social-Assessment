@@ -8,7 +8,8 @@ export const assessmentService = {
   /**
    * Get assessment by project ID
    * @param {string} projectId
-   * @returns {Promise<Object|null>} Assessment, or null when not started yet
+   * @returns {Promise<Object|null>} Assessment with `methods`, `consultations` and `scores`
+   *   embedded (D63 c), or null when not started yet
    */
   async getByProject(projectId) {
     const response = await api.get(`/assessments/project/${projectId}`)
@@ -48,16 +49,6 @@ export const assessmentService = {
   },
 
   /**
-   * Get all methods for an assessment
-   * @param {string} assessmentId
-   * @returns {Promise<Array>}
-   */
-  async getMethods(assessmentId) {
-    const response = await api.get(`/assessments/${assessmentId}/methods`)
-    return response.data.data
-  },
-
-  /**
    * Replace all consultations for an assessment (bulk operation)
    * @param {string} assessmentId
    * @param {Array} consultations
@@ -65,16 +56,6 @@ export const assessmentService = {
    */
   async setConsultations(assessmentId, consultations) {
     const response = await api.put(`/assessments/${assessmentId}/consultations`, consultations)
-    return response.data.data
-  },
-
-  /**
-   * Get all consultations for an assessment
-   * @param {string} assessmentId
-   * @returns {Promise<Array>}
-   */
-  async getConsultations(assessmentId) {
-    const response = await api.get(`/assessments/${assessmentId}/consultations`)
     return response.data.data
   },
 
@@ -87,16 +68,6 @@ export const assessmentService = {
    */
   async addScores(assessmentId, scores) {
     const response = await api.post(`/assessments/${assessmentId}/scores`, scores)
-    return response.data.data
-  },
-
-  /**
-   * Get all impact scores for an assessment
-   * @param {string} assessmentId
-   * @returns {Promise<Array>}
-   */
-  async getScores(assessmentId) {
-    const response = await api.get(`/assessments/${assessmentId}/scores`)
     return response.data.data
   },
 

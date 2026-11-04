@@ -9,8 +9,8 @@ import { RANKING_HELP } from '@/utils/rankingHelp'
 
 /**
  * @param {Object} props
- * @param {string} props.value - القيمة الحالية (negligible/low/medium/high/not_applicable)
- * @param {Function} props.onChange - دالة التغيير (value) => void
+ * @param {string} props.value - القيمة الحالية (negligible/low/medium/high/not_applicable، أو '' = لم تُختر)
+ * @param {Function} props.onChange - دالة التغيير (value) => void؛ null عند اختيار الخيار الفارغ (D69)
  * @param {string} [props.categoryCode] - كود الفئة للسؤال
  * @param {number} [props.questionNumber] - رقم السؤال داخل الفئة
  * @param {boolean} [props.disabled] - معطل
@@ -36,8 +36,8 @@ function RankingSelect({
 
   return (
     <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
+      value={value || ''}
+      onChange={(e) => onChange(e.target.value || null)}
       disabled={disabled}
       className={cn(
         'w-full rounded-lg border border-border-default dark:border-border-dark',
@@ -48,6 +48,7 @@ function RankingSelect({
         className
       )}
     >
+      <option value="">Select ranking</option>
       {levels.map((level) => {
         const helpText = getHelpText(level.key)
         return (

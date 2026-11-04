@@ -12,7 +12,11 @@ const recordSchema = Joi.object({
   }).optional(),
   total: Joi.string().allow("", null).optional(),
   final_assessment: Joi.string().allow("", null).optional(),
-  ranking: Joi.string().valid("negligible", "low", "medium", "high", "not_applicable").optional(),
+  // Empty (null) until the user picks a level; null clears it (D69).
+  ranking: Joi.string()
+    .valid("negligible", "low", "medium", "high", "not_applicable")
+    .allow(null)
+    .optional(),
   responsible: Joi.string().allow(null, "").optional(),
   responsible_text: Joi.string().allow("", null).optional(),
   note: Joi.string().allow("", null),

@@ -114,14 +114,14 @@ function IndicatorDataRow({
       <td className="px-3 py-3 min-w-[160px]">
         {isEditable ? (
           <RankingSelect
-            value={record.ranking || 'not_applicable'}
+            value={record.ranking || ''}
             onChange={(value) => handleFieldChange('ranking', value)}
             categoryCode={categoryCode}
             questionNumber={questionNumber}
           />
         ) : (
           <span className="text-sm text-text-main dark:text-white capitalize text-center block">
-            {record.ranking || 'N/A'}
+            {record.ranking || '—'}
           </span>
         )}
       </td>

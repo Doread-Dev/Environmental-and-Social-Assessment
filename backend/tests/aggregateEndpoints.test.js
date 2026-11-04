@@ -119,7 +119,7 @@ describe("GET /projects (D31)", () => {
       screening: { status: "approved", category_code: "B" },
       assessment: { status: "approved" },
       workflow: { status: "in_progress", current_step: "semp", percent_complete: 50 },
-      allowed_actions: ["project.edit", "semp.edit", "export"],
+      allowed_actions: ["project.edit", "semp.edit", "files.edit", "export"],
     });
   });
 

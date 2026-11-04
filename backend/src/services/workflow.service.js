@@ -244,6 +244,8 @@ const allowedActions = (role, project, workflow) => {
     "assessment.reject": review && assessment.status === "submitted",
     "semp.edit": edit && semp.status !== "locked",
     "monitoring.edit": edit && monitoring.status !== "locked",
+    // Upload/delete project files (Annex, D47): editors, not archived. No workflow lock.
+    "files.edit": edit,
     export: can(role, "export"),
   };
   return Object.keys(actions).filter((name) => actions[name]);

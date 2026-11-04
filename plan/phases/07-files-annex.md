@@ -27,10 +27,17 @@
 - Project delete removes files.
 
 ## Done when
-- [ ] Annex works in the browser for editors and viewers.
-- [ ] Backups (phase 11) must include `UPLOADS_DIR` — noted in `CLAUDE.md`.
+- [x] Annex works in the browser for editors and viewers.
+- [x] Backups (phase 11) must include `UPLOADS_DIR` — noted in `CLAUDE.md`.
 
 ## Out of scope
 SEMP Plan UI (phase 9 keeps it locked).
 
+## Result
+- Allow-list (owner, 2026-11-04): **PDF + Office only** (`pdf doc docx xls xlsx ppt pptx odt ods odp`), **10 MB** per file (`MAX_UPLOAD_MB`). Images, text and zip are refused.
+- Type checked by extension and first bytes; files parsed in memory and written only after validation; UTF-8 (Arabic) names kept via busboy `defParamCharset: utf8`.
+- New allowed action `files.edit` and `upload_rules` in `GET /auth/me`, so the frontend holds no file rule.
+- Purge audit entry records the number of files.
+
 ## Found during phase
+- The browser pane's mouse clicks land off target on this page size (refs/JS clicks work); a tooling quirk, not an app bug.

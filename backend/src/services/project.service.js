@@ -8,6 +8,8 @@ const ManagementActivity = require("../models/managementActivity.model");
 const MitigationPlan = require("../models/mitigationPlan.model");
 const MonitoringRecord = require("../models/monitoringRecord.model");
 const AuditLog = require("../models/auditLog.model");
+const ProjectFile = require("../models/projectFile.model");
+const { removeProjectFiles } = require("./projectFile.service");
 const ApiError = require("../utils/ApiError");
 const {
   allowedActions,
@@ -131,6 +133,8 @@ const removeProjectData = async (id) => {
   await MonitoringRecord.deleteMany({ project: id });
 
   await Project.deleteOne({ _id: id });
+  // Files last, once the DB delete has succeeded (D47); failures are logged, never thrown.
+  await removeProjectFiles(id);
 };
 
 // Admin only, archived projects only, approved work included; recorded in the audit log (D60).
@@ -141,9 +145,10 @@ const purgeProject = async (id, userId) => {
     throw new ApiError(409, "Only archived projects can be deleted permanently. Archive it first.");
   }
 
-  const [screening, assessment] = await Promise.all([
+  const [screening, assessment, fileCount] = await Promise.all([
     Screening.findOne({ project: id }, "status category_code"),
     Assessment.findOne({ project: id }, "status total_project_impact"),
+    ProjectFile.countDocuments({ project: id }),
   ]);
 
   // Written before the delete: a purge never happens without its record.
@@ -161,6 +166,7 @@ const purgeProject = async (id, userId) => {
       screening_category: screening?.category_code ?? null,
       assessment_status: assessment?.status ?? null,
       total_project_impact: assessment?.total_project_impact ?? null,
+      files: fileCount,
     },
   });
 

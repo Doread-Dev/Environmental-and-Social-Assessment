@@ -12,6 +12,7 @@ const authRoutes = require("./auth.routes");
 const usersRoutes = require("./users.routes");
 const auditLogsRoutes = require("./auditLogs.routes");
 const dashboardRoutes = require("./dashboard.routes");
+const filesRoutes = require("./files.routes");
 
 const router = express.Router();
 
@@ -33,5 +34,6 @@ router.use("/mitigation", mitigationRoutes);
 router.use("/lookups", lookupsRoutes);
 router.use("/audit-logs", auditLogsRoutes);
 router.use("/dashboard", dashboardRoutes);
+router.use("/files", filesRoutes);
 
 module.exports = router;

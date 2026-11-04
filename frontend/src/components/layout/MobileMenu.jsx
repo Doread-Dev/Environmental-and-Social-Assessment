@@ -10,6 +10,7 @@ import {
   ROUTES,
 } from '@/routes/routes.config'
 import { Avatar, Tooltip } from '@/components/ui'
+import BrandLogo from './BrandLogo'
 
 /**
  * MobileMenu Component
@@ -266,17 +267,7 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
               </button>
             ) : (
               // Main variant: Show Logo
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center size-10 rounded-xl bg-primary text-white">
-                  <span className="material-symbols-outlined text-2xl">eco</span>
-                </div>
-                <div className="flex flex-col">
-                  <h1 className="text-lg font-bold leading-tight text-text-main dark:text-white">
-                    ESMS
-                  </h1>
-                  <p className="text-text-secondary text-xs font-medium">Internal Portal</p>
-                </div>
-              </div>
+              <BrandLogo size="md" />
             )}
 
             <button

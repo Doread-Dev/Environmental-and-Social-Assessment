@@ -133,10 +133,12 @@ function LoginPage() {
         />
 
         <div className="relative z-10 flex flex-col items-center text-center">
-          {/* The logo keeps a light backing so it reads in dark mode too */}
-          <div className="rounded-2xl bg-white/90 p-3 mb-6 shadow-sm">
-            <img src={akfLogo} alt="Aga Khan Foundation logo" className="w-52 max-w-full h-auto" />
-          </div>
+          {/* The logo PNG is transparent: no box behind it (as v2) */}
+          <img
+            src={akfLogo}
+            alt="Aga Khan Foundation logo"
+            className="w-56 max-w-full h-auto mb-6 drop-shadow-md"
+          />
 
           <img
             src={syriaMap}

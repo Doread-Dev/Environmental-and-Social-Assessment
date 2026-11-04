@@ -1,5 +1,6 @@
 /**
- * Excel exports in the official AKF workbook layout (D52, D67). Loaded on demand
+ * Excel exports in this repo's own layouts, complete for each tool (D68), one tool per file or
+ * the project workbook (D67 b). Loaded on demand
  * (`await import('@/utils/excelExport')`), so ExcelJS stays in its own chunk.
  */
 

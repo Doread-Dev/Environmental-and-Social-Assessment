@@ -85,27 +85,18 @@ export function useAssessment(projectId) {
    * بدء تقييم جديد
    * ينشئ assessment حقيقي في الباك إند
    */
-  const startAssessment = useCallback(
-    (project) => {
-      if (assessment) return Promise.resolve({ success: true, data: assessment })
-      // The backend sets officer, prefills project activity (from the project component) and
-      // the potential impacts (from the screening), and creates all scores as Negligible
-      // (D53, D54). Description is required, so it starts as a placeholder; so does project
-      // activity when the project has no component to prefill it from.
-      return save(
-        () =>
-          assessmentService.create({
-            project: projectId,
-            description: '(To be filled)',
-            ...(!project?.project_component?.trim() && { project_activity: '(To be filled)' }),
-          }),
-        (created) => store(splitAssessment(created))
-      ).then((result) =>
-        result.success ? { ...result, data: splitAssessment(result.data).assessment } : result
-      )
-    },
-    [assessment, projectId, save, store]
-  )
+  const startAssessment = useCallback(() => {
+    if (assessment) return Promise.resolve({ success: true, data: assessment })
+    // Every input starts empty: nothing is prefilled and no placeholder is saved (D69). The
+    // backend sets the officer and creates all scores as Negligible (D54); project activity
+    // and description are required at submit.
+    return save(
+      () => assessmentService.create({ project: projectId }),
+      (created) => store(splitAssessment(created))
+    ).then((result) =>
+      result.success ? { ...result, data: splitAssessment(result.data).assessment } : result
+    )
+  }, [assessment, projectId, save, store])
 
   /**
    * حفظ البيانات الوصفية (Metadata)

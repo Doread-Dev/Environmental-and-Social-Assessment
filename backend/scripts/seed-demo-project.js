@@ -196,10 +196,15 @@ async function main() {
   console.log("Tool 1 (screening): approved");
 
   // Tool 2 – Assessment: metadata, methods, consultations, scores, submit, approve.
-  // Project activity and potential impacts are prefilled from the project and the screening;
-  // every question starts as Negligible (D53, D54).
+  // Nothing is prefilled (D69): the demo types every field, as a user would in Tool 2. Every
+  // question starts as Negligible (D54).
   const assessment = await call("POST", "/assessments", {
     project: projectId,
+    project_activity: "Water network rehabilitation in the Al-Salam district",
+    potential_negative_impact:
+      "Dust and noise during excavation, temporary traffic disruption and water supply cut-offs.",
+    potential_positive_impact:
+      "Reliable access to safe drinking water and fewer network losses for the district.",
     description:
       "Excavation of trenches, removal of damaged pipes, installation of HDPE pipes, house connections and road reinstatement.",
     environmental_setting:

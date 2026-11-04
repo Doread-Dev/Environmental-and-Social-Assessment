@@ -9,6 +9,9 @@ vi.mock('@/services', () => ({
     getByProject: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
+    setMethods: vi.fn(),
+    setConsultations: vi.fn(),
+    reject: vi.fn(),
     addScores: vi.fn(),
     approve: vi.fn(),
   },
@@ -70,27 +73,12 @@ describe('useAssessment.startAssessment', () => {
     assessmentService.create.mockResolvedValue(withChildren({ _id: 'a1', status: 'draft' }))
   })
 
-  it('leaves project activity to the backend prefill when the project has a component (D53)', async () => {
+  it('creates the assessment with every input empty: no prefill, no placeholder (D69)', async () => {
     const { result } = await renderLoaded()
 
-    await act(() => result.current.startAssessment({ project_component: 'Water network' }))
+    await act(() => result.current.startAssessment())
 
-    expect(assessmentService.create).toHaveBeenCalledWith({
-      project: 'p1',
-      description: '(To be filled)',
-    })
-  })
-
-  it('sends a placeholder project activity when the project has no component', async () => {
-    const { result } = await renderLoaded()
-
-    await act(() => result.current.startAssessment({ project_component: '' }))
-
-    expect(assessmentService.create).toHaveBeenCalledWith({
-      project: 'p1',
-      description: '(To be filled)',
-      project_activity: '(To be filled)',
-    })
+    expect(assessmentService.create).toHaveBeenCalledWith({ project: 'p1' })
   })
 
   it('loads the default Negligible scores the backend created (D54)', async () => {
@@ -98,10 +86,22 @@ describe('useAssessment.startAssessment', () => {
 
     let outcome
     await act(async () => {
-      outcome = await result.current.startAssessment({ project_component: 'Water network' })
+      outcome = await result.current.startAssessment()
     })
 
     expect(result.current.impactScores).toEqual(normalizedScores)
+    expect(outcome).toEqual({ success: true, data: { _id: 'a1', status: 'draft' } })
+  })
+
+  it('does not create a second assessment when one exists', async () => {
+    const { result } = await renderLoaded(withChildren({ _id: 'a1', status: 'draft' }))
+
+    let outcome
+    await act(async () => {
+      outcome = await result.current.startAssessment()
+    })
+
+    expect(assessmentService.create).not.toHaveBeenCalled()
     expect(outcome).toEqual({ success: true, data: { _id: 'a1', status: 'draft' } })
   })
 
@@ -113,7 +113,7 @@ describe('useAssessment.startAssessment', () => {
 
     let outcome
     await act(async () => {
-      outcome = await result.current.startAssessment({ project_component: 'x' })
+      outcome = await result.current.startAssessment()
     })
 
     expect(outcome).toEqual({ success: false, error: 'Tool 1 must be approved' })
@@ -134,6 +134,41 @@ describe('useAssessment writes', () => {
     })
     expect(result.current.assessment.total_project_impact).toBe('high')
     expect(result.current.impactScores).toEqual([{ question: 'q1', level: 'high' }])
+  })
+
+  it('metadata: creates the assessment when none exists, updates it otherwise', async () => {
+    assessmentService.create.mockResolvedValue({ _id: 'a1', description: 'New' })
+    const first = await renderLoaded(null)
+    await act(() => first.result.current.saveMetadata({ description: 'New' }))
+    expect(assessmentService.create).toHaveBeenCalledWith({ project: 'p1', description: 'New' })
+
+    assessmentService.update.mockResolvedValue({ _id: 'a1', description: 'Edited' })
+    const second = await renderLoaded(withChildren({ _id: 'a1', status: 'draft' }))
+    await act(() => second.result.current.saveMetadata({ description: 'Edited' }))
+    expect(assessmentService.update).toHaveBeenCalledWith('a1', { description: 'Edited' })
+    expect(second.result.current.assessment.description).toBe('Edited')
+  })
+
+  it('methods and consultations replace the lists in the cache', async () => {
+    assessmentService.setMethods.mockResolvedValue([{ method_type: 'field_visits' }])
+    assessmentService.setConsultations.mockResolvedValue([{ type: 'village_meetings' }])
+    const { result } = await renderLoaded(withChildren({ _id: 'a1', status: 'draft' }))
+
+    await act(() => result.current.saveMethods([{ method_type: 'field_visits' }]))
+    await act(() => result.current.saveConsultations([{ type: 'village_meetings' }]))
+
+    expect(result.current.methods).toEqual([{ method_type: 'field_visits' }])
+    expect(result.current.consultations).toEqual([{ type: 'village_meetings' }])
+  })
+
+  it('reject sends an empty reason when none is given', async () => {
+    assessmentService.reject.mockResolvedValue({ _id: 'a1', status: 'rejected' })
+    const { result } = await renderLoaded(withChildren({ _id: 'a1', status: 'submitted' }))
+
+    await act(() => result.current.rejectAssessment())
+
+    expect(assessmentService.reject).toHaveBeenCalledWith('a1', '')
+    expect(result.current.assessment.status).toBe('rejected')
   })
 
   it('approve refreshes the workspace (sidebar unlocks SEMP)', async () => {

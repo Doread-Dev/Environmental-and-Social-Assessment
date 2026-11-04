@@ -2,7 +2,7 @@
 
 **Goal:** bring the approved v2 visuals and the official-format Excel exports into this repo.
 
-**Decisions:** D49, D51, D52 (layout goal replaced by D68), D54, D55, D59, D63 (a)–(c), D67 (b)–(d), D68 (+ D25 already done in phase 6).
+**Decisions:** D49, D51, D52 (layout goal replaced by D68), D54, D55, D59, D63 (a)–(c), D67 (b)–(d), D68, D69 (+ D25 already done in phase 6).
 
 ## Tasks
 
@@ -69,6 +69,12 @@
 
 ## Out of scope
 SEMP Plan, v3 modules (phase 9), general polish (phase 10).
+
+### Inputs start empty (D69, owner follow-up, own commit)
+- Backend `createAssessment` copies nothing (D53 prefill removed: `project_activity` ← project component, potential impacts ← screening). `project_activity` and `description` are no longer required at create (model + Joi); submit answers 400 "Fill in Project activity and Description before submitting" when one is empty, before the scores check. A draft may be saved with them empty.
+- Frontend `useAssessment.startAssessment` creates with `{ project }` only: the "(To be filled)" values for description and project activity are gone.
+- Demo seed sends the Tool 2 fields itself, as a user would type them.
+- Searched Tools 1–5 forms, hooks and the backend for other inputs filled automatically: only the screening date (today, D63 b; model default now) and the monitoring ranking (saved as "not_applicable" when none is picked) — both left as they are and asked about, see the PR. Assessment scores start Negligible by D54 (not a typed input), kept. Joi defaults are empty values or query defaults only. Read-only project data and context cards unchanged.
 
 ## Found during phase
 

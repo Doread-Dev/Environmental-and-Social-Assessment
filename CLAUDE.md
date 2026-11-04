@@ -15,7 +15,7 @@ The domain workflow is strictly ordered, and most code is organized around it:
 ## Active rework plan (read first)
 
 The app is being reworked in phases. Before any change:
-- [plan/DECISIONS.md](plan/DECISIONS.md) — what we build (D1–D61). Source of truth; don't diverge silently.
+- [plan/DECISIONS.md](plan/DECISIONS.md) — what we build (D1–D63). Source of truth; don't diverge silently.
 - [plan/README.md](plan/README.md) — phase order, rules for every phase, progress table. Each phase = one conversation, scoped by its file in `plan/phases/`.
 - [plan/V2_INVENTORY.md](plan/V2_INVENTORY.md) — what the `Environmental-and-Social-Assessment-main version 2/` prototype contains. That folder is git-ignored, unreviewed third-party work: never edit or commit it; port from it only what a decision/phase names, otherwise keep this repo's behavior and ask the owner.
 

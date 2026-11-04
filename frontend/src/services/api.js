@@ -9,6 +9,11 @@
  */
 import axios from 'axios'
 
+// The backend's 403 code while a forced password change is pending (D22), and the screen for it
+// (ROUTES.CHANGE_PASSWORD; not imported to keep this module free of routing code).
+export const PASSWORD_CHANGE_REQUIRED = 'PASSWORD_CHANGE_REQUIRED'
+const CHANGE_PASSWORD_PATH = '/change-password'
+
 // Create Axios instance with base configuration
 const api = axios.create({
   // No localhost fallback: set VITE_API_URL in .env / Vercel so production fails fast if missing
@@ -41,6 +46,8 @@ api.interceptors.request.use(
  * Handles 401 Unauthorized responses globally by:
  * - Clearing stored token
  * - Redirecting to login page
+ * and 403 PASSWORD_CHANGE_REQUIRED (an admin reset the password, D22) by sending the user to the
+ * change-password screen.
  */
 api.interceptors.response.use(
   (response) => response,
@@ -59,6 +66,14 @@ api.interceptors.response.use(
       }
     }
 
+    if (
+      error.response?.status === 403 &&
+      error.response.data?.code === PASSWORD_CHANGE_REQUIRED &&
+      window.location.pathname !== CHANGE_PASSWORD_PATH
+    ) {
+      window.location.href = CHANGE_PASSWORD_PATH
+    }
+
     return Promise.reject(error)
   }
 )
@@ -69,9 +84,13 @@ api.interceptors.response.use(
  * @returns {string} Human-readable error message
  */
 export function extractErrorMessage(error) {
-  // 403 Forbidden: consistent user-friendly message
+  // 403 Forbidden (wrong role): consistent user-friendly message. Other 403s carry their own
+  // reason, e.g. "Account is deactivated" or a pending password change.
   if (error.response?.status === 403) {
-    return "You don't have permission to perform this action."
+    const reason = error.response.data?.error
+    return reason && reason !== 'Forbidden'
+      ? reason
+      : "You don't have permission to perform this action."
   }
 
   // Server responded with error

@@ -11,6 +11,9 @@ const userSchema = new mongoose.Schema(
     job_title: { type: mongoose.Schema.Types.ObjectId, ref: "JobTitle" },
     role: { type: String, enum: ROLES, default: "viewer" },
     is_active: { type: Boolean, default: true },
+    // Set by an admin password reset or account creation (D22): until the user picks their own
+    // password, every endpoint except GET /auth/me and PUT /auth/password answers 403.
+    must_change_password: { type: Boolean, default: false },
   },
   {
     timestamps: true,

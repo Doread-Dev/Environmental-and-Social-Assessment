@@ -11,7 +11,7 @@ import { useAuth } from '@/contexts'
  * @param {string} props.className - Additional CSS classes
  */
 function MainSidebar({ className }) {
-  const { canManageUsers: canAccessSettings } = useAuth()
+  const { canAccessSettings } = useAuth()
 
   return (
     <aside

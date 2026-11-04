@@ -10,7 +10,7 @@ require("dotenv").config({ quiet: true });
 const mongoose = require("mongoose");
 const connectDB = require("../src/config/database");
 const User = require("../src/models/user.model");
-const { registerSchema } = require("../src/validators/auth.validator");
+const { password: passwordRule } = require("../src/validators/auth.validator");
 const { valueFrom } = require("./lib/prompt");
 
 async function main() {
@@ -18,8 +18,8 @@ async function main() {
   const email = await valueFrom("RESET_EMAIL", "Email: ");
   const password = await valueFrom("RESET_PASSWORD", "New password: ", { hidden: true });
 
-  // Same password rule as POST /auth/register.
-  const { error } = registerSchema.extract("password").validate(password);
+  // Same password policy as PUT /auth/password.
+  const { error } = passwordRule.required().validate(password);
   if (error) throw new Error(error.details.map((d) => d.message).join(", "));
 
   await connectDB();
@@ -28,6 +28,8 @@ async function main() {
     if (!user) throw new Error(`No user with email ${email}`);
 
     user.password = password; // hashed by the model's pre-save hook
+    // The operator chose this password: no forced change at next login (unlike an admin reset).
+    user.must_change_password = false;
     if (activate) user.is_active = true;
     await user.save();
 

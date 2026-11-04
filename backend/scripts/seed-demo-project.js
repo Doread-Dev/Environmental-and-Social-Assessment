@@ -4,9 +4,13 @@
 // straight in MongoDB: the API refuses to delete approved work (D17), and the admin purge endpoint
 // is for real projects (D60). Dev-only: refuses to run with NODE_ENV=production.
 //
+// It also creates (or resets) one demo user per role, demo.<role>@example.com, through the admin
+// user endpoints, and signs in as each one to replace the temporary password (D22) with
+// DEMO_PASSWORD (default: SEED_PASSWORD). Passwords are never printed.
+//
 // Usage (backend must be running, lookups seeded):
-//   SEED_EMAIL=... SEED_PASSWORD=... node scripts/seed-demo-project.js
-// The account must be an admin or environmental_specialist (needed to approve).
+//   SEED_EMAIL=... SEED_PASSWORD=... [DEMO_PASSWORD=...] node scripts/seed-demo-project.js
+// The account must be an admin (user management is admin only, D21).
 require("dotenv").config();
 
 if (process.env.NODE_ENV === "production") {
@@ -21,7 +25,16 @@ const { removeProjectData } = require("../src/services/project.service");
 const API_URL = process.env.API_URL || `http://localhost:${process.env.PORT || 3000}/api/v1`;
 const EMAIL = process.env.SEED_EMAIL;
 const PASSWORD = process.env.SEED_PASSWORD;
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || PASSWORD;
 const DEMO_TITLE = "[DEMO] Al-Salam Water Network Rehabilitation";
+const DEMO_USERS = [
+  ["admin", "Demo Administrator"],
+  ["environmental_specialist", "Demo Environmental Specialist"],
+  ["program_manager", "Demo Program Manager"],
+  ["project_manager", "Demo Project Manager"],
+  ["environmental_focal_point", "Demo Environmental Focal Point"],
+  ["viewer", "Demo Viewer"],
+].map(([role, name]) => ({ role, name, email: `demo.${role}@example.com` }));
 
 let token;
 
@@ -38,12 +51,12 @@ async function removePreviousDemos() {
   }
 }
 
-async function call(method, path, body) {
+async function call(method, path, body, as = token) {
   const res = await fetch(`${API_URL}${path}`, {
     method,
     headers: {
       "Content-Type": "application/json",
-      ...(token && { Authorization: `Bearer ${token}` }),
+      ...(as && { Authorization: `Bearer ${as}` }),
     },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
@@ -55,20 +68,51 @@ async function call(method, path, body) {
   return json.data;
 }
 
+// Creates each demo user, or brings an existing one back to its role and active state, then gets
+// a temporary password from the admin endpoints and swaps it for DEMO_PASSWORD as that user would.
+async function seedDemoUsers(seedEmail) {
+  const existing = await call("GET", "/users");
+  for (const demo of DEMO_USERS) {
+    if (demo.email === seedEmail) continue; // resetting the seed account would end this session
+    const found = existing.find((u) => u.email === demo.email);
+    let reset;
+    if (found) {
+      await call("PUT", `/users/${found._id}`, { name: demo.name, role: demo.role });
+      if (!found.is_active) await call("PATCH", `/users/${found._id}/reactivate`);
+      reset = await call("POST", `/users/${found._id}/reset-password`);
+    } else {
+      reset = await call("POST", "/users", demo);
+    }
+    const temporaryPassword = reset.temporary_password;
+    const session = await call("POST", "/auth/login", {
+      email: demo.email,
+      password: temporaryPassword,
+    });
+    await call(
+      "PUT",
+      "/auth/password",
+      { current_password: temporaryPassword, new_password: DEMO_PASSWORD },
+      session.token
+    );
+  }
+  console.log(`Demo users: ${DEMO_USERS.map((u) => u.email).join(", ")}`);
+}
+
 const LEVELS = ["negligible", "low", "medium", "high", "not_applicable"];
 
 async function main() {
   if (!EMAIL || !PASSWORD) {
-    throw new Error("Set SEED_EMAIL and SEED_PASSWORD (an admin or environmental_specialist)");
+    throw new Error("Set SEED_EMAIL and SEED_PASSWORD (an admin account)");
   }
 
   const login = await call("POST", "/auth/login", { email: EMAIL, password: PASSWORD });
   token = login.token;
   const userId = login.user._id;
-  if (!["admin", "environmental_specialist"].includes(login.user.role)) {
-    throw new Error("SEED account must be an admin or environmental_specialist");
+  if (login.user.role !== "admin") {
+    throw new Error("SEED account must be an admin (user management is admin only)");
   }
 
+  await seedDemoUsers(login.user.email);
   await removePreviousDemos();
 
   // Project

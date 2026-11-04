@@ -2,9 +2,17 @@ import { describe, expect, it } from 'vitest'
 import {
   validateAssessmentMetadata,
   validateProjectDescription,
+  validatePassword,
   validateProjectTitle,
   validateScreeningForm,
 } from './validators'
+
+describe('validatePassword (login)', () => {
+  it('only requires a value: the policy is checked by the backend when a password is set', () => {
+    expect(validatePassword('')).toEqual({ valid: false, error: 'Password is required' })
+    expect(validatePassword('abc')).toEqual({ valid: true, error: null })
+  })
+})
 
 // D57: no minimum-length rules; required fields must still not be empty.
 describe('no minimum lengths (D57)', () => {

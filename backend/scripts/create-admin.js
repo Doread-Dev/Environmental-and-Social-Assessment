@@ -9,7 +9,8 @@ require("dotenv").config({ quiet: true });
 const mongoose = require("mongoose");
 const connectDB = require("../src/config/database");
 const User = require("../src/models/user.model");
-const { registerSchema } = require("../src/validators/auth.validator");
+const { createUserSchema } = require("../src/validators/user.validator");
+const { password: passwordRule } = require("../src/validators/auth.validator");
 const { valueFrom } = require("./lib/prompt");
 
 async function main() {
@@ -17,8 +18,14 @@ async function main() {
   const email = await valueFrom("ADMIN_EMAIL", "Email: ");
   const password = await valueFrom("ADMIN_PASSWORD", "Password: ", { hidden: true });
 
-  // Same rules as POST /auth/register (role is set here, not by the caller).
-  const { error, value } = registerSchema.validate({ name, email, password });
+  // Same rules as POST /users, plus the password policy (the operator picks the password, so no
+  // forced change at first login).
+  const schema = createUserSchema
+    .fork(["role"], (r) => r.optional())
+    .keys({
+      password: passwordRule.required(),
+    });
+  const { error, value } = schema.validate({ name, email, password });
   if (error) throw new Error(error.details.map((d) => d.message).join(", "));
 
   await connectDB();

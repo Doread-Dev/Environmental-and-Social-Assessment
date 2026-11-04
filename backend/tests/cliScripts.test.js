@@ -58,7 +58,7 @@ describe("scripts/create-admin.js (D7)", () => {
     expect((await User.findOne({ email: "admin@example.com" })).role).toBe("viewer");
   });
 
-  it("rejects a password that fails the register rules", async () => {
+  it("rejects a password that fails the password policy", async () => {
     const result = run("create-admin.js", { ...env, ADMIN_PASSWORD: "123" });
 
     expect(result.status).toBe(1);
@@ -116,6 +116,18 @@ describe("scripts/reset-password.js (D24)", () => {
 
     expect(result.status, result.output).toBe(0);
     expect((await login(user.email, NEW_PASSWORD)).status).toBe(200);
+  });
+
+  it("clears a pending forced password change: the operator chose this password", async () => {
+    const { user } = await createUser("admin", { must_change_password: true });
+
+    const result = run("reset-password.js", {
+      RESET_EMAIL: user.email,
+      RESET_PASSWORD: NEW_PASSWORD,
+    });
+
+    expect(result.status, result.output).toBe(0);
+    expect((await User.findById(user._id)).must_change_password).toBe(false);
   });
 
   it("fails for an unknown email", async () => {

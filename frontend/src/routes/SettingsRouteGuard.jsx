@@ -3,12 +3,12 @@ import { useAuth } from '@/contexts'
 
 /**
  * SettingsRouteGuard
- * Guards Settings routes - only Environmental Specialist / Admin can access
+ * Guards Settings routes: user management (admin) or project deletion (specialist / admin)
  */
 function SettingsRouteGuard() {
   const location = useLocation()
   const outletContext = useOutletContext()
-  const { user, isLoading, canManageUsers } = useAuth()
+  const { user, isLoading, canAccessSettings } = useAuth()
 
   if (isLoading) {
     return (
@@ -23,8 +23,7 @@ function SettingsRouteGuard() {
     )
   }
 
-  // Only Environmental Specialist / Admin can access settings
-  if (!user || !canManageUsers) {
+  if (!user || !canAccessSettings) {
     return <Navigate to="/app/dashboard" replace state={{ from: location }} />
   }
 

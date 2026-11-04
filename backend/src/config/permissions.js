@@ -7,7 +7,7 @@ const PERMISSIONS = {
   edit: EDITOR_ROLES,
   export: EDITOR_ROLES, // every role except viewer (D28a)
   approve: SPECIALIST_ROLES,
-  manage_users: SPECIALIST_ROLES,
+  manage_users: ADMIN_ROLES, // D21: user management is admin only
   delete_project: SPECIALIST_ROLES,
   archive_project: SPECIALIST_ROLES,
   purge_project: ADMIN_ROLES,

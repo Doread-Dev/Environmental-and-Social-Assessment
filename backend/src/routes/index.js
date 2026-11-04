@@ -20,7 +20,8 @@ const router = express.Router();
 router.use("/auth", authRoutes);
 
 // Everything below requires a valid token of an active user (D3) who has no pending forced
-// password change (D22, 403 PASSWORD_CHANGE_REQUIRED). Routers add requireRole().
+// password change (D22, 403 PASSWORD_CHANGE_REQUIRED). Routers add requirePermission() (D66b)
+// and the project-access check (middlewares/projectAccess.js, D66a).
 router.use(auth);
 router.use(requirePasswordChanged);
 

@@ -1,4 +1,5 @@
-// Role lists used by the user model and by requireRole() in the routes.
+// The roles and the role groups that config/permissions.js builds its map from (D66: routes and
+// services never list roles; they name a permission).
 
 const ROLES = [
   "admin",

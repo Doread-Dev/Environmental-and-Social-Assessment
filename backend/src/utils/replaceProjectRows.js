@@ -33,9 +33,9 @@ const prepareRows = async (Model, projectId, rows, existingIds) => {
 // Replaces a project's whole table (Tools 3 and 4) in one request (D32): a row with `_id` updates
 // that row (id kept), a row without one is created, an existing row left out is deleted. Every
 // row is checked first, so an invalid row leaves the table untouched; the writes then go out as
-// one ordered bulkWrite.
+// one ordered bulkWrite. Returns the rows it deleted (as they were), for the audit log (D65).
 const replaceProjectRows = async (Model, projectId, rows) => {
-  const existing = await Model.find({ project: projectId }).select("_id").lean();
+  const existing = await Model.find({ project: projectId }).sort({ serial_number: 1 }).lean();
   const existingIds = new Set(existing.map((row) => String(row._id)));
   const prepared = await prepareRows(Model, projectId, rows, existingIds);
 
@@ -43,6 +43,8 @@ const replaceProjectRows = async (Model, projectId, rows) => {
   const keptIds = prepared
     .filter((row) => row._id)
     .map((row) => new mongoose.Types.ObjectId(row._id));
+  const kept = new Set(keptIds.map(String));
+  const removed = existing.filter((row) => !kept.has(String(row._id)));
   await Model.bulkWrite([
     // First, so it cannot match the rows inserted below.
     { deleteMany: { filter: { project, _id: { $nin: keptIds } } } },
@@ -52,6 +54,7 @@ const replaceProjectRows = async (Model, projectId, rows) => {
         : { insertOne: { document: { ...fields, project } } }
     ),
   ]);
+  return removed;
 };
 
 module.exports = replaceProjectRows;

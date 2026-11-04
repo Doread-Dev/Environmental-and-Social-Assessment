@@ -5,6 +5,7 @@ const ProjectFile = require("../models/projectFile.model");
 const Project = require("../models/project.model");
 const ApiError = require("../utils/ApiError");
 const { assertProjectWritable } = require("./workflow.service");
+const audit = require("./audit.service");
 const { OPEN_AREAS, FILE_TYPES, ALLOWED_EXTENSIONS, uploadsDir } = require("../config/files");
 
 const UPLOADED_BY = { path: "uploaded_by", select: "name role" };
@@ -120,11 +121,26 @@ const getDownload = async (fileId) => {
   return { file, fullPath };
 };
 
-const deleteFile = async (fileId) => {
+const deleteFile = async (fileId, user) => {
   const file = await findOpenFile(fileId);
   await assertProjectWritable(file.project);
   const fullPath = resolveStoredPath(file);
+  await file.populate(UPLOADED_BY);
   await ProjectFile.deleteOne({ _id: file._id });
+  await audit.record(user, "file.delete", {
+    project: await Project.findById(file.project).select("title").lean(),
+    target: { type: "file", id: file._id, label: file.original_name },
+    snapshot: {
+      name: file.original_name,
+      area: file.area,
+      category: file.category,
+      size: file.size,
+      mime_type: file.mime_type,
+      uploaded_by: file.uploaded_by?._id ?? null,
+      uploaded_by_name: file.uploaded_by?.name ?? null,
+      uploaded_at: file.createdAt,
+    },
+  });
   // The row is gone, so the file is unreachable; a failed unlink only leaves disk space behind.
   await fs.rm(fullPath, { force: true }).catch((err) => {
     console.error(`Could not remove file ${fullPath}:`, err.message);

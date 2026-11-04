@@ -7,8 +7,9 @@ const AssessmentImpactScore = require("../models/assessmentImpactScore.model");
 const ManagementActivity = require("../models/managementActivity.model");
 const MitigationPlan = require("../models/mitigationPlan.model");
 const MonitoringRecord = require("../models/monitoringRecord.model");
-const AuditLog = require("../models/auditLog.model");
+const audit = require("./audit.service");
 const ProjectFile = require("../models/projectFile.model");
+const User = require("../models/user.model");
 const { removeProjectFiles } = require("./projectFile.service");
 const ApiError = require("../utils/ApiError");
 const {
@@ -31,16 +32,17 @@ const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 // Projects with workflow state and allowed actions (D31). Archived projects are hidden unless
 // asked for; `archived: true` lists only them (D17). `status` and `category` filter on the
 // computed state, so they apply after it is loaded; without `limit` everything is one page.
-const listProjects = async (query, role) => {
+// `accessFilter` comes from the project-access check (projectFilterFor, D66).
+const listProjects = async (query, user, accessFilter) => {
   const { archived, search, status, category, sort, page, limit } = query;
-  const filter = { archived: archived ? true : { $ne: true } };
+  const filter = { $and: [accessFilter, { archived: archived ? true : { $ne: true } }] };
   if (search) {
     const pattern = new RegExp(escapeRegex(search), "i");
     filter.$or = [{ title: pattern }, { location: pattern }];
   }
 
   const projects = await Project.find(filter).sort(SORTS[sort]).lean();
-  const items = (await withWorkflowState(projects, role)).filter(
+  const items = (await withWorkflowState(projects, user)).filter(
     (item) =>
       (!status || item.workflow.status === status) &&
       (!category || item.screening?.category_code === category)
@@ -57,7 +59,7 @@ const listProjects = async (query, role) => {
 };
 
 // Everything the project layout, sidebar, route guards and overview need, in one call (D31).
-const getWorkspace = async (id, role) => {
+const getWorkspace = async (id, user) => {
   const project = await Project.findById(id)
     .populate({ path: "archived_by", select: "name role" })
     .lean();
@@ -68,7 +70,7 @@ const getWorkspace = async (id, role) => {
   return {
     project,
     workflow,
-    allowed_actions: allowedActions(role, project, workflow),
+    allowed_actions: allowedActions(user, project, workflow),
     screening: inputs.screening,
     assessment: inputs.assessment,
     counts: {
@@ -99,7 +101,41 @@ const updateProject = async (id, payload) => {
   return updated;
 };
 
-const deleteProject = async (id) => {
+// What a project delete or purge leaves in the audit log (D60, D65): the project as it was.
+const projectSnapshot = async (project) => {
+  const id = project._id;
+  const [screening, assessment, activities, plans, records, files, archivedBy] = await Promise.all([
+    Screening.findOne({ project: id }, "status category_code").lean(),
+    Assessment.findOne({ project: id }, "status total_project_impact").lean(),
+    ManagementActivity.countDocuments({ project: id }),
+    MitigationPlan.countDocuments({ project: id }),
+    MonitoringRecord.countDocuments({ project: id }),
+    ProjectFile.countDocuments({ project: id }),
+    project.archived_by ? User.findById(project.archived_by, "name").lean() : null,
+  ]);
+  return {
+    title: project.title,
+    location: project.location,
+    archived: Boolean(project.archived),
+    archived_by: project.archived_by ?? null,
+    archived_by_name: archivedBy?.name ?? null,
+    archived_at: project.archived_at ?? null,
+    screening_status: screening?.status ?? null,
+    screening_category: screening?.category_code ?? null,
+    assessment_status: assessment?.status ?? null,
+    total_project_impact: assessment?.total_project_impact ?? null,
+    rows: {
+      management_activities: activities,
+      mitigation_plans: plans,
+      monitoring_records: records,
+    },
+    files,
+  };
+};
+
+const projectTarget = (project) => ({ type: "project", id: project._id, label: project.title });
+
+const deleteProject = async (id, user) => {
   const project = await Project.findById(id);
   if (!project) throw new ApiError(404, "Project not found");
 
@@ -112,7 +148,13 @@ const deleteProject = async (id) => {
     );
   }
 
+  const snapshot = await projectSnapshot(project);
   await removeProjectData(id);
+  await audit.record(user, "project.delete", {
+    project,
+    target: projectTarget(project),
+    snapshot,
+  });
   return true;
 };
 
@@ -138,37 +180,21 @@ const removeProjectData = async (id) => {
 };
 
 // Admin only, archived projects only, approved work included; recorded in the audit log (D60).
-const purgeProject = async (id, userId) => {
+const purgeProject = async (id, user) => {
   const project = await Project.findById(id);
   if (!project) throw new ApiError(404, "Project not found");
   if (!project.archived) {
     throw new ApiError(409, "Only archived projects can be deleted permanently. Archive it first.");
   }
 
-  const [screening, assessment, fileCount] = await Promise.all([
-    Screening.findOne({ project: id }, "status category_code"),
-    Assessment.findOne({ project: id }, "status total_project_impact"),
-    ProjectFile.countDocuments({ project: id }),
-  ]);
-
-  // Written before the delete: a purge never happens without its record.
-  await AuditLog.create({
-    action: "project.purge",
-    by: userId,
-    target_type: "project",
-    target_id: project._id,
-    target_title: project.title,
-    details: {
-      location: project.location,
-      archived_by: project.archived_by,
-      archived_at: project.archived_at,
-      screening_status: screening?.status ?? null,
-      screening_category: screening?.category_code ?? null,
-      assessment_status: assessment?.status ?? null,
-      total_project_impact: assessment?.total_project_impact ?? null,
-      files: fileCount,
-    },
-  });
+  // Written before the delete: a purge never happens without its record (required: a failed
+  // write stops the purge).
+  await audit.record(
+    user,
+    "project.purge",
+    { project, target: projectTarget(project), snapshot: await projectSnapshot(project) },
+    { required: true }
+  );
 
   await removeProjectData(id);
 };
@@ -189,9 +215,17 @@ const setArchived = async (id, archived, userId) => {
   throw new ApiError(409, archived ? "Project is already archived" : "Project is not archived");
 };
 
-const archiveProject = async (id, userId) => setArchived(id, true, userId);
+const archiveProject = async (id, user) => {
+  const project = await setArchived(id, true, user._id);
+  await audit.record(user, "project.archive", { project, target: projectTarget(project) });
+  return project;
+};
 
-const restoreProject = async (id) => setArchived(id, false);
+const restoreProject = async (id, user) => {
+  const project = await setArchived(id, false);
+  await audit.record(user, "project.restore", { project, target: projectTarget(project) });
+  return project;
+};
 
 module.exports = {
   listProjects,

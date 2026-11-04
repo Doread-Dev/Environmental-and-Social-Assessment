@@ -7,31 +7,42 @@ const {
   approveScreeningSchema,
   rejectScreeningSchema,
 } = require("../validators/screening.validator");
-const { requireRole } = require("../middlewares/auth");
-const { EDITOR_ROLES, SPECIALIST_ROLES } = require("../config/roles");
+const { requirePermission } = require("../middlewares/auth");
+const projectAccess = require("../middlewares/projectAccess");
+const Screening = require("../models/screening.model");
 
 const router = express.Router();
+const screening = projectAccess.fromRecord(Screening, "id", "Screening not found");
 
-router.get("/:id", controller.getOne);
-router.get("/project/:projectId", controller.getByProject);
-router.post("/", requireRole(...EDITOR_ROLES), validate(createScreeningSchema), controller.create);
+router.get("/:id", screening, controller.getOne);
+router.get("/project/:projectId", projectAccess.fromParam("projectId"), controller.getByProject);
+router.post(
+  "/",
+  requirePermission("screening.create"),
+  validate(createScreeningSchema),
+  projectAccess.fromBody("project"),
+  controller.create
+);
 router.put(
   "/:id",
-  requireRole(...EDITOR_ROLES),
+  requirePermission("screening.edit"),
   validate(updateScreeningSchema),
+  screening,
   controller.update
 );
-router.patch("/:id/submit", requireRole(...EDITOR_ROLES), controller.submit);
+router.patch("/:id/submit", requirePermission("screening.submit"), screening, controller.submit);
 router.patch(
   "/:id/approve",
-  requireRole(...SPECIALIST_ROLES),
+  requirePermission("screening.approve"),
   validate(approveScreeningSchema),
+  screening,
   controller.approve
 );
 router.patch(
   "/:id/reject",
-  requireRole(...SPECIALIST_ROLES),
+  requirePermission("screening.reject"),
   validate(rejectScreeningSchema),
+  screening,
   controller.reject
 );
 

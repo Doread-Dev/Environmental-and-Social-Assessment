@@ -216,44 +216,44 @@ const getProjectWorkflow = async (projectId) => {
   return computeWorkflow(inputs.get(String(projectId)));
 };
 
-// What the given role may do on this project now (D35): role + workflow state + lock state.
-// Archived projects are read-only (only restore, purge and export remain).
-const allowedActions = (role, project, workflow) => {
+// What the user may do on this project now (D35): their permissions (config/permissions.js, by
+// the same names) + workflow state + lock state. Archived projects are read-only (only restore,
+// delete when nothing is approved, purge and export remain).
+const allowedActions = (user, project, workflow) => {
   const { screening, assessment, semp, monitoring } = workflow.steps;
   const writable = !project.archived;
-  const edit = writable && can(role, "edit");
-  const review = writable && can(role, "approve");
   const editable = (status) => status === "in_progress" || status === "rejected";
   const hasApprovedWork = screening.status === "approved" || assessment.status === "approved";
 
-  const actions = {
-    "project.edit": edit,
-    "project.archive": writable && can(role, "archive_project"),
-    "project.restore": !writable && can(role, "archive_project"),
-    "project.delete": can(role, "delete_project") && !hasApprovedWork,
-    "project.purge": !writable && can(role, "purge_project"),
-    "screening.create": edit && screening.status === "not_started",
-    "screening.edit": edit && editable(screening.status),
-    "screening.submit": edit && editable(screening.status),
-    "screening.approve": review && screening.status === "submitted",
-    "screening.reject": review && screening.status === "submitted",
-    "assessment.create": edit && assessment.status === "not_started",
-    "assessment.edit": edit && editable(assessment.status),
-    "assessment.submit": edit && editable(assessment.status),
-    "assessment.approve": review && assessment.status === "submitted",
-    "assessment.reject": review && assessment.status === "submitted",
-    "semp.edit": edit && semp.status !== "locked",
-    "monitoring.edit": edit && monitoring.status !== "locked",
+  // Workflow condition per action; the user's permission of the same name is checked on top.
+  const conditions = {
+    "project.edit": writable,
+    "project.archive": writable,
+    "project.restore": !writable,
+    "project.delete": !hasApprovedWork,
+    "project.purge": !writable,
+    "screening.create": writable && screening.status === "not_started",
+    "screening.edit": writable && editable(screening.status),
+    "screening.submit": writable && editable(screening.status),
+    "screening.approve": writable && screening.status === "submitted",
+    "screening.reject": writable && screening.status === "submitted",
+    "assessment.create": writable && assessment.status === "not_started",
+    "assessment.edit": writable && editable(assessment.status),
+    "assessment.submit": writable && editable(assessment.status),
+    "assessment.approve": writable && assessment.status === "submitted",
+    "assessment.reject": writable && assessment.status === "submitted",
+    "semp.edit": writable && semp.status !== "locked",
+    "monitoring.edit": writable && monitoring.status !== "locked",
     // Upload/delete project files (Annex, D47): editors, not archived. No workflow lock.
-    "files.edit": edit,
-    export: can(role, "export"),
+    "files.edit": writable,
+    export: true,
   };
-  return Object.keys(actions).filter((name) => actions[name]);
+  return Object.keys(conditions).filter((name) => conditions[name] && can(user, name));
 };
 
 // Plain project objects (lean) → list items with workflow state, screening/assessment summary and
-// the role's allowed actions. Query count does not depend on the number of projects.
-const withWorkflowState = async (projects, role) => {
+// the user's allowed actions. Query count does not depend on the number of projects.
+const withWorkflowState = async (projects, user) => {
   const inputs = await loadWorkflowInputs(projects.map((project) => project._id));
   return projects.map((project) => {
     const data = inputs.get(String(project._id));
@@ -263,7 +263,7 @@ const withWorkflowState = async (projects, role) => {
       screening: data.screening,
       assessment: data.assessment,
       workflow,
-      allowed_actions: allowedActions(role, project, workflow),
+      allowed_actions: allowedActions(user, project, workflow),
     };
   });
 };

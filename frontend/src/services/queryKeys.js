@@ -18,6 +18,7 @@ export const queryKeys = {
   mitigation: (projectId) => ['mitigation', projectId],
   monitoring: (projectId) => ['monitoring', projectId],
   files: (projectId, area) => ['files', projectId, area],
+  auditLogs: (params) => ['audit-logs', params],
 }
 
 /**

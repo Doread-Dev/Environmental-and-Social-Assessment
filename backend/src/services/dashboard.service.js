@@ -6,12 +6,13 @@ const HIGH_RISK_CATEGORIES = ["A", "B"];
 const LATEST_COUNT = 5;
 
 // Stats and the latest projects (with workflow state) in one call (D31). Archived projects are
-// left out, like in the default project list.
-const getDashboard = async (role) => {
-  const projects = await Project.find({ archived: { $ne: true } })
+// left out, like in the default project list. `accessFilter` comes from the project-access check
+// (projectFilterFor, D66).
+const getDashboard = async (user, accessFilter) => {
+  const projects = await Project.find({ $and: [accessFilter, { archived: { $ne: true } }] })
     .sort({ updatedAt: -1 })
     .lean();
-  const items = await withWorkflowState(projects, role);
+  const items = await withWorkflowState(projects, user);
   const count = (matches) => items.filter(matches).length;
 
   return {

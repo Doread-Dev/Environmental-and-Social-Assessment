@@ -172,6 +172,7 @@ export function AuthProvider({ children }) {
       canApprove: can('approve'),
       canManageUsers: can('manage_users'),
       canDeleteProject: can('delete_project'),
+      canReadAuditLog: can('read_audit_log'),
       // Settings holds user management (admin) and project deletion (specialist/admin)
       canAccessSettings: can('manage_users') || can('delete_project'),
 

@@ -58,11 +58,19 @@ Phase 7b adds `library.delete` and `library.replace_file`.
 - Frontend: Activity log page renders entries, expands a snapshot and sends filters; non-admin has no menu entry and is redirected.
 
 ## Done when
-- [ ] Every action in the table is logged and visible in Settings → Activity log in the browser (admin), in light and dark mode.
-- [ ] No route uses role lists directly; every project-scoped route goes through the access check; all old tests green.
-- [ ] `CLAUDE.md` describes the log, `requirePermission`, the access check and the README rules.
+- [x] Every action in the table is logged and visible in Settings → Activity log in the browser (admin), in light and dark mode.
+- [x] No route uses role lists directly; every project-scoped route goes through the access check; all old tests green.
+- [x] `CLAUDE.md` describes the log, `requirePermission`, the access check and the README rules.
 
 ## Out of scope
 The full field-level log, project history for other roles, per-project membership, per-user capabilities (all v3). Logging sign-ins.
 
 ## Found during phase
+- **Unknown assessment id on the sub-lists:** `GET /assessments/:id/methods|consultations|scores` for an id that does not exist answered `200 []`; the access check has to find the project first, so it is now `404 Assessment not found`. Every other by-id route already answered 404. The frontend never asks for a missing id.
+- **By-record checks run after `validate`:** otherwise an unknown record with an invalid body changed from 400 to 404 (`projectFilesInternals` test). The by-id param checks run before `validate` (no lookup, so no difference) and before the upload is parsed.
+- **Existing tests touched (expectations kept):** `allowedActions.test.js` now calls `allowedActions({ role }, …)` because the function takes the user (D66b); its expected actions and the `/auth/me` role tests are unchanged. The purge entry has the new shape (`snapshot` instead of `details`, `project_title` / `target_label` instead of `target_title`), so `projectPurge` / `projectFiles` assert the new fields.
+- **Purge entry is required:** "log the failure and still answer" applies to entries written after the action. The purge entry is written before the delete (D60), so a failed write stops the purge (500, nothing deleted) — `record(…, { required: true })`. Owner to confirm.
+- **Demo seed now leaves `user.*` entries:** it creates/resets the demo users through the admin endpoints, so they are logged like any admin action; its project cleanup (straight in MongoDB) is not. `seedDemoProject.test.js` checks exactly that.
+- **CLI scripts are not logged:** `create-admin.js` and `reset-password.js` write straight to MongoDB with no signed-in user (break-glass). Worth deciding in phase 11 whether they should write an entry (e.g. `by_name: "CLI"`).
+- **Old dev entries:** pre-7a `project.purge` entries in a dev database have no `by_name` / `project_title` and show with an empty "Who". No migration (README rule); wipe them if they bother you.
+- **Audit log and project access:** `GET /audit-logs` is admin-wide and not behind the project-access check. When v3 shows project histories to other roles, those reads need it.

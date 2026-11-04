@@ -447,7 +447,7 @@ describe("files are removed with their project", () => {
     expect(res.status).toBe(204);
     expect(await ProjectFile.countDocuments()).toBe(0);
     expect(fs.existsSync(path.join(uploads(), String(project._id)))).toBe(false);
-    expect((await AuditLog.findOne()).details.files).toBe(1);
+    expect((await AuditLog.findOne({ action: "project.purge" })).snapshot.files).toBe(1);
   });
 });
 

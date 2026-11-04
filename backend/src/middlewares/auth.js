@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 const ApiError = require("../utils/ApiError");
+const { can, isPermission } = require("../config/permissions");
 
 // Credential failures reported by jsonwebtoken. Any other verify error (e.g. a broken
 // server key) is a server error, not the client's fault.
@@ -58,13 +59,19 @@ const auth = async (req, res, next) => {
   }
 };
 
-const requireRole =
-  (...roles) =>
-  (req, res, next) => {
+// Route check by permission name (D66): the role → permission map lives in config/permissions.js
+// only. An unknown name fails when the routes are loaded, not on the first request.
+const requirePermission = (name) => {
+  if (!isPermission(name)) throw new Error(`requirePermission: unknown permission "${name}"`);
+  const check = (req, res, next) => {
     if (!req.user) return forwardAuthError(res, next, new ApiError(401, "Unauthorized"));
-    if (!roles.length || roles.includes(req.user.role)) return next();
+    if (can(req.user, name)) return next();
     return forwardAuthError(res, next, new ApiError(403, "Forbidden"));
   };
+  // Read by the route-table tests.
+  check.permission = name;
+  return check;
+};
 
 // D22: after an admin reset (or on a new account) the user must pick their own password first.
 // Mounted after auth() for every /api/v1 route except GET /auth/me and PUT /auth/password.
@@ -79,7 +86,7 @@ const requirePasswordChanged = (req, res, next) => {
 
 module.exports = {
   auth,
-  requireRole,
+  requirePermission,
   requirePasswordChanged,
   PASSWORD_CHANGE_REQUIRED,
   bearerToken,

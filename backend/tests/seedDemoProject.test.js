@@ -71,8 +71,10 @@ describe("scripts/seed-demo-project.js", () => {
     );
     expect(await Screening.exists({ project: oldLive._id })).toBeNull();
     expect(await Screening.exists({ project: other._id })).not.toBeNull();
-    // A dev-script cleanup is not an admin purge: nothing in the audit log.
-    expect(await AuditLog.countDocuments()).toBe(0);
+    // A dev-script cleanup is not an admin purge or delete: no project entry in the audit log.
+    // (The demo users go through the admin endpoints, so their user.* entries are logged.)
+    expect(await AuditLog.countDocuments({ action: /^project./ })).toBe(0);
+    expect(await AuditLog.countDocuments({ action: "user.create" })).toBeGreaterThan(0);
   }, 60000);
 
   it("creates an admin and one user per role who can sign in with DEMO_PASSWORD", async () => {

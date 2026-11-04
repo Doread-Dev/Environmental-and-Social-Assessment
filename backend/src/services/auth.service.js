@@ -21,12 +21,12 @@ const login = async (email, password) => {
   return { user, token };
 };
 
-// The user (with must_change_password), what their role may do (D35) and the password policy.
+// The user (with must_change_password), what they may do (D35) and the password policy.
 const getMe = async (userId) => {
   const user = await User.findById(userId).populate("job_title");
   return {
     user,
-    permissions: permissionsFor(user.role),
+    permissions: permissionsFor(user),
     password_rules: { min_length: PASSWORD_MIN_LENGTH },
     // So the client can check a file before sending it; the server checks again (D47).
     upload_rules: { max_bytes: maxUploadBytes(), extensions: ALLOWED_EXTENSIONS },

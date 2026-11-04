@@ -7,6 +7,6 @@ exports.listByProject = asyncHandler(async (req, res) => {
 });
 
 exports.replaceForProject = asyncHandler(async (req, res) => {
-  const data = await service.replaceForProject(req.params.id, req.body.rows);
+  const data = await service.replaceForProject(req.params.id, req.body.rows, req.user);
   res.json({ success: true, data });
 });

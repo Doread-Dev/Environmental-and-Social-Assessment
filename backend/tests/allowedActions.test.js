@@ -128,7 +128,7 @@ const cases = states.flatMap((state) =>
 
 describe("allowed actions per role × state (D35)", () => {
   it.each(cases)("$name — $role", ({ inputs, archived = false, role, expected }) => {
-    const actions = allowedActions(role, { archived }, computeWorkflow(inputs));
+    const actions = allowedActions({ role }, { archived }, computeWorkflow(inputs));
     expect([...actions].sort()).toEqual([...expected].sort());
   });
 });

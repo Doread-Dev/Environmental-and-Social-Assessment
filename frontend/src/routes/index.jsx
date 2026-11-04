@@ -4,6 +4,7 @@ import { ROUTES } from './routes.config'
 import ProtectedRoute from './ProtectedRoute'
 import WorkflowRouteGuard from './WorkflowRouteGuard'
 import SettingsRouteGuard from './SettingsRouteGuard'
+import PermissionRouteGuard from './PermissionRouteGuard'
 
 // Layouts - Keep these eager loaded as they're always needed
 import AuthLayout from '@/components/layout/AuthLayout'
@@ -86,6 +87,7 @@ const AnnexOverviewPage = lazy(() => import('@/pages/project-workspace/annex/Ann
 
 // Settings Pages
 const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'))
+const ActivityLogPage = lazy(() => import('@/pages/settings/ActivityLogPage'))
 
 // Profile Page (own password, D23)
 const ProfilePage = lazy(() => import('@/pages/profile/ProfilePage'))
@@ -192,6 +194,23 @@ export const router = createBrowserRouter([
                 <SettingsPage />
               </Suspense>
             ),
+          },
+          {
+            // Critical-actions log (D65): admin only
+            path: 'activity-log',
+            element: (
+              <PermissionRouteGuard permission="read_audit_log" redirectTo={ROUTES.SETTINGS} />
+            ),
+            children: [
+              {
+                index: true,
+                element: (
+                  <Suspense fallback={<PageLoader />}>
+                    <ActivityLogPage />
+                  </Suspense>
+                ),
+              },
+            ],
           },
         ],
       },

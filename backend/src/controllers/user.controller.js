@@ -7,26 +7,26 @@ exports.getAll = asyncHandler(async (req, res) => {
 });
 
 exports.create = asyncHandler(async (req, res) => {
-  const data = await service.createUser(req.body);
+  const data = await service.createUser(req.body, req.user);
   res.status(201).json({ success: true, data });
 });
 
 exports.update = asyncHandler(async (req, res) => {
-  const data = await service.updateUser(req.params.id, req.body);
+  const data = await service.updateUser(req.params.id, req.body, req.user);
   res.json({ success: true, data });
 });
 
 exports.deactivate = asyncHandler(async (req, res) => {
-  const data = await service.setActive(req.params.id, false);
+  const data = await service.setActive(req.params.id, false, req.user);
   res.json({ success: true, data });
 });
 
 exports.reactivate = asyncHandler(async (req, res) => {
-  const data = await service.setActive(req.params.id, true);
+  const data = await service.setActive(req.params.id, true, req.user);
   res.json({ success: true, data });
 });
 
 exports.resetPassword = asyncHandler(async (req, res) => {
-  const data = await service.resetPassword(req.params.id);
+  const data = await service.resetPassword(req.params.id, req.user);
   res.json({ success: true, data });
 });

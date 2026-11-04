@@ -23,7 +23,7 @@ exports.download = asyncHandler(async (req, res, next) => {
 });
 
 exports.remove = asyncHandler(async (req, res) => {
-  await fileService.deleteFile(req.params.fileId);
+  await fileService.deleteFile(req.params.fileId, req.user);
   res.status(204).send();
 });
 

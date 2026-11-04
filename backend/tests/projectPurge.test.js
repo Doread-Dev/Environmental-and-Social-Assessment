@@ -42,18 +42,27 @@ describe("DELETE /projects/:id/purge (D60)", () => {
     expect(logs).toHaveLength(1);
     expect(logs[0]).toMatchObject({
       action: "project.purge",
+      by_name: user.name,
+      by_role: "admin",
+      project_title: "Old network",
       target_type: "project",
-      target_title: "Old network",
-      details: {
+      target_label: "Old network",
+      snapshot: {
+        title: "Old network",
         location: "Aleppo",
+        archived: true,
+        archived_by_name: archivedBy.name,
         screening_status: "approved",
         screening_category: "B",
         assessment_status: "approved",
+        rows: { management_activities: 1, mitigation_plans: 1, monitoring_records: 0 },
+        files: 0,
       },
     });
     expect(logs[0].by.toString()).toBe(user._id.toString());
+    expect(logs[0].project.toString()).toBe(project._id.toString());
     expect(logs[0].target_id.toString()).toBe(project._id.toString());
-    expect(logs[0].details.archived_by.toString()).toBe(archivedBy._id.toString());
+    expect(logs[0].snapshot.archived_by.toString()).toBe(archivedBy._id.toString());
   });
 
   it.each(["environmental_specialist", "project_manager", "viewer"])(
@@ -98,11 +107,11 @@ describe("GET /audit-logs (D60)", () => {
     const res = await request(app).get("/api/v1/audit-logs").set(auth(token));
 
     expect(res.status).toBe(200);
-    expect(res.body.data.map((l) => l.target_title)).toEqual(["Second", "First"]);
-    expect(res.body.data[0].by).toEqual({
-      _id: user._id.toString(),
-      name: user.name,
-      role: "admin",
+    expect(res.body.data.map((l) => l.project_title)).toEqual(["Second", "First"]);
+    expect(res.body.data[0]).toMatchObject({
+      by: user._id.toString(),
+      by_name: user.name,
+      by_role: "admin",
     });
   });
 

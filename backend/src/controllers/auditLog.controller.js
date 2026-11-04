@@ -1,7 +1,7 @@
 const asyncHandler = require("../utils/asyncHandler");
-const auditLogService = require("../services/auditLog.service");
+const auditService = require("../services/audit.service");
 
 exports.getAll = asyncHandler(async (req, res) => {
-  const data = await auditLogService.listAuditLogs();
-  res.json({ success: true, data });
+  const { items, pagination } = await auditService.listEntries(req.query);
+  res.json({ success: true, data: items, pagination });
 });

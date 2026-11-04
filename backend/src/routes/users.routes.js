@@ -1,9 +1,8 @@
 const express = require("express");
 const controller = require("../controllers/user.controller");
 const validate = require("../middlewares/validate");
-const { requireRole } = require("../middlewares/auth");
+const { requirePermission } = require("../middlewares/auth");
 const { createUserSchema, updateUserSchema } = require("../validators/user.validator");
-const { ADMIN_ROLES } = require("../config/roles");
 
 const router = express.Router();
 
@@ -11,10 +10,11 @@ const router = express.Router();
 router.get("/", controller.getAll);
 
 // User management is admin only (D21).
-router.post("/", requireRole(...ADMIN_ROLES), validate(createUserSchema), controller.create);
-router.put("/:id", requireRole(...ADMIN_ROLES), validate(updateUserSchema), controller.update);
-router.patch("/:id/deactivate", requireRole(...ADMIN_ROLES), controller.deactivate);
-router.patch("/:id/reactivate", requireRole(...ADMIN_ROLES), controller.reactivate);
-router.post("/:id/reset-password", requireRole(...ADMIN_ROLES), controller.resetPassword);
+const manage = requirePermission("manage_users");
+router.post("/", manage, validate(createUserSchema), controller.create);
+router.put("/:id", manage, validate(updateUserSchema), controller.update);
+router.patch("/:id/deactivate", manage, controller.deactivate);
+router.patch("/:id/reactivate", manage, controller.reactivate);
+router.post("/:id/reset-password", manage, controller.resetPassword);
 
 module.exports = router;

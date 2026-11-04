@@ -50,6 +50,8 @@ export const ROUTES = {
 
   // Settings
   SETTINGS: '/app/settings',
+  // Critical-actions log (D65), admin only
+  SETTINGS_ACTIVITY_LOG: '/app/settings/activity-log',
 
   // Own profile and password (D23)
   PROFILE: '/app/profile',

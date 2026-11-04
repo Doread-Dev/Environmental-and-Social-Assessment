@@ -2,9 +2,9 @@
 
 **Goal:** the Annexes become what the official workbook says they are: organisation guidance that opens **inside** the tool where it's needed. Per-project files become "Project documents", grouped by tool. Both have an in-app PDF viewer.
 
-**Decisions:** D64 (+ D65 activity log, D47 file module, D48 v3 places, D37 offline).
+**Decisions:** D64 (+ D65 critical-actions log, D66 access seams, D47 file module, D48 v3 places, D37 offline).
 
-**Depends on:** 7a (every write here is logged).
+**Depends on:** 7a (critical-actions log, access check, `requirePermission`).
 
 **Owner input so far:** only Annex 1 exists ("Climate change resilience examples", sheet 8 of `AKF-S Environmental and Social Assessment Tooles 2025.xlsx` in the repo root, git-ignored — read it locally, never commit it or a copy). It belongs with Tool 4 (column "Potential Impact … Including climate-related risks" → "Mitigation and enhancement measures"). The other annexes arrive from the client later and are added as data, not code.
 
@@ -32,7 +32,8 @@ Reworking phase 7 code is fine (owner): choose the clean design, not the smalles
   - `GET /library/:id/file` (all roles, authenticated, PDF).
 - Writes: `admin` + `environmental_specialist`. Add a new role list and permission `manage_library` in `/auth/me`; don't reuse a list by accident.
 - Unknown place key → 400. Locked (v3) places are accepted.
-- Activity log: `library.create`, `library.update` (fields, places before/after), `library.replace_file` (old/new name and size), `library.delete` (snapshot).
+- Critical-actions log (D65): `library.replace_file` (old/new name and size) and `library.delete` (snapshot). Create and edit are not logged in v2.
+- Routes use `requirePermission('manage_library')` (D66); the library is not project-scoped.
 
 ### Frontend
 - **Shared `PdfViewer`** (`components/ui` or `components/files`):
@@ -54,7 +55,7 @@ Reworking phase 7 code is fine (owner): choose the clean design, not the smalles
   - Backend: area `annex` → `documents`; `category` = a project-workflow place key or `other`. Remove `annex_a…annex_h`, `utils/annexTypes.js` and the A–H UI. Keep `semp_record` exactly as D47/D48 say.
   - Navigation: "Annex" → "Documents". Sections per place, then "Other".
 - PDF + Office as in phase 7. PDFs open in the `PdfViewer`; Office files download only. Upload/delete rules unchanged (`files.edit`).
-- Activity log: already covered by 7a (`file.upload`, `file.delete`, `file.update`). Check the category labels read well in the log.
+- `file.delete` is already logged by 7a; check the new category labels read well in its snapshot. Project-document routes keep the project-access check (D66).
 - Do not add a "Documents (n)" button inside the tools yet. The place keys make it possible later; ask the owner after 7b.
 
 ## Annex 1
@@ -65,7 +66,7 @@ Reworking phase 7 code is fine (owner): choose the clean design, not the smalles
 ## Tests
 - Places: `/lookups` returns the registry; unknown key → 400; locked keys accepted.
 - Library: roles (viewer and editors 403 on writes; admin and specialist ok); PDF only (extension + bytes); replace keeps links and removes the old file; delete removes row + file; `?place=` filter; download headers.
-- Each library write records the right activity-log entry (7a rule).
+- Library delete and file replacement record their log entries; create/edit record none.
 - Project documents: categories are place keys or `other`; old annex categories → 400; `semp_record` still 404.
 - Frontend:
   - `PdfViewer` creates and revokes the blob URL and shows the fallback.

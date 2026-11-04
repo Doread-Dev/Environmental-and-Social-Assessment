@@ -12,7 +12,7 @@
   3. Assessment with defaults (all Negligible) → change a few → submit → approve.
   4. Tools 3 & 4 bulk save → Monitoring unlocks → quarter data saved.
   5. Project documents upload / PDF preview / download / delete; library document uploaded by a specialist, linked to Tool 4, opened from Tool 4's Guidance panel without leaving the page.
-  5a. Activity log: an edit, an approval and a delete each appear in the project history with who and what changed; the admin log filters by user.
+  5a. Critical-actions log: a file delete, an archive and a user deactivation appear in Settings → Activity log (admin) with who and a snapshot; non-admins cannot open it.
   6. Viewer: sees everything, no edit/export controls; direct API writes 403.
   7. Archive / restore; delete blocked when something is approved.
   8. Locked v3 buttons visible and inert.

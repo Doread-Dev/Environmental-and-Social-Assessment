@@ -1,6 +1,6 @@
 # ESMS v2 — Phase plan
 
-What we build is decided in [DECISIONS.md](DECISIONS.md) (D1–D65). This file says **in which order**. Each phase is done in its own conversation: open the phase file, do exactly that scope, finish with its "Done when" list.
+What we build is decided in [DECISIONS.md](DECISIONS.md) (D1–D66). This file says **in which order**. Each phase is done in its own conversation: open the phase file, do exactly that scope, finish with its "Done when" list.
 
 The v2 prototype (`Environmental-and-Social-Assessment-main version 2/`, git-ignored) is a **reference only** — see [V2_INVENTORY.md](V2_INVENTORY.md). Port code from it only where a phase file names it; never edit it. Anything from v2 not covered by a decision: keep this repo's behavior and ask the owner.
 
@@ -16,7 +16,7 @@ The v2 prototype (`Environmental-and-Social-Assessment-main version 2/`, git-ign
 | 5 | [Frontend data layer](phases/05-frontend-data.md) | D28a, D30, D33–D35, D57 | 4 |
 | 6 | [Users & passwords](phases/06-users-passwords.md) | D9, D21–D25 | 2, 5 |
 | 7 | [File module & Annex](phases/07-files-annex.md) | D47 | 5 |
-| 7a | [Activity log](phases/07a-activity-log.md) | D65 | 7 |
+| 7a | [Critical-actions log & access seams](phases/07a-audit-and-access.md) | D65, D66 | 7 |
 | 7b | [Reference library & project documents](phases/07b-library-documents.md) | D64 | 7a |
 | 8 | [UI & Excel from v2](phases/08-ui-excel.md) | D49–D52, D54, D55, D59, D63 a–c | 7b |
 | 9 | [v3 modules as locked code](phases/09-v3-locked.md) | D46, D48 | 7b, 8 |
@@ -38,7 +38,8 @@ Order matters: removals before new code (less to secure), backend rules before t
 - **Scope:** do only what the phase file lists. Something found outside scope → write it under "Found during phase" at the bottom of that phase file and tell the owner; don't fix it silently.
 - **Docs:** old `backend/docs` and `frontend/docs` are outdated (D44) — code wins. Update `CLAUDE.md` when a convention it describes changes (routes, roles, responses, commands).
 - **Language:** UI and code in English (see DECISIONS context). Replies to the owner in Arabic.
-- **Activity log (D65, from phase 7a):** every new or changed write records its entry through `audit.record` (who, action, project, target, what changed; deletes keep a snapshot; never passwords or tokens), adds its label to `activityLabels.js`, and ships with a test for the entry. Each phase file lists the actions it adds; a write without its entry is not done.
+- **Critical-actions log (D65, from phase 7a):** a phase that adds a destructive action, an archive/restore-like state change or a user/access change records it through the shared audit helper (who, action, project, target, snapshot; never passwords or tokens) and tests the entry. Ordinary edits are not logged in v2 (full log = v3). Each phase file names the critical actions it adds.
+- **Access seams (D66, from phase 7a):** new project-scoped routes go through the single project-access check, and new route checks use `requirePermission(...)`, never role lists.
 - **Close a phase:** tick its "Done when" list in the phase file, raise the coverage thresholds, add a one-line result (incl. coverage) to the table below.
 
 ## Progress

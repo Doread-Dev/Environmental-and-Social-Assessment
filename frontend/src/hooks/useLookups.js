@@ -18,7 +18,9 @@ const byCategory = (items, category) =>
   items.filter((item) => item.category?._id === category._id || item.category === category._id)
 
 /**
- * Impact categories (sorted by code, with their icon), questions and indicators
+ * Impact categories (sorted by code, with their icon), questions and indicators, and the places
+ * registry (D64 a: where library guidance can appear, with groups and labels — the frontend keeps
+ * no copy of it)
  */
 export function useLookups() {
   const query = useQuery({
@@ -36,6 +38,22 @@ export function useLookups() {
   }, [data])
   const impactQuestions = data?.impactQuestions ?? EMPTY
   const indicators = data?.indicators ?? EMPTY
+  const places = data?.places ?? EMPTY
+  const placeGroups = data?.placeGroups ?? EMPTY
+
+  // Each group with its places, in registry order (the place picker, the Library filter)
+  const placesByGroup = useMemo(
+    () =>
+      placeGroups.map((group) => ({
+        ...group,
+        places: places.filter((place) => place.group === group.key),
+      })),
+    [places, placeGroups]
+  )
+  const placeLabels = useMemo(
+    () => Object.fromEntries(places.map((place) => [place.key, place.label])),
+    [places]
+  )
 
   // Categories with their questions, in the shape the scoring UI uses
   const categoriesWithQuestions = useMemo(
@@ -75,6 +93,10 @@ export function useLookups() {
     impactQuestions,
     indicators,
     jobTitles: data?.jobTitles ?? EMPTY,
+    places,
+    placesByGroup,
+    /** @param {string} key → its label, or the key itself while loading / when unknown */
+    placeLabel: (key) => placeLabels[key] ?? key,
     categoriesWithQuestions,
     categoriesWithIndicators,
     isLoading: query.isPending,

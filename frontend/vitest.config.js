@@ -14,7 +14,7 @@ export default mergeConfig(
         exclude: ['src/**/*.test.{js,jsx}', 'src/test/**'],
         reporter: ['text-summary', 'html', 'json-summary'],
         // Floor = current coverage, rounded down. Raise it when a phase adds tests; never lower it.
-        thresholds: { statements: 37, branches: 32, functions: 41, lines: 36 },
+        thresholds: { statements: 41, branches: 37, functions: 45, lines: 41 },
       },
     },
   })

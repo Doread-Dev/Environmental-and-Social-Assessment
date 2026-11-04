@@ -45,6 +45,10 @@ describe("routes name a permission (D66b)", () => {
       "post /projects/:id/files": "files.edit",
       "delete /projects/:id/purge": "project.purge",
       "post /users": "manage_users",
+      "post /library": "manage_library",
+      "patch /library/:id": "manage_library",
+      "put /library/:id/file": "manage_library",
+      "delete /library/:id": "manage_library",
     });
   });
 

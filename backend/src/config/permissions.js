@@ -1,4 +1,10 @@
-const { ROLES, EDITOR_ROLES, SPECIALIST_ROLES, ADMIN_ROLES } = require("./roles");
+const {
+  ROLES,
+  EDITOR_ROLES,
+  SPECIALIST_ROLES,
+  LIBRARY_MANAGER_ROLES,
+  ADMIN_ROLES,
+} = require("./roles");
 
 // The only place that maps roles to what they may do (D35, D66). Routes name a permission
 // (requirePermission in middlewares/auth.js), services ask can(user, name); nothing else lists
@@ -16,6 +22,7 @@ const PERMISSIONS = {
   archive_project: SPECIALIST_ROLES,
   purge_project: ADMIN_ROLES,
   read_audit_log: ADMIN_ROLES,
+  manage_library: LIBRARY_MANAGER_ROLES, // D64 b: reading the library is open to every role
 };
 
 // Action permissions checked by routes and allowed_actions, each granted by one general

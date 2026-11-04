@@ -14,6 +14,8 @@ const BACKEND_ACTIONS = [
   'project.archive',
   'project.restore',
   'file.delete',
+  'library.replace_file',
+  'library.delete',
   'management.rows_removed',
   'mitigation.rows_removed',
   'user.create',
@@ -31,7 +33,7 @@ describe('auditLabels (D65)', () => {
   })
 
   it('falls back to the raw name for an unknown action', () => {
-    expect(auditActionLabel('library.delete')).toBe('library.delete')
+    expect(auditActionLabel('library.rename')).toBe('library.rename')
   })
 
   it('colours removals red, project state amber, user changes blue', () => {
@@ -39,6 +41,8 @@ describe('auditLabels (D65)', () => {
     expect(auditActionVariant('file.delete')).toBe('error')
     expect(auditActionVariant('mitigation.rows_removed')).toBe('error')
     expect(auditActionVariant('project.archive')).toBe('warning')
+    expect(auditActionVariant('library.delete')).toBe('error')
+    expect(auditActionVariant('library.replace_file')).toBe('warning')
     expect(auditActionVariant('user.reset_password')).toBe('info')
   })
 
@@ -72,15 +76,79 @@ describe('auditLabels (D65)', () => {
     expect(rows).toEqual([])
   })
 
-  it('describes a deleted file', () => {
-    const { fields } = describeAuditEntry({
-      snapshot: { name: 'Permit.pdf', area: 'annex', category: 'annex_a', size: 2048 },
-    })
+  const PLACE_LABELS = { mitigation: 'Mitigation plan – Tool 4', semp_plan: 'SEMP Plan' }
+  const placeLabel = (key) => PLACE_LABELS[key] ?? key
+
+  it('describes a deleted project document with the place label from /lookups', () => {
+    const { fields } = describeAuditEntry(
+      { snapshot: { name: 'Permit.pdf', area: 'documents', category: 'mitigation', size: 2048 } },
+      { placeLabel }
+    )
     expect(fields).toEqual([
       { label: 'Name', value: 'Permit.pdf' },
-      { label: 'Area', value: 'Annex' },
-      { label: 'Category', value: 'Annex A — Environmental Policy' },
+      { label: 'Area', value: 'Project documents' },
+      { label: 'Category', value: 'Mitigation plan – Tool 4' },
       { label: 'Size', value: '2 KB' },
+    ])
+    const other = describeAuditEntry(
+      { snapshot: { area: 'documents', category: 'other' } },
+      { placeLabel }
+    )
+    expect(other.fields).toContainEqual({ label: 'Category', value: 'Other' })
+  })
+
+  it('still reads an entry written before phase 7b (Annex A–H)', () => {
+    const { fields } = describeAuditEntry(
+      { snapshot: { name: 'Old.pdf', area: 'annex', category: 'annex_c' } },
+      { placeLabel }
+    )
+    expect(fields).toEqual([
+      { label: 'Name', value: 'Old.pdf' },
+      { label: 'Area', value: 'Annex (before phase 7b)' },
+      { label: 'Category', value: 'Annex C (before phase 7b)' },
+    ])
+  })
+
+  it('without place labels, shows the key', () => {
+    const { fields } = describeAuditEntry({ snapshot: { category: 'mitigation' } })
+    expect(fields).toEqual([{ label: 'Category', value: 'mitigation' }])
+  })
+
+  it('describes a deleted library document and a replaced PDF', () => {
+    const deleted = describeAuditEntry(
+      {
+        snapshot: {
+          title: 'Annex 1',
+          description: 'Examples',
+          places: ['mitigation', 'semp_plan'],
+          name: 'annex-1.pdf',
+          size: 2048,
+          uploaded_by_name: 'Sara',
+        },
+      },
+      { placeLabel }
+    )
+    expect(Object.fromEntries(deleted.fields.map((f) => [f.label, f.value]))).toEqual({
+      Title: 'Annex 1',
+      Name: 'annex-1.pdf',
+      Description: 'Examples',
+      'Shown in': 'Mitigation plan – Tool 4, SEMP Plan',
+      Size: '2 KB',
+      'Uploaded by': 'Sara',
+    })
+    const general = describeAuditEntry({ snapshot: { places: [] } }, { placeLabel })
+    expect(general.fields).toEqual([{ label: 'Shown in', value: 'General — Library only' }])
+
+    const replaced = describeAuditEntry({
+      snapshot: { title: 'Annex 1', old_name: 'a.pdf', old_size: 1024 },
+      details: { new_name: 'b.pdf', new_size: 2048 },
+    })
+    expect(replaced.fields).toEqual([
+      { label: 'Title', value: 'Annex 1' },
+      { label: 'Old file', value: 'a.pdf' },
+      { label: 'Old size', value: '1 KB' },
+      { label: 'New file', value: 'b.pdf' },
+      { label: 'New size', value: '2 KB' },
     ])
   })
 

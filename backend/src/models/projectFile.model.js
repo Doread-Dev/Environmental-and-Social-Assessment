@@ -1,23 +1,24 @@
 const mongoose = require("mongoose");
 const {
   FILE_AREAS,
-  ANNEX_CATEGORIES,
+  DOCUMENT_CATEGORIES,
   SEMP_RECORD_CATEGORIES,
   ALLOWED_EXTENSIONS,
 } = require("../config/files");
 
-// A file uploaded to a project (D47): Annex A–H now, SEMP Plan §7 records in v3.
+// A file uploaded to a project (D47): project documents (D64 d) now, SEMP Plan §7 records in v3.
 const projectFileSchema = new mongoose.Schema(
   {
     project: { type: mongoose.Schema.Types.ObjectId, ref: "Project", required: true },
     area: { type: String, enum: FILE_AREAS, required: true },
-    // annex: annex_a … annex_h (required); semp_record: one of the 11 record types, or null.
+    // documents: a project-workflow place key or "other" (required); semp_record: one of the 11
+    // record types, or null.
     category: {
       type: String,
       default: null,
       validate: {
         validator: function (value) {
-          if (this.area === "annex") return ANNEX_CATEGORIES.includes(value);
+          if (this.area === "documents") return DOCUMENT_CATEGORIES.includes(value);
           return value === null || SEMP_RECORD_CATEGORIES.includes(value);
         },
         message: "Invalid category for this area",

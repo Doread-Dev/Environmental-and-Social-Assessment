@@ -34,3 +34,12 @@ export function checkFile(file, rules) {
   if (file.size === 0) return 'The file is empty'
   return null
 }
+
+/**
+ * The rules for a reference library document (D64 b): the same size limit, PDF only.
+ * @param {{max_bytes: number, extensions: string[], library_extensions?: string[]}|null} rules
+ */
+export function libraryRules(rules) {
+  if (!rules) return null
+  return { ...rules, extensions: rules.library_extensions ?? [] }
+}

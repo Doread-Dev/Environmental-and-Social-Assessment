@@ -173,6 +173,8 @@ export function AuthProvider({ children }) {
       canManageUsers: can('manage_users'),
       canDeleteProject: can('delete_project'),
       canReadAuditLog: can('read_audit_log'),
+      // Upload, edit, replace and delete reference library documents (D64 b)
+      canManageLibrary: can('manage_library'),
       // Settings holds user management (admin) and project deletion (specialist/admin)
       canAccessSettings: can('manage_users') || can('delete_project'),
 

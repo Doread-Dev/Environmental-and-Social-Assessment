@@ -123,6 +123,15 @@ describe('useLookups / useUsers', () => {
         ],
         indicators: [],
         job_titles: [{ _id: 'j1' }],
+        place_groups: [
+          { key: 'project_workflow', label: 'Project workflow' },
+          { key: 'organization', label: 'Organization' },
+        ],
+        places: [
+          { key: 'screening', label: 'Screening – Tool 1', group: 'project_workflow' },
+          { key: 'ghg_emissions', label: 'GHG Emissions', group: 'organization', locked: true },
+          { key: 'mitigation', label: 'Mitigation plan – Tool 4', group: 'project_workflow' },
+        ],
       },
     })
     const { result } = await renderLoaded(() => useLookups())
@@ -133,6 +142,13 @@ describe('useLookups / useUsers', () => {
       expect.objectContaining({ _id: 'q1', question: 'Dust?', legacyId: 'A_q1' }),
     ])
     expect(result.current.jobTitles).toEqual([{ _id: 'j1' }])
+    // Places registry (D64 a): grouped in registry order, labels by key
+    expect(result.current.placesByGroup.map((g) => [g.label, g.places.map((p) => p.key)])).toEqual([
+      ['Project workflow', ['screening', 'mitigation']],
+      ['Organization', ['ghg_emissions']],
+    ])
+    expect(result.current.placeLabel('mitigation')).toBe('Mitigation plan – Tool 4')
+    expect(result.current.placeLabel('unknown')).toBe('unknown')
   })
 
   it('active users only for the pickers', async () => {

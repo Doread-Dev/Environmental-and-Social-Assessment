@@ -82,8 +82,13 @@ const MonitoringDataEntryPage = lazy(
   () => import('@/pages/project-workspace/monitoring/MonitoringDataEntryPage')
 )
 
-// Annex Page
-const AnnexOverviewPage = lazy(() => import('@/pages/project-workspace/annex/AnnexOverviewPage'))
+// Project documents (D64 d)
+const ProjectDocumentsPage = lazy(
+  () => import('@/pages/project-workspace/documents/ProjectDocumentsPage')
+)
+
+// Reference library (D64 b)
+const LibraryPage = lazy(() => import('@/pages/library/LibraryPage'))
 
 // Settings Pages
 const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'))
@@ -114,7 +119,11 @@ const NotFoundPage = () => (
 
 /**
  * Application Router Configuration
- * All pages are lazy loaded for optimal performance
+ * All pages are lazy loaded for optimal performance.
+ *
+ * A route with `handle: { place }` is that place's page (backend config/places.js, D64): the layout
+ * header shows its Guidance button (components/library/GuidanceButton). A new tool's page adds its
+ * place key here.
  */
 export const router = createBrowserRouter([
   // ==========================================
@@ -172,6 +181,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<PageLoader />}>
             <ProjectCreatePage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'library',
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <LibraryPage />
           </Suspense>
         ),
       },
@@ -245,6 +262,7 @@ export const router = createBrowserRouter([
       // Screening (Tool 1)
       {
         path: 'screening',
+        handle: { place: 'screening' },
         element: (
           <Suspense fallback={<PageLoader />}>
             <ScreeningRouter />
@@ -253,6 +271,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'screening/summary',
+        handle: { place: 'screening' },
         element: (
           <Suspense fallback={<PageLoader />}>
             <ScreeningSummaryPage />
@@ -263,6 +282,7 @@ export const router = createBrowserRouter([
       // Assessment (Tool 2)
       {
         path: 'assessment',
+        handle: { place: 'assessment' },
         element: <WorkflowRouteGuard step="assessment" />,
         children: [
           {
@@ -327,6 +347,7 @@ export const router = createBrowserRouter([
       // Monitoring (Tool 5)
       {
         path: 'monitoring',
+        handle: { place: 'monitoring' },
         element: <WorkflowRouteGuard step="monitoring" />,
         children: [
           {
@@ -348,12 +369,12 @@ export const router = createBrowserRouter([
         ],
       },
 
-      // Annex
+      // Project documents (D64 d)
       {
-        path: 'annex',
+        path: 'documents',
         element: (
           <Suspense fallback={<PageLoader />}>
-            <AnnexOverviewPage />
+            <ProjectDocumentsPage />
           </Suspense>
         ),
       },
@@ -376,6 +397,7 @@ export const router = createBrowserRouter([
         children: [
           {
             path: 'activities',
+            handle: { place: 'management' },
             element: (
               <Suspense fallback={<PageLoader />}>
                 <ManagementActivitiesPage />
@@ -384,6 +406,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'mitigation',
+            handle: { place: 'mitigation' },
             element: (
               <Suspense fallback={<PageLoader />}>
                 <MitigationPlanPage />

@@ -8,6 +8,10 @@
 // user endpoints, and signs in as each one to replace the temporary password (D22) with
 // DEMO_PASSWORD (default: SEED_PASSWORD). Passwords are never printed.
 //
+// And one reference library document, "[DEMO] Sample guidance" — a small PDF generated here (never
+// a client file), linked to Tool 4 (mitigation) so the Guidance button shows (D64). It replaces the
+// previous demo copy, which is removed straight in MongoDB like the demo project (no log entry).
+//
 // Usage (backend must be running, lookups seeded):
 //   SEED_EMAIL=... SEED_PASSWORD=... [DEMO_PASSWORD=...] node scripts/seed-demo-project.js
 // The account must be an admin (user management is admin only, D21).
@@ -21,12 +25,15 @@ if (process.env.NODE_ENV === "production") {
 const mongoose = require("mongoose");
 const Project = require("../src/models/project.model");
 const { removeProjectData } = require("../src/services/project.service");
+const { removeDocumentsByTitle } = require("../src/services/library.service");
+const { samplePdf } = require("./lib/samplePdf");
 
 const API_URL = process.env.API_URL || `http://localhost:${process.env.PORT || 3000}/api/v1`;
 const EMAIL = process.env.SEED_EMAIL;
 const PASSWORD = process.env.SEED_PASSWORD;
 const DEMO_PASSWORD = process.env.DEMO_PASSWORD || PASSWORD;
 const DEMO_TITLE = "[DEMO] Al-Salam Water Network Rehabilitation";
+const DEMO_LIBRARY_TITLE = "[DEMO] Sample guidance";
 const DEMO_USERS = [
   ["admin", "Demo Administrator"],
   ["environmental_specialist", "Demo Environmental Specialist"],
@@ -46,6 +53,8 @@ async function removePreviousDemos() {
       await removeProjectData(p._id);
       console.log(`Deleted previous demo project ${p._id}`);
     }
+    const removed = await removeDocumentsByTitle(DEMO_LIBRARY_TITLE);
+    if (removed > 0) console.log(`Deleted ${removed} previous demo library document(s)`);
   } finally {
     await mongoose.disconnect();
   }
@@ -66,6 +75,48 @@ async function call(method, path, body, as = token) {
     throw new Error(`${method} ${path} -> ${res.status}: ${json.error || JSON.stringify(json)}`);
   }
   return json.data;
+}
+
+// Multipart upload (the library takes the file and its fields in one request).
+async function upload(path, fields, file) {
+  const form = new FormData();
+  Object.entries(fields).forEach(([key, value]) => form.append(key, value));
+  form.append("file", new Blob([file.data], { type: "application/pdf" }), file.name);
+  const res = await fetch(`${API_URL}${path}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  });
+  const json = await res.json();
+  if (!res.ok || json.success === false) {
+    throw new Error(`POST ${path} -> ${res.status}: ${json.error || JSON.stringify(json)}`);
+  }
+  return json.data;
+}
+
+async function seedLibraryDocument() {
+  const pdf = samplePdf("Sample guidance (demo)", [
+    "This is a generated sample for the demo project, not an official document.",
+    "",
+    "Library documents are organisation guidance, the same for every project.",
+    "This one is linked to Tool 4 (Mitigation plan): open it from the",
+    "Guidance button in the header of that page, without leaving it.",
+    "",
+    "Example measures for climate-related risks:",
+    "- Raise pump housings above the recorded flood level.",
+    "- Use pipe materials rated for higher summer temperatures.",
+    "- Plan water trucking for supply cuts during heatwaves.",
+  ]);
+  const doc = await upload(
+    "/library",
+    {
+      title: DEMO_LIBRARY_TITLE,
+      description: "Generated sample PDF for the demo: shows the Guidance panel in Tool 4.",
+      places: "mitigation",
+    },
+    { name: "demo-sample-guidance.pdf", data: pdf }
+  );
+  console.log(`Library: "${doc.title}" linked to Tool 4 (mitigation)`);
 }
 
 // Creates each demo user, or brings an existing one back to its role and active state, then gets
@@ -287,6 +338,8 @@ async function main() {
   });
   await call("PUT", `/projects/${projectId}/monitoring`, { records });
   console.log(`Tool 5 (monitoring): ${indicators.length} indicator records, Q1–Q4 filled`);
+
+  await seedLibraryDocument();
 
   console.log(`\nDone. Open http://localhost:5173/app/projects/${projectId}/overview`);
 }

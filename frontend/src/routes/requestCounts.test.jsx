@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { act, screen, waitFor } from '@testing-library/react'
 import api from '@/services/api'
 import DashboardPage from '@/pages/dashboard/DashboardPage'
 import ProjectLayout from '@/components/layout/ProjectLayout'
 import ProjectOverviewPage from '@/pages/project-workspace/overview/ProjectOverviewPage'
 import ScreeningRouter from '@/pages/project-workspace/screening/ScreeningRouter'
+import ScreeningSummaryPage from '@/pages/project-workspace/screening/ScreeningSummaryPage'
 import SempOverviewPage from '@/pages/project-workspace/semp/SempOverviewPage'
 import { getUrls, mockGet, signIn, workspaceFixture } from '@/test/utils'
 import { renderApp } from '@/test/renderApp'
@@ -33,7 +34,13 @@ const routes = [
     ),
     children: [
       { path: 'overview', element: <ProjectOverviewPage /> },
-      { path: 'screening', element: <ScreeningRouter /> },
+      // Place handles as in routes/index.jsx (checked in routes.test.jsx)
+      { path: 'screening', handle: { place: 'screening' }, element: <ScreeningRouter /> },
+      {
+        path: 'screening/summary',
+        handle: { place: 'screening' },
+        element: <ScreeningSummaryPage />,
+      },
       { path: 'semp', element: <SempOverviewPage /> },
     ],
   },
@@ -50,12 +57,27 @@ const dashboard = {
   ],
 }
 
-function mockApi({ permissions = ['create_project', 'edit', 'export'], workspace } = {}) {
+const guidance = [
+  {
+    _id: 'd1',
+    title: 'Screening checklist',
+    places: ['screening'],
+    size: 10,
+    original_name: 'a.pdf',
+  },
+]
+
+function mockApi({
+  permissions = ['create_project', 'edit', 'export'],
+  workspace,
+  library = guidance,
+} = {}) {
   mockGet(api, {
     '/auth/me': { user: { _id: 'u1', name: 'Rana', role: 'project_manager' }, permissions },
     '/dashboard': dashboard,
     '/projects/p1/workspace': workspace ?? workspaceFixture(),
     '/screenings/project/p1': null,
+    '/library': library,
   })
 }
 
@@ -90,14 +112,56 @@ describe('request counts (D31, D33)', () => {
     expect(await requestsAfter('Start Screening')).toEqual(['/auth/me', '/projects/p1/workspace'])
   })
 
-  it('screening page: the workspace plus the screening record (3)', async () => {
+  it('screening page: the workspace, the screening record and its guidance (4)', async () => {
     mockApi({
       workspace: workspaceFixture({ allowed_actions: ['screening.create'] }),
     })
     renderApp(routes, '/app/projects/p1/screening')
 
     await screen.findByText('Submit Screening')
-    expect(getUrls(api)).toEqual(['/auth/me', '/projects/p1/workspace', '/screenings/project/p1'])
+    expect(await screen.findByRole('button', { name: 'Guidance (1)' })).toBeInTheDocument()
+    expect(getUrls(api).sort()).toEqual(
+      ['/auth/me', '/projects/p1/workspace', '/screenings/project/p1', '/library'].sort()
+    )
+    // One library request, for this page's place (D64 c)
+    expect(api.get.mock.calls.filter(([url]) => url === '/library')).toEqual([
+      ['/library', { params: { place: 'screening' } }],
+    ])
+  })
+
+  it('a tool page adds no library request when its guidance is cached', async () => {
+    const screening = { _id: 's1', status: 'submitted', category_code: 'B', category_reason: 'x' }
+    mockGet(api, {
+      '/auth/me': { user: { _id: 'u1', role: 'project_manager' }, permissions: ['edit'] },
+      '/projects/p1/workspace': {
+        ...workspaceFixture({ steps: { screening: { status: 'submitted' } } }),
+        screening,
+      },
+      '/screenings/project/p1': screening,
+      '/library': guidance,
+    })
+    const { router } = renderApp(routes, '/app/projects/p1/screening')
+    await screen.findByRole('button', { name: 'Guidance (1)' })
+    const libraryCalls = () => getUrls(api).filter((url) => url === '/library').length
+    expect(libraryCalls()).toBe(1)
+
+    // Same place, another page (screening form → summary): the cached list is reused.
+    await act(() => router.navigate('/app/projects/p1/screening/summary'))
+    await screen.findByText('Environmental Integration Screening')
+    expect(screen.getByRole('button', { name: 'Guidance (1)' })).toBeInTheDocument()
+    expect(libraryCalls()).toBe(1)
+  })
+
+  it('a page with no linked guidance shows no button', async () => {
+    mockApi({
+      workspace: workspaceFixture({ allowed_actions: ['screening.create'] }),
+      library: [],
+    })
+    renderApp(routes, '/app/projects/p1/screening')
+
+    await screen.findByText('Submit Screening')
+    await waitFor(() => expect(getUrls(api)).toContain('/library'))
+    expect(screen.queryByRole('button', { name: /Guidance/ })).not.toBeInTheDocument()
   })
 
   it('SEMP overview: tool statuses from the workspace, no table loads', async () => {
@@ -150,6 +214,7 @@ describe('viewer sees no export / edit / create buttons (D28a, D35)', () => {
         allowed_actions: [],
       }),
       '/screenings/project/p1': screening,
+      '/library': [],
     })
     renderApp(routes, '/app/projects/p1/screening')
 
@@ -170,6 +235,7 @@ describe('viewer sees no export / edit / create buttons (D28a, D35)', () => {
         screening,
       },
       '/screenings/project/p1': screening,
+      '/library': [],
     })
     renderApp(routes, '/app/projects/p1/screening')
 

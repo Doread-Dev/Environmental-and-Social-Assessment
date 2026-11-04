@@ -20,6 +20,7 @@ export { assessmentService } from './assessmentService'
 export { sempService } from './sempService'
 export { monitoringService } from './monitoringService'
 export { fileService } from './fileService'
+export { libraryService } from './libraryService'
 export { auditLogService } from './auditLogService'
 // export { reportService } from './reportService'
 

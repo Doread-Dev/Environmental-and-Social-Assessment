@@ -5,7 +5,12 @@ import { ROLES, createProject, loginAs } from "./helpers/fixtures.js";
 
 const { allowedActions, computeWorkflow } = require("../../src/services/workflow.service");
 const { PERMISSIONS } = require("../../src/config/permissions");
-const { EDITOR_ROLES, SPECIALIST_ROLES, ADMIN_ROLES } = require("../../src/config/roles");
+const {
+  EDITOR_ROLES,
+  SPECIALIST_ROLES,
+  LIBRARY_MANAGER_ROLES,
+  ADMIN_ROLES,
+} = require("../../src/config/roles");
 const JobTitle = require("../../src/models/jobTitle.model");
 
 const auth = (token) => ({ Authorization: `Bearer ${token}` });
@@ -157,6 +162,8 @@ describe("GET /auth/me (D35)", () => {
     [
       EDITOR_ROLES.includes(role) && ["create_project", "edit", "export"],
       SPECIALIST_ROLES.includes(role) && ["approve", "delete_project", "archive_project"],
+      // Reference library (D64 b): its own role list.
+      LIBRARY_MANAGER_ROLES.includes(role) && ["manage_library"],
       // User management is admin only (D21).
       ADMIN_ROLES.includes(role) && ["manage_users", "purge_project", "read_audit_log"],
     ]
@@ -182,6 +189,7 @@ describe("GET /auth/me (D35)", () => {
     expect(res.body.data.upload_rules).toEqual({
       max_bytes: 10 * 1024 * 1024,
       extensions: ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "odt", "ods", "odp"],
+      library_extensions: ["pdf"],
     });
   });
 
@@ -192,8 +200,14 @@ describe("GET /auth/me (D35)", () => {
   });
 
   it("every permission is built from the route role lists", () => {
-    const lists = [EDITOR_ROLES, SPECIALIST_ROLES, ADMIN_ROLES];
+    const lists = [EDITOR_ROLES, SPECIALIST_ROLES, LIBRARY_MANAGER_ROLES, ADMIN_ROLES];
     Object.values(PERMISSIONS).forEach((roles) => expect(lists).toContain(roles));
+  });
+
+  it("manage_library has its own role list: admin + environmental specialist (D64 b)", () => {
+    expect(PERMISSIONS.manage_library).toBe(LIBRARY_MANAGER_ROLES);
+    expect(PERMISSIONS.manage_library).not.toBe(SPECIALIST_ROLES);
+    expect(LIBRARY_MANAGER_ROLES).toEqual(["admin", "environmental_specialist"]);
   });
 
   it("requires a token (401)", async () => {

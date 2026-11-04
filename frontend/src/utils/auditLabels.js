@@ -3,7 +3,6 @@
  * the backend (models/auditLog.model.js); this is the only place that turns them into text.
  */
 import { ROLE_LABELS } from '@/contexts'
-import { annexItems } from './annexTypes'
 import { formatFileSize } from './formatFileSize'
 
 export const AUDIT_ACTION_LABELS = {
@@ -12,6 +11,8 @@ export const AUDIT_ACTION_LABELS = {
   'project.archive': 'Project archived',
   'project.restore': 'Project restored',
   'file.delete': 'File deleted',
+  'library.replace_file': 'Library PDF replaced',
+  'library.delete': 'Library document deleted',
   'management.rows_removed': 'Management activities removed',
   'mitigation.rows_removed': 'Mitigation plan rows removed',
   'user.create': 'User created',
@@ -24,10 +25,10 @@ export const AUDIT_ACTION_LABELS = {
 /** @param {string} action */
 export const auditActionLabel = (action) => AUDIT_ACTION_LABELS[action] ?? action
 
-/** Badge colour: removals red, archive/restore amber, user and access changes blue. */
+/** Badge colour: removals red, archive/restore and file replacement amber, user changes blue. */
 export function auditActionVariant(action) {
   if (/\.(delete|purge|rows_removed)$/.test(action)) return 'error'
-  if (action.startsWith('project.')) return 'warning'
+  if (action.startsWith('project.') || action === 'library.replace_file') return 'warning'
   return 'info'
 }
 
@@ -43,6 +44,7 @@ const actionsOf = (prefix) =>
 export const AUDIT_ACTION_FILTER_GROUPS = [
   { label: 'Projects', all: 'project.', options: actionsOf('project.') },
   { label: 'Files', all: 'file.', options: actionsOf('file.') },
+  { label: 'Library', all: 'library.', options: actionsOf('library.') },
   {
     label: 'SEMP rows (Tools 3 & 4)',
     all: null,
@@ -54,6 +56,7 @@ export const AUDIT_ACTION_FILTER_GROUPS = [
 export const AUDIT_TARGET_LABELS = {
   project: 'Project',
   file: 'File',
+  library_document: 'Library document',
   management_activity: 'Management activities',
   mitigation_plan: 'Mitigation plan',
   user: 'User',
@@ -83,8 +86,28 @@ const formatDateTime = (value) =>
     minute: '2-digit',
   })
 
-const annexLabel = (category) =>
-  annexItems.find((item) => item.category === category)?.title ?? category
+// Project file areas: "documents" since phase 7b (D64 d); "annex" in entries written before it.
+const AREA_LABELS = {
+  documents: 'Project documents',
+  annex: 'Annex (before phase 7b)',
+  semp_record: 'SEMP records',
+}
+
+/**
+ * A file category: a place key (labels from GET /lookups), "other", or an old Annex A–H category
+ * (annex_a … annex_h) of an entry written before phase 7b.
+ */
+const categoryLabel = (placeLabel) => (category) => {
+  if (category === 'other') return 'Other'
+  const annex = /^annex_([a-h])$/.exec(category)
+  if (annex) return `Annex ${annex[1].toUpperCase()} (before phase 7b)`
+  return placeLabel(category)
+}
+
+const placesLabel = (placeLabel) => (places) =>
+  Array.isArray(places) && places.length > 0
+    ? places.map(placeLabel).join(', ')
+    : 'General — Library only'
 
 const rowCounts = (rows) =>
   [
@@ -96,8 +119,9 @@ const rowCounts = (rows) =>
 /**
  * Snapshot and details fields shown when a row is expanded, in this order. Ids are left out
  * (copied names are shown instead); unknown fields are not shown.
+ * @param {(key: string) => string} placeLabel
  */
-const FIELDS = [
+const fieldsWith = (placeLabel) => [
   ['title', 'Title'],
   ['name', 'Name'],
   ['email', 'Email'],
@@ -114,9 +138,15 @@ const FIELDS = [
   ['archived', 'Archived', (v) => (v ? 'Yes' : 'No')],
   ['archived_by_name', 'Archived by'],
   ['archived_at', 'Archived on', formatDateTime],
-  ['area', 'Area', (v) => (v === 'annex' ? 'Annex' : v)],
-  ['category', 'Category', annexLabel],
+  ['description', 'Description'],
+  ['places', 'Shown in', placesLabel(placeLabel)],
+  ['area', 'Area', (v) => AREA_LABELS[v] ?? v],
+  ['category', 'Category', categoryLabel(placeLabel)],
   ['size', 'Size', formatFileSize],
+  ['old_name', 'Old file'],
+  ['old_size', 'Old size', formatFileSize],
+  ['new_name', 'New file'],
+  ['new_size', 'New size', formatFileSize],
   ['mime_type', 'Type'],
   ['uploaded_by_name', 'Uploaded by'],
   ['uploaded_at', 'Uploaded on', formatDateTime],
@@ -127,11 +157,13 @@ const FIELDS = [
  * What the expanded row shows: labelled fields from snapshot + details, and the removed rows of a
  * bulk save (serial number + description).
  * @param {Object} entry - An audit-log entry from GET /audit-logs
+ * @param {{placeLabel?: (key: string) => string}} [options] - place labels (useLookups)
  * @returns {{ fields: Array<{label: string, value: string}>, rows: Array<{key: string, serial: *, description: string}> }}
  */
-export function describeAuditEntry(entry) {
+export function describeAuditEntry(entry, { placeLabel = (key) => key } = {}) {
   const data = { ...(entry.snapshot ?? {}), ...(entry.details ?? {}) }
-  const fields = FIELDS.filter(([key]) => data[key] !== undefined && data[key] !== null)
+  const fields = fieldsWith(placeLabel)
+    .filter(([key]) => data[key] !== undefined && data[key] !== null)
     .map(([key, label, format]) => ({ label, value: format ? format(data[key]) : data[key] }))
     .filter(({ value }) => value !== null && value !== '')
   const rows = Array.isArray(entry.snapshot?.rows)

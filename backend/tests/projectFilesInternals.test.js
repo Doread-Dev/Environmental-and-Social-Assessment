@@ -70,7 +70,7 @@ describe("disk failures never leave a broken state", () => {
     await expect(
       fileService.uploadFile(
         project._id,
-        { area: "annex", category: "annex_a" },
+        { area: "documents", category: "screening" },
         pdfUpload(),
         user._id
       )
@@ -83,7 +83,7 @@ describe("disk failures never leave a broken state", () => {
     const project = await createProject();
     const file = await fileService.uploadFile(
       project._id,
-      { area: "annex", category: "annex_a" },
+      { area: "documents", category: "screening" },
       pdfUpload(),
       user._id
     );
@@ -111,8 +111,8 @@ describe("disk failures never leave a broken state", () => {
     // Written around the model's validation, as if the database had been tampered with.
     const { insertedId } = await ProjectFile.collection.insertOne({
       project: project._id,
-      area: "annex",
-      category: "annex_a",
+      area: "documents",
+      category: "screening",
       original_name: "x.pdf",
       stored_name: "../../../outside.pdf",
       mime_type: "application/pdf",
@@ -128,7 +128,7 @@ describe("disk failures never leave a broken state", () => {
     const project = await createProject();
     const file = await fileService.uploadFile(
       project._id,
-      { area: "annex", category: "annex_a" },
+      { area: "documents", category: "screening" },
       pdfUpload(),
       user._id
     );
@@ -173,10 +173,10 @@ describe("SEMP Plan §7 records once v3 opens the area", () => {
       .get(`/api/v1/projects/${project._id}/files?area=semp_record`)
       .set(auth(token));
     expect(list.body.data.map((file) => file.category)).toEqual(["legal_register"]);
-    const annex = await request(app)
-      .get(`/api/v1/projects/${project._id}/files?area=annex`)
+    const documents = await request(app)
+      .get(`/api/v1/projects/${project._id}/files?area=documents`)
       .set(auth(token));
-    expect(annex.body.data).toEqual([]);
+    expect(documents.body.data).toEqual([]);
   });
 
   it("PATCH validates the category and finds unknown files", async () => {

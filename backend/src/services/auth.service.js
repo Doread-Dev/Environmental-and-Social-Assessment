@@ -3,7 +3,7 @@ const User = require("../models/user.model");
 const ApiError = require("../utils/ApiError");
 const { permissionsFor } = require("../config/permissions");
 const { PASSWORD_MIN_LENGTH } = require("../validators/auth.validator");
-const { maxUploadBytes, ALLOWED_EXTENSIONS } = require("../config/files");
+const { maxUploadBytes, ALLOWED_EXTENSIONS, LIBRARY_EXTENSIONS } = require("../config/files");
 
 const signToken = (user) =>
   jwt.sign({ sub: user._id, role: user.role }, process.env.JWT_SECRET, {
@@ -29,7 +29,12 @@ const getMe = async (userId) => {
     permissions: permissionsFor(user),
     password_rules: { min_length: PASSWORD_MIN_LENGTH },
     // So the client can check a file before sending it; the server checks again (D47).
-    upload_rules: { max_bytes: maxUploadBytes(), extensions: ALLOWED_EXTENSIONS },
+    // Project documents take PDF + Office; the reference library PDF only (D64 b).
+    upload_rules: {
+      max_bytes: maxUploadBytes(),
+      extensions: ALLOWED_EXTENSIONS,
+      library_extensions: LIBRARY_EXTENSIONS,
+    },
   };
 };
 

@@ -132,7 +132,7 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
     const isParentActive = isNavActive(item.path)
     // Only expand when a child is active (manual navigation to child pages)
     const isExpanded = hasActive
-    const isLocked = item.id !== 'annex' && isStepLocked(item.id)
+    const isLocked = item.id !== 'documents' && isStepLocked(item.id)
 
     return (
       <div key={item.id}>
@@ -444,8 +444,8 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
 
                   {/* Secondary Navigation */}
                   {PROJECT_SECONDARY_NAV.map((item) => {
-                    // Annex is a plain link unless it has children
-                    if (item.children && item.id === 'annex') {
+                    // A plain link unless it has children
+                    if (item.children) {
                       return renderExpandableItem(item)
                     }
 

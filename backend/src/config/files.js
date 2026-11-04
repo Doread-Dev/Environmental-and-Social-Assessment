@@ -1,19 +1,11 @@
 const path = require("path");
+const { PROJECT_WORKFLOW_PLACE_KEYS } = require("./places");
 
-// Project file module (D47): one owner (the project), two areas.
-const FILE_AREAS = ["annex", "semp_record"];
+// Project file module (D47, D64 d): one owner (the project), two areas.
+const FILE_AREAS = ["documents", "semp_record"];
 
-// Annex A–H (fixed list, labels live in the frontend's annexTypes.js).
-const ANNEX_CATEGORIES = [
-  "annex_a",
-  "annex_b",
-  "annex_c",
-  "annex_d",
-  "annex_e",
-  "annex_f",
-  "annex_g",
-  "annex_h",
-];
+// Project documents are grouped by the project-workflow places (config/places.js), plus "other".
+const DOCUMENT_CATEGORIES = [...PROJECT_WORKFLOW_PLACE_KEYS, "other"];
 
 // SEMP Plan §7 "Project files & records" (the 11 record types of the SE MP workbook, §6.1).
 // A semp_record file may also have no category (null).
@@ -33,7 +25,7 @@ const SEMP_RECORD_CATEGORIES = [
 
 // SEMP Plan §7 is locked until v3 (D48): the model and categories exist, the area answers 404.
 // A code constant on purpose — no env switch can open it.
-const OPEN_AREAS = ["annex"];
+const OPEN_AREAS = ["documents"];
 
 // Allowed types (owner, phase 7: PDF + Office). The extension decides the type; the stored MIME
 // type comes from here, never from the client. `signature` = the file's first bytes.
@@ -63,6 +55,9 @@ const FILE_TYPES = {
 };
 const ALLOWED_EXTENSIONS = Object.keys(FILE_TYPES);
 
+// The reference library is for reading in the app (D64 b): PDF only.
+const LIBRARY_EXTENSIONS = ["pdf"];
+
 const DEFAULT_MAX_UPLOAD_MB = 10;
 
 // Read at call time so tests (and a restart with a new .env) see the current value.
@@ -71,20 +66,22 @@ const maxUploadBytes = () => {
   return Math.round((mb > 0 ? mb : DEFAULT_MAX_UPLOAD_MB) * 1024 * 1024);
 };
 
-// Files live at <UPLOADS_DIR>/<project id>/<stored name>. Backups must include this folder (D38).
 // "10 MB", for messages.
 const maxUploadLabel = () => `${Number((maxUploadBytes() / 1024 / 1024).toFixed(2))} MB`;
 
+// Project files live at <UPLOADS_DIR>/<project id>/<stored name>, library documents at
+// <UPLOADS_DIR>/library/<stored name>. Backups must include this folder (D38).
 const uploadsDir = () =>
   path.resolve(process.env.UPLOADS_DIR || path.join(__dirname, "..", "..", "uploads"));
 
 module.exports = {
   FILE_AREAS,
   OPEN_AREAS,
-  ANNEX_CATEGORIES,
+  DOCUMENT_CATEGORIES,
   SEMP_RECORD_CATEGORIES,
   FILE_TYPES,
   ALLOWED_EXTENSIONS,
+  LIBRARY_EXTENSIONS,
   maxUploadBytes,
   maxUploadLabel,
   uploadsDir,

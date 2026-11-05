@@ -56,7 +56,7 @@
 - [x] Checked in the browser (throwaway DB, ports 3001/5174, light and dark): login, dashboard, overview, Tools 1–5, Documents, Library + PdfViewer, Guidance panel, Activity log, the AKF brand mark; one export per tool and one project workbook opened and read back.
 - [x] Downloads work with `UPLOADS_DIR` under a dot folder (fix + test).
 - [x] AKF logo: login without a box (as v2), brand mark in every header/sidebar/menu, tab icon.
-- [ ] Owner has checked light/dark screens, the login page and one export of each tool.
+- [x] Owner has checked light/dark screens, the login page and one export of each tool. *(Done before PR #19 was merged.)*
 
 ## Result
 

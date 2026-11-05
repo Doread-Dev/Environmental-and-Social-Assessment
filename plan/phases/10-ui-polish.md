@@ -28,10 +28,19 @@
   - Left accent border on the main card and a decorative icon in its corner that does nothing; "Not Started" badge differs from the status badges elsewhere.
 - **Right-hand "Project Context" card** (`components/assessment/ProjectContextCard.jsx`): redo it the way the Overview card was redone in phase 1 (`ProjectSiteCard` → `ProjectDetailsCard`). Drop the placeholder map image, show real project data only (location, component, start/end with the full date, "Not specified" when empty) by reusing `ProjectDetailsCard`, and keep "Screening approved by" from `status_history` (D16). No project title (the sidebar already shows it). Same card wherever `ProjectContextCard` is used.
 
+## Tests
+- Shared components: variants, disabled, error, read-only and dark classes of `Select`, `Input`, `Textarea`, `Badge` / `StatusBadge`, `Button`; `LoadingState` / `EmptyState` / `ErrorState` (retry); `ConfirmDialog` (confirm, cancel, busy); `Modal` (focus in and back, Escape, unique ids, close button); `PageHeader`.
+- Date, reviewer (D16) and status-badge helpers.
+- Archive UI: archive / restore / delete / purge each ask in the dialog and call the right endpoint; buttons only with the matching allowed action; purge hidden without `project.purge`; the archived list is requested with `archived=true`; errors are shown.
+- Gateway: four steps incl. Monitoring; start card without accent border / decorative icon, shared badge. Project Context card: no map, no title, "Not specified", approver from status history. `ArchivedNotice`.
+- Guard: forbidden classes, raw hex, light gray, emerald/teal, `bg-white`/`bg-black`, raw `<select>`, new `window.confirm`, `alert`/`prompt`, `toLocale*String`, icon spans without `aria-hidden`.
+- Font (D72): no Google text font, font stack, bundled `@fontsource` files with exact versions, only loaded weights.
+
 ## Process
 - Walk the main screens with the demo project in light and dark mode, desktop and 375 px. Page-specific findings go to [phase 13](13-page-by-page-ui-review.md) (D71); this phase fixes what is shared.
 
 ## Done when
+- [x] Every item under Tests has a test (file names listed in Result).
 - [x] Shared components/helpers, one per kind, every usage migrated (see "Result" below).
 - [x] Guard test against forbidden colours, raw hex, light gray classes, emerald/teal, raw `<select>`, new `window.confirm`, `toLocale*String` dates and icon text read by screen readers (`src/test/styleGuard.test.js`).
 - [x] Lint 0 warnings in `src/`: the 7 `react-refresh/only-export-components` cases split (`contexts/useAuth.js`, `contexts/useTheme.js`, `components/ui/useToast.js`, `utils/roles.js`, `pages/NotFoundPage.jsx`, `LoadingState` as the route fallback).
@@ -51,6 +60,7 @@
 - **D16:** `utils/reviewer.js` fills "Approved By" / "Position" (and "Screening approved by") from `approved_by` / `reject_by`, else the last `status_history` entry.
 - **Archive UI (D17, D60):** Settings → Projects lists active or archived projects; archive, restore, delete, admin "Delete permanently" (purge), each behind `allowed_actions` and a ConfirmDialog; the Projects page has an "Archived projects" view with the Archived badge; every page of an archived project shows the read-only notice; the overview header shows the real status instead of a fixed "Active".
 - **Accessibility:** Material Symbols spans are `aria-hidden`; the closed mobile menu is invisible to keyboard and screen readers (and no longer bleeds the project title into the page); labels linked on the migrated fields.
+- **Tests (by item):** shared components → `src/components/ui/sharedComponents.test.jsx`; helpers → `src/utils/displayFormats.test.js`; archive UI → `src/components/settings/ProjectsManagementSection.test.jsx`; gateway, Project Context card, `ArchivedNotice` → `src/components/assessment/assessmentGateway.test.jsx`; guard → `src/test/styleGuard.test.js`; font → `src/test/fonts.test.js`.
 - **Removed (dead):** `ComponentShowcase`, `utils/apiTest.js`, `ApprovalSection`, `AssessmentApprovalSection`, `AssessmentReviewCard`, `ScreeningSummaryCard`, `TableRowActions`, `ProgressBar`, `ProgressStepper`, `RadioGroup`, `Dropdown`, `utils/workflowStatuses.js`, unused constants/helpers; the project header's "Help" button that did nothing.
 
 ## Found during phase

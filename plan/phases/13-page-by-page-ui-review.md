@@ -26,9 +26,24 @@
   - the save and export buttons (place, label, icon, "Saved" feedback, export availability);
   - the Guidance button, the locked / read-only / archived notices, empty tables.
 - **Select boxes:** decide with the owner whether to replace the native look with a designed select / listbox (accessible: keyboard, screen reader, focus; dark mode; long option lists, groups, search where useful). Phase 10's single `Select` (`components/ui/Select.jsx`) is the base, so the change happens in one place.
+- **Tables (owner):**
+  - **Tool-specific tables keep their own layout:** the Tools 3/4 editable grid, the monitoring quarters table, the assessment scoring table.
+  - **General tables share one look and one visual identity:** project list, Settings → Users, Settings → Projects, activity log, library, project documents, dashboard lists.
+  - **Check each table for:** size and density (row height, padding, font size); column widths and overflow on mobile (horizontal scroll, what stays visible); header style; sorting and filtering and where their controls sit; pagination; empty, loading and error rows; row actions (placement, icons, confirmation); conflicts between tables (the same thing behaving differently).
+  - **Method:** list every table below, mark it general or tool-specific, and converge the general ones on the shared `Table` component and the phase 10 controls (`Select`, `Input`, `Pagination`, `Button`, `StatusBadge`, `EmptyState` / `LoadingState` / `ErrorState`, `ConfirmDialog`).
 - **Every element:** labels, help texts, placeholders, error messages (wording, `extractErrorMessage`), tab order and focus, hover/active/disabled states, truncation of long text (titles, names, Arabic text right-to-left), numbers and dates, icons, spacing and alignment, scroll areas, print views.
 
+## Tests
+- Every fix from the agreed issue list has a test next to the code it changes (D39).
+- Unsaved-changes guard: one test per edit page (screening, assessment metadata / methods / scoring / review, Tools 3 and 4, Tool 5, project create/edit, user form, library form): after an edit, an in-app link and the browser Back open the app dialog (Save / Discard / Stay); without an edit they do not.
+- Style guard (`src/test/styleGuard.test.js`): `window.confirm` allow-list empty; `alert` / `prompt` stay rejected.
+- Repeated areas: each unified area (review card, approve/reject section, reviewer block, status header, submit bar, save/export buttons) has a component test, and each tool page renders that shared component (one assertion per tool).
+- General tables: each renders through the shared `Table` and shows the shared empty, loading and error states (one test per table); row actions that change data ask in `ConfirmDialog`.
+- Arabic text: displayed user text (project title, location, descriptions) carries `dir="auto"` (test on the project list, the project header and one tool page).
+- Select box: if the owner picks a designed select / listbox, its tests cover keyboard (arrows, Enter, Escape, type-ahead), screen-reader roles, disabled options, groups and dark-mode classes.
+
 ## Done when
+- [ ] Every item under Tests has a test (file names listed in Result).
 - [ ] Every screen walked in light/dark and desktop/mobile; issue list closed or explicitly deferred by the owner.
 - [ ] Lint 0 errors, Prettier clean, build OK; coverage floors raised.
 

@@ -6,6 +6,7 @@ import { useWorkspace } from '@/hooks'
 import { GuidanceButton, useCurrentPlace } from '@/components/library'
 import ProjectSidebar from './ProjectSidebar'
 import MobileMenu from './MobileMenu'
+import BrandLogo from './BrandLogo'
 
 /**
  * ProjectLayout Component
@@ -172,16 +173,7 @@ function ProjectLayout() {
             </div>
 
             {/* Logo & Title */}
-            <div className="flex items-center gap-3 sm:px-2">
-              <div className="flex items-center justify-center size-10 rounded-xl bg-primary text-white">
-                <span className="material-symbols-outlined text-2xl">eco</span>
-              </div>
-              <div className="hidden sm:flex flex-col">
-                <h1 className="text-lg font-bold leading-tight text-text-main dark:text-white">
-                  ESMS System
-                </h1>
-              </div>
-            </div>
+            <BrandLogo size="md" className="sm:px-2" textClassName="hidden sm:flex" />
           </div>
 
           {/* Right Actions */}

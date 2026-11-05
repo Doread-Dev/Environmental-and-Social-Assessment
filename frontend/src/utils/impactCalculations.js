@@ -91,3 +91,22 @@ export function calculateTotalScore(scores) {
 
   return total
 }
+
+/**
+ * Tool 2 submit confirmation (D67 c): how many questions differ from the Negligible default
+ * (D54). Submit is never blocked by it.
+ * @param {string[]} questionIds - Every question
+ * @param {Array<{question: string, level: string}>} scores
+ * @returns {string} e.g. "You changed 7 of 50; the other 43 stay Negligible."
+ */
+export function changedQuestionsSummary(questionIds, scores) {
+  const levels = new Map(scores.map((score) => [score.question, score.level]))
+  const total = questionIds.length
+  const changed = questionIds.filter(
+    (id) => (levels.get(id) || 'negligible') !== 'negligible'
+  ).length
+  if (changed === 0)
+    return `You changed none of the ${total} questions; all ${total} stay Negligible.`
+  if (changed === total) return `You changed all ${total} questions; none stays Negligible.`
+  return `You changed ${changed} of ${total}; the other ${total - changed} stay Negligible.`
+}

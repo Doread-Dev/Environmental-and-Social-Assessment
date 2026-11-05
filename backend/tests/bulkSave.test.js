@@ -195,6 +195,24 @@ describe("PUT /projects/:id/monitoring (D32)", () => {
     expect((await MonitoringRecord.findById(untouched._id).lean()).total).toBe("unchanged");
   });
 
+  it("ranking stays empty unless picked; null clears it (D69)", async () => {
+    const { project, first, second } = await setup();
+    await MonitoringRecord.create({ project: project._id, indicator: second._id, ranking: "high" });
+
+    const res = await put(url(project), {
+      records: [
+        { indicator: first._id.toString(), total: "5" },
+        { indicator: second._id.toString(), ranking: null },
+      ],
+    });
+
+    expect(res.status).toBe(200);
+    const byIndicator = (id) =>
+      res.body.data.find((r) => String(r.indicator._id ?? r.indicator) === String(id));
+    expect(byIndicator(first._id).ranking).toBeUndefined();
+    expect(byIndicator(second._id).ranking).toBeNull();
+  });
+
   it.each([
     ["an unknown indicator", (i) => [i.valid, { indicator: i.unknown }], /^Record 2: unknown/],
     [

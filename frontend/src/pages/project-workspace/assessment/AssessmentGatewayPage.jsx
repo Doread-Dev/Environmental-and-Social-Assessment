@@ -68,7 +68,7 @@ export default function AssessmentGatewayPage() {
   }
 
   const handleStart = async () => {
-    const result = await startAssessment(project)
+    const result = await startAssessment()
     if (result.success) {
       navigate(`/app/projects/${projectId}/assessment/metadata`)
     }
@@ -114,6 +114,7 @@ export default function AssessmentGatewayPage() {
             onStart={handleStart}
             onContinue={handleContinue}
             canStart={can('assessment.create')}
+            canEdit={can('assessment.edit')}
           />
         </div>
 

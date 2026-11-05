@@ -28,6 +28,7 @@ const emptyRecord = (projectId, indicatorId) => ({
   final_assessment: '',
   ranking: null,
   responsible: null,
+  responsible_text: '',
   note: '',
   isNew: true,
 })
@@ -38,7 +39,7 @@ const toPayloadRecord = (record) => ({
   scores: record.scores || { baseline: '', Q1: '', Q2: '', Q3: '', Q4: '' },
   total: record.total || '',
   final_assessment: record.final_assessment || '',
-  ranking: record.ranking || 'not_applicable',
+  ranking: record.ranking || null, // empty until picked (D69)
   note: record.note || '',
   ...responsibleFields(record),
 })
@@ -165,7 +166,7 @@ export function useMonitoring(projectId) {
   const getAllCategoryStats = useCallback(() => {
     const isRecordComplete = (record) => {
       if (!record || record.isNew) return false
-      if (record.ranking && record.ranking !== 'not_applicable') return true
+      if (record.ranking) return true // only set when the user picked one (D69)
       return Boolean(
         record.scores?.baseline ||
         record.scores?.Q1 ||

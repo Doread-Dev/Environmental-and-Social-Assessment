@@ -3,8 +3,6 @@ const AssessmentMethod = require("../models/assessmentMethod.model");
 const CommunityConsultation = require("../models/communityConsultation.model");
 const AssessmentImpactScore = require("../models/assessmentImpactScore.model");
 const ImpactQuestion = require("../models/impactQuestion.model");
-const Project = require("../models/project.model");
-const Screening = require("../models/screening.model");
 const ApiError = require("../utils/ApiError");
 const assertSameProject = require("../utils/assertSameProject");
 const { applyTransition, assertEditable, historyEntry } = require("../utils/statusTransition");
@@ -32,9 +30,21 @@ const getAssessment = async (id) => {
   return assessment;
 };
 
+// The assessment with its methods, consultations and scores embedded, so a page reads Tool 2 in
+// one request (D63 c).
+const withChildren = async (assessment) => {
+  if (!assessment) return null;
+  const [methods, consultations, scores] = await Promise.all([
+    AssessmentMethod.find({ assessment: assessment._id }),
+    CommunityConsultation.find({ assessment: assessment._id }),
+    AssessmentImpactScore.find({ assessment: assessment._id }),
+  ]);
+  return { ...assessment.toObject(), methods, consultations, scores };
+};
+
 // null when the project has no assessment yet: "not started" is not an error (D34).
 const getByProject = async (projectId) =>
-  populateAssessment(Assessment.findOne({ project: projectId }));
+  withChildren(await populateAssessment(Assessment.findOne({ project: projectId })));
 
 // Loads an assessment for a content edit: Tool 1 approved, project not archived, and the
 // assessment itself still draft or rejected.
@@ -66,25 +76,10 @@ const createAssessment = async (payload, createdBy) => {
     throw new ApiError(409, "An assessment already exists for this project");
   }
 
-  // Prefill once, on create, only the fields the payload leaves empty (D53).
-  const [project, screening] = await Promise.all([
-    Project.findById(payload.project).select("project_component"),
-    Screening.findOne({ project: payload.project }).select("potential_negative potential_positive"),
-  ]);
-  const data = { ...payload };
-  if (isEmpty(data.project_activity)) data.project_activity = project.project_component;
-  if (isEmpty(data.potential_negative_impact)) {
-    data.potential_negative_impact = screening.potential_negative;
-  }
-  if (isEmpty(data.potential_positive_impact)) {
-    data.potential_positive_impact = screening.potential_positive;
-  }
-  if (isEmpty(data.project_activity)) {
-    throw new ApiError(400, "Project activity is required (the project has no component to use)");
-  }
-
+  // Nothing is prefilled: the user types every field in Tool 2 (D69). Project activity and
+  // description are required at submit, not at create.
   const created = await Assessment.create({
-    ...data,
+    ...payload,
     officer: createdBy,
     status_history: [historyEntry("created", createdBy)],
   });
@@ -96,7 +91,7 @@ const createAssessment = async (payload, createdBy) => {
   );
   await recalculate(created._id);
 
-  return populateAssessment(Assessment.findById(created._id));
+  return withChildren(await populateAssessment(Assessment.findById(created._id)));
 };
 
 const updateAssessment = async (id, payload, updatedBy) => {
@@ -170,8 +165,25 @@ const assertAllQuestionsScored = async (id) => {
   }
 };
 
+// Required fields (D57) are checked when the assessment is submitted: it may start empty (D69).
+const REQUIRED_AT_SUBMIT = [
+  ["project_activity", "Project activity"],
+  ["description", "Description"],
+];
+
+const assertRequiredFilled = (assessment) => {
+  const missing = REQUIRED_AT_SUBMIT.filter(([field]) => isEmpty(assessment[field])).map(
+    ([, label]) => label
+  );
+  if (missing.length) {
+    throw new ApiError(400, `Fill in ${missing.join(" and ")} before submitting`);
+  }
+};
+
 const submitAssessment = async (id, submittedBy) => {
-  if (!(await Assessment.exists({ _id: id }))) throw new ApiError(404, "Assessment not found");
+  const assessment = await Assessment.findById(id).select("project_activity description");
+  if (!assessment) throw new ApiError(404, "Assessment not found");
+  assertRequiredFilled(assessment);
   await assertAllQuestionsScored(id);
   return transition(id, "submit", submittedBy);
 };
@@ -182,10 +194,6 @@ const approveAssessment = async (id, approvedBy, recommendations) =>
 const rejectAssessment = async (id, rejectBy, rejectReason = null) =>
   transition(id, "reject", rejectBy, { rejectReason });
 
-const listMethods = async (assessmentId) => {
-  return AssessmentMethod.find({ assessment: assessmentId });
-};
-
 const replaceMethods = async (assessmentId, payload) => {
   await loadEditable(assessmentId);
   await AssessmentMethod.deleteMany({ assessment: assessmentId });
@@ -194,20 +202,12 @@ const replaceMethods = async (assessmentId, payload) => {
   return AssessmentMethod.insertMany(docs);
 };
 
-const listConsultations = async (assessmentId) => {
-  return CommunityConsultation.find({ assessment: assessmentId });
-};
-
 const replaceConsultations = async (assessmentId, payload) => {
   await loadEditable(assessmentId);
   await CommunityConsultation.deleteMany({ assessment: assessmentId });
   if (!payload.length) return [];
   const docs = payload.map((item) => ({ ...item, assessment: assessmentId }));
   return CommunityConsultation.insertMany(docs);
-};
-
-const listScores = async (assessmentId) => {
-  return AssessmentImpactScore.find({ assessment: assessmentId });
 };
 
 module.exports = {
@@ -219,9 +219,6 @@ module.exports = {
   submitAssessment,
   approveAssessment,
   rejectAssessment,
-  listMethods,
   replaceMethods,
-  listConsultations,
   replaceConsultations,
-  listScores,
 };

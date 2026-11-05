@@ -31,7 +31,7 @@ function ProjectCTACard({
   return (
     <div
       className={cn(
-        'bg-gradient-to-r from-white to-[#f0fdf4] dark:from-surface-dark dark:to-[#0f2e1b] rounded-xl shadow-md border border-primary/20 p-6 flex items-center justify-between relative overflow-hidden group',
+        'bg-gradient-to-r from-white to-primary-soft dark:from-surface-dark dark:to-background-dark rounded-xl shadow-md border border-primary/20 p-6 flex items-center justify-between relative overflow-hidden group',
         className
       )}
       {...props}

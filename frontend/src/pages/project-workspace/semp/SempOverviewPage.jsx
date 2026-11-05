@@ -13,7 +13,9 @@ export default function SempOverviewPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
   // Tool 3 / Tool 4 status and the lock come from the backend workflow (workspace, D30)
-  const { workflow } = useProjectContext()
+  const { workflow, can } = useProjectContext()
+  // Viewers open the tools to look, never "Start" or "Edit" (D35)
+  const viewLabel = can('semp.edit') ? undefined : 'View Tool →'
   const semp = workflow.steps.semp
 
   // Navigate handlers
@@ -85,6 +87,7 @@ export default function SempOverviewPage() {
               description="Plan general environmental and social management activities for the project lifecycle, including stakeholder engagement and capacity building."
               status={tool3Status}
               onAction={() => handleNavigate('activities')}
+              actionLabel={viewLabel}
               pulse={!isLocked && tool3Status === 'not_started'}
             />
 
@@ -95,6 +98,7 @@ export default function SempOverviewPage() {
               description="Develop specific mitigation measures for identified risks. This plan is mandatory for projects with Moderate or High impact levels."
               status={tool4Status}
               onAction={() => handleNavigate('mitigation')}
+              actionLabel={viewLabel}
               pulse={!isLocked && tool4Status === 'not_started' && tool3Status !== 'not_started'}
             />
           </div>

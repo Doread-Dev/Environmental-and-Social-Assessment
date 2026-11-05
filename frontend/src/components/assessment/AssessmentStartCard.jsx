@@ -12,12 +12,14 @@ import { Button } from '@/components/ui'
  * @param {Function} props.onStart - callback عند النقر على Start
  * @param {Function} props.onContinue - callback عند النقر على Continue
  * @param {boolean} [props.canStart] - May the user create the assessment (`assessment.create`)
+ * @param {boolean} [props.canEdit] - May the user edit it (`assessment.edit`); viewers only view
  */
 export default function AssessmentStartCard({
   status = 'not_started',
   onStart,
   onContinue,
   canStart = true,
+  canEdit = true,
   className,
   ...props
 }) {
@@ -34,10 +36,11 @@ export default function AssessmentStartCard({
     in_progress: {
       badge: 'In Progress',
       badgeClass: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300',
-      title: 'Continue Assessment Process',
-      description:
-        'Your environmental assessment is in progress. Continue where you left off to complete the evaluation.',
-      buttonText: 'Continue Assessment',
+      title: canEdit ? 'Continue Assessment Process' : 'Assessment in Progress',
+      description: canEdit
+        ? 'Your environmental assessment is in progress. Continue where you left off to complete the evaluation.'
+        : 'The environmental assessment is in progress.',
+      buttonText: canEdit ? 'Continue Assessment' : 'View Assessment',
       buttonAction: onContinue,
     },
     completed: {

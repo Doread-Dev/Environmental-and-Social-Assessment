@@ -38,7 +38,11 @@ describe.each(kinds)("$name locking (D13) and status history (D16)", ({ base, st
   const patch = (id, action, token, payload = {}) =>
     request(app).patch(`${base}/${id}/${action}`).set(auth(token)).send(payload);
   const put = (id, token) =>
-    request(app).put(`${base}/${id}`).set(auth(token)).send({ recommendations: "Edited" });
+    request(app)
+      .put(`${base}/${id}`)
+      .set(auth(token))
+      // one content field of each kind (the other is stripped)
+      .send({ potential_negative: "Edited", environmental_setting: "Edited" });
 
   it("can be edited while draft", async () => {
     const { editor, id } = await setup();

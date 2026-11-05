@@ -12,6 +12,7 @@ import { Alert, StickyFooter, Modal, Button, useToast } from '@/components/ui'
 import { ScreeningInfoSection, RiskCategorySelector, ImpactSection } from '@/components/screening'
 import { useScreening, useProjectContext } from '@/hooks'
 import { cn } from '@/utils/cn'
+import { toDateInputValue } from '@/utils/formatters'
 import { validateScreeningForm } from '@/utils'
 
 function ScreeningFormPage() {
@@ -44,9 +45,10 @@ function ScreeningFormPage() {
   const [showSubmitModal, setShowSubmitModal] = useState(false)
 
   useEffect(() => {
-    // Initialize form with screening data or empty values
+    // Initialize form with screening data; a new screening starts with today's date (D63 b),
+    // still editable and required
     const source = hookScreening || {
-      screening_date: null,
+      screening_date: toDateInputValue(),
       category_code: null,
       category_reason: '',
       potential_negative: '',
@@ -211,12 +213,12 @@ function ScreeningFormPage() {
         {/* Form Sections */}
         <form className="flex flex-col gap-8">
           {/* Section 1: Screening Information */}
-          <section className="bg-white dark:bg-[#152a1d] rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
+          <section className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
             <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-gray-50/50 dark:bg-white/5 flex justify-between items-center">
               <h3 className="font-bold text-lg text-text-main dark:text-white">
                 1. Screening Information
               </h3>
-              <span className="text-xs text-text-secondary bg-white dark:bg-[#102216] px-2 py-1 rounded border border-border-default dark:border-border-dark">
+              <span className="text-xs text-text-secondary bg-white dark:bg-background-dark px-2 py-1 rounded border border-border-default dark:border-border-dark">
                 Required
               </span>
             </div>
@@ -230,7 +232,7 @@ function ScreeningFormPage() {
           </section>
 
           {/* Section 2: Risk Category */}
-          <section className="bg-white dark:bg-[#152a1d] rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
+          <section className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
             <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-gray-50/50 dark:bg-white/5">
               <h3 className="font-bold text-lg text-text-main dark:text-white">
                 2. Project Risk Category
@@ -248,12 +250,12 @@ function ScreeningFormPage() {
           </section>
 
           {/* Section 3: Potential Impacts */}
-          <section className="bg-white dark:bg-[#152a1d] rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
+          <section className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
             <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-gray-50/50 dark:bg-white/5 flex justify-between items-center">
               <h3 className="font-bold text-lg text-text-main dark:text-white">
                 3. Potential Impacts
               </h3>
-              <span className="text-xs text-text-secondary bg-white dark:bg-[#102216] px-2 py-1 rounded border border-border-default dark:border-border-dark">
+              <span className="text-xs text-text-secondary bg-white dark:bg-background-dark px-2 py-1 rounded border border-border-default dark:border-border-dark">
                 Required
               </span>
             </div>

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { act, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import api from '@/services/api'
 import DashboardPage from '@/pages/dashboard/DashboardPage'
 import ProjectLayout from '@/components/layout/ProjectLayout'
@@ -7,6 +7,9 @@ import ProjectOverviewPage from '@/pages/project-workspace/overview/ProjectOverv
 import ScreeningRouter from '@/pages/project-workspace/screening/ScreeningRouter'
 import ScreeningSummaryPage from '@/pages/project-workspace/screening/ScreeningSummaryPage'
 import SempOverviewPage from '@/pages/project-workspace/semp/SempOverviewPage'
+import AssessmentRouter from '@/pages/project-workspace/assessment/AssessmentRouter'
+import AssessmentScoringPage from '@/pages/project-workspace/assessment/AssessmentScoringPage'
+import { exportProjectWorkbook } from '@/utils/excelExport'
 import { getUrls, mockGet, signIn, workspaceFixture } from '@/test/utils'
 import { renderApp } from '@/test/renderApp'
 import ProtectedRoute from './ProtectedRoute'
@@ -14,6 +17,11 @@ import ProtectedRoute from './ProtectedRoute'
 vi.mock('@/services/api', async (importOriginal) => ({
   ...(await importOriginal()),
   default: { get: vi.fn() },
+}))
+
+// The workbook itself is built by excelExport (tested there); here only what it is given
+vi.mock('@/utils/excelExport', () => ({
+  exportProjectWorkbook: vi.fn(async () => 'ESMS_Water_network_2026-11-04.xlsx'),
 }))
 
 const routes = [
@@ -42,6 +50,12 @@ const routes = [
         element: <ScreeningSummaryPage />,
       },
       { path: 'semp', element: <SempOverviewPage /> },
+      { path: 'assessment', handle: { place: 'assessment' }, element: <AssessmentRouter /> },
+      {
+        path: 'assessment/scoring',
+        handle: { place: 'assessment' },
+        element: <AssessmentScoringPage />,
+      },
     ],
   },
 ]
@@ -164,6 +178,143 @@ describe('request counts (D31, D33)', () => {
     expect(screen.queryByRole('button', { name: /Guidance/ })).not.toBeInTheDocument()
   })
 
+  it('new screening form starts with today as its date (D63 b)', async () => {
+    mockApi({ workspace: workspaceFixture({ allowed_actions: ['screening.create'] }) })
+    const { container } = renderApp(routes, '/app/projects/p1/screening')
+
+    await screen.findByText('Submit Screening')
+    const today = new Date()
+    const pad = (n) => String(n).padStart(2, '0')
+    expect(container.querySelector('input[type="date"]')).toHaveValue(
+      `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`
+    )
+  })
+
+  describe('assessment pages read Tool 2 in one request (D63 c)', () => {
+    const draft = {
+      _id: 'a1',
+      status: 'draft',
+      project_activity: 'Pipes',
+      description: 'Replace pipes',
+      methods: [],
+      consultations: [],
+      scores: [{ question: 'q1', level: 'negligible' }],
+    }
+    const mockAssessment = () =>
+      mockGet(api, {
+        '/auth/me': { user: { _id: 'u1', role: 'project_manager' }, permissions: ['edit'] },
+        '/projects/p1/workspace': {
+          ...workspaceFixture({
+            steps: { screening: { status: 'approved' }, assessment: { status: 'in_progress' } },
+            allowed_actions: ['assessment.edit', 'assessment.submit'],
+          }),
+          assessment: { status: 'draft' },
+        },
+        '/assessments/project/p1': draft,
+        '/screenings/project/p1': { _id: 's1', status: 'approved', category_code: 'B' },
+        '/lookups': { impact_categories: [], impact_questions: [], indicators: [], job_titles: [] },
+        '/library': [],
+      })
+    const assessmentCalls = () => getUrls(api).filter((url) => url.startsWith('/assessments'))
+
+    it('gateway: one assessment request, no method/consultation/score reads', async () => {
+      mockAssessment()
+      renderApp(routes, '/app/projects/p1/assessment')
+
+      await waitFor(() => expect(getUrls(api)).toContain('/library'))
+      await waitFor(() => expect(getUrls(api)).toContain('/screenings/project/p1'))
+      expect(assessmentCalls()).toEqual(['/assessments/project/p1'])
+      expect(getUrls(api).sort()).toEqual(
+        [
+          '/auth/me',
+          '/projects/p1/workspace',
+          '/assessments/project/p1',
+          '/screenings/project/p1',
+          '/library',
+        ].sort()
+      )
+    })
+
+    it('scoring: assessment + lookups, one assessment request', async () => {
+      mockAssessment()
+      renderApp(routes, '/app/projects/p1/assessment/scoring')
+
+      await screen.findByText('Environmental Impact Assessment Scoring')
+      await waitFor(() => expect(getUrls(api)).toContain('/library'))
+      expect(assessmentCalls()).toEqual(['/assessments/project/p1'])
+      expect(getUrls(api).sort()).toEqual(
+        [
+          '/auth/me',
+          '/projects/p1/workspace',
+          '/assessments/project/p1',
+          '/lookups',
+          '/library',
+        ].sort()
+      )
+    })
+  })
+
+  describe('project workbook (D67 b)', () => {
+    const steps = {
+      screening: { status: 'approved' },
+      assessment: { status: 'submitted' },
+    }
+    const workbookWorkspace = (allowed_actions = ['export']) => ({
+      ...workspaceFixture({ steps, allowed_actions }),
+      screening: { status: 'approved', category_code: 'B' },
+      assessment: { status: 'submitted' },
+      counts: { management_activities: 0, mitigation_plans: 0, monitoring_records: 0 },
+    })
+
+    it('loads only the tools with data (+ lookups for Tool 2), then builds one file', async () => {
+      const screening = { _id: 's1', status: 'approved', category_code: 'B' }
+      const assessment = {
+        _id: 'a1',
+        status: 'submitted',
+        methods: [],
+        consultations: [],
+        scores: [],
+      }
+      mockGet(api, {
+        '/auth/me': { user: { _id: 'u1', role: 'project_manager' }, permissions: ['export'] },
+        '/projects/p1/workspace': workbookWorkspace(),
+        '/screenings/project/p1': screening,
+        '/assessments/project/p1': assessment,
+        '/lookups': { impact_categories: [], impact_questions: [], indicators: [], job_titles: [] },
+      })
+      renderApp(routes, '/app/projects/p1/overview')
+
+      fireEvent.click(await screen.findByRole('button', { name: /Export project workbook/ }))
+      expect(await screen.findByText(/Downloaded ESMS_Water_network/)).toBeInTheDocument()
+
+      expect(getUrls(api).sort()).toEqual(
+        [
+          '/auth/me',
+          '/projects/p1/workspace',
+          '/screenings/project/p1',
+          '/assessments/project/p1',
+          '/lookups',
+        ].sort()
+      )
+      const data = exportProjectWorkbook.mock.calls[0][0]
+      expect(data.screening).toEqual(screening)
+      expect(data.assessment.assessment._id).toBe('a1')
+      expect(data.management).toEqual([])
+      expect(data.workflow.steps.assessment.status).toBe('submitted')
+    })
+
+    it('is not offered without the export action (viewers, D28a)', async () => {
+      mockGet(api, {
+        '/auth/me': { user: { _id: 'v1', role: 'viewer' }, permissions: [] },
+        '/projects/p1/workspace': workbookWorkspace([]),
+      })
+      renderApp(routes, '/app/projects/p1/overview')
+
+      await screen.findByText('Project Details')
+      expect(screen.queryByText(/Export project workbook/)).not.toBeInTheDocument()
+    })
+  })
+
   it('SEMP overview: tool statuses from the workspace, no table loads', async () => {
     const semp = {
       tools: [3, 4],
@@ -240,6 +391,29 @@ describe('viewer sees no export / edit / create buttons (D28a, D35)', () => {
     renderApp(routes, '/app/projects/p1/screening')
 
     expect(await screen.findByText('Export Excel')).toBeInTheDocument()
+  })
+
+  it('SEMP overview: the tools open to view, no Start / Continue Editing', async () => {
+    mockApi({
+      permissions: [],
+      workspace: workspaceFixture({
+        steps: {
+          screening: { status: 'approved' },
+          assessment: { status: 'approved' },
+          semp: {
+            tools: [3, 4],
+            status: 'in_progress',
+            management_activities: { count: 2, described: 2, status: 'in_progress' },
+            mitigation_plans: { count: 0, described: 0, status: 'not_started' },
+          },
+        },
+        allowed_actions: [],
+      }),
+    })
+    renderApp(routes, '/app/projects/p1/semp')
+
+    expect(await screen.findAllByText('View Tool →')).toHaveLength(2)
+    expect(screen.queryByText(/Start Tool|Continue Editing/)).not.toBeInTheDocument()
   })
 
   it('project overview: no Edit Project', async () => {

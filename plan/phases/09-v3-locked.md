@@ -18,6 +18,7 @@
 - Frontend code lives under `frontend/src/v3/<module>/`; no route in `routes/index.jsx` imports it, so Vite leaves it out of the build. ESLint/Prettier still check it.
 - One constant `V3_LOCKED_NAV` in `routes.config.js` describes the locked buttons (label, icon, location). Locked buttons are not links: lock icon + "Available in v3" tooltip, keyboard-accessible.
 - No env variable, query flag or role can enable them. Enabling = a code change in v3.
+- **D69:** the SEMP Plan must not prefill its narrative inputs (v2 copies them from the approved Tools 1/2); they start empty.
 - While porting, align the code with our rules so v3 needs little rework: `admin` role in writer lists, auth on every route, no `status`-style client fields, shared `normalizeResponsibility`, project delete cascade includes SEMP Plan, Stakeholder reports and `semp_record` files (cascade code written but only active when the module is), files via our `ProjectFile` module (not v2 attachments), no v2 feature-flag code (`featureAccess.js`, `FeatureRouteGuard`).
 
 ## Places, log and access (D64–D66)

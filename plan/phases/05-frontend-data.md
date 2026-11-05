@@ -53,7 +53,11 @@ Visual changes (phase 8/10).
 | SEMP overview | 2 — tool statuses come from the workspace |
 | Screening | 3 — + `/screenings/project/:id` |
 | Tool 3 / Tool 4 | 4 — + the table, `/users` (picker) |
-| Assessment gateway | 5 — + `/lookups`, assessment, screening (methods/consultations/scores only once it exists: +3) |
+| Assessment gateway | 4 — + assessment (methods, consultations and scores embedded, D63 c — phase 8), screening; no `/lookups` |
+| Assessment scoring | 4 — + assessment, `/lookups` (questions) |
+| Export project workbook (D67 b, phase 8) | + only what the sheets need: screening, assessment, Tools 3/4/5 rows when they have data, `/lookups` for Tool 2/5 — cached ones are not fetched again |
+
+(Tool pages also make one `/library?place=` request for their Guidance button, phase 7b.)
 
 `/auth/me`, `/lookups` and `/users` are loaded once per session; moving between pages of a project adds no workspace request (shared cache, 30 s stale time). A save refetches the workspace once.
 

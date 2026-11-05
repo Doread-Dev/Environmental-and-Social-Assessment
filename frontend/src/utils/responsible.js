@@ -2,8 +2,8 @@ const idOf = (value) => (value && typeof value === 'object' ? value._id : value)
 
 /**
  * "Responsible" (Tools 3, 4, 5) is a user or an external party, never both (D55); the backend
- * clears whichever is not sent, so both always go out. The tables only offer the user picker:
- * a picked user replaces the external party.
+ * clears whichever is not sent, so both always go out. ResponsibleSelect switches between the
+ * two modes and clears the other value; should a row still carry both, the user wins.
  * @param {Object} row - Row or record (`responsible` may be a populated user)
  * @returns {{ responsible: string|null, responsible_text: string }}
  */

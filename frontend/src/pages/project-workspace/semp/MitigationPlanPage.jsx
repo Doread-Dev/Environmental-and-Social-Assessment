@@ -18,6 +18,7 @@ export default function MitigationPlanPage() {
   const outletContext = useOutletContext()
   // From SempFullWidthLayout (workspace query)
   const project = outletContext?.project || null
+  const workflow = outletContext?.workflow
   const canEdit = outletContext?.can?.('semp.edit') ?? false
   const { activeUsers } = useUsers()
 
@@ -56,9 +57,14 @@ export default function MitigationPlanPage() {
             throw new Error('Project data is not available')
           }
 
-          const { exportMitigationPlanToExcel } = await import('@/utils/excelExport')
-          await exportMitigationPlanToExcel(exportProject, mitigationPlans || [])
-          toast.success('Excel file downloaded successfully!')
+          const { exportTool, exportStatus } = await import('@/utils/excelExport')
+          const rows = (mitigationPlans || []).filter((row) => !row._isNew)
+          const fileName = await exportTool(
+            'tool4',
+            { project: exportProject, rows },
+            exportStatus(workflow, 'tool4')
+          )
+          toast.success(`Downloaded ${fileName}`)
         } catch (error) {
           console.error('Export error:', error)
           toast.error(`Failed to export Excel file: ${error.message || 'Unknown error'}`)
@@ -70,7 +76,7 @@ export default function MitigationPlanPage() {
     return () => {
       window.removeEventListener('semp-export', handleExportEvent)
     }
-  }, [project, projectId, mitigationPlans, toast])
+  }, [project, projectId, workflow, mitigationPlans, toast])
 
   // Handlers
   const handleUpdate = (rowId, field, value) => {

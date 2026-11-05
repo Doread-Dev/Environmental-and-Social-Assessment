@@ -98,3 +98,13 @@ export function truncateText(text, maxLength = 100) {
   if (!text || text.length <= maxLength) return text
   return text.substring(0, maxLength).trim() + '...'
 }
+
+/**
+ * A date as the value of an <input type="date"> (local YYYY-MM-DD)
+ * @param {Date} [date] - Today by default
+ * @returns {string}
+ */
+export function toDateInputValue(date = new Date()) {
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+}

@@ -74,7 +74,7 @@ describe('useMonitoring (Tool 5)', () => {
         responsible: null,
         responsible_text: 'Municipality', // external party kept
       },
-      expect.objectContaining({ indicator: 'i2', note: 'Checked', ranking: 'not_applicable' }),
+      expect.objectContaining({ indicator: 'i2', note: 'Checked', ranking: null }), // empty until picked (D69)
     ])
     expect(result.current.hasChanges).toBe(false)
   })

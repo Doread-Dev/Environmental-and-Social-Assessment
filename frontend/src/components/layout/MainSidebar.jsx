@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom'
 import { cn } from '@/utils'
 import { MAIN_NAV_ITEMS } from '@/routes/routes.config'
 import { useAuth } from '@/contexts'
+import BrandLogo from './BrandLogo'
 
 /**
  * MainSidebar Component
@@ -25,18 +26,8 @@ function MainSidebar({ className }) {
       )}
     >
       {/* Logo Section */}
-      <div className="p-6">
-        <div className="flex items-center gap-3 px-2">
-          <div className="flex items-center justify-center size-10 rounded-xl bg-primary text-white shadow-primary">
-            <span className="material-symbols-outlined text-2xl">eco</span>
-          </div>
-          <div className="flex flex-col">
-            <h1 className="text-lg font-bold leading-tight text-text-main dark:text-white">
-              ESMS System
-            </h1>
-            <p className="text-text-secondary text-xs font-medium">Internal Portal</p>
-          </div>
-        </div>
+      <div className="px-6 pt-6 pb-5">
+        <BrandLogo size="lg" className="px-1" />
       </div>
 
       {/* Navigation */}

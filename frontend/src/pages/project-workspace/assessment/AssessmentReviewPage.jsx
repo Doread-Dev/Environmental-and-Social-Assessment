@@ -18,7 +18,7 @@ import { assessmentMethods, consultationMethods } from '@/utils/assessmentMethod
 export default function AssessmentReviewPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
-  const { project, can } = useProjectContext()
+  const { project, workflow, can } = useProjectContext()
   const { categoriesWithQuestions, isLoading: lookupsLoading } = useLookups()
   const { user } = useAuth()
   const { screening } = useScreening(projectId)
@@ -41,17 +41,21 @@ export default function AssessmentReviewPage() {
   // Export handler - must be defined before any conditional returns
   const handleExport = useCallback(async () => {
     try {
-      const { exportAssessmentToExcel } = await import('@/utils/excelExport')
-      await exportAssessmentToExcel(
-        project,
-        screening,
-        assessment,
-        methods,
-        consultations,
-        impactScores,
-        categoriesWithQuestions
+      const { exportTool, exportStatus } = await import('@/utils/excelExport')
+      const fileName = await exportTool(
+        'tool2',
+        {
+          project,
+          screening,
+          assessment,
+          methods,
+          consultations,
+          impactScores,
+          categoriesWithQuestions,
+        },
+        exportStatus(workflow, 'tool2', assessment)
       )
-      toast.success('Excel file downloaded successfully!')
+      toast.success(`Downloaded ${fileName}`)
     } catch (error) {
       console.error('Export error:', error)
       toast.error('Failed to export Excel file')
@@ -64,6 +68,7 @@ export default function AssessmentReviewPage() {
     consultations,
     impactScores,
     categoriesWithQuestions,
+    workflow,
     toast,
   ])
 
@@ -253,7 +258,7 @@ export default function AssessmentReviewPage() {
   return (
     <div className="p-4 md:p-8 max-w-[1000px] mx-auto">
       {/* Main Card */}
-      <div className="bg-white dark:bg-[#1a2e22] shadow-sm rounded-xl min-h-full flex flex-col border border-border-default dark:border-border-dark overflow-hidden mb-10">
+      <div className="bg-white dark:bg-surface-dark shadow-sm rounded-xl min-h-full flex flex-col border border-border-default dark:border-border-dark overflow-hidden mb-10">
         {/* Header */}
         <header className="p-8 pb-6 border-b border-border-default dark:border-border-dark">
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
@@ -513,7 +518,7 @@ export default function AssessmentReviewPage() {
 
                   {/* Questions */}
                   {allNegligibleOrNA ? (
-                    <div className="p-4 bg-white dark:bg-[#1a2e22] text-center text-sm text-text-secondary italic">
+                    <div className="p-4 bg-white dark:bg-surface-dark text-center text-sm text-text-secondary italic">
                       All questions marked as Negligible or Not Applicable. No issues identified.
                     </div>
                   ) : (
@@ -530,7 +535,7 @@ export default function AssessmentReviewPage() {
                             className={cn(
                               'grid grid-cols-1 md:grid-cols-[1fr_150px_1fr] gap-4 p-4',
                               qIdx % 2 === 0
-                                ? 'bg-white dark:bg-[#1a2e22]'
+                                ? 'bg-white dark:bg-surface-dark'
                                 : 'bg-gray-50/50 dark:bg-white/5'
                             )}
                           >
@@ -573,7 +578,7 @@ export default function AssessmentReviewPage() {
           </h3>
           <div className="flex flex-col md:flex-row justify-center items-stretch gap-6">
             {/* Total Project Score */}
-            <div className="bg-white dark:bg-[#1a2e22] rounded-xl p-6 shadow-sm border border-border-default dark:border-border-dark flex-1 flex flex-col items-center justify-start text-center max-w-sm">
+            <div className="bg-white dark:bg-surface-dark rounded-xl p-6 shadow-sm border border-border-default dark:border-border-dark flex-1 flex flex-col items-center justify-start text-center max-w-sm">
               <p className="text-text-secondary text-xs font-bold uppercase tracking-wider mb-2">
                 Total Project Score
               </p>
@@ -651,7 +656,7 @@ export default function AssessmentReviewPage() {
             </div>
 
             {/* Total Project Impact */}
-            <div className="bg-white dark:bg-[#1a2e22] rounded-xl p-6 shadow-sm border border-border-default dark:border-border-dark flex-1 flex flex-col items-center justify-center text-center max-w-sm relative overflow-hidden">
+            <div className="bg-white dark:bg-surface-dark rounded-xl p-6 shadow-sm border border-border-default dark:border-border-dark flex-1 flex flex-col items-center justify-center text-center max-w-sm relative overflow-hidden">
               <div
                 className={cn(
                   'absolute top-0 left-0 w-full h-1.5',
@@ -725,7 +730,7 @@ export default function AssessmentReviewPage() {
 
         {/* Approval & Recommendations */}
         <section className="p-8 bg-gray-50/50 dark:bg-white/5">
-          <div className="bg-white dark:bg-[#1a2e22] rounded-xl border border-border-default dark:border-border-dark shadow-sm p-6 md:p-8">
+          <div className="bg-white dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark shadow-sm p-6 md:p-8">
             <h3 className="text-text-main dark:text-white text-xl font-bold mb-6 flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">verified_user</span>
               Approval & Recommendations

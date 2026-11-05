@@ -19,6 +19,7 @@ const assessment = projectAccess.fromRecord(Assessment, "id", "Assessment not fo
 const edit = requirePermission("assessment.edit");
 
 router.get("/:id", assessment, controller.getOne);
+// The assessment with methods, consultations and scores embedded (D63 c); null = not started.
 router.get("/project/:projectId", projectAccess.fromParam("projectId"), controller.getByProject);
 router.post(
   "/",
@@ -28,7 +29,6 @@ router.post(
   controller.create
 );
 router.put("/:id", edit, validate(updateAssessmentSchema), assessment, controller.update);
-router.get("/:id/methods", assessment, controller.getMethods);
 router.put(
   "/:id/methods",
   edit,
@@ -36,7 +36,6 @@ router.put(
   assessment,
   controller.replaceMethods
 );
-router.get("/:id/consultations", assessment, controller.getConsultations);
 router.put(
   "/:id/consultations",
   edit,
@@ -45,7 +44,6 @@ router.put(
   controller.replaceConsultations
 );
 router.post("/:id/scores", edit, validate(addScoresSchema), assessment, controller.addScores);
-router.get("/:id/scores", assessment, controller.getScores);
 router.patch("/:id/submit", requirePermission("assessment.submit"), assessment, controller.submit);
 router.patch(
   "/:id/approve",

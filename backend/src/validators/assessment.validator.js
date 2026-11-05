@@ -2,24 +2,23 @@ const Joi = require("joi");
 
 const createAssessmentSchema = Joi.object({
   project: Joi.string().required(),
-  // Left empty, project_activity is prefilled from the project component on create (D53).
+  // Inputs start empty and nothing is prefilled (D69); project_activity and description are
+  // required when the assessment is submitted (D57), not here.
   project_activity: Joi.string().allow("", null),
-  description: Joi.string().required(),
+  description: Joi.string().allow("", null),
   environmental_setting: Joi.string().allow("", null),
   legal_requirements: Joi.string().allow("", null),
   potential_negative_impact: Joi.string().allow("", null),
   potential_positive_impact: Joi.string().allow("", null),
-  recommendations: Joi.string().allow("", null),
-  // status, officer, approved_by, reject_by, reject_reason and the calculated totals are
-  // server-owned: stripped from create/update bodies.
+  // status, officer, approved_by, reject_by, reject_reason, recommendations (the approver's
+  // field, set only by approve — D63 a) and the calculated totals are server-owned: stripped
+  // from create/update bodies.
 });
 
-const updateAssessmentSchema = createAssessmentSchema
-  .fork(["project", "description"], (schema) => schema.optional())
-  .keys({
-    // Required (D57): an update may omit it, but not empty it.
-    project_activity: Joi.string(),
-  });
+// A draft may be saved with any field empty; submit checks the required ones (D57, D69).
+const updateAssessmentSchema = createAssessmentSchema.fork(["project"], (schema) =>
+  schema.optional()
+);
 
 const addMethodSchema = Joi.object({
   method_type: Joi.string().required(),

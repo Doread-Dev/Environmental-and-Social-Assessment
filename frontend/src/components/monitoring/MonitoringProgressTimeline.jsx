@@ -29,7 +29,7 @@ function MonitoringProgressTimeline({
       className={cn(
         embedded
           ? 'pt-2'
-          : 'bg-white dark:bg-[#152a1d] rounded-xl shadow-sm border border-border-default dark:border-border-dark p-6'
+          : 'bg-white dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark p-6'
       )}
     >
       {!embedded && (

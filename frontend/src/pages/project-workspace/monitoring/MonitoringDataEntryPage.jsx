@@ -68,7 +68,7 @@ export default function MonitoringDataEntryPage() {
     E: { icon: 'speed', className: 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400' },
     F: {
       icon: 'science',
-      className: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400',
+      className: 'bg-primary-soft dark:bg-primary/20 text-primary dark:text-green-300',
     },
     J: {
       icon: 'forest',
@@ -76,7 +76,7 @@ export default function MonitoringDataEntryPage() {
     },
     H: {
       icon: 'landscape',
-      className: 'bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400',
+      className: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
     },
   }
 
@@ -112,31 +112,26 @@ export default function MonitoringDataEntryPage() {
 
   const handleExport = useCallback(async () => {
     try {
-      const { exportMonitoringToExcel } = await import('@/utils/excelExport')
+      const { exportTool, exportStatus } = await import('@/utils/excelExport')
       // The full assessment (officer) is only needed here: loaded on export, then cached
       const { assessment } = await queryClient.ensureQueryData(assessmentQuery(projectId))
-      await exportMonitoringToExcel(
-        project,
-        project.screening,
-        assessment,
-        records,
-        categoriesWithIndicators,
-        IMPACT_LEVEL_CONFIG
+      const fileName = await exportTool(
+        'tool5',
+        {
+          project,
+          screening: project.screening,
+          assessment,
+          records,
+          categoriesWithIndicators,
+        },
+        exportStatus(workflow, 'tool5')
       )
-      toast.success('Excel file downloaded successfully!')
+      toast.success(`Downloaded ${fileName}`)
     } catch (error) {
       console.error('Export error:', error)
       toast.error('Failed to export Excel file')
     }
-  }, [
-    project,
-    projectId,
-    queryClient,
-    records,
-    categoriesWithIndicators,
-    IMPACT_LEVEL_CONFIG,
-    toast,
-  ])
+  }, [project, projectId, queryClient, records, categoriesWithIndicators, workflow, toast])
 
   useEffect(() => {
     const handleExportEvent = () => {
@@ -292,7 +287,7 @@ export default function MonitoringDataEntryPage() {
             return (
               <div
                 key={category.code}
-                className="bg-white dark:bg-[#152a1d] rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden"
+                className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden"
               >
                 {/* Accordion Header */}
                 <button

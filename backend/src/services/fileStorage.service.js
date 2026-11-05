@@ -125,7 +125,10 @@ const send = (res, next, { name, mime, fullPath }) => {
   res.attachment(name);
   res.type(mime);
   res.set("Cache-Control", "private, no-store");
-  res.sendFile(fullPath, { dotfiles: "deny" }, (err) => {
+  // Relative to the uploads folder: the dot rule applies to the stored part only, so an
+  // UPLOADS_DIR under a dot folder (e.g. "/home/esms/.data/uploads") still serves files.
+  const root = uploadsDir();
+  res.sendFile(path.relative(root, fullPath), { root, dotfiles: "deny" }, (err) => {
     if (err && !res.headersSent) next(err);
   });
 };

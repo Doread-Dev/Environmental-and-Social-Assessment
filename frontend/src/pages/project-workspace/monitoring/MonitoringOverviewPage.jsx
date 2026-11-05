@@ -69,28 +69,33 @@ export default function MonitoringOverviewPage() {
               disabled={isLocked}
               className="flex items-center justify-center gap-2 h-10 px-6 rounded-lg bg-primary hover:bg-primary-hover text-white font-bold text-sm shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span className="material-symbols-outlined text-base">add_circle</span>
-              Enter / Edit Data
+              <span className="material-symbols-outlined text-base">
+                {can('monitoring.edit') ? 'add_circle' : 'visibility'}
+              </span>
+              {can('monitoring.edit') ? 'Enter / Edit Data' : 'View Data'}
             </button>
             {can('export') && (
               <button
                 type="button"
                 onClick={async () => {
                   try {
-                    const { exportMonitoringToExcel } = await import('@/utils/excelExport')
+                    const { exportTool, exportStatus } = await import('@/utils/excelExport')
                     // Full assessment (officer) loaded on export only, then cached
                     const { assessment } = await queryClient.ensureQueryData(
                       assessmentQuery(projectId)
                     )
-                    await exportMonitoringToExcel(
-                      project,
-                      project.screening,
-                      assessment,
-                      records,
-                      categoriesWithIndicators,
-                      IMPACT_LEVEL_CONFIG
+                    const fileName = await exportTool(
+                      'tool5',
+                      {
+                        project,
+                        screening: project.screening,
+                        assessment,
+                        records,
+                        categoriesWithIndicators,
+                      },
+                      exportStatus(workflow, 'tool5')
                     )
-                    toast.success('Excel file downloaded successfully!')
+                    toast.success(`Downloaded ${fileName}`)
                   } catch (error) {
                     console.error('Export error:', error)
                     toast.error('Failed to export Excel file')
@@ -134,8 +139,8 @@ export default function MonitoringOverviewPage() {
         <section
           className={
             isLocked
-              ? 'bg-white dark:bg-[#152a1d] rounded-xl p-6 shadow-sm border border-border-default dark:border-border-dark opacity-50 pointer-events-none grayscale'
-              : 'bg-white dark:bg-[#152a1d] rounded-xl p-6 shadow-sm border border-border-default dark:border-border-dark'
+              ? 'bg-white dark:bg-card-dark rounded-xl p-6 shadow-sm border border-border-default dark:border-border-dark opacity-50 pointer-events-none grayscale'
+              : 'bg-white dark:bg-card-dark rounded-xl p-6 shadow-sm border border-border-default dark:border-border-dark'
           }
         >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">

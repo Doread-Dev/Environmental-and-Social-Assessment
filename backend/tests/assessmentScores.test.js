@@ -30,39 +30,69 @@ async function setup({ component = "Water network rehabilitation", body = {} } =
 const scores = (id, token, payload) =>
   request(app).post(`/api/v1/assessments/${id}/scores`).set(auth(token)).send(payload);
 
-describe("assessment prefill on create (D53)", () => {
-  it("fills project activity and potential impacts when the payload leaves them empty", async () => {
-    const { res } = await setup({ body: { potential_positive_impact: "" } });
+// D69 replaces D53: inputs start empty, nothing is copied from the project or Tool 1.
+describe("no prefill on create (D69)", () => {
+  it("leaves project activity and potential impacts empty although the project and screening have them", async () => {
+    const { res } = await setup({ body: { description: "" } });
 
     expect(res.status).toBe(201);
-    expect(res.body.data.project_activity).toBe("Water network rehabilitation");
-    expect(res.body.data.potential_negative_impact).toBe("Dust and noise");
-    expect(res.body.data.potential_positive_impact).toBe("Clean water");
+    expect(res.body.data.project_activity).toBeUndefined();
+    expect(res.body.data.description).toBe("");
+    expect(res.body.data.potential_negative_impact).toBeUndefined();
+    expect(res.body.data.potential_positive_impact).toBeUndefined();
   });
 
-  it("keeps values sent in the payload", async () => {
+  it("keeps the values the user sent", async () => {
     const { res } = await setup({
       body: { project_activity: "Own activity", potential_negative_impact: "Own negative" },
     });
 
     expect(res.body.data.project_activity).toBe("Own activity");
     expect(res.body.data.potential_negative_impact).toBe("Own negative");
-    expect(res.body.data.potential_positive_impact).toBe("Clean water");
+    expect(res.body.data.potential_positive_impact).toBeUndefined();
   });
 
-  it("requires a project activity when the project has no component (D57)", async () => {
-    const { res } = await setup({ component: null });
-    expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/Project activity is required/);
+  it("can be created with no fields at all", async () => {
+    const { res } = await setup({ body: { description: undefined } });
+    expect(res.status).toBe(201);
   });
 
-  it("does not let an update empty the project activity", async () => {
-    const { token, res } = await setup();
+  it("lets a draft be saved with an empty project activity", async () => {
+    const { token, res } = await setup({ body: { project_activity: "Pipes" } });
     const put = await request(app)
       .put(`/api/v1/assessments/${res.body.data._id}`)
       .set(auth(token))
       .send({ project_activity: "" });
-    expect(put.status).toBe(400);
+    expect(put.status).toBe(200);
+  });
+});
+
+describe("required fields are checked at submit (D57, D69)", () => {
+  const submit = (id, token) =>
+    request(app).patch(`/api/v1/assessments/${id}/submit`).set(auth(token));
+
+  it("submit without project activity and description → 400, nothing changes", async () => {
+    const { token, res } = await setup({ body: { description: "" } });
+    const sent = await submit(res.body.data._id, token);
+
+    expect(sent.status).toBe(400);
+    expect(sent.body.error).toBe("Fill in Project activity and Description before submitting");
+    const read = await request(app)
+      .get(`/api/v1/assessments/${res.body.data._id}`)
+      .set(auth(token));
+    expect(read.body.data.status).toBe("draft");
+  });
+
+  it("submit without project activity only → 400 naming it", async () => {
+    const { token, res } = await setup();
+    const sent = await submit(res.body.data._id, token);
+    expect(sent.status).toBe(400);
+    expect(sent.body.error).toBe("Fill in Project activity before submitting");
+  });
+
+  it("submits once both are filled", async () => {
+    const { token, res } = await setup({ body: { project_activity: "Pipes" } });
+    expect((await submit(res.body.data._id, token)).status).toBe(200);
   });
 });
 
@@ -73,9 +103,13 @@ describe("default scores and total impact (D54)", () => {
     const id = res.body.data._id;
 
     expect(questions).toBe(50);
-    const list = await request(app).get(`/api/v1/assessments/${id}/scores`).set(auth(token));
-    expect(list.body.data).toHaveLength(50);
-    expect(list.body.data.every((s) => s.level === "negligible")).toBe(true);
+    expect(res.body.data.scores).toHaveLength(50);
+    const read = await request(app)
+      .get(`/api/v1/assessments/project/${res.body.data.project._id}`)
+      .set(auth(token));
+    expect(read.body.data._id).toBe(id);
+    expect(read.body.data.scores).toHaveLength(50);
+    expect(read.body.data.scores.every((s) => s.level === "negligible")).toBe(true);
     expect(res.body.data.total_project_impact).toBe("negligible");
     expect(res.body.data.total_project_score.negligible).toBe(50);
   });
@@ -124,7 +158,7 @@ describe("default scores and total impact (D54)", () => {
   });
 
   it("refuses to submit when a question has no level (safety check)", async () => {
-    const { token, res } = await setup();
+    const { token, res } = await setup({ body: { project_activity: "Pipes" } });
     const id = res.body.data._id;
     await AssessmentImpactScore.deleteOne({ assessment: id });
 

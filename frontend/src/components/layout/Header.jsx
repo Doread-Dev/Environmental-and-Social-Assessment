@@ -4,6 +4,7 @@ import { cn } from '@/utils'
 import { useTheme, useAuth, ROLE_LABELS } from '@/contexts'
 import { Avatar } from '@/components/ui'
 import { ROUTES } from '@/routes/routes.config'
+import BrandLogo from './BrandLogo'
 
 /**
  * Header Component
@@ -77,12 +78,7 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
         )}
 
         {/* Mobile Logo */}
-        <div className="flex items-center gap-3 lg:hidden">
-          <div className="flex items-center justify-center size-8 rounded-xl bg-primary text-white">
-            <span className="material-symbols-outlined text-xl">eco</span>
-          </div>
-          <h2 className="text-lg font-bold text-text-main dark:text-white tracking-tight">ESMS</h2>
-        </div>
+        <BrandLogo size="sm" showSubtitle={false} className="lg:hidden" />
       </div>
 
       {/* Right Section - Actions & User */}

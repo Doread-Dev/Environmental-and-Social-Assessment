@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const ApiError = require("./ApiError");
 const normalizeResponsible = require("./responsible");
 const validationMessage = require("./validationMessage");
+const { withRevision } = require("./version");
 
 const rowError = (index, message) => new ApiError(400, `Row ${index + 1}: ${message}`);
 
@@ -33,8 +34,11 @@ const prepareRows = async (Model, projectId, rows, existingIds) => {
 // Replaces a project's whole table (Tools 3 and 4) in one request (D32): a row with `_id` updates
 // that row (id kept), a row without one is created, an existing row left out is deleted. Every
 // row is checked first, so an invalid row leaves the table untouched; the writes then go out as
-// one ordered bulkWrite. Returns the rows it deleted (as they were), for the audit log (D65).
-const replaceProjectRows = async (Model, projectId, rows) => {
+// one ordered bulkWrite, under the table's revision (D62): `version` is the revision the client
+// loaded; it is checked and raised in one conditional update right before the write, so two saves
+// of the same revision cannot both pass (409). Returns the rows it deleted (as they were), for the
+// audit log (D65), and the new revision.
+const replaceProjectRows = async (Model, projectId, rows, { table, version }) => {
   const existing = await Model.find({ project: projectId }).sort({ serial_number: 1 }).lean();
   const existingIds = new Set(existing.map((row) => String(row._id)));
   const prepared = await prepareRows(Model, projectId, rows, existingIds);
@@ -45,16 +49,18 @@ const replaceProjectRows = async (Model, projectId, rows) => {
     .map((row) => new mongoose.Types.ObjectId(row._id));
   const kept = new Set(keptIds.map(String));
   const removed = existing.filter((row) => !kept.has(String(row._id)));
-  await Model.bulkWrite([
-    // First, so it cannot match the rows inserted below.
-    { deleteMany: { filter: { project, _id: { $nin: keptIds } } } },
-    ...prepared.map(({ _id, fields }) =>
-      _id
-        ? { updateOne: { filter: { _id, project }, update: { $set: fields } } }
-        : { insertOne: { document: { ...fields, project } } }
-    ),
-  ]);
-  return removed;
+  const revision = await withRevision(projectId, table, version, () =>
+    Model.bulkWrite([
+      // First, so it cannot match the rows inserted below.
+      { deleteMany: { filter: { project, _id: { $nin: keptIds } } } },
+      ...prepared.map(({ _id, fields }) =>
+        _id
+          ? { updateOne: { filter: { _id, project }, update: { $set: fields } } }
+          : { insertOne: { document: { ...fields, project } } }
+      ),
+    ])
+  );
+  return { removed, revision };
 };
 
 module.exports = replaceProjectRows;

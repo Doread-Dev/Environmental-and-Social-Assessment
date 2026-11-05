@@ -9,6 +9,7 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMonitoring, useProjectContext, useLookups, useUsers } from '@/hooks'
 import { assessmentQuery } from '@/hooks/useAssessment'
+import { useUnsavedChanges } from '@/contexts'
 import { isStepLocked } from '@/utils/workflowSteps'
 import { MonitoringDataTable } from '@/components/tables'
 import {
@@ -109,16 +110,14 @@ export default function MonitoringDataEntryPage() {
       setHasUnsavedChanges(false)
       setJustSaved(true)
     }
+    return result
   }
 
-  const handleBack = () => {
-    if (hasUnsavedChanges) {
-      if (!window.confirm('You have unsaved changes. Are you sure you want to leave?')) {
-        return
-      }
-    }
-    navigate(`/app/projects/${projectId}/monitoring`)
-  }
+  // Leaving with unsaved values (Cancel, sidebar, browser Back, refresh) asks Save / Discard /
+  // Stay in the shared in-app dialog (D61); window.confirm was suppressed by embedded browsers.
+  useUnsavedChanges(canEdit && hasUnsavedChanges, handleSave)
+
+  const handleBack = () => navigate(`/app/projects/${projectId}/monitoring`)
 
   const handleExport = useCallback(async () => {
     try {

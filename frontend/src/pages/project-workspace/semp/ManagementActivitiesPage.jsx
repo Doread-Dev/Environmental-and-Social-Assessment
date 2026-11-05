@@ -8,6 +8,7 @@ import { useParams, useNavigate, useOutletContext } from 'react-router-dom'
 import { useManagementActivities } from '@/hooks/useSemp'
 import { ManagementActivitiesTable } from '@/components/semp'
 import { useUsers } from '@/hooks'
+import { useUnsavedChanges } from '@/contexts'
 import {
   useToast,
   LoadingState,
@@ -132,16 +133,14 @@ export default function ManagementActivitiesPage() {
       setHasUnsavedChanges(false)
       setJustSaved(true)
     }
+    return result
   }
 
-  const handleBack = () => {
-    if (hasUnsavedChanges) {
-      if (!window.confirm('You have unsaved changes. Are you sure you want to leave?')) {
-        return
-      }
-    }
-    navigate(`/app/projects/${projectId}/semp`)
-  }
+  // Leaving with unsaved edits (Back, sidebar, browser Back, refresh) asks Save / Discard / Stay
+  // in the shared in-app dialog (D61); the auto-added empty first row alone does not count.
+  useUnsavedChanges(canEdit && hasUnsavedChanges, handleSave)
+
+  const handleBack = () => navigate(`/app/projects/${projectId}/semp`)
 
   // Determine button label and icon based on state
   const getSaveButtonContent = () => {

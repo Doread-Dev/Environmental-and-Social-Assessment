@@ -182,9 +182,10 @@ export default function AssessmentReviewPage() {
       return
     }
     const result = await approveAssessment(recommendations)
-    if (result.success) {
-      // Stay on the same page to show approved status
-    }
+    // Stay on the same page to show the approved status. A failure says why (it was silent
+    // before phase 10a); an expired session has its own dialog (D73).
+    if (result.success) toast.success('Assessment approved.')
+    else if (!result.handled) toast.error(result.error || 'Failed to approve the assessment.')
   }
 
   const handleRejectClick = () => {
@@ -197,6 +198,9 @@ export default function AssessmentReviewPage() {
       setShowRejectInput(false)
       setRejectReasonInput('')
       // Stay on the same page to show rejected status
+      toast.success('Assessment rejected.')
+    } else if (!result.handled) {
+      toast.error(result.error || 'Failed to reject the assessment.')
     }
   }
 

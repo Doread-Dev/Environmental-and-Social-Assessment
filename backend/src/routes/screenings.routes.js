@@ -7,6 +7,7 @@ const {
   approveScreeningSchema,
   rejectScreeningSchema,
 } = require("../validators/screening.validator");
+const { submitSchema } = require("../validators/version.validator");
 const { requirePermission } = require("../middlewares/auth");
 const projectAccess = require("../middlewares/projectAccess");
 const Screening = require("../models/screening.model");
@@ -30,7 +31,13 @@ router.put(
   screening,
   controller.update
 );
-router.patch("/:id/submit", requirePermission("screening.submit"), screening, controller.submit);
+router.patch(
+  "/:id/submit",
+  requirePermission("screening.submit"),
+  validate(submitSchema),
+  screening,
+  controller.submit
+);
 router.patch(
   "/:id/approve",
   requirePermission("screening.approve"),

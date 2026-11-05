@@ -107,6 +107,20 @@ describe("scripts/seed-demo-project.js", () => {
     expect(await AuditLog.countDocuments({ action: "user.create" })).toBeGreaterThan(0);
   }, 60000);
 
+  it("on a database without lookups, says to run npm run seed first and changes nothing", async () => {
+    const { user, password } = await createUser("admin");
+    const previous = await createProject({ title: DEMO_TITLE });
+
+    const result = await run({ API_URL: apiUrl, SEED_EMAIL: user.email, SEED_PASSWORD: password });
+
+    expect(result.status).toBe(1);
+    expect(result.output).toContain("Run `npm run seed` in backend/ first");
+    expect(result.output).toMatch(/Nothing was changed/);
+    // No demo user created, the previous demo project untouched.
+    expect(await User.countDocuments()).toBe(1);
+    expect(await Project.exists({ _id: previous._id })).not.toBeNull();
+  }, 60000);
+
   it("creates an admin and one user per role who can sign in with DEMO_PASSWORD", async () => {
     await seedLookups();
     const { user, password } = await createUser("admin");

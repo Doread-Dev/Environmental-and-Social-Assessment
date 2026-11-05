@@ -1,4 +1,5 @@
 const Joi = require("joi");
+const { recordVersion } = require("./version.validator");
 
 const createProjectSchema = Joi.object({
   title: Joi.string().trim().required(),
@@ -8,10 +9,10 @@ const createProjectSchema = Joi.object({
   project_component: Joi.string().trim().optional(),
 });
 
-const updateProjectSchema = createProjectSchema.fork(
-  ["title", "location", "start_date", "end_date"],
-  (schema) => schema.optional()
-);
+// The version the client loaded (the project's `updatedAt`) is required: stale → 409 (D62).
+const updateProjectSchema = createProjectSchema
+  .fork(["title", "location", "start_date", "end_date"], (schema) => schema.optional())
+  .keys({ version: recordVersion });
 
 // GET /projects. Without `limit` every matching project is returned (one page).
 const listProjectsQuerySchema = Joi.object({

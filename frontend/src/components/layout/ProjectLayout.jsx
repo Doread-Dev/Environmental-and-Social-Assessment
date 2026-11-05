@@ -3,6 +3,7 @@ import { Outlet, useParams, useLocation, useNavigate } from 'react-router-dom'
 import { cn } from '@/utils'
 import { ROUTES } from '@/routes/routes.config'
 import { useWorkspace } from '@/hooks'
+import { useSaveConflict } from '@/contexts'
 import { GuidanceButton, useCurrentPlace } from '@/components/library'
 import ProjectSidebar from './ProjectSidebar'
 import MobileMenu from './MobileMenu'
@@ -36,6 +37,7 @@ function ProjectLayout() {
     error,
     refetch,
   } = useWorkspace(projectId)
+  const { reloadKey } = useSaveConflict()
   const canExport = can('export')
   // The place of the current page (route handle), for its Guidance button (D64 c)
   const place = useCurrentPlace()
@@ -190,7 +192,8 @@ function ProjectLayout() {
         >
           <div className="max-w-7xl mx-auto">
             <ArchivedNotice project={enhancedProject} className="mb-6" />
-            <Outlet context={{ project: enhancedProject, workflow, counts, can }} />
+            {/* After a stale-save Reload (D62) the page mounts again from the fresh data */}
+            <Outlet key={reloadKey} context={{ project: enhancedProject, workflow, counts, can }} />
           </div>
         </main>
       </div>

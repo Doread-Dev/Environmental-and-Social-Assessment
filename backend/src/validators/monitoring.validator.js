@@ -1,4 +1,5 @@
 const Joi = require("joi");
+const { tableVersion } = require("./version.validator");
 
 // One record, upserted by its indicator (the project comes from the URL).
 const recordSchema = Joi.object({
@@ -22,8 +23,10 @@ const recordSchema = Joi.object({
   note: Joi.string().allow("", null),
 });
 
-// PUT /projects/:id/monitoring: records upserted by indicator (one per indicator).
+// PUT /projects/:id/monitoring: records upserted by indicator (one per indicator). `version` =
+// the table's revision the client loaded (D62).
 const upsertMonitoringSchema = Joi.object({
+  version: tableVersion,
   records: Joi.array()
     .items(
       recordSchema.keys({

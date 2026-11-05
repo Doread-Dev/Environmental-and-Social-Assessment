@@ -1,4 +1,5 @@
 const ApiError = require("./ApiError");
+const { nextUpdatedAt, staleError } = require("./version");
 
 // Allowed "from" statuses for each transition of a screening or assessment (D1):
 // draft|rejected → submitted → approved|rejected.
@@ -38,22 +39,30 @@ const actorFields = (action, userId, { recommendations, rejectReason } = {}) => 
 
 // Applies the transition atomically: the update only matches while the record is still in an
 // allowed "from" status, so two concurrent approve/reject calls cannot both succeed.
-// Returns the updated query (so callers can populate it); throws 404 / 409.
+// With `options.version` (submit, D62) it also only matches while the record still has the
+// `updatedAt` the client loaded. Returns the updated query (so callers can populate it); throws
+// 404 / 409.
 const applyTransition = async (Model, id, action, userId, options = {}) => {
   const { from, to } = TRANSITIONS[action];
+  const { version } = options;
   const note = action === "reject" ? options.rejectReason : undefined;
   const updated = await Model.findOneAndUpdate(
-    { _id: id, status: { $in: from } },
+    { _id: id, status: { $in: from }, ...(version && { updatedAt: version }) },
     {
-      $set: { status: to, ...actorFields(action, userId, options) },
+      $set: {
+        status: to,
+        ...actorFields(action, userId, options),
+        ...(version && { updatedAt: nextUpdatedAt(version) }),
+      },
       $push: { status_history: historyEntry(to, userId, note) },
     },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true, ...(version && { timestamps: false }) }
   );
   if (updated) return updated;
 
-  const current = await Model.findById(id).select("status");
+  const current = await Model.findById(id).select("status updatedAt");
   if (!current) throw new ApiError(404, `${Model.modelName} not found`);
+  if (version && current.updatedAt.getTime() !== version.getTime()) throw staleError();
   throw new ApiError(
     409,
     `Cannot ${action} a ${Model.modelName.toLowerCase()} that is ${current.status}`

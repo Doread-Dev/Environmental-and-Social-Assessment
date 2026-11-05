@@ -7,16 +7,25 @@
  */
 
 import { useState, useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { Alert, StickyFooter, Modal, Button, useToast, LoadingState } from '@/components/ui'
 import { ScreeningInfoSection, RiskCategorySelector, ImpactSection } from '@/components/screening'
 import { useScreening, useProjectContext } from '@/hooks'
+import { useUnsavedChanges } from '@/contexts'
 import { cn } from '@/utils/cn'
 import { toDateInputValue } from '@/utils/formatters'
 import { validateScreeningForm } from '@/utils'
 
+const FIELDS = [
+  'screeningDate',
+  'categoryCode',
+  'categoryReason',
+  'potentialNegative',
+  'potentialPositive',
+]
+const sameForm = (a, b) => FIELDS.every((field) => (a[field] ?? '') === (b[field] ?? ''))
+
 function ScreeningFormPage() {
-  const navigate = useNavigate()
   const { projectId } = useParams()
   const toast = useToast()
   const {
@@ -38,6 +47,8 @@ function ScreeningFormPage() {
     potentialPositive: '',
   })
 
+  // The form as loaded (or last saved): leaving with anything else asks first (D61)
+  const [baseline, setBaseline] = useState(null)
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSavingDraft, setIsSavingDraft] = useState(false)
@@ -54,7 +65,7 @@ function ScreeningFormPage() {
       potential_negative: '',
       potential_positive: '',
     }
-    setFormData({
+    const loaded = {
       screeningDate: source.screening_date
         ? new Date(source.screening_date).toISOString().split('T')[0]
         : '',
@@ -62,13 +73,12 @@ function ScreeningFormPage() {
       categoryReason: source.category_reason || '',
       potentialNegative: source.potential_negative || '',
       potentialPositive: source.potential_positive || '',
-    })
+    }
+    setFormData(loaded)
+    setBaseline(loaded)
   }, [hookScreening, projectId])
 
-  // Show loading state FIRST (before any redirects)
-  if (screeningLoading) {
-    return <LoadingState message="Loading screening..." />
-  }
+  const isDirty = canSave && baseline !== null && !sameForm(formData, baseline)
 
   // NOTE: We don't redirect here anymore - ScreeningRouter handles the routing logic
   // This component is ONLY rendered by ScreeningRouter when editing is allowed
@@ -126,16 +136,24 @@ function ScreeningFormPage() {
       })
 
       if (result.success) {
+        setBaseline(formData)
         toast.success('Draft saved successfully')
-      } else {
+      } else if (!result.handled) {
+        // A stale save or an expired session is shown by its own dialog (D73)
         toast.error(result.error || 'Failed to save draft. Please try again.')
       }
+      return result
     } catch {
       setSubmitError('Failed to save draft. Please try again.')
+      return { success: false }
     } finally {
       setIsSavingDraft(false)
     }
   }
+
+  // Leaving with changes (sidebar, Back, browser Back, refresh) asks Save / Discard / Stay (D61);
+  // "Save" saves the draft.
+  const { navigateAway } = useUnsavedChanges(isDirty, handleSaveDraft)
 
   const handleSubmit = async () => {
     setSubmitError(null)
@@ -166,9 +184,11 @@ function ScreeningFormPage() {
 
       if (result.success) {
         // After submit, status becomes 'submitted' - go directly to summary page
-        navigate(`/app/projects/${projectId}/screening/summary`, { replace: true })
+        navigateAway(`/app/projects/${projectId}/screening/summary`, { replace: true })
       } else {
-        setSubmitError(result.error || 'Failed to submit screening. Please try again.')
+        if (!result.handled) {
+          setSubmitError(result.error || 'Failed to submit screening. Please try again.')
+        }
         setShowSubmitModal(false)
       }
     } catch {
@@ -177,6 +197,11 @@ function ScreeningFormPage() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // Show loading state FIRST (before any redirects)
+  if (screeningLoading) {
+    return <LoadingState message="Loading screening..." />
   }
 
   return (

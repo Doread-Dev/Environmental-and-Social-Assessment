@@ -7,11 +7,13 @@ const AssessmentImpactScore = require("../models/assessmentImpactScore.model");
 const ManagementActivity = require("../models/managementActivity.model");
 const MitigationPlan = require("../models/mitigationPlan.model");
 const MonitoringRecord = require("../models/monitoringRecord.model");
+const TableRevision = require("../models/tableRevision.model");
 const audit = require("./audit.service");
 const ProjectFile = require("../models/projectFile.model");
 const User = require("../models/user.model");
 const { removeProjectFiles } = require("./projectFile.service");
 const ApiError = require("../utils/ApiError");
+const { assertCurrentVersion, staleError, updateIfCurrent } = require("../utils/version");
 const {
   allowedActions,
   assertProjectWritable,
@@ -91,13 +93,16 @@ const createProject = async (payload) => {
   return Project.create(payload);
 };
 
-const updateProject = async (id, payload) => {
+// `version` = the `updatedAt` the client loaded (D62): a stale save → 409 STALE_VERSION.
+const updateProject = async (id, { version, ...payload }) => {
+  const project = await Project.findById(id);
+  if (!project) throw new ApiError(404, "Project not found");
+  assertCurrentVersion(project, version);
   await assertProjectWritable(id);
-  const updated = await Project.findByIdAndUpdate(id, payload, {
-    new: true,
-    runValidators: true,
+  const updated = await updateIfCurrent(Project, { _id: id, archived: { $ne: true } }, version, {
+    $set: payload,
   });
-  if (!updated) throw new ApiError(404, "Project not found");
+  if (!updated) throw staleError();
   return updated;
 };
 
@@ -173,6 +178,7 @@ const removeProjectData = async (id) => {
   await ManagementActivity.deleteMany({ project: id });
   await MitigationPlan.deleteMany({ project: id });
   await MonitoringRecord.deleteMany({ project: id });
+  await TableRevision.deleteMany({ project: id });
 
   await Project.deleteOne({ _id: id });
   // Files last, once the DB delete has succeeded (D47); failures are logged, never thrown.

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import request from "supertest";
 import { app, require } from "./helpers/app.js";
-import { createProject, loginAs, seedLookups } from "./helpers/fixtures.js";
+import { createProject, loginAs, seedLookups, withVersion } from "./helpers/fixtures.js";
 
 const { computeWorkflow } = require("../../src/services/workflow.service");
 const Screening = require("../../src/models/screening.model");
@@ -290,8 +290,12 @@ describe("workflow state through the API", () => {
     await ManagementActivity.collection.insertOne({ project: project._id });
     await seedLookups();
     const body = { records: [{ indicator: String((await Indicator.findOne())._id) }] };
-    const save = () =>
-      request(app).put(`/api/v1/projects/${project._id}/monitoring`).set(auth(token)).send(body);
+    const url = `/api/v1/projects/${project._id}/monitoring`;
+    const save = async () =>
+      request(app)
+        .put(url)
+        .set(auth(token))
+        .send(await withVersion(url, body));
 
     const blocked = await save();
     expect(blocked.status).toBe(409);

@@ -39,7 +39,7 @@ exports.addScores = asyncHandler(async (req, res) => {
 });
 
 exports.submit = asyncHandler(async (req, res) => {
-  const data = await service.submitAssessment(req.params.id, req.user._id);
+  const data = await service.submitAssessment(req.params.id, req.user._id, req.body.version);
   res.json({ success: true, data });
 });
 

@@ -55,7 +55,8 @@ export const projectService = {
   /**
    * Update an existing project
    * @param {string} id - Project ID
-   * @param {Object} data - Updated project data
+   * @param {Object} data - Updated project data, with `version`: the project's `updatedAt` the
+   *   user saw (D62; a stale one answers 409)
    * @returns {Promise<Object>} Updated project
    */
   async update(id, data) {

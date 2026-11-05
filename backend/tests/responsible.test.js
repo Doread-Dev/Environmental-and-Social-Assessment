@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import request from "supertest";
 import { app, require } from "./helpers/app.js";
-import { createProject, createUser, loginAs, seedLookups } from "./helpers/fixtures.js";
+import {
+  createProject,
+  createUser,
+  loginAs,
+  seedLookups,
+  withVersion,
+} from "./helpers/fixtures.js";
 
 const Indicator = require("../../src/models/indicator.model");
 
@@ -45,7 +51,7 @@ describe.each(kinds)("$name responsible", ({ path, stage, send }) => {
       const res = await request(app)
         .put(`/api/v1/projects/${project._id}/${path}`)
         .set(auth(token))
-        .send(body);
+        .send(await withVersion(`/api/v1/projects/${project._id}/${path}`, body));
       return { status: res.status, row: res.body.data?.[0], error: res.body.error };
     };
     return { user, save };

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import request from "supertest";
 import { app, mongoose, require } from "./helpers/app.js";
-import { createProject, loginAs, seedLookups } from "./helpers/fixtures.js";
+import { createProject, loginAs, seedLookups, withVersion } from "./helpers/fixtures.js";
 
 const ManagementActivity = require("../../src/models/managementActivity.model");
 const MitigationPlan = require("../../src/models/mitigationPlan.model");
@@ -10,9 +10,13 @@ const Indicator = require("../../src/models/indicator.model");
 
 const auth = (token) => ({ Authorization: `Bearer ${token}` });
 
+// As a client that has just loaded the table: the current revision is sent (D62).
 const put = async (url, body, role = "project_manager") => {
   const { token } = await loginAs(role);
-  return request(app).put(url).set(auth(token)).send(body);
+  return request(app)
+    .put(url)
+    .set(auth(token))
+    .send(await withVersion(url, body));
 };
 
 // Snapshot of a table, to prove a failed request wrote nothing.

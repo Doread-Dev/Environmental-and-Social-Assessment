@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/utils'
-import { useTheme, useAuth, ROLE_LABELS } from '@/contexts'
+import { useTheme, useAuth, useConfirmLeave, ROLE_LABELS } from '@/contexts'
 import { Avatar } from '@/components/ui'
 import { ROUTES } from '@/routes/routes.config'
 import BrandLogo from './BrandLogo'
@@ -18,6 +18,8 @@ import BrandLogo from './BrandLogo'
 function Header({ onMenuClick, showMobileMenu = true, className }) {
   const { isDark, toggleTheme } = useTheme()
   const { user, logout, canAccessSettings } = useAuth()
+  // Signing out of a page with unsaved changes asks Save / Discard / Stay first (D61)
+  const confirmLeave = useConfirmLeave()
   const navigate = useNavigate()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
@@ -41,9 +43,11 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
   }, [canAccessSettings])
 
   const handleLogout = () => {
-    logout()
     setIsUserMenuOpen(false)
-    navigate(ROUTES.LOGIN, { replace: true })
+    confirmLeave(() => {
+      logout()
+      navigate(ROUTES.LOGIN, { replace: true })
+    })
   }
 
   return (

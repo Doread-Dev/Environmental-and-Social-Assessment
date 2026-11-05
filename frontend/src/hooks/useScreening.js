@@ -2,6 +2,11 @@
  * useScreening Hook
  * Tool 1 record of a project (query) and its writes (mutations). Each write refreshes the
  * project's workflow state through useProjectSave.
+ *
+ * Every write carries the version the page shows (D62): the screening's `updatedAt` in the cache
+ * when the request starts. The form shows that cached record, and the tool queries are not
+ * refetched behind an open form (no refetch on reconnect), so a change by someone else is caught
+ * by the backend (409) instead of being overwritten.
  */
 import { useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
@@ -19,13 +24,22 @@ export function useScreening(projectId) {
     queryKey: queryKeys.screening(projectId),
     queryFn: () => screeningService.getByProject(projectId), // null = not started yet
     enabled: !!projectId,
+    refetchOnReconnect: false,
   })
   const screening = query.data ?? null
   const screeningId = screening?._id
-  const { save, fail, isSaving, error, queryClient } = useProjectSave(projectId)
+  const { save, fail, isSaving, error, queryClient } = useProjectSave(
+    projectId,
+    queryKeys.screening(projectId)
+  )
 
   const store = useCallback(
     (data) => queryClient.setQueryData(queryKeys.screening(projectId), data),
+    [queryClient, projectId]
+  )
+  // The version the page shows, read when the request starts (D62)
+  const version = useCallback(
+    () => queryClient.getQueryData(queryKeys.screening(projectId))?.updatedAt,
     [queryClient, projectId]
   )
 
@@ -42,12 +56,12 @@ export function useScreening(projectId) {
       return save(
         () =>
           screeningId
-            ? screeningService.update(screeningId, payload)
+            ? screeningService.update(screeningId, { ...payload, version: version() })
             : screeningService.create(payload),
         store
       )
     },
-    [projectId, screeningId, save, fail, store]
+    [projectId, screeningId, save, fail, store, version]
   )
 
   // إرسال للموافقة: save the form first, then move it to submitted through the transition
@@ -56,13 +70,13 @@ export function useScreening(projectId) {
       const payload = { project: projectId, ...data }
       return save(async () => {
         const saved = screeningId
-          ? await screeningService.update(screeningId, payload)
+          ? await screeningService.update(screeningId, { ...payload, version: version() })
           : await screeningService.create(payload)
         store(saved)
-        return screeningService.submit(saved._id)
+        return screeningService.submit(saved._id, saved.updatedAt)
       }, store)
     },
-    [projectId, screeningId, save, store]
+    [projectId, screeningId, save, store, version]
   )
 
   // الموافقة

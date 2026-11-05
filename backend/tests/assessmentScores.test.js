@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import request from "supertest";
 import { app, mongoose, require } from "./helpers/app.js";
-import { createProject, loginAs, seedLookups } from "./helpers/fixtures.js";
+import { createProject, loginAs, seedLookups, withVersion } from "./helpers/fixtures.js";
 
 const Screening = require("../../src/models/screening.model");
 const ImpactQuestion = require("../../src/models/impactQuestion.model");
@@ -27,8 +27,14 @@ async function setup({ component = "Water network rehabilitation", body = {} } =
   return { token, project, res };
 }
 
-const scores = (id, token, payload) =>
-  request(app).post(`/api/v1/assessments/${id}/scores`).set(auth(token)).send(payload);
+// Scores are sent with the version the client loaded (D62).
+const scores = async (id, token, payload) => {
+  const url = `/api/v1/assessments/${id}/scores`;
+  return request(app)
+    .post(url)
+    .set(auth(token))
+    .send(await withVersion(url, { scores: payload }));
+};
 
 // D69 replaces D53: inputs start empty, nothing is copied from the project or Tool 1.
 describe("no prefill on create (D69)", () => {
@@ -62,14 +68,21 @@ describe("no prefill on create (D69)", () => {
     const put = await request(app)
       .put(`/api/v1/assessments/${res.body.data._id}`)
       .set(auth(token))
-      .send({ project_activity: "" });
+      .send(
+        await withVersion(`/api/v1/assessments/${res.body.data._id}`, { project_activity: "" })
+      );
     expect(put.status).toBe(200);
   });
 });
 
 describe("required fields are checked at submit (D57, D69)", () => {
-  const submit = (id, token) =>
-    request(app).patch(`/api/v1/assessments/${id}/submit`).set(auth(token));
+  const submit = async (id, token) => {
+    const url = `/api/v1/assessments/${id}/submit`;
+    return request(app)
+      .patch(url)
+      .set(auth(token))
+      .send(await withVersion(url));
+  };
 
   it("submit without project activity and description → 400, nothing changes", async () => {
     const { token, res } = await setup({ body: { description: "" } });
@@ -123,7 +136,9 @@ describe("default scores and total impact (D54)", () => {
       { question: first._id.toString(), level: "high", note: "Trees cut" },
     ]);
     expect(saved.status).toBe(201);
-    expect(saved.body.data).toHaveLength(50);
+    // The assessment with its children, so the client gets the new version and totals.
+    expect(saved.body.data.scores).toHaveLength(50);
+    expect(saved.body.data.total_project_impact).toBe("high");
 
     let assessment = (await request(app).get(`/api/v1/assessments/${id}`).set(auth(token))).body
       .data;
@@ -162,7 +177,11 @@ describe("default scores and total impact (D54)", () => {
     const id = res.body.data._id;
     await AssessmentImpactScore.deleteOne({ assessment: id });
 
-    const r = await request(app).patch(`/api/v1/assessments/${id}/submit`).set(auth(token));
+    const url = `/api/v1/assessments/${id}/submit`;
+    const r = await request(app)
+      .patch(url)
+      .set(auth(token))
+      .send(await withVersion(url));
     expect(r.status).toBe(400);
     expect(r.body.error).toMatch(/1 missing/);
   });

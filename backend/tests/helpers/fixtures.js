@@ -1,5 +1,5 @@
 import request from "supertest";
-import { app, require } from "./app.js";
+import { app, mongoose, require } from "./app.js";
 
 const User = require("../../src/models/user.model");
 const Project = require("../../src/models/project.model");
@@ -77,6 +77,37 @@ async function seedLookups() {
   await seedLookupData();
 }
 
+const TableRevision = require("../../src/models/tableRevision.model");
+
+const recordVersionOf = async (Model, id) => {
+  const doc = await Model.findById(id).select("updatedAt").lean();
+  return doc?.updatedAt?.toISOString();
+};
+
+// The version a client that has just loaded the record or table would send (D62): the record's
+// `updatedAt` for /projects/:id, /screenings/:id[/submit], /assessments/:id[/methods|
+// consultations|scores|submit], the table's revision for /projects/:id/management|mitigation|
+// monitoring. Undefined for an unknown record (the request then answers 400 or 404).
+async function currentVersion(url) {
+  const path = url.replace(/^\/api\/v1/, "").split("?")[0];
+  const [, kind, id, sub] = path.split("/");
+  if (!mongoose.isValidObjectId(id)) return undefined;
+  if (kind === "projects" && ["management", "mitigation", "monitoring"].includes(sub)) {
+    const row = await TableRevision.findOne({ project: id, table: sub }).lean();
+    return row?.revision ?? 0;
+  }
+  if (kind === "projects") return recordVersionOf(Project, id);
+  if (kind === "screenings") return recordVersionOf(Screening, id);
+  if (kind === "assessments") return recordVersionOf(Assessment, id);
+  return undefined;
+}
+
+// `body` with the current version added (unless it has one).
+async function withVersion(url, body = {}) {
+  if (Array.isArray(body) || "version" in body) return body;
+  return { ...body, version: await currentVersion(url) };
+}
+
 export {
   ROLES,
   EDITOR_ROLES,
@@ -87,4 +118,6 @@ export {
   createProject,
   loginAs,
   seedLookups,
+  currentVersion,
+  withVersion,
 };

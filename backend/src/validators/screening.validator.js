@@ -1,4 +1,5 @@
 const Joi = require("joi");
+const { recordVersion } = require("./version.validator");
 
 const createScreeningSchema = Joi.object({
   project: Joi.string().required(),
@@ -12,10 +13,10 @@ const createScreeningSchema = Joi.object({
   // from create/update bodies.
 });
 
-const updateScreeningSchema = createScreeningSchema.fork(
-  ["project", "category_code", "category_reason"],
-  (schema) => schema.optional()
-);
+// The version the client loaded (its `updatedAt`) is required: a stale save → 409 (D62).
+const updateScreeningSchema = createScreeningSchema
+  .fork(["project", "category_code", "category_reason"], (schema) => schema.optional())
+  .keys({ version: recordVersion });
 
 const approveScreeningSchema = Joi.object({
   recommendations: Joi.string().allow("", null).optional(),

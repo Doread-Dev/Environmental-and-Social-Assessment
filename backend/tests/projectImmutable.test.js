@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import request from "supertest";
 import { app, require } from "./helpers/app.js";
-import { createProject, loginAs } from "./helpers/fixtures.js";
+import { createProject, loginAs, withVersion } from "./helpers/fixtures.js";
 
 const ManagementActivity = require("../../src/models/managementActivity.model");
 
@@ -41,7 +41,7 @@ describe.each(kinds)("PUT $name", ({ base, stage, body }) => {
     const res = await request(app)
       .put(`${base}/${id}`)
       .set("Authorization", `Bearer ${token}`)
-      .send({ ...body, project: other._id.toString() });
+      .send(await withVersion(`${base}/${id}`, { ...body, project: other._id.toString() }));
 
     expect(res.status).toBe(400);
     expect(res.body).toEqual({ success: false, error: "project cannot be changed" });
@@ -53,7 +53,7 @@ describe.each(kinds)("PUT $name", ({ base, stage, body }) => {
     const res = await request(app)
       .put(`${base}/${id}`)
       .set("Authorization", `Bearer ${token}`)
-      .send({ ...body, project: project._id.toString() });
+      .send(await withVersion(`${base}/${id}`, { ...body, project: project._id.toString() }));
 
     expect(res.status).toBe(200);
     expect(String(res.body.data.project._id ?? res.body.data.project)).toBe(project._id.toString());
@@ -69,7 +69,7 @@ describe("bulk saves take the project from the URL (D32, D58)", () => {
     const res = await request(app)
       .put(`/api/v1/projects/${project._id}/management`)
       .set("Authorization", `Bearer ${token}`)
-      .send({ rows: [{ project: other._id.toString(), activity_description: "Dig" }] });
+      .send({ version: 0, rows: [{ project: other._id.toString(), activity_description: "Dig" }] });
 
     expect(res.status).toBe(200);
     expect(await ManagementActivity.countDocuments({ project: project._id })).toBe(1);

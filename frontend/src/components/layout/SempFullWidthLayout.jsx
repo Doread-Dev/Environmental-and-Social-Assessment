@@ -5,6 +5,7 @@
 
 import { Outlet, useParams, useNavigate } from 'react-router-dom'
 import { useWorkspace } from '@/hooks'
+import { useSaveConflict } from '@/contexts'
 import { isStepLocked } from '@/utils/workflowSteps'
 import { GuidanceButton, useCurrentPlace } from '@/components/library'
 import BrandLogo from './BrandLogo'
@@ -17,6 +18,7 @@ export default function SempFullWidthLayout() {
 
   // Same workspace query as the route guard above (no extra request)
   const { project, workflow, can, isLoading } = useWorkspace(projectId)
+  const { reloadKey } = useSaveConflict()
   // Tool 3 or Tool 4 (route handle), for its Guidance button (D64 c)
   const place = useCurrentPlace()
 
@@ -112,7 +114,8 @@ export default function SempFullWidthLayout() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col w-full overflow-hidden">
         <ArchivedNotice project={project} className="m-4 mb-0 sm:mx-6 md:mx-10" />
-        <Outlet context={{ project, workflow, can }} />
+        {/* After a stale-save Reload (D62) the page mounts again from the fresh data */}
+        <Outlet key={reloadKey} context={{ project, workflow, can }} />
       </main>
     </div>
   )

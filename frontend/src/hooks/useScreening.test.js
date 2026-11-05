@@ -74,8 +74,8 @@ describe('useScreening', () => {
     expect(screeningService.create).not.toHaveBeenCalled()
   })
 
-  it('submit creates the screening, then calls the submit endpoint', async () => {
-    screeningService.create.mockResolvedValue({ _id: 's1', status: 'draft' })
+  it('submit creates the screening, then calls the submit endpoint with its version', async () => {
+    screeningService.create.mockResolvedValue({ _id: 's1', status: 'draft', updatedAt: 'v1' })
     screeningService.submit.mockResolvedValue({ _id: 's1', status: 'submitted' })
     const { result } = await renderLoaded(null)
 
@@ -85,20 +85,25 @@ describe('useScreening', () => {
     })
 
     expect(screeningService.create).toHaveBeenCalledWith({ project: 'p1', ...form })
-    expect(screeningService.submit).toHaveBeenCalledWith('s1')
+    expect(screeningService.submit).toHaveBeenCalledWith('s1', 'v1')
     expect(outcome).toEqual({ success: true, data: { _id: 's1', status: 'submitted' } })
     expect(result.current.screening.status).toBe('submitted')
   })
 
   it('submit updates an existing screening (no status in the PUT), then submits it', async () => {
-    screeningService.update.mockResolvedValue({ _id: 's1', status: 'rejected' })
+    screeningService.update.mockResolvedValue({ _id: 's1', status: 'rejected', updatedAt: 'v2' })
     screeningService.submit.mockResolvedValue({ _id: 's1', status: 'submitted' })
-    const { result } = await renderLoaded({ _id: 's1', status: 'rejected' })
+    const { result } = await renderLoaded({ _id: 's1', status: 'rejected', updatedAt: 'v1' })
 
     await act(() => result.current.submit(form))
 
-    expect(screeningService.update).toHaveBeenCalledWith('s1', { project: 'p1', ...form })
-    expect(screeningService.submit).toHaveBeenCalledWith('s1')
+    // The PUT carries the version the page shows; the submit the version the PUT left (D62)
+    expect(screeningService.update).toHaveBeenCalledWith('s1', {
+      project: 'p1',
+      ...form,
+      version: 'v1',
+    })
+    expect(screeningService.submit).toHaveBeenCalledWith('s1', 'v2')
   })
 
   it('approve refreshes the workspace, project list and dashboard (sidebar unlocks Tool 2)', async () => {

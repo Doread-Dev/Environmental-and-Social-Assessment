@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import request from "supertest";
 import { app, mongoose, require } from "./helpers/app.js";
-import { createProject, loginAs } from "./helpers/fixtures.js";
+import { createProject, loginAs, withVersion } from "./helpers/fixtures.js";
 
 const Project = require("../../src/models/project.model");
 const Screening = require("../../src/models/screening.model");
@@ -74,17 +74,20 @@ describe("archive / restore (D17)", () => {
     const id = project._id.toString();
     const indicator = new mongoose.Types.ObjectId().toString();
 
+    const base = `/api/v1/projects/${id}`;
     const writes = [
-      request(app).put(`/api/v1/projects/${id}`).send({ title: "New" }),
       request(app)
-        .put(`/api/v1/projects/${id}/management`)
-        .send({ rows: [{ activity_description: "X" }] }),
+        .put(base)
+        .send(await withVersion(base, { title: "New" })),
       request(app)
-        .put(`/api/v1/projects/${id}/mitigation`)
-        .send({ rows: [{ output_description: "X" }] }),
+        .put(`${base}/management`)
+        .send({ version: 0, rows: [{ activity_description: "X" }] }),
       request(app)
-        .put(`/api/v1/projects/${id}/monitoring`)
-        .send({ records: [{ indicator }] }),
+        .put(`${base}/mitigation`)
+        .send({ version: 0, rows: [{ output_description: "X" }] }),
+      request(app)
+        .put(`${base}/monitoring`)
+        .send({ version: 0, records: [{ indicator }] }),
     ];
     for (const write of writes) {
       const res = await write.set(auth(token));
@@ -103,10 +106,19 @@ describe("archive / restore (D17)", () => {
     const id = created.body.data._id;
     await archive(project._id, token);
 
-    const edit = await request(app).put(`/api/v1/screenings/${id}`).set(auth(token)).send({});
+    const url = `/api/v1/screenings/${id}`;
+    const edit = await request(app)
+      .put(url)
+      .set(auth(token))
+      .send(await withVersion(url));
     expect(edit.status).toBe(409);
     expect(
-      (await request(app).patch(`/api/v1/screenings/${id}/submit`).set(auth(token))).status
+      (
+        await request(app)
+          .patch(`${url}/submit`)
+          .set(auth(token))
+          .send(await withVersion(url))
+      ).status
     ).toBe(409);
   });
 
@@ -125,7 +137,7 @@ describe("archive / restore (D17)", () => {
     const put = await request(app)
       .put(`/api/v1/projects/${project._id}`)
       .set(auth(token))
-      .send({ title: "Edited" });
+      .send(await withVersion(`/api/v1/projects/${project._id}`, { title: "Edited" }));
     expect(put.status).toBe(200);
   });
 

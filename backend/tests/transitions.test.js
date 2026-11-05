@@ -6,6 +6,7 @@ import {
   createProject as createStagedProject,
   createUser,
   loginAs,
+  withVersion,
 } from "./helpers/fixtures.js";
 
 const auth = (token) => ({ Authorization: `Bearer ${token}` });
@@ -41,8 +42,12 @@ describe.each(kinds)("$name status transitions", ({ base, stage, body }) => {
     return { editor, specialist, project, id: created.body.data._id };
   }
 
-  const patch = (id, action, token, payload = {}) =>
-    request(app).patch(`${base}/${id}/${action}`).set(auth(token)).send(payload);
+  // Submit carries the version the client loaded (D62); approve/reject don't.
+  const patch = async (id, action, token, payload = {}) => {
+    const url = `${base}/${id}/${action}`;
+    const body = action === "submit" ? await withVersion(url, payload) : payload;
+    return request(app).patch(url).set(auth(token)).send(body);
+  };
 
   it("ignores status and approval fields sent on create (D1, D5)", async () => {
     const editor = await loginAs("project_manager");
@@ -73,7 +78,12 @@ describe.each(kinds)("$name status transitions", ({ base, stage, body }) => {
     const res = await request(app)
       .put(`${base}/${id}`)
       .set(auth(editor.token))
-      .send({ status: "approved", approved_by: editor.user._id.toString() });
+      .send(
+        await withVersion(`${base}/${id}`, {
+          status: "approved",
+          approved_by: editor.user._id.toString(),
+        })
+      );
 
     expect(res.status).toBe(200);
     expect(res.body.data.status).toBe("draft");
@@ -96,7 +106,7 @@ describe.each(kinds)("$name status transitions", ({ base, stage, body }) => {
     const put = await request(app)
       .put(`${base}/${id}`)
       .set(auth(editor.token))
-      .send({ recommendations: "Edited by the editor" });
+      .send(await withVersion(`${base}/${id}`, { recommendations: "Edited by the editor" }));
     expect(put.status).toBe(200);
     expect(put.body.data.recommendations).toBeUndefined();
 
@@ -187,7 +197,9 @@ describe.each(kinds)("$name status transitions", ({ base, stage, body }) => {
 
   it("returns 404 for an unknown id", async () => {
     const { editor } = await setup();
-    const res = await patch(new mongoose.Types.ObjectId(), "submit", editor.token);
+    const res = await patch(new mongoose.Types.ObjectId(), "submit", editor.token, {
+      version: new Date().toISOString(),
+    });
     expect(res.status).toBe(404);
   });
 

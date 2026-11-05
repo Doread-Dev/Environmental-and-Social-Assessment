@@ -10,6 +10,7 @@ const {
   approveAssessmentSchema,
   rejectAssessmentSchema,
 } = require("../validators/assessment.validator");
+const { submitSchema } = require("../validators/version.validator");
 const { requirePermission } = require("../middlewares/auth");
 const projectAccess = require("../middlewares/projectAccess");
 const Assessment = require("../models/assessment.model");
@@ -44,7 +45,13 @@ router.put(
   controller.replaceConsultations
 );
 router.post("/:id/scores", edit, validate(addScoresSchema), assessment, controller.addScores);
-router.patch("/:id/submit", requirePermission("assessment.submit"), assessment, controller.submit);
+router.patch(
+  "/:id/submit",
+  requirePermission("assessment.submit"),
+  validate(submitSchema),
+  assessment,
+  controller.submit
+);
 router.patch(
   "/:id/approve",
   requirePermission("assessment.approve"),

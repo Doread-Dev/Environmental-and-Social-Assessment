@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { NavLink, useParams, useNavigate, useLocation } from 'react-router-dom'
 import { cn } from '@/utils'
 import { isStepDone, isStepLocked as isWorkflowStepLocked } from '@/utils/workflowSteps'
-import { useTheme, useAuth, ROLE_LABELS } from '@/contexts'
+import { useTheme, useAuth, useConfirmLeave, ROLE_LABELS } from '@/contexts'
 import {
   PROJECT_WORKFLOW_NAV,
   PROJECT_SECONDARY_NAV,
@@ -26,6 +26,8 @@ function ProjectSidebar({ project, className }) {
   const location = useLocation()
   const { isDark, toggleTheme } = useTheme()
   const { user, logout, canAccessSettings } = useAuth()
+  // Signing out of a page with unsaved changes asks Save / Discard / Stay first (D61)
+  const confirmLeave = useConfirmLeave()
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
@@ -55,9 +57,11 @@ function ProjectSidebar({ project, className }) {
   const userRoleLabel = user?.role ? ROLE_LABELS[user.role] || user.role : ''
 
   const handleLogout = () => {
-    logout()
     setIsUserMenuOpen(false)
-    navigate(ROUTES.LOGIN, { replace: true })
+    confirmLeave(() => {
+      logout()
+      navigate(ROUTES.LOGIN, { replace: true })
+    })
   }
 
   // Check if a nav item is active

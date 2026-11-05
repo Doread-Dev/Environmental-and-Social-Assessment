@@ -6,10 +6,22 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment, useScreening, useProjectContext } from '@/hooks'
-import { useAuth } from '@/contexts'
+import { useAuth, useUnsavedChanges } from '@/contexts'
 import { MetadataInfoSection, MetadataFormSection } from '@/components/assessment'
-import { LoadingSpinner, StickyFooter, LoadingState, PageHeader, Button } from '@/components/ui'
+import {
+  Alert,
+  LoadingSpinner,
+  StickyFooter,
+  LoadingState,
+  PageHeader,
+  Button,
+} from '@/components/ui'
 import { validateAssessmentMetadata } from '@/utils'
+
+const FIELDS = ['project_activity', 'description', 'environmental_setting', 'legal_requirements']
+const fromAssessment = (assessment) =>
+  Object.fromEntries(FIELDS.map((field) => [field, assessment?.[field] || '']))
+const sameForm = (a, b) => FIELDS.every((field) => a[field] === b[field])
 
 export default function AssessmentMetadataPage() {
   const { projectId } = useParams()
@@ -18,29 +30,39 @@ export default function AssessmentMetadataPage() {
   // Editable only while draft/rejected and for editors (allowed actions from the backend)
   const readOnly = !can('assessment.edit')
   const { screening } = useScreening(projectId)
-  const { assessment, isLoading, isSaving, saveMetadata } = useAssessment(projectId)
+  const { assessment, isLoading, isSaving, error, saveMetadata } = useAssessment(projectId)
   const { user } = useAuth()
 
-  const [formData, setFormData] = useState({
-    project_activity: assessment?.project_activity || '',
-    description: assessment?.description || '',
-    environmental_setting: assessment?.environmental_setting || '',
-    legal_requirements: assessment?.legal_requirements || '',
-  })
+  const [formData, setFormData] = useState(() => fromAssessment(assessment))
+  // The form as loaded (or last saved): leaving with anything else asks first (D61)
+  const [baseline, setBaseline] = useState(() => fromAssessment(assessment))
 
   const [errors, setErrors] = useState({})
 
   // Update formData when assessment loads or changes
   useEffect(() => {
     if (assessment && !isLoading) {
-      setFormData({
-        project_activity: assessment.project_activity || '',
-        description: assessment.description || '',
-        environmental_setting: assessment.environmental_setting || '',
-        legal_requirements: assessment.legal_requirements || '',
-      })
+      setFormData(fromAssessment(assessment))
+      setBaseline(fromAssessment(assessment))
     }
   }, [assessment, isLoading])
+
+  const isDirty = !readOnly && !sameForm(formData, baseline)
+
+  // Validate and save; the shared guard's "Save" uses it too (it then leaves where the user was
+  // going, not to the next step)
+  const save = async () => {
+    const validation = validateAssessmentMetadata(formData)
+    if (!validation.valid) {
+      setErrors(validation.errors)
+      return { success: false }
+    }
+    const result = await saveMetadata(formData)
+    if (result.success) setBaseline(formData)
+    return result
+  }
+
+  const { navigateAway } = useUnsavedChanges(isDirty, save)
 
   if (isLoading) {
     return <LoadingState message="Loading metadata..." />
@@ -64,15 +86,9 @@ export default function AssessmentMetadataPage() {
   }
 
   const handleSave = async () => {
-    const validation = validateAssessmentMetadata(formData)
-    if (!validation.valid) {
-      setErrors(validation.errors)
-      return
-    }
-
-    const result = await saveMetadata(formData)
+    const result = await save()
     if (result.success) {
-      navigate(`/app/projects/${projectId}/assessment/methods`)
+      navigateAway(`/app/projects/${projectId}/assessment/methods`)
     }
   }
 
@@ -87,6 +103,14 @@ export default function AssessmentMetadataPage() {
         title="Environmental Assessment Metadata"
         description="Assessment Information & Metadata"
       />
+
+      {/* The save failed: the server's reason (a stale save or an expired session has its own
+          dialog and is not repeated here) */}
+      {error && (
+        <Alert variant="error" className="mb-6" role="alert">
+          {error}
+        </Alert>
+      )}
 
       {/* Form Card */}
       <div className="bg-surface dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden mb-20">

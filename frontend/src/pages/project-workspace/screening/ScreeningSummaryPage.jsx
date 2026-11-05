@@ -83,7 +83,8 @@ function ScreeningSummaryPage() {
 
       if (result.success) {
         toast.success('Screening approved successfully!')
-      } else {
+      } else if (!result.handled) {
+        // An expired session has its own dialog (D73)
         toast.error(result.error || 'Failed to approve screening. Please try again.')
       }
     } catch {
@@ -106,7 +107,7 @@ function ScreeningSummaryPage() {
         setShowRejectInput(false)
         setRejectReasonInput('')
         toast.success('Screening rejected.')
-      } else {
+      } else if (!result.handled) {
         toast.error(result.error || 'Failed to reject screening. Please try again.')
       }
     } catch {

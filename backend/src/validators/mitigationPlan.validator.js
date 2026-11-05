@@ -1,4 +1,5 @@
 const Joi = require("joi");
+const { tableVersion } = require("./version.validator");
 
 // One table row (the project comes from the URL).
 const rowSchema = Joi.object({
@@ -14,8 +15,10 @@ const rowSchema = Joi.object({
   notes: Joi.string().allow("", null),
 });
 
-// PUT /projects/:id/mitigation: the whole table. A row with `_id` updates that row.
+// PUT /projects/:id/mitigation: the whole table. A row with `_id` updates that row. `version` =
+// the table's revision the client loaded (D62).
 const replaceMitigationPlansSchema = Joi.object({
+  version: tableVersion,
   rows: Joi.array()
     .items(
       rowSchema.keys({

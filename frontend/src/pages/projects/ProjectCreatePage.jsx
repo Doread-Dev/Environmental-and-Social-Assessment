@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import {
@@ -17,6 +17,7 @@ import { projectService } from '@/services/projectService'
 import { extractErrorMessage } from '@/services/api'
 import { queryKeys } from '@/services/queryKeys'
 import { ROUTES, getProjectRoute } from '@/routes/routes.config'
+import { useUnsavedChanges } from '@/contexts'
 
 /**
  * ProjectCreatePage - صفحة إنشاء مشروع جديد
@@ -37,6 +38,9 @@ function ProjectCreatePage() {
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [generalError, setGeneralError] = useState('')
+  // A second submit while one runs (double click, Enter twice) creates nothing (one project)
+  const creating = useRef(null)
+  const isDirty = Object.values(formData).some((value) => value.trim() !== '')
 
   // Handlers
   const handleChange = (field) => (e) => {
@@ -54,8 +58,18 @@ function ProjectCreatePage() {
     navigate(ROUTES.PROJECTS)
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  // Validate and create; returns the new project. Also the shared guard's "Save" when leaving
+  // with a filled form (D61): the user then goes where they were heading.
+  const create = () => {
+    if (!creating.current) {
+      creating.current = createProject().finally(() => {
+        creating.current = null
+      })
+    }
+    return creating.current
+  }
+
+  const createProject = async () => {
     setGeneralError('')
 
     // Validation
@@ -69,7 +83,7 @@ function ProjectCreatePage() {
 
     if (!validation.valid) {
       setErrors(validation.errors)
-      return
+      return { success: false }
     }
 
     setIsSubmitting(true)
@@ -86,15 +100,26 @@ function ProjectCreatePage() {
       const newProject = await projectService.create(projectData)
       queryClient.invalidateQueries({ queryKey: queryKeys.projects })
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard })
-
-      navigate(getProjectRoute(newProject._id, ROUTES.PROJECT_OVERVIEW))
+      return { success: true, data: newProject }
     } catch (err) {
+      // An expired session opens the sign-in dialog; the message says the form is kept (D73)
       const errorMessage = extractErrorMessage(err)
       setGeneralError(
         errorMessage || 'An error occurred while creating the project. Please try again.'
       )
+      return { success: false, error: errorMessage }
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const { navigateAway } = useUnsavedChanges(isDirty, create)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    const result = await create()
+    if (result.success) {
+      navigateAway(getProjectRoute(result.data._id, ROUTES.PROJECT_OVERVIEW))
     }
   }
 

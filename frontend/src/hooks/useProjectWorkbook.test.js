@@ -56,9 +56,13 @@ beforeEach(() => {
     consultations: [],
     scores: [{ question: 'q1', level: 'low' }],
   })
-  sempService.getManagementActivities.mockResolvedValue([{ _id: 'm1' }])
-  sempService.getMitigationPlans.mockResolvedValue([{ _id: 't1' }])
-  monitoringService.getByProject.mockResolvedValue([{ _id: 'r1', indicator: 'i1' }])
+  // Tables come with their revision (D62)
+  sempService.getManagementActivities.mockResolvedValue({ rows: [{ _id: 'm1' }], version: 2 })
+  sempService.getMitigationPlans.mockResolvedValue({ rows: [{ _id: 't1' }], version: 1 })
+  monitoringService.getByProject.mockResolvedValue({
+    records: [{ _id: 'r1', indicator: 'i1' }],
+    version: 4,
+  })
   lookupService.getAll.mockResolvedValue(lookups)
 })
 

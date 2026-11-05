@@ -14,6 +14,37 @@ import axios from 'axios'
 export const PASSWORD_CHANGE_REQUIRED = 'PASSWORD_CHANGE_REQUIRED'
 const CHANGE_PASSWORD_PATH = '/change-password'
 
+// The backend's 409 code for a stale save (D62, D73): someone else changed the record or table
+// since this page loaded it. useProjectSave shows it in the shared conflict dialog.
+export const STALE_VERSION = 'STALE_VERSION'
+
+/**
+ * Is this the 409 of a stale save (D62)?
+ * @param {Error} error - Axios error
+ */
+export function isStaleVersionError(error) {
+  return error?.response?.status === 409 && error.response.data?.code === STALE_VERSION
+}
+
+// Shown where a request failed because the session expired while the user was working (D73):
+// the sign-in dialog opens over the page and nothing typed is lost.
+export const SESSION_EXPIRED_MESSAGE =
+  'Your session has expired. Sign in again to continue; what you typed is kept.'
+
+// Set by AuthProvider while a signed-in user is loaded. Called on a 401: returns true when it
+// takes over (opens the sign-in dialog over the page), false to fall back to the login page.
+let sessionExpiredHandler = null
+
+/**
+ * @param {(() => boolean) | null} handler
+ */
+export function setSessionExpiredHandler(handler) {
+  sessionExpiredHandler = handler
+}
+
+// The sign-in request answers 401 for a wrong password: never a session expiry.
+const isLoginRequest = (config) => /\/auth\/login$/.test(config?.url ?? '')
+
 // Create Axios instance with base configuration
 const api = axios.create({
   // No localhost fallback: set VITE_API_URL in .env / Vercel so production fails fast if missing
@@ -43,17 +74,26 @@ api.interceptors.request.use(
 
 /**
  * Response Interceptor
- * Handles 401 Unauthorized responses globally by:
- * - Clearing stored token
- * - Redirecting to login page
- * and 403 PASSWORD_CHANGE_REQUIRED (an admin reset the password, D22) by sending the user to the
- * change-password screen.
+ * A 401 while a signed-in user is loaded (the token expired mid-session, or the account was
+ * deactivated) opens the sign-in dialog over the page, so typed input is kept (D73); the request
+ * is rejected with `sessionExpired` set and is never retried on its own. A 401 with no user loaded
+ * (first load, bad token) clears the session and goes to the login page. 403
+ * PASSWORD_CHANGE_REQUIRED (an admin reset the password, D22) goes to the change-password screen.
  */
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (
+      error.response?.status === 401 &&
+      !isLoginRequest(error.config) &&
+      sessionExpiredHandler?.()
+    ) {
+      error.sessionExpired = true
+      return Promise.reject(error)
+    }
+
     // Handle 401 Unauthorized - token expired or invalid
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !isLoginRequest(error.config)) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
 
@@ -84,6 +124,8 @@ api.interceptors.response.use(
  * @returns {string} Human-readable error message
  */
 export function extractErrorMessage(error) {
+  if (error?.sessionExpired) return SESSION_EXPIRED_MESSAGE
+
   // 403 Forbidden (wrong role): consistent user-friendly message. Other 403s carry their own
   // reason, e.g. "Account is deactivated" or a pending password change.
   if (error.response?.status === 403) {

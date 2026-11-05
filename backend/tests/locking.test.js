@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import request from "supertest";
 import { app, require } from "./helpers/app.js";
-import { createProject, loginAs, seedLookups } from "./helpers/fixtures.js";
+import { createProject, loginAs, seedLookups, withVersion } from "./helpers/fixtures.js";
 
 const ImpactQuestion = require("../../src/models/impactQuestion.model");
 
@@ -18,7 +18,13 @@ const kinds = [
     name: "assessment",
     base: "/api/v1/assessments",
     stage: "screening_approved",
-    body: (project) => ({ project, project_activity: "Pipes", description: "Replace pipes" }),
+    body: (project) => ({
+      project,
+      project_activity: "Pipes",
+      description: "Replace pipes",
+      environmental_setting: "Urban",
+      legal_requirements: "Permit",
+    }),
   },
 ];
 
@@ -35,14 +41,28 @@ describe.each(kinds)("$name locking (D13) and status history (D16)", ({ base, st
     return { editor, specialist, id: created.body.data._id };
   }
 
-  const patch = (id, action, token, payload = {}) =>
-    request(app).patch(`${base}/${id}/${action}`).set(auth(token)).send(payload);
-  const put = (id, token) =>
+  // Submit and PUT carry the version the client loaded (D62).
+  const patch = async (id, action, token, payload = {}) => {
+    const url = `${base}/${id}/${action}`;
+    const sent =
+      action === "submit"
+        ? await withVersion(url, payload)
+        : action === "approve" && !("recommendations" in payload)
+          ? { recommendations: "Approved", ...payload }
+          : payload;
+    return request(app).patch(url).set(auth(token)).send(sent);
+  };
+  const put = async (id, token) =>
     request(app)
       .put(`${base}/${id}`)
       .set(auth(token))
       // one content field of each kind (the other is stripped)
-      .send({ potential_negative: "Edited", environmental_setting: "Edited" });
+      .send(
+        await withVersion(`${base}/${id}`, {
+          potential_negative: "Edited",
+          environmental_setting: "Edited",
+        })
+      );
 
   it("can be edited while draft", async () => {
     const { editor, id } = await setup();
@@ -100,7 +120,7 @@ describe.each(kinds)("$name locking (D13) and status history (D16)", ({ base, st
     const res = await request(app)
       .put(`${base}/${id}`)
       .set(auth(editor.token))
-      .send({ status_history: [{ status: "approved" }] });
+      .send(await withVersion(`${base}/${id}`, { status_history: [{ status: "approved" }] }));
     expect(res.body.data.status_history.map((h) => h.status)).toEqual(["created"]);
   });
 });
@@ -110,13 +130,22 @@ describe("assessment child edits are locked too (D13)", () => {
     await seedLookups();
     const editor = await loginAs("project_manager");
     const project = await createProject({ stage: "screening_approved" });
-    const created = await request(app)
-      .post("/api/v1/assessments")
-      .set(auth(editor.token))
-      .send({ project: project._id.toString(), project_activity: "A", description: "B" });
+    const created = await request(app).post("/api/v1/assessments").set(auth(editor.token)).send({
+      project: project._id.toString(),
+      project_activity: "A",
+      description: "B",
+      environmental_setting: "C",
+      legal_requirements: "D",
+    });
     const id = created.body.data._id;
+    const url = `/api/v1/assessments/${id}/submit`;
     expect(
-      (await request(app).patch(`/api/v1/assessments/${id}/submit`).set(auth(editor.token))).status
+      (
+        await request(app)
+          .patch(url)
+          .set(auth(editor.token))
+          .send(await withVersion(url))
+      ).status
     ).toBe(200);
     return { token: editor.token, id };
   }
@@ -127,11 +156,19 @@ describe("assessment child edits are locked too (D13)", () => {
     const base = `/api/v1/assessments/${id}`;
 
     const calls = [
-      request(app).put(`${base}/methods`).send([]),
-      request(app).put(`${base}/consultations`).send([]),
+      request(app)
+        .put(`${base}/methods`)
+        .send(await withVersion(base, { methods: [] })),
+      request(app)
+        .put(`${base}/consultations`)
+        .send(await withVersion(base, { consultations: [] })),
       request(app)
         .post(`${base}/scores`)
-        .send([{ question: question._id.toString(), level: "high" }]),
+        .send(
+          await withVersion(base, {
+            scores: [{ question: question._id.toString(), level: "high" }],
+          })
+        ),
     ];
     for (const call of calls) {
       const res = await call.set(auth(token));

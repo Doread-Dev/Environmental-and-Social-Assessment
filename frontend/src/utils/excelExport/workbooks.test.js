@@ -479,3 +479,32 @@ describe('project workbook (D67 b)', () => {
     expect(tools).toEqual(['tool1'])
   })
 })
+
+describe('large and Arabic data (phase 10a)', () => {
+  it('many rows and very long Arabic text stay complete and right to left', async () => {
+    const long = `حفر الخنادق في الشوارع السكنية ${'نص طويل '.repeat(1500)}`.trim()
+    const rows = Array.from({ length: 40 }, (_, i) => ({
+      _id: `m${i + 1}`,
+      serial_number: i + 1,
+      activity_description: i === 0 ? long : `Activity ${i + 1}`,
+      responsible: null,
+      responsible_text: 'المقاول',
+    }))
+
+    const { ws } = await sheetOf('tool3', { project, rows }, 'Completed')
+
+    let longCell
+    let activities = 0
+    ws.eachRow((row) =>
+      row.eachCell((cell) => {
+        const text = cellText(cell)
+        if (text === long) longCell = cell
+        if (/^Activity \d+$/.test(text)) activities += 1
+      })
+    )
+    expect(longCell).toBeDefined() // not cut
+    expect(long.length).toBeGreaterThan(10000)
+    expect(longCell.alignment).toMatchObject({ readingOrder: 'rtl', wrapText: true })
+    expect(activities).toBe(39)
+  })
+})

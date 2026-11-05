@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import request from "supertest";
 import { app, require } from "./helpers/app.js";
-import { createProject, loginAs, seedLookups } from "./helpers/fixtures.js";
+import { createProject, loginAs, seedLookups, withVersion } from "./helpers/fixtures.js";
 
 const ImpactQuestion = require("../../src/models/impactQuestion.model");
 
@@ -27,19 +27,37 @@ describe("GET /assessments/project/:projectId embeds methods, consultations and 
     expect(created.body.data.scores).toHaveLength(50);
 
     const id = created.body.data._id;
-    await request(app)
-      .put(`/api/v1/assessments/${id}/methods`)
+    const url = `/api/v1/assessments/${id}`;
+    // Each write carries the version the previous one left (D62).
+    const methods = await request(app)
+      .put(`${url}/methods`)
       .set(auth(token))
-      .send([{ method_type: "field_visits", details: "Two visits" }]);
-    await request(app)
-      .put(`/api/v1/assessments/${id}/consultations`)
+      .send(
+        await withVersion(url, {
+          methods: [{ method_type: "field_visits", details: "Two visits" }],
+        })
+      );
+    expect(methods.status).toBe(200);
+    // Children writes answer the whole assessment, like this read.
+    expect(methods.body.data.methods).toHaveLength(1);
+    expect(methods.body.data.scores).toHaveLength(50);
+    const consultations = await request(app)
+      .put(`${url}/consultations`)
       .set(auth(token))
-      .send([{ type: "community_interviews", participants: "12", notes: "Village A" }]);
+      .send({
+        version: methods.body.data.updatedAt,
+        consultations: [{ type: "community_interviews", participants: "12", notes: "Village A" }],
+      });
+    expect(consultations.status).toBe(200);
     const question = await ImpactQuestion.findOne();
-    await request(app)
-      .post(`/api/v1/assessments/${id}/scores`)
+    const scores = await request(app)
+      .post(`${url}/scores`)
       .set(auth(token))
-      .send([{ question: question._id.toString(), level: "high", note: "Dust" }]);
+      .send({
+        version: consultations.body.data.updatedAt,
+        scores: [{ question: question._id.toString(), level: "high", note: "Dust" }],
+      });
+    expect(scores.status).toBe(201);
 
     const res = await request(app)
       .get(`/api/v1/assessments/project/${project._id}`)

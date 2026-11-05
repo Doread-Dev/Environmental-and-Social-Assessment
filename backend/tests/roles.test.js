@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import request from "supertest";
 import { app, require } from "./helpers/app.js";
-import { loginAs } from "./helpers/fixtures.js";
+import { loginAs, withVersion } from "./helpers/fixtures.js";
 
 const Project = require("../../src/models/project.model");
 
@@ -28,7 +28,7 @@ describe("viewer", () => {
         await request(app)
           .put(`/api/v1/projects/${project._id}`)
           .set(auth(token))
-          .send({ title: "x" })
+          .send(await withVersion(`/api/v1/projects/${project._id}`, { title: "x" }))
       ).status
     ).toBe(403);
     expect(
@@ -76,7 +76,12 @@ describe("validate() strips unknown fields (D5)", () => {
     const res = await request(app)
       .put(`/api/v1/screenings/${created.body.data._id}`)
       .set(auth(token))
-      .send({ category_reason: "updated", reject_reason: "forged" });
+      .send(
+        await withVersion(`/api/v1/screenings/${created.body.data._id}`, {
+          category_reason: "updated",
+          reject_reason: "forged",
+        })
+      );
 
     expect(res.status).toBe(200);
     expect(res.body.data.category_reason).toBe("updated");

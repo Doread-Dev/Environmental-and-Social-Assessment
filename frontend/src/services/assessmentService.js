@@ -41,10 +41,11 @@ export const assessmentService = {
    * Replace all methods for an assessment (bulk operation)
    * @param {string} assessmentId
    * @param {Array} methods
-   * @returns {Promise<Array>}
+   * @param {string} version - The assessment's `updatedAt` the user saw (D62)
+   * @returns {Promise<Object>} The assessment with methods, consultations and scores
    */
-  async setMethods(assessmentId, methods) {
-    const response = await api.put(`/assessments/${assessmentId}/methods`, methods)
+  async setMethods(assessmentId, methods, version) {
+    const response = await api.put(`/assessments/${assessmentId}/methods`, { version, methods })
     return response.data.data
   },
 
@@ -52,32 +53,38 @@ export const assessmentService = {
    * Replace all consultations for an assessment (bulk operation)
    * @param {string} assessmentId
    * @param {Array} consultations
-   * @returns {Promise<Array>}
+   * @param {string} version - The assessment's `updatedAt` the user saw (D62)
+   * @returns {Promise<Object>} The assessment with methods, consultations and scores
    */
-  async setConsultations(assessmentId, consultations) {
-    const response = await api.put(`/assessments/${assessmentId}/consultations`, consultations)
+  async setConsultations(assessmentId, consultations, version) {
+    const response = await api.put(`/assessments/${assessmentId}/consultations`, {
+      version,
+      consultations,
+    })
     return response.data.data
   },
 
   /**
    * Set the level of the questions sent (others keep theirs); the backend recalculates the
-   * total impact and returns all scores
+   * total impact
    * @param {string} assessmentId
    * @param {Array} scores
-   * @returns {Promise<Array>}
+   * @param {string} version - The assessment's `updatedAt` the user saw (D62)
+   * @returns {Promise<Object>} The assessment with methods, consultations and all scores
    */
-  async addScores(assessmentId, scores) {
-    const response = await api.post(`/assessments/${assessmentId}/scores`, scores)
+  async addScores(assessmentId, scores, version) {
+    const response = await api.post(`/assessments/${assessmentId}/scores`, { version, scores })
     return response.data.data
   },
 
   /**
    * Submit an assessment for approval (draft|rejected → submitted)
    * @param {string} assessmentId
+   * @param {string} version - The assessment's `updatedAt` the user saw (D62)
    * @returns {Promise<Object>}
    */
-  async submit(assessmentId) {
-    const response = await api.patch(`/assessments/${assessmentId}/submit`)
+  async submit(assessmentId, version) {
+    const response = await api.patch(`/assessments/${assessmentId}/submit`, { version })
     return response.data.data
   },
 

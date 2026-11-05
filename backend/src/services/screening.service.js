@@ -2,6 +2,7 @@ const Screening = require("../models/screening.model");
 const ApiError = require("../utils/ApiError");
 const assertSameProject = require("../utils/assertSameProject");
 const { applyTransition, assertEditable, historyEntry } = require("../utils/statusTransition");
+const { assertCurrentVersion, staleError, updateIfCurrent } = require("../utils/version");
 const { assertProjectWritable } = require("./workflow.service");
 
 const POPULATE = [
@@ -36,9 +37,12 @@ const createScreening = async (payload, createdBy) => {
   return Screening.findById(created._id).populate(POPULATE);
 };
 
-const updateScreening = async (id, payload, updatedBy) => {
+// `version` = the `updatedAt` the client loaded; a stale one → 409 STALE_VERSION (D62), checked
+// first so a user whose screening was submitted or rejected meanwhile is told to reload.
+const updateScreening = async (id, { version, ...payload }, updatedBy) => {
   const screening = await Screening.findById(id);
   if (!screening) throw new ApiError(404, "Screening not found");
+  assertCurrentVersion(screening, version);
   assertSameProject(screening, payload);
   await assertProjectWritable(screening.project);
   assertEditable(screening);
@@ -48,24 +52,26 @@ const updateScreening = async (id, payload, updatedBy) => {
     updateData.officer = updatedBy;
   }
 
-  const updated = await Screening.findByIdAndUpdate(id, updateData, {
-    new: true,
-    runValidators: true,
-  }).populate(POPULATE);
-  if (!updated) throw new ApiError(404, "Screening not found");
-  return updated;
+  const updated = await updateIfCurrent(Screening, { _id: id, status: screening.status }, version, {
+    $set: updateData,
+  });
+  if (!updated) throw staleError();
+  return updated.populate(POPULATE);
 };
 
-const transition = async (id, action, userId, options) => {
-  const screening = await Screening.findById(id).select("project");
+const transition = async (id, action, userId, options = {}) => {
+  const screening = await Screening.findById(id).select("project updatedAt");
   if (!screening) throw new ApiError(404, "Screening not found");
+  // Submit carries the version the user saw; approve/reject don't (the record is locked).
+  if (options.version) assertCurrentVersion(screening, options.version);
   await assertProjectWritable(screening.project);
 
   const updated = await applyTransition(Screening, id, action, userId, options);
   return updated.populate(POPULATE);
 };
 
-const submitScreening = async (id, submittedBy) => transition(id, "submit", submittedBy);
+const submitScreening = async (id, submittedBy, version) =>
+  transition(id, "submit", submittedBy, { version });
 
 const approveScreening = async (id, approvedBy, recommendations) =>
   transition(id, "approve", approvedBy, { recommendations });

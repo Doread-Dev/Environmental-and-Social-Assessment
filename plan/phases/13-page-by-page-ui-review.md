@@ -61,4 +61,11 @@ Items found during phase 10 that are page-specific (not shared) are listed here 
 - **Monitoring overview:** its "Export" button and the category cards still have their own styles.
 - **Dashboard metric cards:** coloured icon tiles (blue/orange/red) — confirm with the owner against the AKF palette.
 - **Login / change password:** check the type scale after `PAGE_TITLE` in both themes.
+- **Phase 10a (D72 c, UI/UX only; behaviour was fixed there):**
+  - **Tools 3/4 grid (`components/semp/EditableCell.jsx`):** cells are `dir="ltr"`, so Arabic text in them is laid out left to right; a very long cell (3,000+ characters) makes its row hundreds of pixels tall (no clamp or expand); the editable cells have no accessible name.
+  - **Tool 5 data entry:** the lock card says "complete Tool 2" and links to the assessment, but the gate is Tools 3 and 4 (the route guard redirects first, so it is rarely seen).
+  - **Assessment metadata / methods for a viewer or a locked assessment:** "Save and Continue" is disabled and there is no other forward button (only the sidebar).
+  - **Assessment scoring:** "Save as Draft" gives no success feedback (Tools 3–5 show "Saved").
+  - **New dialogs of phase 10a** (unsaved changes, stale save, session expired) use the shared `Modal`/`Button`/`Input`; check their wording, focus order and layout in both themes and at 375 px with the owner.
+  - **Error boxes:** Tools 3/4 still draw their own red error box (raw red classes) instead of `Alert`.
 - **Arabic text direction (found in the D72 font check):** Arabic project titles and locations in the Projects list (and likely other lists, headers and cards) are aligned left-to-right. User-entered text needs `dir="auto"` wherever it is displayed, not only in the inputs; check every screen with an Arabic test project.

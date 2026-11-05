@@ -5,6 +5,7 @@ import ProtectedRoute from './ProtectedRoute'
 import WorkflowRouteGuard from './WorkflowRouteGuard'
 import SettingsRouteGuard from './SettingsRouteGuard'
 import PermissionRouteGuard from './PermissionRouteGuard'
+import AppShell from './AppShell'
 
 // Layouts - Keep these eager loaded as they're always needed
 import AuthLayout from '@/components/layout/AuthLayout'
@@ -97,7 +98,7 @@ const ProfilePage = lazy(() => import('@/pages/profile/ProfilePage'))
  * header shows its Guidance button (components/library/GuidanceButton). A new tool's page adds its
  * place key here.
  */
-export const router = createBrowserRouter([
+export const appRoutes = [
   // ==========================================
   // Auth Routes (Public)
   // ==========================================
@@ -405,6 +406,9 @@ export const router = createBrowserRouter([
     path: '*',
     element: <NotFoundPage />,
   },
-])
+]
+
+// One root route around every page: the shared unsaved-changes guard (AppShell).
+export const router = createBrowserRouter([{ element: <AppShell />, children: appRoutes }])
 
 export default router

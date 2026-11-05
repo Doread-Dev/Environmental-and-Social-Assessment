@@ -5,6 +5,16 @@
 
 import { useRef, useEffect } from 'react'
 import { cn } from '@/utils/cn'
+import { MAX_TEXT_LENGTH } from '@/utils/textLimits'
+
+// The cell's text, cut at the shared free-text limit (D74 4): a contenteditable has no maxLength
+function cellText(cell) {
+  const text = cell.textContent || ''
+  if (text.length <= MAX_TEXT_LENGTH) return text
+  const cut = text.slice(0, MAX_TEXT_LENGTH)
+  cell.textContent = cut
+  return cut
+}
 
 export default function EditableCell({
   value = '',
@@ -23,9 +33,18 @@ export default function EditableCell({
     }
   }, [value])
 
-  const handleInput = (e) => {
-    const newValue = e.currentTarget.textContent || ''
-    onChange(newValue)
+  const handleInput = (e) => onChange(cellText(e.currentTarget))
+
+  // Pasted text goes in as plain text: the cell saves its text only, so pasted formatting,
+  // links or images would show here but never be saved (phase 10a)
+  const handlePaste = (e) => {
+    e.preventDefault()
+    const text = e.clipboardData?.getData('text/plain') ?? ''
+    const plain = multiline ? text : text.replace(/\s*\n\s*/g, ' ')
+    if (!document.execCommand?.('insertText', false, plain)) {
+      e.currentTarget.textContent = (e.currentTarget.textContent || '') + plain
+    }
+    onChange(cellText(e.currentTarget))
   }
 
   const handleKeyDown = (e) => {
@@ -42,6 +61,7 @@ export default function EditableCell({
       contentEditable={!readOnly}
       onInput={handleInput}
       onKeyDown={handleKeyDown}
+      onPaste={handlePaste}
       suppressContentEditableWarning
       data-placeholder={placeholder}
       dir="ltr"

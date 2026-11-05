@@ -122,15 +122,30 @@ describe('useAssessment.startAssessment', () => {
 
 describe('useAssessment writes', () => {
   it('saving scores stores the totals the backend recalculated (no calculate call)', async () => {
-    assessmentService.addScores.mockResolvedValue([{ question: 'q1', level: 'high' }])
-    assessmentService.update.mockResolvedValue({ _id: 'a1', total_project_impact: 'high' })
-    const { result } = await renderLoaded(withChildren({ _id: 'a1', status: 'draft' }))
+    // The scores write answers the whole assessment with its new version (D62)
+    assessmentService.addScores.mockResolvedValue(
+      withChildren({ _id: 'a1', updatedAt: 'v2' }, { scores: [{ question: 'q1', level: 'high' }] })
+    )
+    assessmentService.update.mockResolvedValue({
+      _id: 'a1',
+      total_project_impact: 'high',
+      updatedAt: 'v3',
+    })
+    const { result } = await renderLoaded(
+      withChildren({ _id: 'a1', status: 'draft', updatedAt: 'v1' })
+    )
 
     await act(() => result.current.saveImpactScores([{ question: 'q1', level: 'high' }], 'N', 'P'))
 
+    expect(assessmentService.addScores).toHaveBeenCalledWith(
+      'a1',
+      [{ question: 'q1', level: 'high' }],
+      'v1'
+    )
     expect(assessmentService.update).toHaveBeenCalledWith('a1', {
       potential_negative_impact: 'N',
       potential_positive_impact: 'P',
+      version: 'v2',
     })
     expect(result.current.assessment.total_project_impact).toBe('high')
     expect(result.current.impactScores).toEqual([{ question: 'q1', level: 'high' }])
@@ -149,13 +164,39 @@ describe('useAssessment writes', () => {
     expect(second.result.current.assessment.description).toBe('Edited')
   })
 
-  it('methods and consultations replace the lists in the cache', async () => {
-    assessmentService.setMethods.mockResolvedValue([{ method_type: 'field_visits' }])
-    assessmentService.setConsultations.mockResolvedValue([{ type: 'village_meetings' }])
-    const { result } = await renderLoaded(withChildren({ _id: 'a1', status: 'draft' }))
+  it('methods and consultations replace the lists in the cache, each with the version the last write left', async () => {
+    assessmentService.setMethods.mockResolvedValue(
+      withChildren(
+        { _id: 'a1', status: 'draft', updatedAt: 'v2' },
+        { methods: [{ method_type: 'field_visits' }] }
+      )
+    )
+    assessmentService.setConsultations.mockResolvedValue(
+      withChildren(
+        { _id: 'a1', status: 'draft', updatedAt: 'v3' },
+        {
+          methods: [{ method_type: 'field_visits' }],
+          consultations: [{ type: 'village_meetings' }],
+        }
+      )
+    )
+    const { result } = await renderLoaded(
+      withChildren({ _id: 'a1', status: 'draft', updatedAt: 'v1' })
+    )
 
     await act(() => result.current.saveMethods([{ method_type: 'field_visits' }]))
     await act(() => result.current.saveConsultations([{ type: 'village_meetings' }]))
+
+    expect(assessmentService.setMethods).toHaveBeenCalledWith(
+      'a1',
+      [{ method_type: 'field_visits' }],
+      'v1'
+    )
+    expect(assessmentService.setConsultations).toHaveBeenCalledWith(
+      'a1',
+      [{ type: 'village_meetings' }],
+      'v2'
+    )
 
     expect(result.current.methods).toEqual([{ method_type: 'field_visits' }])
     expect(result.current.consultations).toEqual([{ type: 'village_meetings' }])

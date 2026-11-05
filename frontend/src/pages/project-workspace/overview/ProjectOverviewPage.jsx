@@ -8,7 +8,6 @@
  */
 
 import { useNavigate, useParams } from 'react-router-dom'
-import { useQueryClient } from '@tanstack/react-query'
 import {
   ProjectHeader,
   ProjectProgressTimeline,
@@ -17,19 +16,20 @@ import {
   ProjectDetailsCard,
   ProjectWorkbookCard,
 } from '@/components/project'
-import { useProjectContext } from '@/hooks'
+import { useProjectContext, useProjectSave } from '@/hooks'
 import { getScreeningCategory } from '@/utils/screeningDisplay'
 import { calculateDurationMonths, formatDuration } from '@/utils/formatters'
 import { projectService } from '@/services/projectService'
-import { extractErrorMessage } from '@/services/api'
-import { invalidateProjectState } from '@/services/queryKeys'
+import { queryKeys } from '@/services/queryKeys'
 import { ROUTES, getProjectRoute } from '@/routes/routes.config'
 
 function ProjectOverviewPage() {
   const navigate = useNavigate()
   const { projectId } = useParams()
-  const queryClient = useQueryClient()
   const { project, workflow, counts, can } = useProjectContext()
+  // The project edit is a write of project data like the tools: version check, the stale-save
+  // dialog and one request per double click (D62)
+  const { save } = useProjectSave(projectId, queryKeys.workspace(projectId))
 
   if (!project) {
     return (
@@ -60,16 +60,9 @@ function ProjectOverviewPage() {
   const timeframe = formatDuration(durationMonths)
 
   // Handlers
-  const handleEditProject = async (updates) => {
-    if (!projectId) return { success: false, error: 'Missing project id.' }
-    try {
-      await projectService.update(projectId, updates)
-      await invalidateProjectState(queryClient, projectId)
-      return { success: true }
-    } catch (err) {
-      const message = extractErrorMessage(err)
-      return { success: false, error: message }
-    }
+  const handleEditProject = (updates) => {
+    if (!projectId) return Promise.resolve({ success: false, error: 'Missing project id.' })
+    return save(() => projectService.update(projectId, updates))
   }
 
   const handleNextStep = () => {

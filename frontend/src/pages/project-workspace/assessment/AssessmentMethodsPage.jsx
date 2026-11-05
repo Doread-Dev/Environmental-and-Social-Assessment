@@ -6,77 +6,86 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment, useProjectContext } from '@/hooks'
+import { useUnsavedChanges } from '@/contexts'
 import { MethodChecklistItem, ConsultationChecklistItem } from '@/components/assessment'
 import {
+  Alert,
   LoadingSpinner,
   StickyFooter,
-  useToast,
   LoadingState,
   PageHeader,
   Button,
 } from '@/components/ui'
 import { assessmentMethods, consultationMethods } from '@/utils/assessmentMethods'
 
+// The checklists as the page holds them, built from the saved lists
+const methodsState = (methods) =>
+  Object.fromEntries(
+    assessmentMethods.map((method) => {
+      const existing = methods.find((m) => m.method_type === method.id)
+      return [method.id, { checked: !!existing, details: existing?.details || '' }]
+    })
+  )
+const consultationsState = (consultations) =>
+  Object.fromEntries(
+    consultationMethods.map((consultation) => {
+      const existing = consultations.find((c) => c.type === consultation.id)
+      return [consultation.id, { checked: !!existing, participants: existing?.participants || '' }]
+    })
+  )
+
 export default function AssessmentMethodsPage() {
   const { projectId } = useParams()
   const { can } = useProjectContext()
   const navigate = useNavigate()
-  const toast = useToast()
-  const { methods, consultations, isLoading, isSaving, saveMethods, saveConsultations } =
+  const { methods, consultations, isLoading, isSaving, error, saveMethods, saveConsultations } =
     useAssessment(projectId)
+  // Editable only while draft/rejected and for editors (allowed actions from the backend)
+  const readOnly = !can('assessment.edit')
 
-  // State for methods
-  const [selectedMethods, setSelectedMethods] = useState(() => {
-    const state = {}
-    assessmentMethods.forEach((method) => {
-      const existing = methods.find((m) => m.method_type === method.id)
-      state[method.id] = {
-        checked: !!existing,
-        details: existing?.details || '',
-      }
-    })
-    return state
-  })
-
-  // State for consultations
-  const [selectedConsultations, setSelectedConsultations] = useState(() => {
-    const state = {}
-    consultationMethods.forEach((consultation) => {
-      const existing = consultations.find((c) => c.type === consultation.id)
-      state[consultation.id] = {
-        checked: !!existing,
-        participants: existing?.participants || '',
-      }
-    })
-    return state
-  })
+  const [selectedMethods, setSelectedMethods] = useState(() => methodsState(methods))
+  const [selectedConsultations, setSelectedConsultations] = useState(() =>
+    consultationsState(consultations)
+  )
+  // The checklists as loaded (or last saved): leaving with anything else asks first (D61)
+  const [baseline, setBaseline] = useState(() =>
+    JSON.stringify([methodsState(methods), consultationsState(consultations)])
+  )
 
   // Update state when methods/consultations load
   useEffect(() => {
     if (!isLoading && methods && consultations) {
-      // Update methods
-      const methodsState = {}
-      assessmentMethods.forEach((method) => {
-        const existing = methods.find((m) => m.method_type === method.id)
-        methodsState[method.id] = {
-          checked: !!existing,
-          details: existing?.details || '',
-        }
-      })
-      setSelectedMethods(methodsState)
-
-      // Update consultations
-      const consultationsState = {}
-      consultationMethods.forEach((consultation) => {
-        const existing = consultations.find((c) => c.type === consultation.id)
-        consultationsState[consultation.id] = {
-          checked: !!existing,
-          participants: existing?.participants || '',
-        }
-      })
-      setSelectedConsultations(consultationsState)
+      setSelectedMethods(methodsState(methods))
+      setSelectedConsultations(consultationsState(consultations))
+      setBaseline(JSON.stringify([methodsState(methods), consultationsState(consultations)]))
     }
   }, [methods, consultations, isLoading])
+
+  const isDirty = !readOnly && JSON.stringify([selectedMethods, selectedConsultations]) !== baseline
+
+  // Methods, then consultations: each write carries the version the previous one left (D62), so
+  // they go one after the other. The first failure stops and is shown with its reason.
+  const save = async () => {
+    const methodsData = assessmentMethods
+      .filter((m) => selectedMethods[m.id]?.checked)
+      .map((m) => ({
+        method_type: m.id,
+        details: selectedMethods[m.id]?.details || '',
+      }))
+    const consultationsData = consultationMethods
+      .filter((c) => selectedConsultations[c.id]?.checked)
+      .map((c) => ({
+        type: c.id,
+        participants: selectedConsultations[c.id]?.participants || '',
+        notes: '', // Empty notes field (not shown in UI but required by backend model)
+      }))
+
+    const methodsResult = await saveMethods(methodsData)
+    if (!methodsResult.success) return methodsResult
+    return saveConsultations(consultationsData)
+  }
+
+  const { navigateAway } = useUnsavedChanges(isDirty, save)
 
   if (isLoading) {
     return <LoadingState message="Loading methods..." />
@@ -111,54 +120,13 @@ export default function AssessmentMethodsPage() {
   }
 
   const handleSave = async () => {
-    // Prepare methods data
-    const methodsData = assessmentMethods
-      .filter((m) => selectedMethods[m.id]?.checked)
-      .map((m) => ({
-        method_type: m.id,
-        details: selectedMethods[m.id]?.details || '',
-      }))
-
-    // Prepare consultations data
-    const consultationsData = consultationMethods
-      .filter((c) => selectedConsultations[c.id]?.checked)
-      .map((c) => ({
-        type: c.id,
-        participants: selectedConsultations[c.id]?.participants || '',
-        notes: '', // Empty notes field (not shown in UI but required by backend model)
-      }))
-
-    // Save both with proper error handling
-    const [methodsResult, consultationsResult] = await Promise.allSettled([
-      saveMethods(methodsData),
-      saveConsultations(consultationsData),
-    ])
-
-    // Check for failures
-    const errors = []
-    if (methodsResult.status === 'rejected' || !methodsResult.value?.success) {
-      errors.push('Failed to save methods')
-    }
-    if (consultationsResult.status === 'rejected' || !consultationsResult.value?.success) {
-      errors.push('Failed to save consultations')
-    }
-
-    if (errors.length > 0) {
-      toast.error(errors.join('. ') + '. Please try again.')
-      return
-    }
-
-    navigate(`/app/projects/${projectId}/assessment/scoring`)
+    const result = await save()
+    if (result.success) navigateAway(`/app/projects/${projectId}/assessment/scoring`)
   }
 
   const handleBack = () => {
     navigate(`/app/projects/${projectId}/assessment/metadata`)
   }
-
-  // Allow editing when rejected or draft, but not when approved or submitted
-  // When rejected, user should be able to edit (rejected is not submitted, so it's editable)
-  // Editable only while draft/rejected and for editors (allowed actions from the backend)
-  const readOnly = !can('assessment.edit')
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -167,6 +135,14 @@ export default function AssessmentMethodsPage() {
         title="Assessment Methods & Consultation"
         description="Document the methods used for environmental assessment and community consultation"
       />
+
+      {/* The save failed: the server's reason (a stale save or an expired session has its own
+          dialog and is not repeated here) */}
+      {error && (
+        <Alert variant="error" className="mb-6" role="alert">
+          {error}
+        </Alert>
+      )}
 
       {/* Methods Section */}
       <div className="bg-surface dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark mb-6">

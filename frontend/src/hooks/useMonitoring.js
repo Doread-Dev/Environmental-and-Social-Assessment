@@ -1,7 +1,8 @@
 /**
  * useMonitoring Hook
  * Monitoring data (Tool 5): the saved records are a cached query; edits stay local (one per
- * indicator) until Save, which sends the changed records in one request (D32).
+ * indicator) until Save, which sends the changed records in one request (D32). The save carries
+ * the table revision the edits started from (D62): a save by someone else meanwhile → 409.
  */
 import { useState, useCallback, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
@@ -14,6 +15,8 @@ import { responsibleFields } from '@/utils/responsible'
 
 const NO_RECORDS = []
 const NO_EDITS = {}
+// No local edits; `version` = the revision the first edit started from
+const CLEAN = { edits: NO_EDITS, version: undefined }
 const PLACEHOLDER = 'placeholder_'
 
 const idOf = (value) => (value && typeof value === 'object' ? value._id : value)
@@ -54,11 +57,18 @@ export function useMonitoring(projectId) {
     queryKey: queryKeys.monitoring(projectId),
     queryFn: () => monitoringService.getByProject(projectId),
     enabled: !!projectId,
+    // Not behind local edits: a change by someone else is caught at save (409, D62)
+    refetchOnReconnect: false,
   })
-  const savedRecords = query.data ?? NO_RECORDS
-  // Local edits by indicator id
-  const [edits, setEdits] = useState(NO_EDITS)
-  const { save, isSaving, error, setError, queryClient } = useProjectSave(projectId)
+  const savedRecords = query.data?.records ?? NO_RECORDS
+  const savedVersion = query.data?.version
+  // Local edits by indicator id, and the revision they started from
+  const [local, setLocal] = useState(CLEAN)
+  const { edits } = local
+  const { save, isSaving, error, setError, queryClient } = useProjectSave(
+    projectId,
+    queryKeys.monitoring(projectId)
+  )
 
   const savedByIndicator = useMemo(
     () => new Map(savedRecords.map((record) => [idOf(record.indicator), record])),
@@ -97,12 +107,15 @@ export function useMonitoring(projectId) {
       const id = indicatorOf(recordId, indicatorId)
       if (!id || !projectId) return
       setError(null)
-      setEdits((prev) => {
-        const base = prev[id] ?? savedByIndicator.get(id) ?? emptyRecord(projectId, id)
-        return { ...prev, [id]: { ...change(base), _dirty: true } }
+      setLocal((prev) => {
+        const base = prev.edits[id] ?? savedByIndicator.get(id) ?? emptyRecord(projectId, id)
+        return {
+          version: prev.edits === NO_EDITS ? savedVersion : prev.version,
+          edits: { ...prev.edits, [id]: { ...change(base), _dirty: true } },
+        }
       })
     },
-    [indicatorOf, projectId, savedByIndicator, setError]
+    [indicatorOf, projectId, savedByIndicator, savedVersion, setError]
   )
 
   /**
@@ -133,12 +146,12 @@ export function useMonitoring(projectId) {
     const changed = Object.values(edits)
     if (changed.length === 0) return { success: true }
     const result = await save(
-      () => monitoringService.save(projectId, changed.map(toPayloadRecord)),
+      () => monitoringService.save(projectId, changed.map(toPayloadRecord), local.version),
       (saved) => queryClient.setQueryData(queryKeys.monitoring(projectId), saved)
     )
-    if (result.success) setEdits(NO_EDITS)
+    if (result.success) setLocal(CLEAN)
     return result
-  }, [edits, save, projectId, queryClient])
+  }, [edits, local.version, save, projectId, queryClient])
 
   /**
    * Get monitoring data for a specific category

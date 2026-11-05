@@ -311,6 +311,7 @@ describe.each([
     const { project, rows } = await table();
 
     const res = await api("put", url(project), token).send({
+      version: 0,
       rows: [{ _id: rows[0]._id.toString(), [field]: "Keep, edited" }, { [field]: "New" }],
     });
 
@@ -335,6 +336,7 @@ describe.each([
     const { project, rows } = await table();
 
     const res = await api("put", url(project), token).send({
+      version: 0,
       rows: [
         ...rows.map((r) => ({ _id: r._id.toString(), [field]: "Edited" })),
         { [field]: "New" },
@@ -351,9 +353,13 @@ describe.each([
     const { project } = await table();
     const locked = await createProject({ stage: "screening_approved" });
 
-    expect((await api("put", url(project), token).send({ rows: [{}] })).status).toBe(400);
-    expect((await api("put", url(project), viewer.token).send({ rows: [] })).status).toBe(403);
-    expect((await api("put", url(locked), token).send({ rows: [] })).status).toBe(409);
+    expect((await api("put", url(project), token).send({ version: 0, rows: [{}] })).status).toBe(
+      400
+    );
+    expect(
+      (await api("put", url(project), viewer.token).send({ version: 0, rows: [] })).status
+    ).toBe(403);
+    expect((await api("put", url(locked), token).send({ version: 0, rows: [] })).status).toBe(409);
     expect(await Model.countDocuments({ project: project._id })).toBe(3);
     expect(await AuditLog.countDocuments()).toBe(0);
   });

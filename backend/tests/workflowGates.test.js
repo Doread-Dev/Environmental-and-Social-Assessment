@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import request from "supertest";
 import { app, require } from "./helpers/app.js";
-import { createProject, loginAs, seedLookups } from "./helpers/fixtures.js";
+import { createProject, loginAs, seedLookups, withVersion } from "./helpers/fixtures.js";
 
 const Screening = require("../../src/models/screening.model");
 const Assessment = require("../../src/models/assessment.model");
@@ -15,7 +15,11 @@ const auth = (token) => ({ Authorization: `Bearer ${token}` });
 // Each gated tool: the stage just before its prerequisite is met, the first stage that unlocks
 // it, and its writes: create, change an existing row, (for tables) delete one. Tools 3–5 save
 // through the bulk endpoints (D32).
-const put = (url, body) => (token) => request(app).put(url).set(auth(token)).send(body);
+const put = (url, body) => async (token) =>
+  request(app)
+    .put(url)
+    .set(auth(token))
+    .send(await withVersion(url, body));
 
 const tools = [
   {

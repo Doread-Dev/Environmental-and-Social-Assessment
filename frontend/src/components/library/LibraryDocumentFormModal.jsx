@@ -5,7 +5,7 @@
  */
 import { useRef, useState } from 'react'
 import { Button, Icon, Input, Modal, Textarea } from '@/components/ui'
-import { useAuth } from '@/contexts'
+import { useAuth, useUnsavedChanges } from '@/contexts'
 import { extractErrorMessage } from '@/services/api'
 import { acceptAttribute, checkFile, formatBytes, libraryRules } from '@/utils/fileRules'
 import { PlacePicker } from './PlacePicker'
@@ -29,6 +29,13 @@ export function LibraryDocumentFormModal({ document, onSubmit, isSaving, onClose
   const [file, setFile] = useState(null)
   const [errors, setErrors] = useState({})
   const [formError, setFormError] = useState(null)
+  const submitting = useRef(false)
+  const isDirty =
+    title !== (document?.title ?? '') ||
+    description !== (document?.description ?? '') ||
+    order !== String(document?.order ?? 0) ||
+    places.join(',') !== (document?.places ?? []).join(',') ||
+    file !== null
 
   const pickFile = (event) => {
     const picked = event.target.files?.[0] ?? null
@@ -41,14 +48,16 @@ export function LibraryDocumentFormModal({ document, onSubmit, isSaving, onClose
     if (!refused && !title.trim()) setTitle(picked.name.replace(/\.pdf$/i, ''))
   }
 
-  const submit = async (event) => {
-    event.preventDefault()
+  // Validate and upload / save; also the shared guard's "Save" when leaving with changes (D61).
+  // One request per click: a double click uploads one document.
+  const save = async () => {
     const next = {}
     if (!title.trim()) next.title = 'Title is required'
     if (!/^\d+$/.test(order.trim())) next.order = 'Order is a whole number (0 or more)'
     if (!isEdit && !file) next.file = errors.file || 'Choose a PDF file'
     setErrors(next)
-    if (Object.values(next).some(Boolean)) return
+    if (Object.values(next).some(Boolean)) return { success: false }
+    if (submitting.current) return { success: false }
 
     const data = {
       title: title.trim(),
@@ -57,11 +66,23 @@ export function LibraryDocumentFormModal({ document, onSubmit, isSaving, onClose
       order: Number(order),
     }
     setFormError(null)
+    submitting.current = true
     try {
       await onSubmit(isEdit ? data : { ...data, file })
+      return { success: true }
     } catch (err) {
       setFormError(extractErrorMessage(err))
+      return { success: false }
+    } finally {
+      submitting.current = false
     }
+  }
+
+  useUnsavedChanges(isDirty, save)
+
+  const submit = (event) => {
+    event.preventDefault()
+    save()
   }
 
   return (

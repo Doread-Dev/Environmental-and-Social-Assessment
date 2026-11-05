@@ -7,11 +7,13 @@ const AssessmentImpactScore = require("../models/assessmentImpactScore.model");
 const ManagementActivity = require("../models/managementActivity.model");
 const MitigationPlan = require("../models/mitigationPlan.model");
 const MonitoringRecord = require("../models/monitoringRecord.model");
+const TableRevision = require("../models/tableRevision.model");
 const audit = require("./audit.service");
 const ProjectFile = require("../models/projectFile.model");
 const User = require("../models/user.model");
 const { removeProjectFiles } = require("./projectFile.service");
 const ApiError = require("../utils/ApiError");
+const { assertCurrentVersion, staleError, updateIfCurrent } = require("../utils/version");
 const {
   allowedActions,
   assertProjectWritable,
@@ -87,17 +89,30 @@ const getProject = async (id) => {
   return project;
 };
 
+// A project may end on the day it starts, never before (D74 1). On an update the date not sent is
+// the stored one.
+const assertDateOrder = (startDate, endDate) => {
+  if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
+    throw new ApiError(400, "End date cannot be before the start date");
+  }
+};
+
 const createProject = async (payload) => {
+  assertDateOrder(payload.start_date, payload.end_date);
   return Project.create(payload);
 };
 
-const updateProject = async (id, payload) => {
+// `version` = the `updatedAt` the client loaded (D62): a stale save → 409 STALE_VERSION.
+const updateProject = async (id, { version, ...payload }) => {
+  const project = await Project.findById(id);
+  if (!project) throw new ApiError(404, "Project not found");
+  assertCurrentVersion(project, version);
   await assertProjectWritable(id);
-  const updated = await Project.findByIdAndUpdate(id, payload, {
-    new: true,
-    runValidators: true,
+  assertDateOrder(payload.start_date ?? project.start_date, payload.end_date ?? project.end_date);
+  const updated = await updateIfCurrent(Project, { _id: id, archived: { $ne: true } }, version, {
+    $set: payload,
   });
-  if (!updated) throw new ApiError(404, "Project not found");
+  if (!updated) throw staleError();
   return updated;
 };
 
@@ -173,6 +188,7 @@ const removeProjectData = async (id) => {
   await ManagementActivity.deleteMany({ project: id });
   await MitigationPlan.deleteMany({ project: id });
   await MonitoringRecord.deleteMany({ project: id });
+  await TableRevision.deleteMany({ project: id });
 
   await Project.deleteOne({ _id: id });
   // Files last, once the DB delete has succeeded (D47); failures are logged, never thrown.

@@ -4,6 +4,11 @@
  *
  * Tool 2 of a project: the assessment with its methods, consultations and impact scores in one
  * cached query, and its writes (mutations). Each write refreshes the project's workflow state.
+ *
+ * Every content write carries the version the page shows (D62): the assessment's `updatedAt` in
+ * the cache when the request starts. Methods, consultations and scores answer the whole
+ * assessment, so the next write (e.g. consultations after methods, submit after scores) sends the
+ * version the previous one left.
  */
 
 import { useCallback } from 'react'
@@ -49,6 +54,8 @@ async function loadAssessment(projectId) {
 export const assessmentQuery = (projectId) => ({
   queryKey: queryKeys.assessment(projectId),
   queryFn: () => loadAssessment(projectId),
+  // Not behind an open form: a change by someone else is caught at save (409, D62)
+  refetchOnReconnect: false,
 })
 
 /**
@@ -59,7 +66,10 @@ export function useAssessment(projectId) {
   const query = useQuery({ ...assessmentQuery(projectId), enabled: !!projectId })
   const { assessment, methods, consultations, impactScores } = query.data ?? NOT_STARTED
   const assessmentId = assessment?._id
-  const { save, fail, isSaving, error, queryClient } = useProjectSave(projectId)
+  const { save, fail, isSaving, error, queryClient } = useProjectSave(
+    projectId,
+    queryKeys.assessment(projectId)
+  )
 
   // Merge a write's result into the cached query
   const store = useCallback(
@@ -71,14 +81,24 @@ export function useAssessment(projectId) {
     [queryClient, projectId]
   )
   const storeAssessment = useCallback((data) => store({ assessment: data }), [store])
+  // A write that answers the whole assessment (methods, consultations, scores)
+  const storeAll = useCallback((data) => store(splitAssessment(data)), [store])
 
-  // Every content write needs the record (the gateway creates it first)
+  // Every content write needs the record (the gateway creates it first). `request` gets the id
+  // and the version the page shows, read when the request starts (D62).
   const withAssessment = useCallback(
     (request, onSaved) =>
       assessmentId
-        ? save(() => request(assessmentId), onSaved)
+        ? save(
+            () =>
+              request(
+                assessmentId,
+                queryClient.getQueryData(queryKeys.assessment(projectId))?.assessment?.updatedAt
+              ),
+            onSaved
+          )
         : Promise.resolve(fail('Assessment record not found.')),
-    [assessmentId, save, fail]
+    [assessmentId, save, fail, queryClient, projectId]
   )
 
   /**
@@ -104,15 +124,18 @@ export function useAssessment(projectId) {
   const saveMetadata = useCallback(
     (data) => {
       if (!projectId) return Promise.resolve(fail('Missing project id.'))
-      return save(
-        () =>
-          assessmentId
-            ? assessmentService.update(assessmentId, data)
-            : assessmentService.create({ project: projectId, ...data }),
+      if (!assessmentId) {
+        return save(
+          () => assessmentService.create({ project: projectId, ...data }),
+          (created) => store(splitAssessment(created))
+        )
+      }
+      return withAssessment(
+        (id, version) => assessmentService.update(id, { ...data, version }),
         storeAssessment
       )
     },
-    [projectId, assessmentId, save, fail, storeAssessment]
+    [projectId, assessmentId, save, fail, store, withAssessment, storeAssessment]
   )
 
   /**
@@ -123,10 +146,10 @@ export function useAssessment(projectId) {
   const saveMethods = useCallback(
     (newMethods) =>
       withAssessment(
-        (id) => assessmentService.setMethods(id, newMethods),
-        (saved) => store({ methods: saved })
+        (id, version) => assessmentService.setMethods(id, newMethods, version),
+        storeAll
       ),
-    [withAssessment, store]
+    [withAssessment, storeAll]
   )
 
   /**
@@ -138,39 +161,40 @@ export function useAssessment(projectId) {
   const saveConsultations = useCallback(
     (newConsultations) =>
       withAssessment(
-        (id) => assessmentService.setConsultations(id, newConsultations),
-        (saved) => store({ consultations: saved })
+        (id, version) => assessmentService.setConsultations(id, newConsultations, version),
+        storeAll
       ),
-    [withAssessment, store]
+    [withAssessment, storeAll]
   )
 
   /**
    * حفظ نتائج التأثير (draft and before submit)
    * The backend recalculates the totals on every score change, so the assessment returned by
-   * the update below already carries them.
+   * the update below already carries them. The update sends the version the scores left (D62).
    */
   const saveImpactScores = useCallback(
     (scores, negativeImpact, positiveImpact) =>
       withAssessment(
-        async (id) => {
-          const savedScores = await assessmentService.addScores(id, scores)
+        async (id, version) => {
+          const scored = await assessmentService.addScores(id, scores, version)
+          storeAll(scored)
           const updated = await assessmentService.update(id, {
             potential_negative_impact: negativeImpact,
             potential_positive_impact: positiveImpact,
+            version: scored.updatedAt,
           })
-          return { savedScores, updated }
+          return { scored, updated }
         },
-        ({ savedScores, updated }) =>
-          store({ assessment: updated, impactScores: normalizeImpactScores(savedScores) })
+        ({ updated }) => storeAssessment(updated)
       ).then((result) => (result.success ? { ...result, data: result.data.updated } : result)),
-    [withAssessment, store]
+    [withAssessment, storeAll, storeAssessment]
   )
 
   /**
    * إرسال التقييم للموافقة
    */
   const submitAssessment = useCallback(
-    () => withAssessment((id) => assessmentService.submit(id), storeAssessment),
+    () => withAssessment((id, version) => assessmentService.submit(id, version), storeAssessment),
     [withAssessment, storeAssessment]
   )
 
@@ -203,6 +227,8 @@ export function useAssessment(projectId) {
     isLoading: !!projectId && query.isPending,
     isSaving,
     error: error ?? (query.error ? extractErrorMessage(query.error) : null),
+    // The assessment could not be read at all (not a failed save, not a failed background refresh)
+    loadError: query.error && query.data === undefined ? extractErrorMessage(query.error) : null,
     refetch: query.refetch,
     startAssessment,
     saveMetadata,

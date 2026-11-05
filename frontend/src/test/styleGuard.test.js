@@ -87,16 +87,10 @@ describe('style guard (D71)', () => {
     expect(findAll(/<select\b/g, { except: ['components/ui/Select.jsx'] })).toEqual([])
   })
 
-  it('asks for confirmation in the app ConfirmDialog, never window.confirm', () => {
-    // The three unsaved-changes prompts are replaced by phase 10a's shared guard (Save / Discard /
-    // Stay); no other file may add one.
-    const PHASE_10A = [
-      'pages/project-workspace/monitoring/MonitoringDataEntryPage.jsx',
-      'pages/project-workspace/semp/ManagementActivitiesPage.jsx',
-      'pages/project-workspace/semp/MitigationPlanPage.jsx',
-    ]
-    const hits = findAll(/window\.confirm\(/g, { except: PHASE_10A })
-    expect(hits).toEqual([])
+  it('asks for confirmation in the app ConfirmDialog, never window.confirm (allow-list empty)', () => {
+    // Phase 10a replaced the last three (unsaved changes in Tools 3, 4, 5) with the shared guard
+    // (contexts/UnsavedChangesContext: Save / Discard / Stay). No file may add one.
+    expect(findAll(/(?<![\w.])(?:window\.)?confirm\(/g)).toEqual([])
   })
 
   it('hides Material Symbols ligature text from screen readers (aria-hidden on icon spans)', () => {

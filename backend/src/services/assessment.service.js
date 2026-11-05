@@ -6,6 +6,7 @@ const ImpactQuestion = require("../models/impactQuestion.model");
 const ApiError = require("../utils/ApiError");
 const assertSameProject = require("../utils/assertSameProject");
 const { applyTransition, assertEditable, historyEntry } = require("../utils/statusTransition");
+const { assertCurrentVersion, staleError, updateIfCurrent } = require("../utils/version");
 const { assertProjectWritable, requireScreeningApproved } = require("./workflow.service");
 
 const LEVELS = ["negligible", "low", "medium", "high", "not_applicable"];
@@ -46,14 +47,32 @@ const withChildren = async (assessment) => {
 const getByProject = async (projectId) =>
   withChildren(await populateAssessment(Assessment.findOne({ project: projectId })));
 
-// Loads an assessment for a content edit: Tool 1 approved, project not archived, and the
-// assessment itself still draft or rejected.
-const loadEditable = async (id) => {
+const getWithChildren = async (id) => withChildren(await getAssessment(id));
+
+// Loads an assessment for a content edit: still the version the client loaded (its `updatedAt`,
+// D62 — checked first, so a user whose assessment changed meanwhile is told to reload), Tool 1
+// approved, project not archived, and the assessment itself still draft or rejected.
+const loadEditable = async (id, version) => {
   const assessment = await Assessment.findById(id);
   if (!assessment) throw new ApiError(404, "Assessment not found");
+  assertCurrentVersion(assessment, version);
   await requireScreeningApproved(assessment.project);
   assertEditable(assessment);
   return assessment;
+};
+
+// Moves the assessment to a new version (with `$set` applied) only while it still has `version`
+// and its status: two writes of the same version cannot both pass. Children writes (methods,
+// consultations, scores) claim it before they write.
+const claimVersion = async (assessment, version, $set = {}) => {
+  const updated = await updateIfCurrent(
+    Assessment,
+    { _id: assessment._id, status: assessment.status },
+    version,
+    { $set }
+  );
+  if (!updated) throw staleError();
+  return updated;
 };
 
 // Recomputes the per-level counts and total_project_impact from the saved scores.
@@ -64,9 +83,11 @@ const recalculate = async (assessmentId) => {
     counts[score.level] += 1;
   });
   const impact = PRIORITY.find((level) => counts[level] > 0) ?? null;
+  // The score write already moved the version (claimVersion): the totals don't move it again.
   await Assessment.updateOne(
     { _id: assessmentId },
-    { total_project_score: counts, total_project_impact: impact }
+    { total_project_score: counts, total_project_impact: impact },
+    { timestamps: false }
   );
 };
 
@@ -94,31 +115,24 @@ const createAssessment = async (payload, createdBy) => {
   return withChildren(await populateAssessment(Assessment.findById(created._id)));
 };
 
-const updateAssessment = async (id, payload, updatedBy) => {
-  const assessment = await Assessment.findById(id);
-  if (!assessment) throw new ApiError(404, "Assessment not found");
+const updateAssessment = async (id, { version, ...payload }, updatedBy) => {
+  const assessment = await loadEditable(id, version);
   assertSameProject(assessment, payload);
-  await loadEditable(id);
 
   const updateData = { ...payload };
   if (updatedBy && !assessment.officer) {
     updateData.officer = updatedBy;
   }
 
-  const updated = await populateAssessment(
-    Assessment.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    })
-  );
-  if (!updated) throw new ApiError(404, "Assessment not found");
-  return updated;
+  const updated = await claimVersion(assessment, version, updateData);
+  return populateAssessment(Assessment.findById(updated._id));
 };
 
 // Sets the level (and note) of the questions in the payload; questions not sent keep their
-// level. Recalculates the total impact. Returns all scores of the assessment.
-const addScores = async (assessmentId, scoresPayload) => {
-  await loadEditable(assessmentId);
+// level. Recalculates the total impact. Returns the assessment with its children (as
+// getByProject), so the client gets the new version and totals in one answer.
+const addScores = async (assessmentId, { version, scores: scoresPayload }) => {
+  const assessment = await loadEditable(assessmentId, version);
 
   const questionIds = scoresPayload.map((s) => String(s.question));
   if (new Set(questionIds).size !== questionIds.length) {
@@ -129,6 +143,7 @@ const addScores = async (assessmentId, scoresPayload) => {
     throw new ApiError(400, "One or more scores reference an unknown impact question");
   }
 
+  await claimVersion(assessment, version);
   await AssessmentImpactScore.bulkWrite(
     scoresPayload.map(({ question, level, note }) => ({
       updateOne: {
@@ -139,10 +154,10 @@ const addScores = async (assessmentId, scoresPayload) => {
     }))
   );
   await recalculate(assessmentId);
-  return AssessmentImpactScore.find({ assessment: assessmentId });
+  return getWithChildren(assessmentId);
 };
 
-const transition = async (id, action, userId, options) => {
+const transition = async (id, action, userId, options = {}) => {
   const assessment = await Assessment.findById(id).select("project");
   if (!assessment) throw new ApiError(404, "Assessment not found");
   await assertProjectWritable(assessment.project);
@@ -165,27 +180,38 @@ const assertAllQuestionsScored = async (id) => {
   }
 };
 
-// Required fields (D57) are checked when the assessment is submitted: it may start empty (D69).
+// Required fields (D57) are checked when the assessment is submitted: a draft may leave any of
+// them empty (D69). All four metadata fields are required at submit (D74 2).
 const REQUIRED_AT_SUBMIT = [
   ["project_activity", "Project activity"],
   ["description", "Description"],
+  ["environmental_setting", "Environmental setting"],
+  ["legal_requirements", "Legal requirements"],
 ];
+
+// "A", "A and B", "A, B and C"
+const listOf = (labels) =>
+  labels.length > 1 ? `${labels.slice(0, -1).join(", ")} and ${labels.at(-1)}` : labels[0];
 
 const assertRequiredFilled = (assessment) => {
   const missing = REQUIRED_AT_SUBMIT.filter(([field]) => isEmpty(assessment[field])).map(
     ([, label]) => label
   );
   if (missing.length) {
-    throw new ApiError(400, `Fill in ${missing.join(" and ")} before submitting`);
+    throw new ApiError(400, `Fill in ${listOf(missing)} before submitting`);
   }
 };
 
-const submitAssessment = async (id, submittedBy) => {
-  const assessment = await Assessment.findById(id).select("project_activity description");
+// `version` = the `updatedAt` the client loaded (D62): a stale submit → 409 before the checks.
+const submitAssessment = async (id, submittedBy, version) => {
+  const assessment = await Assessment.findById(id).select(
+    "project_activity description environmental_setting legal_requirements updatedAt"
+  );
   if (!assessment) throw new ApiError(404, "Assessment not found");
+  assertCurrentVersion(assessment, version);
   assertRequiredFilled(assessment);
   await assertAllQuestionsScored(id);
-  return transition(id, "submit", submittedBy);
+  return transition(id, "submit", submittedBy, { version });
 };
 
 const approveAssessment = async (id, approvedBy, recommendations) =>
@@ -194,21 +220,23 @@ const approveAssessment = async (id, approvedBy, recommendations) =>
 const rejectAssessment = async (id, rejectBy, rejectReason = null) =>
   transition(id, "reject", rejectBy, { rejectReason });
 
-const replaceMethods = async (assessmentId, payload) => {
-  await loadEditable(assessmentId);
-  await AssessmentMethod.deleteMany({ assessment: assessmentId });
-  if (!payload.length) return [];
-  const docs = payload.map((item) => ({ ...item, assessment: assessmentId }));
-  return AssessmentMethod.insertMany(docs);
+// Replaces a child list (methods, consultations) under a claimed version; returns the assessment
+// with its children (as getByProject).
+const replaceChildren = async (Model, assessmentId, version, items) => {
+  const assessment = await loadEditable(assessmentId, version);
+  await claimVersion(assessment, version);
+  await Model.deleteMany({ assessment: assessmentId });
+  if (items.length) {
+    await Model.insertMany(items.map((item) => ({ ...item, assessment: assessmentId })));
+  }
+  return getWithChildren(assessmentId);
 };
 
-const replaceConsultations = async (assessmentId, payload) => {
-  await loadEditable(assessmentId);
-  await CommunityConsultation.deleteMany({ assessment: assessmentId });
-  if (!payload.length) return [];
-  const docs = payload.map((item) => ({ ...item, assessment: assessmentId }));
-  return CommunityConsultation.insertMany(docs);
-};
+const replaceMethods = async (assessmentId, { version, methods }) =>
+  replaceChildren(AssessmentMethod, assessmentId, version, methods);
+
+const replaceConsultations = async (assessmentId, { version, consultations }) =>
+  replaceChildren(CommunityConsultation, assessmentId, version, consultations);
 
 module.exports = {
   getAssessment,

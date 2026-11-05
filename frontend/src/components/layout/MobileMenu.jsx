@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { NavLink, useLocation, useParams, useNavigate } from 'react-router-dom'
 import { cn } from '@/utils'
 import { isStepDone, isStepLocked as isWorkflowStepLocked } from '@/utils/workflowSteps'
-import { useTheme, useAuth, ROLE_LABELS } from '@/contexts'
+import { useTheme, useAuth, useConfirmLeave, ROLE_LABELS } from '@/contexts'
 import {
   MAIN_NAV_ITEMS,
   PROJECT_WORKFLOW_NAV,
@@ -30,6 +30,8 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
   const navigate = useNavigate()
   const { isDark, toggleTheme } = useTheme()
   const { user, logout, canAccessSettings } = useAuth()
+  // Signing out of a page with unsaved changes asks Save / Discard / Stay first (D61)
+  const confirmLeave = useConfirmLeave()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
   // User menu items (filtered by role)
@@ -121,10 +123,12 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
   const userRoleLabel = user?.role ? ROLE_LABELS[user.role] || user.role : ''
 
   const handleLogout = () => {
-    logout()
     setIsUserMenuOpen(false)
     onClose()
-    navigate(ROUTES.LOGIN, { replace: true })
+    confirmLeave(() => {
+      logout()
+      navigate(ROUTES.LOGIN, { replace: true })
+    })
   }
 
   // Render expandable nav item (for project variant)

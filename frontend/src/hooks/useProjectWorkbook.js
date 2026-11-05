@@ -44,37 +44,36 @@ export function useProjectWorkbook(projectId) {
     const load = (queryKey, queryFn) => queryClient.ensureQueryData({ queryKey, queryFn })
     setIsExporting(true)
     try {
-      const [screening, tool2, management, mitigation, records, lookups, excel] = await Promise.all(
-        [
-          tools.tool1
-            ? load(queryKeys.screening(projectId), () => screeningService.getByProject(projectId))
-            : null,
-          tools.tool2 ? queryClient.ensureQueryData(assessmentQuery(projectId)) : null,
-          tools.tool3
-            ? load(queryKeys.management(projectId), () =>
-                sempService.getManagementActivities(projectId)
-              )
-            : [],
-          tools.tool4
-            ? load(queryKeys.mitigation(projectId), () => sempService.getMitigationPlans(projectId))
-            : [],
-          tools.tool5
-            ? load(queryKeys.monitoring(projectId), () => monitoringService.getByProject(projectId))
-            : [],
-          // Questions (Tool 2) and indicators (Tool 5) come from the lookups
-          tools.tool2 || tools.tool5 ? queryClient.ensureQueryData(lookupsQuery) : null,
-          import('@/utils/excelExport'),
-        ]
-      )
+      const [screening, tool2, tool3, tool4, tool5, lookups, excel] = await Promise.all([
+        tools.tool1
+          ? load(queryKeys.screening(projectId), () => screeningService.getByProject(projectId))
+          : null,
+        tools.tool2 ? queryClient.ensureQueryData(assessmentQuery(projectId)) : null,
+        tools.tool3
+          ? load(queryKeys.management(projectId), () =>
+              sempService.getManagementActivities(projectId)
+            )
+          : null,
+        tools.tool4
+          ? load(queryKeys.mitigation(projectId), () => sempService.getMitigationPlans(projectId))
+          : null,
+        tools.tool5
+          ? load(queryKeys.monitoring(projectId), () => monitoringService.getByProject(projectId))
+          : null,
+        // Questions (Tool 2) and indicators (Tool 5) come from the lookups
+        tools.tool2 || tools.tool5 ? queryClient.ensureQueryData(lookupsQuery) : null,
+        import('@/utils/excelExport'),
+      ])
       const categories = sortedCategories(lookups)
       const fileName = await excel.exportProjectWorkbook({
         project: workspace.project,
         workflow: workspace.workflow,
         screening,
         assessment: tool2 ?? { assessment: null },
-        management,
-        mitigation,
-        records,
+        // Tables are cached with their revision (D62): `{ rows | records, version }`
+        management: tool3?.rows ?? [],
+        mitigation: tool4?.rows ?? [],
+        records: tool5?.records ?? [],
         categoriesWithQuestions: lookups ? withQuestions(categories, lookups.impactQuestions) : [],
         categoriesWithIndicators: lookups ? withIndicators(categories, lookups.indicators) : [],
       })

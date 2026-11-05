@@ -10,7 +10,8 @@
  * - زر Edit Project
  */
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useUnsavedChanges } from '@/contexts'
 import {
   Alert,
   Button,
@@ -42,15 +43,25 @@ const normalizeDateInput = (value) => {
  * @param {boolean} props.showEditButton - عرض زر التعديل (default: true)
  * @param {Function} props.onEdit - callback عند النقر على التعديل
  */
+const FORM_FIELDS = ['title', 'location', 'startDate', 'endDate', 'description']
+const EMPTY_FORM = { title: '', location: '', startDate: '', endDate: '', description: '' }
+
+// The edit form as the project is now
+const formFromProject = (project) => ({
+  title: project.title || project.name || '',
+  location: project.location || '',
+  startDate: normalizeDateInput(project.start_date || project.startDate || ''),
+  endDate: normalizeDateInput(project.end_date || project.endDate || ''),
+  description: project.project_component || project.description || '',
+})
+
 function ProjectHeader({ project, status, showEditButton = true, onEdit, className, ...props }) {
   const [isEditOpen, setIsEditOpen] = useState(false)
-  const [formData, setFormData] = useState({
-    title: '',
-    location: '',
-    startDate: '',
-    endDate: '',
-    description: '',
-  })
+  const [formData, setFormData] = useState(EMPTY_FORM)
+  // The form and the project version when the dialog opened (D62): a refresh of the project in
+  // the background never replaces what is being typed, and a change by someone else meanwhile
+  // is caught at save (409)
+  const [opened, setOpened] = useState({ form: EMPTY_FORM, version: null })
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [generalError, setGeneralError] = useState('')
@@ -58,23 +69,70 @@ function ProjectHeader({ project, status, showEditButton = true, onEdit, classNa
   const location = project?.location || ''
   const startDate = project?.start_date || project?.startDate || ''
   const endDate = project?.end_date || project?.endDate || ''
-  const description = project?.project_component || project?.description || ''
 
   // Format dates
   const dateRange = startDate && endDate ? `${formatDate(startDate)} – ${formatDate(endDate)}` : ''
 
-  useEffect(() => {
-    if (!isEditOpen || !project) return
-    setFormData({
-      title: project.title || project.name || '',
-      location: project.location || '',
-      startDate: normalizeDateInput(startDate),
-      endDate: normalizeDateInput(endDate),
-      description,
-    })
+  const isDirty = isEditOpen && FORM_FIELDS.some((field) => formData[field] !== opened.form[field])
+
+  const openEdit = () => {
+    const form = formFromProject(project)
+    setFormData(form)
+    setOpened({ form, version: project.updatedAt })
     setErrors({})
     setGeneralError('')
-  }, [description, isEditOpen, project, startDate, endDate])
+    setIsEditOpen(true)
+  }
+
+  // Validate and save; also the shared guard's "Save" when leaving with the dialog open (D61)
+  const saveEdit = async () => {
+    setGeneralError('')
+
+    const validation = validateProjectForm({
+      title: formData.title,
+      location: formData.location,
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      description: formData.description,
+    })
+
+    if (!validation.valid) {
+      setErrors(validation.errors)
+      return { success: false }
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const payload = {
+        title: formData.title.trim(),
+        location: formData.location.trim(),
+        start_date: formData.startDate,
+        end_date: formData.endDate,
+        project_component: formData.description.trim(),
+        version: opened.version,
+      }
+
+      if (onEdit) {
+        const result = await onEdit(payload)
+        if (result && result.success === false) {
+          // A stale save or an expired session is shown by its own dialog (D73)
+          if (!result.handled) setGeneralError(result.error || 'Failed to update project.')
+          return result
+        }
+      }
+
+      setIsEditOpen(false)
+      return { success: true }
+    } catch {
+      setGeneralError('An error occurred while updating the project. Please try again.')
+      return { success: false }
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  useUnsavedChanges(isDirty, saveEdit)
 
   // Early return after hooks
   if (!project) return null
@@ -93,48 +151,9 @@ function ProjectHeader({ project, status, showEditButton = true, onEdit, classNa
     setIsEditOpen(false)
   }
 
-  const handleSave = async (e) => {
+  const handleSave = (e) => {
     e.preventDefault()
-    setGeneralError('')
-
-    const validation = validateProjectForm({
-      title: formData.title,
-      location: formData.location,
-      startDate: formData.startDate,
-      endDate: formData.endDate,
-      description: formData.description,
-    })
-
-    if (!validation.valid) {
-      setErrors(validation.errors)
-      return
-    }
-
-    setIsSubmitting(true)
-
-    try {
-      const payload = {
-        title: formData.title.trim(),
-        location: formData.location.trim(),
-        start_date: formData.startDate,
-        end_date: formData.endDate,
-        project_component: formData.description.trim(),
-      }
-
-      if (onEdit) {
-        const result = await onEdit(payload)
-        if (result && result.success === false) {
-          setGeneralError(result.error || 'Failed to update project.')
-          return
-        }
-      }
-
-      setIsEditOpen(false)
-    } catch {
-      setGeneralError('An error occurred while updating the project. Please try again.')
-    } finally {
-      setIsSubmitting(false)
-    }
+    saveEdit()
   }
 
   // Mock team members (في الإنتاج سيأتي من API)
@@ -203,7 +222,7 @@ function ProjectHeader({ project, status, showEditButton = true, onEdit, classNa
       <div className="flex items-center gap-4">
         {/* Edit Button */}
         {showEditButton && (
-          <Button variant="secondary" onClick={() => setIsEditOpen(true)}>
+          <Button variant="secondary" onClick={openEdit}>
             Edit Project
           </Button>
         )}

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import request from "supertest";
 import { app, require } from "./helpers/app.js";
-import { createProject, loginAs, seedLookups } from "./helpers/fixtures.js";
+import { createProject, loginAs, seedLookups, withVersion } from "./helpers/fixtures.js";
 import { listRoutes } from "./helpers/routes.js";
 
 const access = require("../../src/services/access.service");
@@ -94,8 +94,9 @@ async function fixture() {
   return { project, other, screening, assessment, record, file, question };
 }
 
-// Concrete URL and a body that passes validation (the by-record checks run after validate).
-function requestFor(route, ids) {
+// Concrete URL and a body that passes validation (the by-record checks run after validate),
+// with the current version where the route needs one (D62).
+async function requestFor(route, ids) {
   const recordId = {
     "/screenings": ids.screening._id,
     "/assessments": ids.assessment._id,
@@ -110,12 +111,20 @@ function requestFor(route, ids) {
   const bodies = {
     "post /screenings": { project, category_code: "B", category_reason: "r" },
     "post /assessments": { project, description: "d", project_activity: "a" },
-    "put /assessments/:id/methods": [],
-    "put /assessments/:id/consultations": [],
-    "post /assessments/:id/scores": [{ question: ids.question._id.toString(), level: "low" }],
+    "put /assessments/:id/methods": { methods: [] },
+    "put /assessments/:id/consultations": { consultations: [] },
+    "post /assessments/:id/scores": {
+      scores: [{ question: ids.question._id.toString(), level: "low" }],
+    },
+    "put /projects/:id/management": { rows: [] },
+    "put /projects/:id/mitigation": { rows: [] },
+    "put /projects/:id/monitoring": { records: [] },
     "patch /files/:fileId": { category: null },
+    "patch /screenings/:id/approve": { recommendations: "ok" },
+    "patch /assessments/:id/approve": { recommendations: "ok" },
   };
-  return { url: `/api/v1${url}`, body: bodies[route.key] ?? {} };
+  const full = `/api/v1${url}`;
+  return { url: full, body: await withVersion(full, bodies[route.key] ?? {}) };
 }
 
 describe("deny stub: a denied project answers 404, not 403 (D66a)", () => {
@@ -123,7 +132,7 @@ describe("deny stub: a denied project answers 404, not 403 (D66a)", () => {
     const ids = await fixture();
     const { token } = await loginAs("admin");
     const spy = vi.spyOn(access, "assertProjectAccess").mockRejectedValue(access.noAccess());
-    const { url, body } = requestFor(route, ids);
+    const { url, body } = await requestFor(route, ids);
 
     const res = await request(app)[route.method](url).set(auth(token)).send(body);
 

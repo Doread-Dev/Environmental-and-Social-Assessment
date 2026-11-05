@@ -6,10 +6,10 @@
  * `permissions`; per-project `allowed_actions` (workspace, project list) add the workflow state.
  * The frontend keeps no role lists of its own.
  */
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { authService } from '@/services/authService'
-import { extractErrorMessage } from '@/services/api'
+import { extractErrorMessage, setSessionExpiredHandler } from '@/services/api'
 import { queryKeys } from '@/services/queryKeys'
 import { AuthContext } from './useAuth'
 import { USER_ROLES, ROLE_LABELS } from '@/utils/roles'
@@ -35,6 +35,9 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(readStoredAuth)
   const [isLoggingIn, setIsLoggingIn] = useState(false)
   const [error, setError] = useState(null)
+  // The token stopped working while this user was signed in (D73): the sign-in dialog is open
+  // over the page; nothing is unmounted, so typed input stays.
+  const [sessionExpired, setSessionExpired] = useState(false)
 
   const isAuthenticated = !!session.token && !!session.user
 
@@ -54,6 +57,18 @@ export function AuthProvider({ children }) {
   const mustChangePassword = !!user?.must_change_password
   // Wait for the permissions once per session so guards and buttons don't flicker.
   const isLoading = isLoggingIn || (isAuthenticated && meQuery.isPending)
+
+  // A 401 while a user is loaded opens the sign-in dialog instead of leaving the page (D73). With
+  // no user loaded (first load, bad token) api.js still goes to the login page.
+  const userLoaded = isAuthenticated && !!meQuery.data
+  useEffect(() => {
+    if (!userLoaded) return undefined
+    setSessionExpiredHandler(() => {
+      setSessionExpired(true)
+      return true
+    })
+    return () => setSessionExpiredHandler(null)
+  }, [userLoaded])
 
   /**
    * Login user
@@ -86,8 +101,33 @@ export function AuthProvider({ children }) {
     authService.logout()
     setSession({ user: null, token: null })
     setError(null)
+    setSessionExpired(false)
     queryClient.clear()
   }, [queryClient])
+
+  /**
+   * Sign in again after the session expired, as the same user, without leaving the page (D73).
+   * The page and what was typed stay; writes are not retried (the user presses Save again);
+   * reads that failed meanwhile are fetched again.
+   * @param {string} password
+   * @returns {Promise<{success: boolean, error?: string}>}
+   */
+  const reauthenticate = useCallback(
+    async (password) => {
+      const email = (meQuery.data?.user ?? session.user)?.email
+      try {
+        const { user: userData, token: authToken } = await authService.login(email, password)
+        setSession({ user: userData, token: authToken })
+        setSessionExpired(false)
+        queryClient.invalidateQueries({ queryKey: queryKeys.me })
+        queryClient.refetchQueries({ predicate: (query) => query.state.status === 'error' })
+        return { success: true }
+      } catch (err) {
+        return { success: false, error: extractErrorMessage(err) }
+      }
+    },
+    [meQuery.data, session.user, queryClient]
+  )
 
   /**
    * Change own password (D23). Puts the fresh user/permissions into the cache, which also lifts a
@@ -132,10 +172,12 @@ export function AuthProvider({ children }) {
       passwordRules,
       uploadRules,
       mustChangePassword,
+      sessionExpired,
 
       // Actions
       login,
       logout,
+      reauthenticate,
       changePassword,
       clearError,
 
@@ -167,8 +209,10 @@ export function AuthProvider({ children }) {
       passwordRules,
       uploadRules,
       mustChangePassword,
+      sessionExpired,
       login,
       logout,
+      reauthenticate,
       changePassword,
       clearError,
       can,

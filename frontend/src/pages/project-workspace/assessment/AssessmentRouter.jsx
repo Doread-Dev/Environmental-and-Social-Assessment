@@ -8,7 +8,7 @@ import { useAssessment, useProjectContext } from '@/hooks'
 import { isStepLocked } from '@/utils/workflowSteps'
 import AssessmentGatewayPage from './AssessmentGatewayPage'
 import AssessmentReviewPage from './AssessmentReviewPage'
-import { LoadingState } from '@/components/ui'
+import { ErrorState, LoadingState } from '@/components/ui'
 
 /**
  * Assessment Workflow Flow:
@@ -27,7 +27,15 @@ import { LoadingState } from '@/components/ui'
 export default function AssessmentRouter() {
   const { projectId } = useParams()
   const { workflow } = useProjectContext()
-  const { assessment, isLoading } = useAssessment(projectId)
+  const { assessment, isLoading, loadError, refetch } = useAssessment(projectId)
+
+  // A failed read is shown here, before the pages below mount the same query (a new observer of
+  // a failed query refetches it, which would loop between this router and the page)
+  if (loadError) {
+    return (
+      <ErrorState title="Failed to load the assessment" message={loadError} onRetry={refetch} />
+    )
+  }
 
   if (isLoading) {
     return <LoadingState message="Loading assessment..." />

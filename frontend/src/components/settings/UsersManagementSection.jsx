@@ -102,8 +102,10 @@ export function UsersManagementSection() {
         setTemporary({ user: result.user, password: result.temporary_password })
       }
       setForm(null)
+      return { success: true }
     } catch (err) {
       toast.error(extractErrorMessage(err))
+      return { success: false }
     }
   }
 

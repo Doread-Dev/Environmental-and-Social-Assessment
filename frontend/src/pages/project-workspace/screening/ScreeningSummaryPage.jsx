@@ -21,6 +21,7 @@ import {
   PAGE_TITLE,
 } from '@/components/ui'
 import { useProjectContext, useScreening } from '@/hooks'
+import { ReviewDecisionDialog } from '@/components/review'
 import { useAuth } from '@/contexts'
 import { getReviewer, positionOf } from '@/utils/reviewer'
 import { getScreeningCategory } from '@/utils/screeningDisplay'
@@ -49,6 +50,8 @@ function ScreeningSummaryPage() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [showRejectInput, setShowRejectInput] = useState(false)
   const [rejectReasonInput, setRejectReasonInput] = useState('')
+  // Approve and reject ask first, in the same dialog as the assessment (D74 6)
+  const [decision, setDecision] = useState(null)
 
   // Handlers - must be defined before conditional returns
   const handleExport = useCallback(async () => {
@@ -76,14 +79,16 @@ function ScreeningSummaryPage() {
   }, [navigate, projectId])
 
   const handleApprove = useCallback(async () => {
-    // Recommendations are optional on approval (D56)
+    // Recommendations are required to approve (D74 5, replaces D56's "optional")
+    if (!recommendations.trim()) return
     setIsProcessing(true)
     try {
       const result = await approveScreening(recommendations)
 
       if (result.success) {
         toast.success('Screening approved successfully!')
-      } else {
+      } else if (!result.handled) {
+        // An expired session has its own dialog (D73)
         toast.error(result.error || 'Failed to approve screening. Please try again.')
       }
     } catch {
@@ -106,7 +111,7 @@ function ScreeningSummaryPage() {
         setShowRejectInput(false)
         setRejectReasonInput('')
         toast.success('Screening rejected.')
-      } else {
+      } else if (!result.handled) {
         toast.error(result.error || 'Failed to reject screening. Please try again.')
       }
     } catch {
@@ -449,15 +454,18 @@ function ScreeningSummaryPage() {
                   <div className="col-span-1 md:col-span-2">
                     <Textarea
                       label="Recommendations / Next Steps"
-                      placeholder="Enter any specific recommendations for the project team (optional)..."
+                      placeholder="Enter the recommendations for the project team..."
                       rows={3}
                       value={recommendations}
                       onChange={(e) => setRecommendations(e.target.value)}
                       disabled={
                         status === 'approved' || status === 'rejected' || !canApproveScreening
                       }
-                      helperText={
-                        status === 'submitted' && canApproveScreening ? 'Optional' : undefined
+                      required={status === 'submitted' && canApproveScreening}
+                      error={
+                        status === 'submitted' && canApproveScreening && !recommendations.trim()
+                          ? 'Recommendations are required to approve the screening'
+                          : undefined
                       }
                     />
                   </div>
@@ -500,7 +508,7 @@ function ScreeningSummaryPage() {
                         <Button
                           variant="danger"
                           type="button"
-                          onClick={handleConfirmReject}
+                          onClick={() => setDecision('reject')}
                           disabled={isProcessing}
                         >
                           <span className="material-symbols-outlined text-lg" aria-hidden="true">
@@ -529,8 +537,8 @@ function ScreeningSummaryPage() {
                       <Button
                         variant="primary"
                         type="button"
-                        onClick={handleApprove}
-                        disabled={isProcessing}
+                        onClick={() => setDecision('approve')}
+                        disabled={isProcessing || !recommendations.trim()}
                       >
                         <span className="material-symbols-outlined text-lg" aria-hidden="true">
                           verified
@@ -540,6 +548,20 @@ function ScreeningSummaryPage() {
                     </>
                   )}
                 </div>
+              )}
+
+              {decision && (
+                <ReviewDecisionDialog
+                  decision={decision}
+                  tool="screening"
+                  isLoading={isProcessing}
+                  onClose={() => setDecision(null)}
+                  onConfirm={async () => {
+                    if (decision === 'approve') await handleApprove()
+                    else await handleConfirmReject()
+                    setDecision(null)
+                  }}
+                />
               )}
 
               {status === 'approved' && (

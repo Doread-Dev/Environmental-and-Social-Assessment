@@ -9,6 +9,9 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMonitoring, useProjectContext, useLookups, useUsers } from '@/hooks'
 import { assessmentQuery } from '@/hooks/useAssessment'
+import { useUnsavedChanges } from '@/contexts'
+import { queryKeys } from '@/services/queryKeys'
+import { UnsavedExportDialog } from '@/components/export'
 import { isStepLocked } from '@/utils/workflowSteps'
 import { MonitoringDataTable } from '@/components/tables'
 import {
@@ -47,7 +50,6 @@ export default function MonitoringDataEntryPage() {
     isLoading,
     isSaving,
     error,
-    records,
   } = useMonitoring(projectId)
 
   const [expandedCategories, setExpandedCategories] = useState(
@@ -55,6 +57,9 @@ export default function MonitoringDataEntryPage() {
   )
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [justSaved, setJustSaved] = useState(false)
+  // Export with unsaved values: save first (D74 3)
+  const [confirmUnsavedExport, setConfirmUnsavedExport] = useState(false)
+  const [isSavingForExport, setIsSavingForExport] = useState(false)
   const categoryIconMap = {
     A: {
       icon: 'air',
@@ -109,22 +114,23 @@ export default function MonitoringDataEntryPage() {
       setHasUnsavedChanges(false)
       setJustSaved(true)
     }
+    return result
   }
 
-  const handleBack = () => {
-    if (hasUnsavedChanges) {
-      if (!window.confirm('You have unsaved changes. Are you sure you want to leave?')) {
-        return
-      }
-    }
-    navigate(`/app/projects/${projectId}/monitoring`)
-  }
+  // Leaving with unsaved values (Cancel, sidebar, browser Back, refresh) asks Save / Discard /
+  // Stay in the shared in-app dialog (D61); window.confirm was suppressed by embedded browsers.
+  useUnsavedChanges(canEdit && hasUnsavedChanges, handleSave)
 
-  const handleExport = useCallback(async () => {
+  const handleBack = () => navigate(`/app/projects/${projectId}/monitoring`)
+
+  // The file always holds what is saved (D74 3): the cached records and the current status
+  const exportSaved = useCallback(async () => {
     try {
       const { exportTool, exportStatus } = await import('@/utils/excelExport')
       // The full assessment (officer) is only needed here: loaded on export, then cached
       const { assessment } = await queryClient.ensureQueryData(assessmentQuery(projectId))
+      const records = queryClient.getQueryData(queryKeys.monitoring(projectId))?.records ?? []
+      const current = queryClient.getQueryData(queryKeys.workspace(projectId))?.workflow
       const fileName = await exportTool(
         'tool5',
         {
@@ -134,24 +140,35 @@ export default function MonitoringDataEntryPage() {
           records,
           categoriesWithIndicators,
         },
-        exportStatus(workflow, 'tool5')
+        exportStatus(current ?? workflow, 'tool5')
       )
       toast.success(`Downloaded ${fileName}`)
     } catch (error) {
       console.error('Export error:', error)
       toast.error('Failed to export Excel file')
     }
-  }, [project, projectId, queryClient, records, categoriesWithIndicators, workflow, toast])
+  }, [project, projectId, queryClient, categoriesWithIndicators, workflow, toast])
 
+  // The header's Export: with unsaved values, ask to save first
   useEffect(() => {
     const handleExportEvent = () => {
-      handleExport()
+      if (canEdit && hasUnsavedChanges) setConfirmUnsavedExport(true)
+      else exportSaved()
     }
     window.addEventListener('monitoring-export', handleExportEvent)
     return () => {
       window.removeEventListener('monitoring-export', handleExportEvent)
     }
-  }, [handleExport])
+  }, [canEdit, hasUnsavedChanges, exportSaved])
+
+  // "Save and export": a failed save (its error, or the stale dialog) exports nothing
+  const saveAndExport = async () => {
+    setIsSavingForExport(true)
+    const result = await handleSave()
+    setIsSavingForExport(false)
+    setConfirmUnsavedExport(false)
+    if (result.success) await exportSaved()
+  }
 
   const getSaveButtonContent = () => {
     if (isSaving) {
@@ -356,6 +373,14 @@ export default function MonitoringDataEntryPage() {
           })}
         </section>
       </div>
+
+      {confirmUnsavedExport && (
+        <UnsavedExportDialog
+          isSaving={isSavingForExport}
+          onSaveAndExport={saveAndExport}
+          onClose={() => setConfirmUnsavedExport(false)}
+        />
+      )}
     </div>
   )
 }

@@ -41,8 +41,9 @@ export const screeningService = {
    * @param {string} id
    * @returns {Promise<Object>}
    */
-  async submit(id) {
-    const response = await api.patch(`/screenings/${id}/submit`)
+  async submit(id, version) {
+    // `version` = the `updatedAt` of the screening the user saw (D62)
+    const response = await api.patch(`/screenings/${id}/submit`, { version })
     return response.data.data
   },
 

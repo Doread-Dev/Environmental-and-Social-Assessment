@@ -14,7 +14,8 @@
 //
 // Usage (backend must be running, lookups seeded):
 //   SEED_EMAIL=... SEED_PASSWORD=... [DEMO_PASSWORD=...] node scripts/seed-demo-project.js
-// The account must be an admin (user management is admin only, D21).
+// The account must be an admin (user management is admin only, D21). Every write sends the
+// version it just read, like the app (D62).
 require("dotenv").config();
 
 if (process.env.NODE_ENV === "production") {
@@ -75,6 +76,14 @@ async function call(method, path, body, as = token) {
     throw new Error(`${method} ${path} -> ${res.status}: ${json.error || JSON.stringify(json)}`);
   }
   return json.data;
+}
+
+// The table's revision (D62), sent back with its bulk save.
+async function tableVersion(path) {
+  const res = await fetch(`${API_URL}${path}`, { headers: { Authorization: `Bearer ${token}` } });
+  const json = await res.json();
+  if (!res.ok) throw new Error(`GET ${path} -> ${res.status}: ${json.error}`);
+  return json.version;
 }
 
 // Multipart upload (the library takes the file and its fields in one request).
@@ -163,6 +172,16 @@ async function main() {
     throw new Error("SEED account must be an admin (user management is admin only)");
   }
 
+  // The lookups (impact questions, indicators) come from `npm run seed`; without them the
+  // assessment and monitoring steps cannot be filled. Checked before anything is written.
+  const lookups = await call("GET", "/lookups");
+  if (!lookups.impact_questions?.length || !lookups.indicators?.length) {
+    throw new Error(
+      "The lookup data is missing (no impact questions or indicators). Run `npm run seed` in " +
+        "backend/ first, then run this script again. Nothing was changed."
+    );
+  }
+
   await seedDemoUsers(login.user.email);
   await removePreviousDemos();
 
@@ -189,7 +208,7 @@ async function main() {
       "Reliable access to safe drinking water for ~12,000 residents, reduced network leakage and lower waterborne disease risk.",
     screening_date: "2026-01-20",
   });
-  await call("PATCH", `/screenings/${screening._id}/submit`);
+  await call("PATCH", `/screenings/${screening._id}/submit`, { version: screening.updatedAt });
   await call("PATCH", `/screenings/${screening._id}/approve`, {
     recommendations: "Proceed to a full environmental & social assessment (Tool 2).",
   });
@@ -214,31 +233,37 @@ async function main() {
   });
   const assessmentId = assessment._id;
 
-  await call("PUT", `/assessments/${assessmentId}/methods`, [
-    { method_type: "field_visits", details: "Site walk-through on 2026-02-03 and 2026-02-10" },
-    {
-      method_type: "technical_reports",
-      details: "Water authority network condition survey (2025)",
-    },
-    {
-      method_type: "akfs_guidelines",
-      details: "AKF environmental screening & assessment guidelines",
-    },
-  ]);
-  await call("PUT", `/assessments/${assessmentId}/consultations`, [
-    {
-      type: "village_meetings",
-      participants: "Neighbourhood committee and 25 residents",
-      notes: "Requested night-time work to be avoided near the school.",
-    },
-    {
-      type: "community_interviews",
-      participants: "Shop owners in the market street",
-      notes: "Concern about access during trenching; agreed on phased works.",
-    },
-  ]);
+  // Each write answers the assessment with its new version, sent with the next one (D62).
+  const withMethods = await call("PUT", `/assessments/${assessmentId}/methods`, {
+    version: assessment.updatedAt,
+    methods: [
+      { method_type: "field_visits", details: "Site walk-through on 2026-02-03 and 2026-02-10" },
+      {
+        method_type: "technical_reports",
+        details: "Water authority network condition survey (2025)",
+      },
+      {
+        method_type: "akfs_guidelines",
+        details: "AKF environmental screening & assessment guidelines",
+      },
+    ],
+  });
+  const withConsultations = await call("PUT", `/assessments/${assessmentId}/consultations`, {
+    version: withMethods.updatedAt,
+    consultations: [
+      {
+        type: "village_meetings",
+        participants: "Neighbourhood committee and 25 residents",
+        notes: "Requested night-time work to be avoided near the school.",
+      },
+      {
+        type: "community_interviews",
+        participants: "Shop owners in the market street",
+        notes: "Concern about access during trenching; agreed on phased works.",
+      },
+    ],
+  });
 
-  const lookups = await call("GET", "/lookups");
   const questions = lookups.impact_questions;
   // Only the questions that differ from Negligible: a few low/medium and one high, so the
   // total impact (recalculated by the backend) is meaningful.
@@ -249,8 +274,11 @@ async function main() {
       note: "",
     }))
     .filter((s) => s.level !== "negligible");
-  await call("POST", `/assessments/${assessmentId}/scores`, scores);
-  await call("PATCH", `/assessments/${assessmentId}/submit`);
+  const scored = await call("POST", `/assessments/${assessmentId}/scores`, {
+    version: withConsultations.updatedAt,
+    scores,
+  });
+  await call("PATCH", `/assessments/${assessmentId}/submit`, { version: scored.updatedAt });
   await call("PATCH", `/assessments/${assessmentId}/approve`, {
     recommendations: "Prepare SEMP with dust, noise and traffic management measures.",
   });
@@ -279,6 +307,7 @@ async function main() {
   ];
   // The whole table in one request (D32), numbered by position.
   await call("PUT", `/projects/${projectId}/management`, {
+    version: await tableVersion(`/management/project/${projectId}`),
     rows: activities.map((a, i) => ({
       // Responsible is a user or an external party (D55); the last row uses the contractor.
       ...(i === activities.length - 1
@@ -316,6 +345,7 @@ async function main() {
     },
   ];
   await call("PUT", `/projects/${projectId}/mitigation`, {
+    version: await tableVersion(`/mitigation/project/${projectId}`),
     rows: plans.map((p) => ({ responsible: userId, notes: "", ...p })),
   });
   console.log(`Tool 4 (mitigation plan): ${plans.length} rows`);
@@ -341,7 +371,10 @@ async function main() {
       note: "",
     };
   });
-  await call("PUT", `/projects/${projectId}/monitoring`, { records });
+  await call("PUT", `/projects/${projectId}/monitoring`, {
+    version: await tableVersion(`/monitoring/project/${projectId}`),
+    records,
+  });
   console.log(`Tool 5 (monitoring): ${indicators.length} indicator records, Q1–Q4 filled`);
 
   await seedLibraryDocument();

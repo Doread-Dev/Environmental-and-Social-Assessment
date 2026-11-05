@@ -7,11 +7,13 @@ import { useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment, useProjectContext } from '@/hooks'
 import { useLookups } from '@/hooks'
+import { useUnsavedChanges } from '@/contexts'
 import {
   calculateTotalScore,
   calculateTotalImpact,
   changedQuestionsSummary,
 } from '@/utils/impactCalculations'
+import { assessmentSubmitError } from '@/utils/validators'
 import {
   ImpactCategoryAccordion,
   TotalScoreCard,
@@ -27,6 +29,14 @@ import {
   LoadingState,
   PageHeader,
 } from '@/components/ui'
+
+// Scores (by question) and the two impact texts as one comparable string
+function snapshot(scores, negativeImpact, positiveImpact) {
+  const ordered = Object.keys(scores)
+    .sort()
+    .map((question) => [question, scores[question]?.level ?? '', scores[question]?.note ?? ''])
+  return JSON.stringify([ordered, negativeImpact, positiveImpact])
+}
 
 export default function AssessmentScoringPage() {
   const { projectId } = useParams()
@@ -59,6 +69,8 @@ export default function AssessmentScoringPage() {
   const [negativeImpact, setNegativeImpact] = useState('')
   const [positiveImpact, setPositiveImpact] = useState('')
   const [showSubmitModal, setShowSubmitModal] = useState(false)
+  // Scores and impacts as loaded (or last saved): leaving with anything else asks first (D61)
+  const [baseline, setBaseline] = useState(null)
   const toast = useToast()
 
   // Update state when assessment data loads
@@ -81,6 +93,13 @@ export default function AssessmentScoringPage() {
           }
         })
         setScores(scoreMap)
+        setBaseline(
+          snapshot(
+            scoreMap,
+            assessment.potential_negative_impact || '',
+            assessment.potential_positive_impact || ''
+          )
+        )
       } else {
         // Same default as the backend: every question starts as Negligible (D54)
         const allQuestions = categoriesWithQuestions.flatMap((cat) =>
@@ -94,6 +113,13 @@ export default function AssessmentScoringPage() {
           }
         })
         setScores(defaultScores)
+        setBaseline(
+          snapshot(
+            defaultScores,
+            assessment.potential_negative_impact || '',
+            assessment.potential_positive_impact || ''
+          )
+        )
       }
     }
   }, [assessment, impactScores, isLoading, categoriesWithQuestions])
@@ -137,14 +163,18 @@ export default function AssessmentScoringPage() {
     return categoriesWithQuestions.flatMap((cat) => cat.questions.map((q) => q.id))
   }, [categoriesWithQuestions])
 
+  const readOnly = !can('assessment.edit')
+  const isDirty =
+    !readOnly && baseline !== null && snapshot(scores, negativeImpact, positiveImpact) !== baseline
+
   const handleSaveDraft = async () => {
     if (!assessment?._id) {
       toast.warning('Please complete and save the metadata step first.')
-      return
+      return { success: false }
     }
     if (!allQuestionIds.length) {
       toast.warning('Scoring questions are still loading. Please try again.')
-      return
+      return { success: false }
     }
 
     const finalScores = allQuestionIds.map((questionId) => {
@@ -160,14 +190,27 @@ export default function AssessmentScoringPage() {
     })
 
     const result = await saveImpactScoresDraft(finalScores, negativeImpact, positiveImpact)
-    if (!result.success) {
+    if (result.success) {
+      setBaseline(snapshot(scores, negativeImpact, positiveImpact))
+    } else if (!result.handled) {
+      // A stale save or an expired session is shown by its own dialog (D73)
       toast.error(result.error || 'Failed to save draft. Please try again.')
     }
+    return result
   }
+
+  // Leaving with changes asks Save / Discard / Stay (D61); "Save" saves the draft.
+  const { navigateAway } = useUnsavedChanges(isDirty, handleSaveDraft)
 
   const handleSubmit = async () => {
     if (!assessment?._id) {
       toast.warning('Please complete and save the metadata step first.')
+      return
+    }
+    // The metadata a submit needs (D74 2), worded like the backend's answer
+    const metadataError = assessmentSubmitError(assessment)
+    if (metadataError) {
+      toast.error(metadataError)
       return
     }
     // Validate potential impacts are required
@@ -210,15 +253,16 @@ export default function AssessmentScoringPage() {
 
     const result = await saveImpactScores(finalScores, negativeImpact, positiveImpact)
     if (!result.success) {
-      toast.error(result.error || 'Failed to save scores. Please try again.')
+      if (!result.handled) toast.error(result.error || 'Failed to save scores. Please try again.')
       setShowSubmitModal(false)
       return
     }
+    setBaseline(snapshot(scores, negativeImpact, positiveImpact))
 
     const submitResult = await submitAssessment()
     if (submitResult.success) {
-      navigate(`/app/projects/${projectId}/assessment/review`)
-    } else {
+      navigateAway(`/app/projects/${projectId}/assessment/review`)
+    } else if (!submitResult.handled) {
       toast.error(submitResult.error || 'Failed to submit assessment. Please try again.')
     }
     setShowSubmitModal(false)
@@ -227,11 +271,6 @@ export default function AssessmentScoringPage() {
   const handleBack = () => {
     navigate(`/app/projects/${projectId}/assessment/methods`)
   }
-
-  // Allow editing when rejected or draft, but not when approved or submitted
-  // When rejected, user should be able to edit (rejected is not submitted, so it's editable)
-  // Editable only while draft/rejected and for editors (allowed actions from the backend)
-  const readOnly = !can('assessment.edit')
 
   if (isLoading || lookupsLoading) {
     return <LoadingState message="Loading scoring..." />

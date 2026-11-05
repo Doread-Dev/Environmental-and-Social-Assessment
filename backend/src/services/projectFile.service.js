@@ -3,6 +3,7 @@ const Project = require("../models/project.model");
 const ApiError = require("../utils/ApiError");
 const { assertProjectWritable } = require("./workflow.service");
 const audit = require("./audit.service");
+const { atomic } = require("../utils/transaction");
 const storage = require("./fileStorage.service");
 const { OPEN_AREAS } = require("../config/files");
 
@@ -69,20 +70,24 @@ const deleteFile = async (fileId, user) => {
   // Checked before the row goes, so a tampered name is refused (404) and nothing is deleted.
   storage.storedPath(file.project, file.stored_name);
   await file.populate(UPLOADED_BY);
-  await ProjectFile.deleteOne({ _id: file._id });
-  await audit.record(user, "file.delete", {
-    project: await Project.findById(file.project).select("title").lean(),
-    target: { type: "file", id: file._id, label: file.original_name },
-    snapshot: {
-      name: file.original_name,
-      area: file.area,
-      category: file.category,
-      size: file.size,
-      mime_type: file.mime_type,
-      uploaded_by: file.uploaded_by?._id ?? null,
-      uploaded_by_name: file.uploaded_by?.name ?? null,
-      uploaded_at: file.createdAt,
-    },
+  const project = await Project.findById(file.project).select("title").lean();
+  // The row and its entry in one transaction on a replica set (phase 11); the file on disk after.
+  await atomic(async () => {
+    await ProjectFile.deleteOne({ _id: file._id });
+    await audit.record(user, "file.delete", {
+      project,
+      target: { type: "file", id: file._id, label: file.original_name },
+      snapshot: {
+        name: file.original_name,
+        area: file.area,
+        category: file.category,
+        size: file.size,
+        mime_type: file.mime_type,
+        uploaded_by: file.uploaded_by?._id ?? null,
+        uploaded_by_name: file.uploaded_by?.name ?? null,
+        uploaded_at: file.createdAt,
+      },
+    });
   });
   await storage.remove(file.project, file.stored_name);
 };
@@ -101,11 +106,11 @@ const updateFileCategory = async (fileId, { category }) => {
   return file.populate(UPLOADED_BY);
 };
 
-// Called after a project's DB rows are deleted (hard delete, purge, demo reset). Never throws:
+// Removes a project's folder on disk, after its DB rows are deleted (hard delete, purge, demo
+// reset). Never throws:
 // the project is already gone, a leftover folder only costs disk space.
-const removeProjectFiles = async (projectId) => {
+const removeProjectFolder = async (projectId) => {
   try {
-    await ProjectFile.deleteMany({ project: projectId });
     await storage.removeFolder(projectId);
   } catch (err) {
     console.error(`Could not remove files of project ${projectId}:`, err.message);
@@ -118,5 +123,5 @@ module.exports = {
   getDownload,
   deleteFile,
   updateFileCategory,
-  removeProjectFiles,
+  removeProjectFolder,
 };

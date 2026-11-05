@@ -90,7 +90,7 @@ describe("disk failures never leave a broken state", () => {
     vi.spyOn(fsPromises, "rm").mockRejectedValueOnce(new Error("busy"));
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
 
-    await fileService.deleteFile(file._id);
+    await fileService.deleteFile(file._id, user);
 
     expect(await ProjectFile.exists({ _id: file._id })).toBeNull();
     expect(log).toHaveBeenCalledWith(expect.stringContaining("Could not remove file"), "busy");
@@ -101,7 +101,7 @@ describe("disk failures never leave a broken state", () => {
     vi.spyOn(fsPromises, "rm").mockRejectedValueOnce(new Error("busy"));
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
 
-    await expect(fileService.removeProjectFiles(project._id)).resolves.toBeUndefined();
+    await expect(fileService.removeProjectFolder(project._id)).resolves.toBeUndefined();
     expect(log).toHaveBeenCalledWith(expect.stringContaining("Could not remove files"), "busy");
   });
 

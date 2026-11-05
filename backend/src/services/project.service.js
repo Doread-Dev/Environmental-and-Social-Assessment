@@ -11,7 +11,8 @@ const TableRevision = require("../models/tableRevision.model");
 const audit = require("./audit.service");
 const ProjectFile = require("../models/projectFile.model");
 const User = require("../models/user.model");
-const { removeProjectFiles } = require("./projectFile.service");
+const { removeProjectFolder } = require("./projectFile.service");
+const { atomic } = require("../utils/transaction");
 const ApiError = require("../utils/ApiError");
 const { assertCurrentVersion, staleError, updateIfCurrent } = require("../utils/version");
 const {
@@ -164,18 +165,22 @@ const deleteProject = async (id, user) => {
   }
 
   const snapshot = await projectSnapshot(project);
-  await removeProjectData(id);
-  await audit.record(user, "project.delete", {
-    project,
-    target: projectTarget(project),
-    snapshot,
+  // One transaction on a replica set (phase 11): the project is never gone without its entry.
+  await atomic(async () => {
+    await removeProjectRecords(id);
+    await audit.record(user, "project.delete", {
+      project,
+      target: projectTarget(project),
+      snapshot,
+    });
   });
+  // Files last, once the DB delete has succeeded (D47); failures are logged, never thrown.
+  await removeProjectFolder(id);
   return true;
 };
 
-// Deletes a project and everything in it, without any checks. Callers decide whether it is
-// allowed (deleteProject, purgeProject, scripts/seed-demo-project.js).
-const removeProjectData = async (id) => {
+// Deletes a project's records (the project, its tools, its file rows), without any checks.
+const removeProjectRecords = async (id) => {
   // Assessment sub-entities reference the assessment, not the project
   const assessments = await Assessment.find({ project: id }, "_id");
   const assessmentIds = assessments.map((a) => a._id);
@@ -190,9 +195,16 @@ const removeProjectData = async (id) => {
   await MonitoringRecord.deleteMany({ project: id });
   await TableRevision.deleteMany({ project: id });
 
+  await ProjectFile.deleteMany({ project: id });
+
   await Project.deleteOne({ _id: id });
-  // Files last, once the DB delete has succeeded (D47); failures are logged, never thrown.
-  await removeProjectFiles(id);
+};
+
+// Deletes a project and everything in it, files on disk included, without any checks and without
+// an audit entry (scripts/seed-demo-project.js resets its demo copies with it).
+const removeProjectData = async (id) => {
+  await atomic(() => removeProjectRecords(id));
+  await removeProjectFolder(id);
 };
 
 // Admin only, archived projects only, approved work included; recorded in the audit log (D60).
@@ -203,16 +215,19 @@ const purgeProject = async (id, user) => {
     throw new ApiError(409, "Only archived projects can be deleted permanently. Archive it first.");
   }
 
+  const snapshot = await projectSnapshot(project);
   // Written before the delete: a purge never happens without its record (required: a failed
-  // write stops the purge).
-  await audit.record(
-    user,
-    "project.purge",
-    { project, target: projectTarget(project), snapshot: await projectSnapshot(project) },
-    { required: true }
-  );
-
-  await removeProjectData(id);
+  // write stops the purge). On a replica set both are one transaction (phase 11).
+  await atomic(async () => {
+    await audit.record(
+      user,
+      "project.purge",
+      { project, target: projectTarget(project), snapshot },
+      { required: true }
+    );
+    await removeProjectRecords(id);
+  });
+  await removeProjectFolder(id);
 };
 
 // Atomic, like the status transitions: only matches a project in the opposite state.
@@ -231,17 +246,20 @@ const setArchived = async (id, archived, userId) => {
   throw new ApiError(409, archived ? "Project is already archived" : "Project is not archived");
 };
 
-const archiveProject = async (id, user) => {
-  const project = await setArchived(id, true, user._id);
-  await audit.record(user, "project.archive", { project, target: projectTarget(project) });
-  return project;
-};
+// The state change and its entry in one transaction on a replica set (phase 11).
+const archiveProject = (id, user) =>
+  atomic(async () => {
+    const project = await setArchived(id, true, user._id);
+    await audit.record(user, "project.archive", { project, target: projectTarget(project) });
+    return project;
+  });
 
-const restoreProject = async (id, user) => {
-  const project = await setArchived(id, false);
-  await audit.record(user, "project.restore", { project, target: projectTarget(project) });
-  return project;
-};
+const restoreProject = (id, user) =>
+  atomic(async () => {
+    const project = await setArchived(id, false);
+    await audit.record(user, "project.restore", { project, target: projectTarget(project) });
+    return project;
+  });
 
 module.exports = {
   listProjects,

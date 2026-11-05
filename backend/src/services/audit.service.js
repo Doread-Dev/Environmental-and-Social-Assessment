@@ -1,5 +1,6 @@
 const AuditLog = require("../models/auditLog.model");
 const Project = require("../models/project.model");
+const { inTransaction } = require("../utils/transaction");
 
 // The critical-actions log (D65). record() is the only writer of AuditLog; v3's full activity
 // log builds on the same entries.
@@ -25,8 +26,10 @@ const scrub = (value) => {
  * and role are copied, as are the project title and target label, so the entry survives a
  * project delete/purge and a user deactivation.
  *
- * A failed write is logged on the server and does not fail the request (the action already
- * happened; phase 11 puts both in one transaction). With `required: true` it throws instead,
+ * Callers run the action and its entry in one atomic() block (phase 11): on a replica set a failed
+ * entry throws, so the transaction is rolled back and the action does not happen without its
+ * entry. Without transactions (standalone MongoDB) a failed write is logged on the server and does
+ * not fail the request (the action already happened), unless `required: true`: then it throws,
  * for an entry written before an action that must not happen without it (project purge, D60).
  *
  * @param {{_id, name, role}} user
@@ -57,7 +60,7 @@ const record = async (
     });
   } catch (err) {
     console.error(`Audit log: could not record ${action}:`, err.message);
-    if (required) throw err;
+    if (required || inTransaction()) throw err;
     return null;
   }
 };

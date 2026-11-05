@@ -20,3 +20,6 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET.trim().length < 32) {
 // Uploaded files go to a throw-away folder, never to backend/uploads (emptied after each test).
 process.env.UPLOADS_DIR = path.join(os.tmpdir(), `esms-test-uploads-${process.pid}`);
 delete process.env.MAX_UPLOAD_MB;
+
+// A tiny stand-in for frontend/dist, so the tests never depend on whether the app was built.
+process.env.FRONTEND_DIST = path.resolve(import.meta.dirname, "../fixtures/frontend-dist");

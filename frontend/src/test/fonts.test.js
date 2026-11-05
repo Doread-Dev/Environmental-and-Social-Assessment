@@ -1,8 +1,7 @@
 /**
  * Text font (D72): IBM Plex Sans + IBM Plex Sans Arabic are self-hosted, so the app's text font
- * works offline. Fails if the text font is loaded from Google Fonts again (only the Material
- * Symbols icons may still come from there until phase 11), or if a weight the app does not load
- * is used.
+ * works offline. Fails if anything is loaded from Google Fonts again (the Material Symbols icons
+ * are self-hosted too since phase 11, D37), or if a weight the app does not load is used.
  */
 import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
@@ -22,7 +21,7 @@ function filesUnder(dir, ext, out = []) {
 }
 
 describe('self-hosted text font (D72)', () => {
-  it('index.html and the CSS load nothing from Google Fonts except the Material Symbols icons', () => {
+  it('index.html and the CSS load nothing from Google Fonts', () => {
     const sources = [
       ['index.html', read('index.html')],
       ...filesUnder(path.join(FRONTEND, 'src'), /\.(css|html)$/).map((f) => [
@@ -32,9 +31,7 @@ describe('self-hosted text font (D72)', () => {
     ]
     const hits = []
     for (const [file, text] of sources) {
-      for (const m of text.matchAll(/fonts\.googleapis\.com\/[^'")\s]*/g)) {
-        if (!/family=Material\+Symbols/.test(m[0])) hits.push(`${file}: ${m[0]}`)
-      }
+      if (/fonts\.googleapis\.com/.test(text)) hits.push(`${file}: fonts.googleapis.com`)
       if (/fonts\.gstatic\.com/.test(text)) hits.push(`${file}: fonts.gstatic.com`)
     }
     expect(hits).toEqual([])

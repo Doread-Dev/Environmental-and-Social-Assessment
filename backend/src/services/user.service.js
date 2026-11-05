@@ -4,6 +4,7 @@ const ApiError = require("../utils/ApiError");
 const { can } = require("../config/permissions");
 const { generateTemporaryPassword } = require("../utils/temporaryPassword");
 const audit = require("./audit.service");
+const { atomic } = require("../utils/transaction");
 
 // What a non-admin sees: enough for the "Responsible" pickers, active users only (D4).
 const PICKER_FIELDS = "name job_title is_active";
@@ -53,16 +54,21 @@ const createUser = async ({ job_title: jobTitle, ...fields }, actor) => {
   const email = fields.email.toLowerCase();
   if (await User.exists({ email })) throw new ApiError(409, "Email already in use");
   const temporaryPassword = generateTemporaryPassword();
-  const user = await User.create({
-    ...fields,
-    email,
-    job_title: await resolveJobTitle(jobTitle),
-    password: temporaryPassword,
-    must_change_password: true,
-  });
-  await audit.record(actor, "user.create", {
-    target: userTarget(user),
-    snapshot: { ...identity(user), role: user.role },
+  const jobTitleId = await resolveJobTitle(jobTitle);
+  // Each change and its entry in one transaction on a replica set (phase 11).
+  const user = await atomic(async () => {
+    const created = await User.create({
+      ...fields,
+      email,
+      job_title: jobTitleId,
+      password: temporaryPassword,
+      must_change_password: true,
+    });
+    await audit.record(actor, "user.create", {
+      target: userTarget(created),
+      snapshot: { ...identity(created), role: created.role },
+    });
+    return created;
   });
   return { user: await populated(user), temporary_password: temporaryPassword };
 };
@@ -76,14 +82,16 @@ const updateUser = async (id, { job_title: jobTitle, ...fields }, actor) => {
   }
   Object.assign(user, fields);
   if (jobTitle !== undefined) user.job_title = await resolveJobTitle(jobTitle);
-  await user.save();
-  if (user.role !== oldRole) {
-    await audit.record(actor, "user.role_change", {
-      target: userTarget(user),
-      snapshot: identity(user),
-      details: { from: oldRole, to: user.role },
-    });
-  }
+  await atomic(async () => {
+    await user.save();
+    if (user.role !== oldRole) {
+      await audit.record(actor, "user.role_change", {
+        target: userTarget(user),
+        snapshot: identity(user),
+        details: { from: oldRole, to: user.role },
+      });
+    }
+  });
   return populated(user);
 };
 
@@ -92,10 +100,12 @@ const setActive = async (id, active, actor) => {
   const user = await findUser(id);
   if (!active) await assertNotLastActiveAdmin(user, "Cannot deactivate the last active admin");
   user.is_active = active;
-  await user.save();
-  await audit.record(actor, active ? "user.reactivate" : "user.deactivate", {
-    target: userTarget(user),
-    snapshot: identity(user),
+  await atomic(async () => {
+    await user.save();
+    await audit.record(actor, active ? "user.reactivate" : "user.deactivate", {
+      target: userTarget(user),
+      snapshot: identity(user),
+    });
   });
   return populated(user);
 };
@@ -107,10 +117,12 @@ const resetPassword = async (id, actor) => {
   const temporaryPassword = generateTemporaryPassword();
   user.password = temporaryPassword;
   user.must_change_password = true;
-  await user.save();
-  await audit.record(actor, "user.reset_password", {
-    target: userTarget(user),
-    snapshot: identity(user),
+  await atomic(async () => {
+    await user.save();
+    await audit.record(actor, "user.reset_password", {
+      target: userTarget(user),
+      snapshot: identity(user),
+    });
   });
   return { user: await populated(user), temporary_password: temporaryPassword };
 };

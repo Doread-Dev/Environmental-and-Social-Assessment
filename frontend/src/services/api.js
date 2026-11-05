@@ -45,12 +45,21 @@ export function setSessionExpiredHandler(handler) {
 // The sign-in request answers 401 for a wrong password: never a session expiry.
 const isLoginRequest = (config) => /\/auth\/login$/.test(config?.url ?? '')
 
+/**
+ * Base URL of the API (D38, phase 11). VITE_API_URL wins when it is set (the Vercel deployment and
+ * its previews, or a dev backend on another port). Without it the production build calls its own
+ * origin (`/api/v1`: Express serves the app and the API together on the server), and `npm run dev`
+ * calls the local backend on port 3000.
+ * @param {{ VITE_API_URL?: string, DEV?: boolean }} env - import.meta.env
+ */
+export function apiBaseUrl(env) {
+  if (env.VITE_API_URL) return env.VITE_API_URL
+  return env.DEV ? 'http://localhost:3000/api/v1' : '/api/v1'
+}
+
 // Create Axios instance with base configuration
 const api = axios.create({
-  // No localhost fallback: set VITE_API_URL in .env / Vercel so production fails fast if missing
-  baseURL: import.meta.env.DEV
-    ? import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
-    : import.meta.env.VITE_API_URL,
+  baseURL: apiBaseUrl(import.meta.env),
   headers: {
     'Content-Type': 'application/json',
   },

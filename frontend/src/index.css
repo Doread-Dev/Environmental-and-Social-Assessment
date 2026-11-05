@@ -1,8 +1,6 @@
-/* Text font: IBM Plex Sans + IBM Plex Sans Arabic, self-hosted (src/fonts.js, D72) — never from
-   fonts.googleapis.com (a test fails if it comes back). */
-
-/* Material Symbols Icons (still from Google Fonts; bundling them is phase 11, D37) */
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+/* Text font (IBM Plex Sans + IBM Plex Sans Arabic, D72) and icons (Material Symbols, D37) are
+   self-hosted from npm packages (src/fonts.js) — never from Google Fonts or any other remote
+   address (src/test/offline.test.js fails if one comes back). */
 
 @import 'tailwindcss';
 

@@ -14,6 +14,7 @@ const MitigationPlan = require("../../src/models/mitigationPlan.model");
 const ProjectFile = require("../../src/models/projectFile.model");
 const LibraryDocument = require("../../src/models/libraryDocument.model");
 const apiRouter = require("../../src/routes");
+const { forceTransactions } = require("../../src/utils/transaction");
 const { AUDIT_ACTIONS } = AuditLog;
 
 const auth = (token) => ({ Authorization: `Bearer ${token}` });
@@ -518,7 +519,12 @@ describe("secrets (D65)", () => {
 });
 
 describe("a failed log write", () => {
-  it("is logged on the server and the action still answers", async () => {
+  afterEach(() => forceTransactions(null));
+
+  // Without transactions (standalone MongoDB). On a replica set the action is rolled back
+  // instead: transactions.test.js.
+  it("is logged on the server and the action still answers (no transactions)", async () => {
+    forceTransactions(false);
     const { token } = await loginAs("admin");
     const project = await createProject();
     vi.spyOn(AuditLog, "create").mockRejectedValueOnce(new Error("disk full"));

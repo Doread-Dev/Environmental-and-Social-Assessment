@@ -5,8 +5,9 @@
 **Decisions:** D6, D37, D38 (+ D47 backups, D64 viewer, D65 critical-actions log).
 
 ## Offline (D37)
-- Self-host Inter and Material Symbols (font files in the repo or via npm packages like `@fontsource/inter` / `material-symbols`); remove the Google Fonts `@import`s in `index.css` and any `<link>` in `index.html`.
-- Replace remote images (`googleusercontent` in `ProjectContextCard.jsx`, `LoginPage.jsx` if still there) with local assets.
+- Self-host the Material Symbols icons (e.g. the `material-symbols` npm package); remove the last Google Fonts `@import` in `index.css` and drop the Material Symbols exception in `src/test/fonts.test.js`. The text font (IBM Plex Sans + Arabic) is already self-hosted since phase 10 (D72).
+- Replace remote images (`LoginPage.jsx` if still there) with local assets. (`ProjectContextCard.jsx`'s map was removed in phase 10.)
+- Phase 10 (D72): the text font is offline already; only the icons are left.
 - Remove `@vercel/speed-insights` (`main.jsx`, `package.json`) and `vercel.json`.
 - Verify: run with the network cable / adapter off — no failed requests in DevTools.
 
@@ -33,7 +34,17 @@
 - Server runs the Node LTS pinned in `.nvmrc` (26 as of phase 0); check it is still the current LTS and bump if a newer LTS line exists.
 - Upgrade `express-rate-limit` to 8.x (D63 d) and use its `ipKeyGenerator` for the IP fallback key in `middlewares/rateLimiter.js` (IPv6 addresses grouped by subnet); keep the per-user key for signed-in requests. Test both keys, including an IPv6 address.
 
+## Tests
+- Offline: `src/test/fonts.test.js` with the Material Symbols exception removed (no `fonts.googleapis.com` / `fonts.gstatic.com` anywhere); a test that `index.html`, the CSS and the source load no other remote URL (no `googleusercontent`, no CDN); `@vercel/speed-insights` gone from `package.json` and `main.jsx`.
+- Single process: Express serves `frontend/dist`; a non-`/api` GET returns `index.html` (no-cache); hashed assets get the long cache header; `/api/v1/*` and `/health` are unchanged; an unknown `/api/v1` path is still 401/404, never `index.html`.
+- CORS only when `FRONTEND_URL` is set (one test with, one without).
+- Production checks: the server refuses to start with a short `JWT_SECRET`; `clean-test-data` and the demo seed refuse `NODE_ENV=production`; the CSP header contains `frame-src blob:` and nothing wider.
+- Rate limiter (`express-rate-limit` 8.x): per-user key for a valid token; IP key via `ipKeyGenerator`, with two IPv6 addresses of the same subnet sharing one bucket.
+- Transactions: on a replica-set connection a failing bulk save (and a critical action whose audit entry fails) writes nothing; on a standalone connection the existing path still works (CI job with a replica-set MongoDB).
+- Backup script: a dump + uploads copy restores into an empty database with the same counts (scripted test in `deploy/`, run once and recorded here).
+
 ## Done when
+- [ ] Every item under Tests has a test (file names listed in Result).
 - [ ] A clean machine with only Node + MongoDB can install and run the app from the docs, offline.
 - [ ] Backup and restore tested.
 - [ ] `CLAUDE.md` deployment section rewritten.

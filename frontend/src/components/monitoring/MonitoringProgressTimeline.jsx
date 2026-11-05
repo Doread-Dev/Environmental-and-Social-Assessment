@@ -29,7 +29,7 @@ function MonitoringProgressTimeline({
       className={cn(
         embedded
           ? 'pt-2'
-          : 'bg-white dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark p-6'
+          : 'bg-surface dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark p-6'
       )}
     >
       {!embedded && (
@@ -69,7 +69,10 @@ function MonitoringProgressTimeline({
                         : 'bg-surface dark:bg-surface-dark border-border-default dark:border-border-dark text-text-secondary dark:text-gray-500'
                   )}
                 >
-                  <span className="flex items-center justify-center material-symbols-outlined text-xl">
+                  <span
+                    className="flex items-center justify-center material-symbols-outlined text-xl"
+                    aria-hidden="true"
+                  >
                     {isCompleted ? 'check ' : quarter.icon}
                   </span>
                 </div>

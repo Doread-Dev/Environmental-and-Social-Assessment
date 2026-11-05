@@ -2,8 +2,9 @@
  * Labels for the critical-actions log (D65, Settings → Activity log). The action names come from
  * the backend (models/auditLog.model.js); this is the only place that turns them into text.
  */
-import { ROLE_LABELS } from '@/contexts'
+import { ROLE_LABELS } from './roles'
 import { formatFileSize } from './formatFileSize'
+import { formatDateTime } from './formatters'
 
 export const AUDIT_ACTION_LABELS = {
   'project.delete': 'Project deleted',
@@ -76,15 +77,6 @@ const IMPACT_LABELS = {
   high: 'High',
   not_applicable: 'Not applicable',
 }
-
-const formatDateTime = (value) =>
-  new Date(value).toLocaleString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
 
 // Project file areas: "documents" since phase 7b (D64 d); "annex" in entries written before it.
 const AREA_LABELS = {

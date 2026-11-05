@@ -17,6 +17,12 @@ export const projectService = {
     return response.data.data
   },
 
+  /** Archived projects only (hidden from the default list, D17) */
+  async getArchived() {
+    const response = await api.get('/projects', { params: { archived: true } })
+    return response.data.data
+  },
+
   /**
    * Get everything the project workspace needs in one call
    * @param {string} id - Project ID
@@ -64,6 +70,23 @@ export const projectService = {
    */
   async delete(id) {
     await api.delete(`/projects/${id}`)
+  },
+
+  /** Archive a project: read-only and hidden from the default list (D17) */
+  async archive(id) {
+    const response = await api.patch(`/projects/${id}/archive`)
+    return response.data.data
+  },
+
+  /** Restore an archived project (D17) */
+  async restore(id) {
+    const response = await api.patch(`/projects/${id}/restore`)
+    return response.data.data
+  },
+
+  /** Permanently delete an archived project, approved work included (admin only, D60) */
+  async purge(id) {
+    await api.delete(`/projects/${id}/purge`)
   },
 }
 

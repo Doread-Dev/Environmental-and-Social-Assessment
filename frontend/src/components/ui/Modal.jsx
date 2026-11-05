@@ -1,6 +1,7 @@
-import { useEffect, useCallback } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '@/utils/cn'
+import { useOverlay } from './useOverlay'
 
 /**
  * Modal/Dialog component
@@ -46,27 +47,25 @@ function Modal({
     '2xl': 'max-w-2xl',
     full: 'max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)]',
   }
+  const id = useId()
+  const titleId = `${id}-title`
+  const descriptionId = `${id}-description`
+  const panelRef = useRef(null)
 
-  // Handle Escape key
-  const handleEscape = useCallback(
-    (e) => {
-      if (e.key === 'Escape' && closeOnEscape) {
-        onClose?.()
-      }
-    },
-    [closeOnEscape, onClose]
-  )
+  // Escape closes only the topmost overlay; the page behind stays locked (shared overlay stack)
+  useOverlay(() => closeOnEscape && onClose?.(), { enabled: !!isOpen })
 
+  // Keyboard: focus moves into the dialog when it opens and back where it was when it closes
   useEffect(() => {
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'hidden'
-    }
+    if (!isOpen) return undefined
+    const previous = document.activeElement
+    panelRef.current?.focus()
     return () => {
-      document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = ''
+      if (previous && typeof previous.focus === 'function' && document.contains(previous)) {
+        previous.focus()
+      }
     }
-  }, [isOpen, handleEscape])
+  }, [isOpen])
 
   if (!isOpen) return null
 
@@ -81,8 +80,8 @@ function Modal({
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       aria-modal="true"
       role="dialog"
-      aria-labelledby={title ? 'modal-title' : undefined}
-      aria-describedby={description ? 'modal-description' : undefined}
+      aria-labelledby={title ? titleId : undefined}
+      aria-describedby={description ? descriptionId : undefined}
     >
       {/* Overlay */}
       <div
@@ -92,8 +91,10 @@ function Modal({
 
       {/* Modal content */}
       <div
+        ref={panelRef}
+        tabIndex={-1}
         className={cn(
-          'relative w-full',
+          'relative w-full focus:outline-none',
           'bg-surface dark:bg-surface-dark',
           'rounded-2xl shadow-xl',
           'border border-border-default dark:border-border-dark',
@@ -104,47 +105,43 @@ function Modal({
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-start justify-between px-6 py-4 border-b border-border-default dark:border-border-dark">
-            <div>
+          <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-border-default dark:border-border-dark">
+            <div className="min-w-0">
               {title && (
-                <h2
-                  id="modal-title"
-                  className="mt-4 text-xl font-semibold text-text-main dark:text-white"
-                >
+                <h2 id={titleId} className="text-lg font-semibold text-text-main dark:text-white">
                   {title}
                 </h2>
               )}
               {description && (
-                <p id="modal-description" className="mt-6 text-md text-text-main dark:text-white ">
+                <p id={descriptionId} className="mt-2 text-sm text-text-main dark:text-white">
                   {description}
                 </p>
               )}
               {sub_description && (
-                <p
-                  id="modal-sub_description"
-                  className="mt-1 mb-2 text-sm text-text-secondary dark:text-secondary-dark "
-                >
+                <p className="mt-1 text-sm text-text-secondary dark:text-gray-400">
                   {sub_description}
                 </p>
               )}
             </div>
 
-            {/* {showCloseButton && (
+            {showCloseButton && (
               <button
                 type="button"
                 onClick={onClose}
                 className={cn(
-                  'p-1 rounded-lg -mr-1',
-                  'text-text-muted hover:text-text-main',
-                  'dark:text-gray-500 dark:hover:text-white',
-                  'hover:bg-background dark:hover:bg-background-dark',
-                  'transition-colors'
+                  'p-1 rounded-lg -mr-1 shrink-0',
+                  'text-text-secondary hover:text-text-main',
+                  'dark:text-gray-400 dark:hover:text-white',
+                  'hover:bg-background dark:hover:bg-white/5',
+                  'transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50'
                 )}
                 aria-label="Close"
               >
-                <span className="material-symbols-outlined text-xl">close</span>
+                <span className="material-symbols-outlined text-xl" aria-hidden="true">
+                  close
+                </span>
               </button>
-            )} */}
+            )}
           </div>
         )}
 

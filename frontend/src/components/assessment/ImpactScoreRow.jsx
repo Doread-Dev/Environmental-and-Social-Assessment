@@ -42,7 +42,7 @@ export default function ImpactScoreRow({
   ]
 
   return (
-    <tr className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
+    <tr className="hover:bg-background dark:hover:bg-white/5 transition-colors">
       {/* Question */}
       <td className="py-4 px-6">
         <p className="text-sm text-text-main dark:text-white">{question.question}</p>
@@ -56,7 +56,7 @@ export default function ImpactScoreRow({
               'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium',
               currentLevel && IMPACT_LEVEL_CONFIG[currentLevel]
                 ? `${IMPACT_LEVEL_CONFIG[currentLevel].bgClass} ${IMPACT_LEVEL_CONFIG[currentLevel].textClass}`
-                : 'bg-gray-100 dark:bg-white/5 text-text-secondary dark:text-gray-400'
+                : 'bg-background dark:bg-white/5 text-text-secondary dark:text-gray-400'
             )}
           >
             {currentLevel ? IMPACT_LEVEL_CONFIG[currentLevel].label : 'Not Set'}

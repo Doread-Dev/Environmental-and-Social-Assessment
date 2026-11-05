@@ -1,5 +1,5 @@
 import { Navigate, useNavigate } from 'react-router-dom'
-import { Icon } from '@/components/ui'
+import { Icon, LoadingState, PAGE_TITLE, PAGE_DESCRIPTION } from '@/components/ui'
 import { ChangePasswordForm } from '@/components/auth'
 import { useAuth } from '@/contexts'
 import { ROUTES } from '@/routes/routes.config'
@@ -14,12 +14,7 @@ function ChangePasswordPage() {
   const { user, isAuthenticated, isLoading, mustChangePassword, logout } = useAuth()
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="text-text-secondary dark:text-gray-400 text-sm">Loading...</p>
-      </div>
-    )
+    return <LoadingState />
   }
   if (!isAuthenticated) return <Navigate to={ROUTES.LOGIN} replace />
   if (!mustChangePassword) return <Navigate to={ROUTES.DASHBOARD} replace />
@@ -33,9 +28,9 @@ function ChangePasswordPage() {
     <div className="w-full max-w-md bg-surface dark:bg-surface-dark rounded-2xl shadow-xl border border-border-default dark:border-border-dark p-8">
       <div className="flex items-center gap-3 mb-2">
         <Icon name="lock_reset" className="text-3xl text-primary" />
-        <h1 className="text-2xl font-bold text-text-main dark:text-white">Change your password</h1>
+        <h1 className={PAGE_TITLE}>Change your password</h1>
       </div>
-      <p className="text-sm text-text-secondary dark:text-gray-400 mb-6">
+      <p className={PAGE_DESCRIPTION}>
         {user?.name ? `${user.name}, your` : 'Your'} password was set by an administrator. Choose
         your own password to continue. Use the temporary password as the current password.
       </p>

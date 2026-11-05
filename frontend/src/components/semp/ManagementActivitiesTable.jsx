@@ -52,15 +52,17 @@ export default function ManagementActivitiesTable({
           }}
           title="Delete Row"
         >
-          <span className="material-symbols-outlined text-lg">close</span>
+          <span className="material-symbols-outlined text-lg" aria-hidden="true">
+            close
+          </span>
         </button>
       )}
 
-      <div className="border border-border-default dark:border-border-dark rounded-lg bg-white dark:bg-surface-dark shadow-sm flex flex-col overflow-hidden w-full h-full">
+      <div className="border border-border-default dark:border-border-dark rounded-lg bg-surface dark:bg-surface-dark shadow-sm flex flex-col overflow-hidden w-full h-full">
         {/* Scrollable Table Area */}
         <div className="flex-1 overflow-auto excel-scroll w-full">
           <table className="w-full border-collapse table-fixed min-w-[1200px]">
-            <thead className="sticky top-0 z-30 shadow-sm bg-gray-50/50 dark:bg-card-dark">
+            <thead className="sticky top-0 z-30 shadow-sm bg-background dark:bg-card-dark">
               <tr className="border-b border-border-default dark:border-border-dark">
                 <th className="w-12 px-2 py-3 text-xs font-bold text-text-secondary dark:text-gray-300 uppercase tracking-wider text-center border-r border-border-default dark:border-border-dark relative group">
                   #
@@ -85,15 +87,15 @@ export default function ManagementActivitiesTable({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border-default dark:divide-border-dark bg-white dark:bg-surface-dark">
+            <tbody className="divide-y divide-border-default dark:divide-border-dark bg-surface dark:bg-surface-dark">
               {activities.map((activity, index) => (
                 <tr
                   key={activity._id}
-                  className="group transition-colors hover:bg-gray-50/30 dark:hover:bg-white/5"
+                  className="group transition-colors hover:bg-background dark:hover:bg-white/5"
                   onMouseEnter={(e) => handleMouseEnterRow(e, activity._id)}
                 >
                   {/* Serial Number */}
-                  <td className="bg-gray-50 dark:bg-background-dark text-center text-xs text-text-secondary dark:text-gray-400 font-medium border-r border-border-default dark:border-border-dark select-none relative">
+                  <td className="bg-background dark:bg-background-dark text-center text-xs text-text-secondary dark:text-gray-400 font-medium border-r border-border-default dark:border-border-dark select-none relative">
                     {index + 1}
                   </td>
 
@@ -105,7 +107,7 @@ export default function ManagementActivitiesTable({
                       placeholder=""
                       readOnly={readOnly}
                       multiline
-                      className="excel-cell text-sm text-text-main dark:text-gray-100"
+                      className="excel-cell text-sm text-text-main dark:text-white"
                     />
                   </td>
 
@@ -117,7 +119,7 @@ export default function ManagementActivitiesTable({
                       placeholder=""
                       readOnly={readOnly}
                       multiline
-                      className="excel-cell text-sm text-text-main dark:text-gray-100"
+                      className="excel-cell text-sm text-text-main dark:text-white"
                     />
                   </td>
 
@@ -129,7 +131,7 @@ export default function ManagementActivitiesTable({
                       placeholder=""
                       readOnly={readOnly}
                       multiline
-                      className="excel-cell text-sm text-text-main dark:text-gray-100"
+                      className="excel-cell text-sm text-text-main dark:text-white"
                     />
                   </td>
 
@@ -141,7 +143,7 @@ export default function ManagementActivitiesTable({
                       placeholder=""
                       readOnly={readOnly}
                       multiline
-                      className="excel-cell text-sm text-text-main dark:text-gray-100"
+                      className="excel-cell text-sm text-text-main dark:text-white"
                     />
                   </td>
 
@@ -156,7 +158,7 @@ export default function ManagementActivitiesTable({
                       }}
                       users={users}
                       readOnly={readOnly}
-                      className="excel-cell text-sm text-text-main dark:text-gray-100 bg-transparent w-full h-full text-center"
+                      className="excel-cell text-sm text-text-main dark:text-white bg-transparent w-full h-full text-center"
                     />
                   </td>
 
@@ -179,12 +181,14 @@ export default function ManagementActivitiesTable({
 
         {/* Add Row Button Area */}
         {!readOnly && (
-          <div className="bg-gray-50 dark:bg-card-dark border-t border-border-default dark:border-border-dark p-2 w-full z-20 shrink-0">
+          <div className="bg-background dark:bg-card-dark border-t border-border-default dark:border-border-dark p-2 w-full z-20 shrink-0">
             <button
               onClick={onAddRow}
-              className="w-full py-2 bg-white dark:bg-white/5 border border-dashed border-border-default dark:border-border-dark rounded text-primary text-sm font-bold hover:bg-green-50 dark:hover:bg-green-900/10 hover:border-primary transition-all flex items-center justify-center gap-2"
+              className="w-full py-2 bg-surface dark:bg-white/5 border border-dashed border-border-default dark:border-border-dark rounded text-primary text-sm font-bold hover:bg-green-50 dark:hover:bg-green-900/10 hover:border-primary transition-all flex items-center justify-center gap-2"
             >
-              <span className="material-symbols-outlined text-xl">add</span>
+              <span className="material-symbols-outlined text-xl" aria-hidden="true">
+                add
+              </span>
               Add another row
             </button>
           </div>

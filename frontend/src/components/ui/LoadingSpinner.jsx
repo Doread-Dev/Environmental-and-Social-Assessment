@@ -3,7 +3,7 @@ import { cn } from '@/utils/cn'
 /**
  * Loading spinner component
  * @param {Object} props
- * @param {'sm'|'md'|'lg'} props.size - Spinner size
+ * @param {'sm'|'md'|'lg'|'xl'} props.size - Spinner size
  * @param {string} props.className - Additional classes
  */
 function LoadingSpinner({ size = 'md', className }) {
@@ -11,6 +11,7 @@ function LoadingSpinner({ size = 'md', className }) {
     sm: 'w-4 h-4',
     md: 'w-5 h-5',
     lg: 'w-6 h-6',
+    xl: 'w-10 h-10',
   }
 
   return (

@@ -34,10 +34,20 @@
 - **Forms:** required fields, dates (end before start), leading/trailing spaces, pasted text.
 - **Loading:** slow network — loading states shown, no flashes of "Not started" before data arrives, no full-page spinner on a background refresh.
 
+## Tests
+- Stale saves (backend): for project, screening, assessment (PUT, methods, consultations, scores, submit) and the Tools 3 / 4 / 5 bulk saves — two clients load the same version, the first save succeeds, the second answers 409 and writes nothing; after reloading, the second save works; a missing `version` → 400.
+- Stale saves (frontend): `useProjectSave` shows the 409 in the app `Modal` with Reload (refetches the tool and workspace queries) and Keep editing (typed input kept).
+- Unsaved-changes guard: per edit page, an in-app link and the browser Back after an edit open Save / Discard / Stay (each choice does what it says); `beforeunload` is registered only while there are unsaved changes; no dialog without an edit.
+- Double actions: Save / Submit / Approve are disabled while their request runs; a double click sends one request.
+- Errors: 400 / 403 / 404 / 409 / 500 / network error on a save each show the `extractErrorMessage` text; an expired session mid-edit keeps what was typed until the user signs in again (or says clearly that it is lost).
+- Each agreed case from the list at the bottom of this file has its own test, named after the case.
+- Style guard: the `window.confirm` allow-list is empty.
+
 ## Done when
+- [ ] Every item under Tests has a test (file names listed in Result).
 - [ ] Inventory and case list at the bottom of this file, reviewed by the owner.
 - [ ] Every agreed problem fixed with a test, or explicitly deferred by the owner.
-- [ ] Shared unsaved-changes guard used by every editing page; no `window.confirm` / `window.alert` left in `src/`.
+- [ ] Shared unsaved-changes guard used by every editing page; no `window.confirm` / `window.alert` left in `src/` (after phase 10 only the three unsaved-changes prompts of Tools 3, 4, 5 remain; remove them from the allow-list in `src/test/styleGuard.test.js`). Confirmations use `ConfirmDialog` (`components/ui`).
 - [ ] The most important unhappy paths added to the phase 12 E2E list.
 
 ## Found during phase

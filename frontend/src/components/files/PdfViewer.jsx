@@ -113,7 +113,9 @@ export function PdfViewer({ title, fileName, load, onClose }) {
             className="p-1.5 rounded-lg text-text-secondary dark:text-gray-400 hover:text-text-main dark:hover:text-white hover:bg-background dark:hover:bg-background-dark transition-colors"
             aria-label="Close viewer"
           >
-            <span className="material-symbols-outlined">close</span>
+            <span className="material-symbols-outlined" aria-hidden="true">
+              close
+            </span>
           </button>
         </header>
 
@@ -148,11 +150,14 @@ export function PdfViewer({ title, fileName, load, onClose }) {
               <iframe
                 src={state.url}
                 title={title}
-                className="w-full h-full min-h-[60vh] border-0 bg-white"
+                className="w-full h-full min-h-[60vh] border-0 bg-surface"
               />
             ) : (
               <div className="h-full flex flex-col items-center justify-center gap-4 p-8 text-center">
-                <span className="material-symbols-outlined text-5xl text-text-secondary dark:text-gray-400">
+                <span
+                  className="material-symbols-outlined text-5xl text-text-secondary dark:text-gray-400"
+                  aria-hidden="true"
+                >
                   picture_as_pdf
                 </span>
                 <div>

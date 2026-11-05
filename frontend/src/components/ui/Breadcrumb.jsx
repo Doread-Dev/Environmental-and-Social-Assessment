@@ -25,7 +25,10 @@ function Breadcrumb({ items = [], separator = 'chevron_right', className, ...pro
             <li key={index} className="flex items-center gap-1">
               {/* Separator */}
               {index > 0 && (
-                <span className="material-symbols-outlined text-base text-text-muted dark:text-gray-500">
+                <span
+                  className="material-symbols-outlined text-base text-text-muted dark:text-gray-500"
+                  aria-hidden="true"
+                >
                   {separator}
                 </span>
               )}
@@ -42,7 +45,9 @@ function Breadcrumb({ items = [], separator = 'chevron_right', className, ...pro
                   aria-current={isLast ? 'page' : undefined}
                 >
                   {item.icon && (
-                    <span className="material-symbols-outlined text-base">{item.icon}</span>
+                    <span className="material-symbols-outlined text-base" aria-hidden="true">
+                      {item.icon}
+                    </span>
                   )}
                   {item.label}
                 </span>
@@ -57,7 +62,9 @@ function Breadcrumb({ items = [], separator = 'chevron_right', className, ...pro
                   )}
                 >
                   {item.icon && (
-                    <span className="material-symbols-outlined text-base">{item.icon}</span>
+                    <span className="material-symbols-outlined text-base" aria-hidden="true">
+                      {item.icon}
+                    </span>
                   )}
                   {item.label}
                 </a>

@@ -18,7 +18,15 @@ import {
   TotalImpactCard,
   ImpactSummarySection,
 } from '@/components/assessment'
-import { Button, LoadingSpinner, StickyFooter, Modal, useToast } from '@/components/ui'
+import {
+  Button,
+  LoadingSpinner,
+  StickyFooter,
+  Modal,
+  useToast,
+  LoadingState,
+  PageHeader,
+} from '@/components/ui'
 
 export default function AssessmentScoringPage() {
   const { projectId } = useParams()
@@ -226,27 +234,16 @@ export default function AssessmentScoringPage() {
   const readOnly = !can('assessment.edit')
 
   if (isLoading || lookupsLoading) {
-    return (
-      <div className="flex w-full items-center justify-center py-20">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading scoring...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState message="Loading scoring..." />
   }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-text-main dark:text-white">
-          Environmental Impact Assessment Scoring
-        </h1>
-        <p className="text-text-secondary mt-1">
-          Evaluate and score environmental impacts across 8 categories (50 questions total)
-        </p>
-      </div>
+      <PageHeader
+        className="mb-8"
+        title="Environmental Impact Assessment Scoring"
+        description="Evaluate and score environmental impacts across 8 categories (50 questions total)"
+      />
 
       {/* Impact Categories */}
       <div className="space-y-4 mb-6">
@@ -264,7 +261,7 @@ export default function AssessmentScoringPage() {
       </div>
 
       {/* Total Score & Impact Cards */}
-      <div className="bg-white dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark shadow-sm p-6 flex flex-col lg:flex-row gap-8 items-stretch mb-6">
+      <div className="bg-surface dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark shadow-sm p-6 flex flex-col lg:flex-row gap-8 items-stretch mb-6">
         <TotalScoreCard scores={totalScore} />
         <div className="w-px bg-border-default dark:bg-border-dark hidden lg:block"></div>
         <TotalImpactCard impact={totalImpact} />
@@ -290,20 +287,14 @@ export default function AssessmentScoringPage() {
 
       {/* Sticky Footer */}
       <StickyFooter>
-        <button
-          onClick={handleBack}
-          disabled={isSaving}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border-default dark:border-border-dark text-text-main dark:text-white font-medium hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <span className="material-symbols-outlined text-sm">arrow_back</span>
+        <Button variant="secondary" onClick={handleBack} disabled={isSaving}>
+          <span className="material-symbols-outlined text-sm" aria-hidden="true">
+            arrow_back
+          </span>
           Back
-        </button>
+        </Button>
         <div className="flex items-center gap-3">
-          <button
-            onClick={handleSaveDraft}
-            disabled={isSaving || readOnly}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border-default dark:border-border-dark text-text-main dark:text-white font-medium hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <Button variant="secondary" onClick={handleSaveDraft} disabled={isSaving || readOnly}>
             {isSaving ? (
               <>
                 <LoadingSpinner size="sm" />
@@ -311,16 +302,14 @@ export default function AssessmentScoringPage() {
               </>
             ) : (
               <>
-                <span className="material-symbols-outlined text-sm">save</span>
+                <span className="material-symbols-outlined text-sm" aria-hidden="true">
+                  save
+                </span>
                 Save as Draft
               </>
             )}
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={isSaving || readOnly}
-            className="flex items-center justify-center gap-2 rounded-lg h-10 px-5 bg-primary text-white text-sm font-bold hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-          >
+          </Button>
+          <Button variant="primary" onClick={handleSubmit} disabled={isSaving || readOnly}>
             {isSaving ? (
               <>
                 <LoadingSpinner size="sm" />
@@ -328,11 +317,13 @@ export default function AssessmentScoringPage() {
               </>
             ) : (
               <>
-                <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                  check_circle
+                </span>
                 <span>Submit Assessment</span>
               </>
             )}
-          </button>
+          </Button>
         </div>
       </StickyFooter>
 

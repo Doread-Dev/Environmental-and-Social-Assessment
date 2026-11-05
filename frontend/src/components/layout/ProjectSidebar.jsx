@@ -104,11 +104,13 @@ function ProjectSidebar({ project, className }) {
           className={cn(
             'flex items-center gap-3',
             'px-3 py-2 rounded-lg',
-            'text-text-disabled dark:text-gray-600',
+            'text-text-disabled dark:text-gray-500',
             'cursor-not-allowed opacity-75'
           )}
         >
-          <span className="material-symbols-outlined text-[20px]">lock</span>
+          <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+            lock
+          </span>
           <span className="text-sm font-medium">{item.label}</span>
         </div>
       )
@@ -146,6 +148,7 @@ function ProjectSidebar({ project, className }) {
                 'material-symbols-outlined',
                 (isCompleted || isParentActive) && 'text-primary'
               )}
+              aria-hidden="true"
             >
               {item.id === 'screening'
                 ? isCompleted
@@ -246,7 +249,9 @@ function ProjectSidebar({ project, className }) {
               'transition-all'
             )}
           >
-            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+              arrow_back
+            </span>
           </div>
           <span>Back to Dashboard</span>
         </button>
@@ -265,7 +270,12 @@ function ProjectSidebar({ project, className }) {
 
           <div className="flex flex-col gap-1.5 relative z-10">
             {/* Project Title with Tooltip for long names */}
-            <Tooltip content={projectTitle} position="right" delay={300}>
+            <Tooltip
+              content={projectTitle}
+              position="right"
+              delay={300}
+              triggerClassName="flex w-full min-w-0"
+            >
               <h2
                 className="text-sm font-bold text-text-main dark:text-white leading-tight truncate"
                 title={projectTitle}
@@ -274,7 +284,9 @@ function ProjectSidebar({ project, className }) {
               </h2>
             </Tooltip>
             <div className="flex items-center gap-1.5 text-xs text-text-secondary dark:text-gray-400">
-              <span className="material-symbols-outlined text-[14px]">location_on</span>
+              <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
+                location_on
+              </span>
               <span className="truncate" title={projectLocation}>
                 {projectLocation}
               </span>
@@ -300,7 +312,11 @@ function ProjectSidebar({ project, className }) {
             )
           }
         >
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
+          <span
+            className="material-symbols-outlined"
+            style={{ fontVariationSettings: "'FILL' 1" }}
+            aria-hidden="true"
+          >
             dashboard
           </span>
           <span>Project Overview</span>
@@ -332,11 +348,13 @@ function ProjectSidebar({ project, className }) {
                 className={cn(
                   'flex items-center gap-3',
                   'px-3 py-2 rounded-lg',
-                  'text-text-disabled dark:text-gray-600',
+                  'text-text-disabled dark:text-gray-500',
                   'cursor-not-allowed opacity-75'
                 )}
               >
-                <span className="material-symbols-outlined text-[20px]">lock</span>
+                <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                  lock
+                </span>
                 <span className="text-sm font-medium">{item.label}</span>
               </div>
             )
@@ -373,6 +391,7 @@ function ProjectSidebar({ project, className }) {
                   isCompleted && 'text-primary',
                   isActive && 'text-primary'
                 )}
+                aria-hidden="true"
               >
                 {getIcon()}
               </span>
@@ -408,7 +427,10 @@ function ProjectSidebar({ project, className }) {
                 )
               }
             >
-              <span className="material-symbols-outlined text-[20px] text-text-secondary group-hover:text-text-main dark:group-hover:text-gray-300">
+              <span
+                className="material-symbols-outlined text-[20px] text-text-secondary group-hover:text-text-main dark:group-hover:text-gray-300"
+                aria-hidden="true"
+              >
                 {item.icon}
               </span>
               <span>{item.label}</span>
@@ -446,6 +468,7 @@ function ProjectSidebar({ project, className }) {
                 'material-symbols-outlined text-text-secondary text-lg transition-transform',
                 isUserMenuOpen && 'rotate-180'
               )}
+              aria-hidden="true"
             >
               expand_more
             </span>
@@ -497,7 +520,10 @@ function ProjectSidebar({ project, className }) {
                         )}
                       >
                         <div className="flex items-center gap-3">
-                          <span className="material-symbols-outlined text-[20px]">
+                          <span
+                            className="material-symbols-outlined text-[20px]"
+                            aria-hidden="true"
+                          >
                             {isDark ? 'light_mode' : 'dark_mode'}
                           </span>
                           <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
@@ -533,7 +559,9 @@ function ProjectSidebar({ project, className }) {
                         item.id === 'logout' && 'text-error hover:text-error'
                       )}
                     >
-                      <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+                      <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                        {item.icon}
+                      </span>
                       {item.label}
                     </button>
                   )

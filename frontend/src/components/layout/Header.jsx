@@ -73,7 +73,9 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
             )}
             aria-label="Toggle menu"
           >
-            <span className="material-symbols-outlined">menu</span>
+            <span className="material-symbols-outlined" aria-hidden="true">
+              menu
+            </span>
           </button>
         )}
 
@@ -95,7 +97,9 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
           )}
           aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
         >
-          <span className="material-symbols-outlined">{isDark ? 'light_mode' : 'dark_mode'}</span>
+          <span className="material-symbols-outlined" aria-hidden="true">
+            {isDark ? 'light_mode' : 'dark_mode'}
+          </span>
         </button>
 
         {/* Divider */}
@@ -183,7 +187,9 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
                         item.id === 'logout' && 'text-error hover:text-error'
                       )}
                     >
-                      <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+                      <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                        {item.icon}
+                      </span>
                       {item.label}
                     </button>
                   )

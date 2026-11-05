@@ -1,7 +1,7 @@
-/* Font Import - Must be before @import "tailwindcss" */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+/* Text font: IBM Plex Sans + IBM Plex Sans Arabic, self-hosted (src/fonts.js, D72) — never from
+   fonts.googleapis.com (a test fails if it comes back). */
 
-/* Material Symbols Icons */
+/* Material Symbols Icons (still from Google Fonts; bundling them is phase 11, D37) */
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
 @import 'tailwindcss';
@@ -62,10 +62,6 @@
   /* Desktop (lg): sidebar width */
   --sidebar-width-xl: 300px;
   /* XL screens */
-
-  /* Font Family */
-  --font-display: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 /* Responsive sidebar width */
@@ -170,9 +166,11 @@ html:not(.dark) body {
   --color-green-900: #003f27;
   --color-green-950: #002b1b;
 
-  /* Font Families */
-  --font-family-display: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-family-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  /* Font family (D71, D72): IBM Plex Sans, with IBM Plex Sans Arabic for Arabic text, both
+     self-hosted (src/fonts.js). Tailwind 4 reads --font-sans for font-sans and the base html font. */
+  --font-sans:
+    'IBM Plex Sans', 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+    Roboto, sans-serif;
 
   /* Border Radius */
   --radius-sm: 0.25rem;
@@ -272,26 +270,26 @@ html.dark *::-webkit-scrollbar-thumb:hover {
 }
 
 .excel-scroll::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--color-background);
 }
 
 html.dark .excel-scroll::-webkit-scrollbar-track {
-  background: #1a2c20;
+  background: var(--color-background-dark);
 }
 
 .excel-scroll::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: var(--color-border);
   border-radius: 5px;
-  border: 2px solid #f1f1f1;
+  border: 2px solid var(--color-background);
 }
 
 html.dark .excel-scroll::-webkit-scrollbar-thumb {
-  background: #4a5568;
-  border-color: #1a2c20;
+  background: var(--color-border-dark);
+  border-color: var(--color-background-dark);
 }
 
 .excel-scroll::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: var(--color-text-secondary);
 }
 
 /* تنسيق الخلايا (Div contenteditable) */
@@ -337,7 +335,7 @@ select.excel-cell:focus {
 /* Placeholder */
 .excel-cell[data-placeholder]:empty:before {
   content: attr(data-placeholder);
-  color: #9ca3af;
+  color: var(--color-text-disabled);
   pointer-events: none;
 }
 
@@ -463,12 +461,12 @@ html.dark .monitoring-table th {
 }
 
 .monitoring-table-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--color-background);
   border-radius: 4px;
 }
 
 html.dark .monitoring-table-container::-webkit-scrollbar-track {
-  background: #1a2c20;
+  background: var(--color-background-dark);
 }
 
 .monitoring-table-container::-webkit-scrollbar-thumb {

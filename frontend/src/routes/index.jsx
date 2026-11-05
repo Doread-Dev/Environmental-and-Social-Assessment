@@ -11,22 +11,14 @@ import AuthLayout from '@/components/layout/AuthLayout'
 import MainLayout from '@/components/layout/MainLayout'
 import ProjectLayout from '@/components/layout/ProjectLayout'
 import SempFullWidthLayout from '@/components/layout/SempFullWidthLayout'
-
-// Loading Fallback Component
-const PageLoader = () => (
-  <div className="min-h-[400px] flex items-center justify-center">
-    <div className="flex flex-col items-center gap-4">
-      <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      <p className="text-text-secondary dark:text-gray-400 text-sm">Loading...</p>
-    </div>
-  </div>
-)
+import { LoadingState } from '@/components/ui'
+import NotFoundPage from '@/pages/NotFoundPage'
 
 // Lazy wrapper helper
 const lazyLoad = (importFn) => {
   const LazyComponent = lazy(importFn)
   return (
-    <Suspense fallback={<PageLoader />}>
+    <Suspense fallback={<LoadingState />}>
       <LazyComponent />
     </Suspense>
   )
@@ -97,26 +89,6 @@ const ActivityLogPage = lazy(() => import('@/pages/settings/ActivityLogPage'))
 // Profile Page (own password, D23)
 const ProfilePage = lazy(() => import('@/pages/profile/ProfilePage'))
 
-// Not Found Page (inline - small component)
-const NotFoundPage = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background dark:bg-background-dark">
-    <div className="text-center">
-      <h1 className="text-6xl font-bold text-primary mb-4">404</h1>
-      <p className="text-xl text-text-main dark:text-white mb-2">Page Not Found</p>
-      <p className="text-text-secondary dark:text-gray-400 mb-6">
-        The page you're looking for doesn't exist.
-      </p>
-      <a
-        href={ROUTES.DASHBOARD}
-        className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-hover text-white font-medium rounded-lg transition-colors"
-      >
-        <span className="material-symbols-outlined">home</span>
-        Back to Dashboard
-      </a>
-    </div>
-  </div>
-)
-
 /**
  * Application Router Configuration
  * All pages are lazy loaded for optimal performance.
@@ -163,7 +135,7 @@ export const router = createBrowserRouter([
       {
         path: 'dashboard',
         element: (
-          <Suspense fallback={<PageLoader />}>
+          <Suspense fallback={<LoadingState />}>
             <DashboardPage />
           </Suspense>
         ),
@@ -171,7 +143,7 @@ export const router = createBrowserRouter([
       {
         path: 'projects',
         element: (
-          <Suspense fallback={<PageLoader />}>
+          <Suspense fallback={<LoadingState />}>
             <ProjectListPage />
           </Suspense>
         ),
@@ -179,7 +151,7 @@ export const router = createBrowserRouter([
       {
         path: 'projects/new',
         element: (
-          <Suspense fallback={<PageLoader />}>
+          <Suspense fallback={<LoadingState />}>
             <ProjectCreatePage />
           </Suspense>
         ),
@@ -187,7 +159,7 @@ export const router = createBrowserRouter([
       {
         path: 'library',
         element: (
-          <Suspense fallback={<PageLoader />}>
+          <Suspense fallback={<LoadingState />}>
             <LibraryPage />
           </Suspense>
         ),
@@ -195,7 +167,7 @@ export const router = createBrowserRouter([
       {
         path: 'profile',
         element: (
-          <Suspense fallback={<PageLoader />}>
+          <Suspense fallback={<LoadingState />}>
             <ProfilePage />
           </Suspense>
         ),
@@ -207,7 +179,7 @@ export const router = createBrowserRouter([
           {
             index: true,
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <SettingsPage />
               </Suspense>
             ),
@@ -222,7 +194,7 @@ export const router = createBrowserRouter([
               {
                 index: true,
                 element: (
-                  <Suspense fallback={<PageLoader />}>
+                  <Suspense fallback={<LoadingState />}>
                     <ActivityLogPage />
                   </Suspense>
                 ),
@@ -253,7 +225,7 @@ export const router = createBrowserRouter([
       {
         path: 'overview',
         element: (
-          <Suspense fallback={<PageLoader />}>
+          <Suspense fallback={<LoadingState />}>
             <ProjectOverviewPage />
           </Suspense>
         ),
@@ -264,7 +236,7 @@ export const router = createBrowserRouter([
         path: 'screening',
         handle: { place: 'screening' },
         element: (
-          <Suspense fallback={<PageLoader />}>
+          <Suspense fallback={<LoadingState />}>
             <ScreeningRouter />
           </Suspense>
         ),
@@ -273,7 +245,7 @@ export const router = createBrowserRouter([
         path: 'screening/summary',
         handle: { place: 'screening' },
         element: (
-          <Suspense fallback={<PageLoader />}>
+          <Suspense fallback={<LoadingState />}>
             <ScreeningSummaryPage />
           </Suspense>
         ),
@@ -288,7 +260,7 @@ export const router = createBrowserRouter([
           {
             index: true,
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <AssessmentRouter />
               </Suspense>
             ),
@@ -296,7 +268,7 @@ export const router = createBrowserRouter([
           {
             path: 'metadata',
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <AssessmentMetadataPage />
               </Suspense>
             ),
@@ -304,7 +276,7 @@ export const router = createBrowserRouter([
           {
             path: 'methods',
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <AssessmentMethodsPage />
               </Suspense>
             ),
@@ -312,7 +284,7 @@ export const router = createBrowserRouter([
           {
             path: 'scoring',
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <AssessmentScoringPage />
               </Suspense>
             ),
@@ -320,7 +292,7 @@ export const router = createBrowserRouter([
           {
             path: 'review',
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <AssessmentReviewPage />
               </Suspense>
             ),
@@ -336,7 +308,7 @@ export const router = createBrowserRouter([
           {
             index: true,
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <SempOverviewPage />
               </Suspense>
             ),
@@ -353,7 +325,7 @@ export const router = createBrowserRouter([
           {
             index: true,
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <MonitoringOverviewPage />
               </Suspense>
             ),
@@ -361,7 +333,7 @@ export const router = createBrowserRouter([
           {
             path: 'data-entry',
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <MonitoringDataEntryPage />
               </Suspense>
             ),
@@ -373,7 +345,7 @@ export const router = createBrowserRouter([
       {
         path: 'documents',
         element: (
-          <Suspense fallback={<PageLoader />}>
+          <Suspense fallback={<LoadingState />}>
             <ProjectDocumentsPage />
           </Suspense>
         ),
@@ -399,7 +371,7 @@ export const router = createBrowserRouter([
             path: 'activities',
             handle: { place: 'management' },
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <ManagementActivitiesPage />
               </Suspense>
             ),
@@ -408,7 +380,7 @@ export const router = createBrowserRouter([
             path: 'mitigation',
             handle: { place: 'mitigation' },
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <MitigationPlanPage />
               </Suspense>
             ),

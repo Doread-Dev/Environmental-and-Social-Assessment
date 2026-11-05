@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Button, Card, Icon, Alert } from '@/components/ui'
+import { Button, Card, Icon, LoadingState, PageHeader, ErrorState } from '@/components/ui'
 import { MetricCard, ProjectListItem } from '@/components/dashboard'
 import { ROUTES } from '@/routes/routes.config'
 import { useDashboard } from '@/hooks'
@@ -29,47 +29,27 @@ function DashboardPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading dashboard...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState message="Loading dashboard..." />
   }
 
   if (error && !stats) {
-    return (
-      <div className="flex flex-col gap-4 max-w-md mx-auto mt-12">
-        <Alert variant="error">Failed to load projects: {error}</Alert>
-        <Button onClick={() => refetch()} variant="primary">
-          Try Again
-        </Button>
-      </div>
-    )
+    return <ErrorState title="Failed to load the dashboard" message={error} onRetry={refetch} />
   }
 
   return (
     <div className="flex flex-col gap-8">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-text-main dark:text-white">
-            Dashboard
-          </h2>
-          <p className="text-text-secondary dark:text-gray-400 mt-1 text-base">
-            Overview of projects and environmental & social status.
-          </p>
-        </div>
-        {canCreateProject && (
-          <div className="flex gap-3">
+      <PageHeader
+        title="Dashboard"
+        description="Overview of projects and environmental & social status."
+        actions={
+          canCreateProject && (
             <Button variant="primary" leftIcon={<Icon name="add" />} onClick={handleNewProject}>
               New Project
             </Button>
-          </div>
-        )}
-      </div>
+          )
+        }
+      />
 
       {/* Metric Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

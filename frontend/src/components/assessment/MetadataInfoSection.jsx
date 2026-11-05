@@ -36,7 +36,7 @@ export default function MetadataInfoSection({
   return (
     <div
       className={cn(
-        'bg-gray-50 dark:bg-white/5 border-b border-border-color dark:border-white/10 p-6 md:p-8',
+        'bg-background dark:bg-white/5 border-b border-border-color dark:border-white/10 p-6 md:p-8',
         className
       )}
       {...props}

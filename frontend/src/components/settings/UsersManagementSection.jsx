@@ -10,7 +10,17 @@ import { useState, useEffect, useMemo } from 'react'
 import { extractErrorMessage } from '@/services/api'
 import { useUsers, useUserManagement } from '@/hooks'
 import { useAuth, USER_ROLES, ROLE_LABELS } from '@/contexts'
-import { useToast, Table, Badge, Pagination, Select, Button, Icon } from '@/components/ui'
+import {
+  useToast,
+  Table,
+  Badge,
+  Pagination,
+  Select,
+  Button,
+  Icon,
+  Input,
+  LoadingState,
+} from '@/components/ui'
 import { cn } from '@/utils/cn'
 import { UserFormModal } from './UserFormModal'
 import { TemporaryPasswordModal } from './TemporaryPasswordModal'
@@ -158,14 +168,6 @@ export function UsersManagementSection() {
     setCurrentPage(1)
   }, [searchQuery, roleFilter, statusFilter])
 
-  const inputClass = cn(
-    'w-full rounded-lg border px-3 py-2.5 text-sm',
-    'border-border-default dark:border-border-dark',
-    'bg-surface dark:bg-surface-dark',
-    'text-text-main dark:text-white',
-    'focus:ring-primary focus:border-primary'
-  )
-
   return (
     <section className="bg-surface dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
       {/* Header */}
@@ -186,56 +188,34 @@ export function UsersManagementSection() {
       <div className="p-6">
         {/* Search and filters */}
         <div className="mb-6 flex flex-col sm:flex-row gap-4">
-          <div className="flex-1 relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary dark:text-gray-400 text-lg">
-              search
-            </span>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by name, email, or role..."
-              aria-label="Search users"
-              className={cn(
-                inputClass,
-                'pl-10 placeholder:text-text-secondary dark:placeholder:text-gray-500'
-              )}
-            />
-          </div>
-          <select
+          <Input
+            className="flex-1"
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by name, email, or role..."
+            aria-label="Search users"
+            leftIcon={<Icon name="search" />}
+          />
+          <Select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             aria-label="Status filter"
-            className={cn(inputClass, 'sm:w-44')}
-          >
-            {STATUS_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-          <select
+            options={STATUS_OPTIONS}
+            className="sm:w-44"
+          />
+          <Select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
             aria-label="Role filter"
-            className={cn(inputClass, 'sm:w-56')}
-          >
-            {ROLE_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
+            options={ROLE_OPTIONS}
+            className="sm:w-56"
+          />
         </div>
 
         {/* Users table */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="flex flex-col items-center gap-4">
-              <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-              <p className="text-text-secondary dark:text-gray-400 text-sm">Loading users...</p>
-            </div>
-          </div>
+          <LoadingState message="Loading users..." variant="section" />
         ) : (
           <div className="border border-border-default dark:border-border-dark rounded-lg overflow-hidden">
             <Table>
@@ -259,7 +239,10 @@ export function UsersManagementSection() {
                       <Table.Cell>
                         <div className="flex items-center gap-3">
                           <div className="size-8 rounded-full bg-primary/20 flex items-center justify-center">
-                            <span className="material-symbols-outlined text-primary text-sm">
+                            <span
+                              className="material-symbols-outlined text-primary text-sm"
+                              aria-hidden="true"
+                            >
                               person
                             </span>
                           </div>
@@ -347,7 +330,6 @@ export function UsersManagementSection() {
                 options={ITEMS_PER_PAGE_OPTIONS}
                 size="sm"
                 className="w-[160px]"
-                selectClassName="h-9 text-sm pl-3 pr-8"
               />
             </div>
             {totalPages > 1 && (

@@ -11,8 +11,17 @@
  */
 
 import { useEffect, useState } from 'react'
-import { Alert, Badge, Button, Icon, Input, Modal, Textarea } from '@/components/ui'
-import { formatDateFull } from '@/utils/formatters'
+import {
+  Alert,
+  Button,
+  Icon,
+  Input,
+  Modal,
+  PAGE_TITLE,
+  StatusBadge,
+  Textarea,
+} from '@/components/ui'
+import { formatDate } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
 import { validateProjectForm } from '@/utils/validators'
 
@@ -29,10 +38,11 @@ const normalizeDateInput = (value) => {
 /**
  * @param {Object} props
  * @param {Object} props.project - بيانات المشروع
+ * @param {string} [props.status] - Overall workflow status (workflow.status) shown as a badge
  * @param {boolean} props.showEditButton - عرض زر التعديل (default: true)
  * @param {Function} props.onEdit - callback عند النقر على التعديل
  */
-function ProjectHeader({ project, showEditButton = true, onEdit, className, ...props }) {
+function ProjectHeader({ project, status, showEditButton = true, onEdit, className, ...props }) {
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
@@ -51,8 +61,7 @@ function ProjectHeader({ project, showEditButton = true, onEdit, className, ...p
   const description = project?.project_component || project?.description || ''
 
   // Format dates
-  const dateRange =
-    startDate && endDate ? `${formatDateFull(startDate)} – ${formatDateFull(endDate)}` : ''
+  const dateRange = startDate && endDate ? `${formatDate(startDate)} – ${formatDate(endDate)}` : ''
 
   useEffect(() => {
     if (!isEditOpen || !project) return
@@ -156,28 +165,23 @@ function ProjectHeader({ project, showEditButton = true, onEdit, className, ...p
       <div className="flex flex-col gap-2">
         {/* Title with Badge */}
         <div className="flex items-center gap-3 flex-wrap">
-          <h1 className="text-3xl font-bold text-text-main dark:text-white">
-            {project.title || project.name}
-          </h1>
+          <h1 className={PAGE_TITLE}>{project.title || project.name}</h1>
           {project._id && (
-            <span className="text-xs text-text-secondary dark:text-gray-400 font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+            <span className="text-xs text-text-secondary dark:text-gray-400 font-mono bg-background dark:bg-white/10 px-2 py-1 rounded">
               ID: {project._id}
             </span>
           )}
-          <Badge
-            variant="success"
-            size="sm"
-            className="bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800"
-          >
-            Active
-          </Badge>
+          {/* Archived projects say so; otherwise the overall workflow status (D30) */}
+          <StatusBadge size="sm" status={project.archived ? 'archived' : status || 'draft'} />
         </div>
 
         {/* Location and Date */}
         <div className="flex items-center gap-4 text-text-secondary dark:text-gray-400 text-sm">
           {location && (
             <span className="flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[18px]">location_on</span>
+              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                location_on
+              </span>
               {location}
             </span>
           )}
@@ -185,7 +189,9 @@ function ProjectHeader({ project, showEditButton = true, onEdit, className, ...p
             <>
               <span className="w-1 h-1 bg-border-default dark:bg-border-dark rounded-full"></span>
               <span className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[18px]">calendar_month</span>
+                <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                  calendar_month
+                </span>
                 {dateRange}
               </span>
             </>
@@ -197,12 +203,9 @@ function ProjectHeader({ project, showEditButton = true, onEdit, className, ...p
       <div className="flex items-center gap-4">
         {/* Edit Button */}
         {showEditButton && (
-          <button
-            onClick={() => setIsEditOpen(true)}
-            className="bg-white dark:bg-surface-dark border border-border-default dark:border-border-dark hover:bg-gray-50/50 dark:hover:bg-white/5 text-text-main dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-          >
+          <Button variant="secondary" onClick={() => setIsEditOpen(true)}>
             Edit Project
-          </button>
+          </Button>
         )}
       </div>
 

@@ -79,10 +79,11 @@ function ProjectOverviewPage() {
   return (
     <div className="flex flex-col gap-8">
       {/* Project Header Section (includes header + progress timeline) */}
-      <section className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark p-6">
+      <section className="bg-surface dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark p-6">
         {/* Header Content */}
         <ProjectHeader
           project={project}
+          status={workflow?.status}
           showEditButton={can('project.edit')}
           onEdit={handleEditProject}
         />

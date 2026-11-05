@@ -11,6 +11,8 @@ export const queryKeys = {
   users: ['users'],
   dashboard: ['dashboard'],
   projects: ['projects'],
+  // Under the ['projects'] prefix, so every project-list invalidation refreshes it too
+  archivedProjects: ['projects', 'archived'],
   workspace: (projectId) => ['workspace', projectId],
   screening: (projectId) => ['screening', projectId],
   assessment: (projectId) => ['assessment', projectId],

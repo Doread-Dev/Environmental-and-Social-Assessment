@@ -146,11 +146,13 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
               'flex items-center gap-3',
               'px-4 py-3 rounded-lg',
               'text-base font-medium',
-              'text-text-disabled dark:text-gray-600',
+              'text-text-disabled dark:text-gray-500',
               'cursor-not-allowed opacity-75'
             )}
           >
-            <span className="material-symbols-outlined">lock</span>
+            <span className="material-symbols-outlined" aria-hidden="true">
+              lock
+            </span>
             {item.label}
           </div>
         ) : (
@@ -166,7 +168,9 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                 : 'text-text-secondary hover:text-text-main hover:bg-background dark:hover:bg-background-dark'
             )}
           >
-            <span className="material-symbols-outlined">{item.icon}</span>
+            <span className="material-symbols-outlined" aria-hidden="true">
+              {item.icon}
+            </span>
             {item.label}
           </NavLink>
         )}
@@ -242,14 +246,17 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
       <div
         className={cn(
           'fixed inset-y-0 left-0 z-50 lg:hidden',
-          'w-[280px] max-w-[85vw]',
+          'w-[280px] max-w-[85vw] overflow-hidden',
           'bg-surface dark:bg-surface-dark',
           'shadow-2xl',
-          'transform transition-transform duration-300 ease-out',
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+          'transform transition-[transform,visibility] duration-300 ease-out',
+          // Closed: off-screen AND invisible, so nothing bleeds into the page and keyboard /
+          // screen-reader users cannot reach the hidden links
+          isOpen ? 'translate-x-0 visible' : '-translate-x-full invisible'
         )}
         role="dialog"
         aria-modal="true"
+        aria-hidden={!isOpen}
         aria-label="Mobile navigation"
       >
         <div className="flex flex-col h-full">
@@ -264,7 +271,9 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                 }}
                 className="flex items-center gap-2 text-sm font-medium text-text-secondary hover:text-text-main dark:hover:text-white transition-colors"
               >
-                <span className="material-symbols-outlined text-lg">arrow_back</span>
+                <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                  arrow_back
+                </span>
                 Back to Dashboard
               </button>
             ) : (
@@ -283,7 +292,9 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
               )}
               aria-label="Close menu"
             >
-              <span className="material-symbols-outlined">close</span>
+              <span className="material-symbols-outlined" aria-hidden="true">
+                close
+              </span>
             </button>
           </div>
 
@@ -292,7 +303,12 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
             <div className="px-4 py-3 border-b border-border-default dark:border-border-dark">
               <div className="bg-background dark:bg-background-dark rounded-lg p-3">
                 {/* Project Title with Tooltip for long names */}
-                <Tooltip content={projectTitle} position="bottom" delay={300}>
+                <Tooltip
+                  content={projectTitle}
+                  position="bottom"
+                  delay={300}
+                  triggerClassName="flex w-full min-w-0"
+                >
                   <h2
                     className="text-sm font-bold text-text-main dark:text-white truncate"
                     title={projectTitle}
@@ -332,7 +348,9 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                         )
                       }
                     >
-                      <span className="material-symbols-outlined">{item.icon}</span>
+                      <span className="material-symbols-outlined" aria-hidden="true">
+                        {item.icon}
+                      </span>
                       {item.label}
                     </NavLink>
                   ))}
@@ -362,7 +380,9 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                       )
                     }
                   >
-                    <span className="material-symbols-outlined">dashboard</span>
+                    <span className="material-symbols-outlined" aria-hidden="true">
+                      dashboard
+                    </span>
                     Project Overview
                   </NavLink>
 
@@ -402,11 +422,13 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                               'flex items-center gap-3',
                               'px-4 py-3 rounded-lg',
                               'text-base font-medium',
-                              'text-text-disabled dark:text-gray-600',
+                              'text-text-disabled dark:text-gray-500',
                               'cursor-not-allowed opacity-75'
                             )}
                           >
-                            <span className="material-symbols-outlined">lock</span>
+                            <span className="material-symbols-outlined" aria-hidden="true">
+                              lock
+                            </span>
                             {item.label}
                           </div>
                         )
@@ -432,6 +454,7 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                               isCompleted && 'text-primary',
                               isActive && 'text-primary'
                             )}
+                            aria-hidden="true"
                           >
                             {getIcon()}
                           </span>
@@ -467,7 +490,9 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                           )
                         }
                       >
-                        <span className="material-symbols-outlined">{item.icon}</span>
+                        <span className="material-symbols-outlined" aria-hidden="true">
+                          {item.icon}
+                        </span>
                         {item.label}
                       </NavLink>
                     )
@@ -512,6 +537,7 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                         'material-symbols-outlined text-text-secondary text-lg transition-transform',
                         isUserMenuOpen && 'rotate-180'
                       )}
+                      aria-hidden="true"
                     >
                       expand_more
                     </span>
@@ -566,7 +592,10 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                                 )}
                               >
                                 <div className="flex items-center gap-3">
-                                  <span className="material-symbols-outlined text-[20px]">
+                                  <span
+                                    className="material-symbols-outlined text-[20px]"
+                                    aria-hidden="true"
+                                  >
                                     {isDark ? 'light_mode' : 'dark_mode'}
                                   </span>
                                   <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
@@ -606,7 +635,10 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                                 item.id === 'logout' && 'text-error hover:text-error'
                               )}
                             >
-                              <span className="material-symbols-outlined text-[20px]">
+                              <span
+                                className="material-symbols-outlined text-[20px]"
+                                aria-hidden="true"
+                              >
                                 {item.icon}
                               </span>
                               {item.label}

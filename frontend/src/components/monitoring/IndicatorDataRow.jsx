@@ -5,6 +5,7 @@
 
 import RankingSelect from './RankingSelect'
 import ResponsibleSelect from '@/components/semp/ResponsibleSelect'
+import { Input, Textarea } from '@/components/ui'
 
 /**
  * @param {Object} props
@@ -42,9 +43,9 @@ function IndicatorDataRow({
   }
 
   return (
-    <tr className="group border-b border-border-default dark:border-border-dark hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
+    <tr className="group border-b border-border-default dark:border-border-dark hover:bg-background dark:hover:bg-white/5 transition-colors">
       {/* Indicator Name */}
-      <td className="sticky left-0 z-20 px-4 py-3 text-sm text-text-main dark:text-white font-medium whitespace-normal min-w-[280px] max-w-[360px] bg-white dark:bg-card-dark group-hover:bg-white dark:group-hover:bg-card-dark">
+      <td className="sticky left-0 z-20 px-4 py-3 text-sm text-text-main dark:text-white font-medium whitespace-normal min-w-[280px] max-w-[360px] bg-surface dark:bg-card-dark group-hover:bg-white dark:group-hover:bg-card-dark">
         <div className="flex flex-col gap-1">
           <p className="font-medium">{indicator.name}</p>
           {indicator.definition && (
@@ -62,12 +63,14 @@ function IndicatorDataRow({
       {quarters.map((quarter) => (
         <td key={quarter} className="px-3 py-3 min-w-[100px]">
           {isEditable ? (
-            <input
+            <Input
+              size="sm"
               type="text"
               value={record.scores[quarter] || ''}
               onChange={(e) => handleScoreChange(quarter, e.target.value)}
               placeholder={quarter === 'baseline' ? 'Baseline' : quarter}
-              className="w-full rounded-lg border border-border-default dark:border-border-dark bg-white dark:bg-background-dark text-text-main dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary px-3 py-2 text-sm text-center"
+              aria-label={quarter === 'baseline' ? 'Baseline' : quarter}
+              inputClassName="text-center"
             />
           ) : (
             <span className="text-sm text-text-main dark:text-white text-center block">
@@ -80,12 +83,14 @@ function IndicatorDataRow({
       {/* Total */}
       <td className="px-3 py-3 min-w-[100px]">
         {isEditable ? (
-          <input
+          <Input
+            size="sm"
             type="text"
             value={record.total || ''}
             onChange={(e) => handleFieldChange('total', e.target.value)}
             placeholder="Total"
-            className="w-full rounded-lg border border-border-default dark:border-border-dark bg-white dark:bg-background-dark text-text-main dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary px-3 py-2 text-sm font-medium text-center"
+            aria-label="Total"
+            inputClassName="font-medium text-center"
           />
         ) : (
           <span className="text-sm text-text-main dark:text-white font-medium text-center block">
@@ -97,11 +102,13 @@ function IndicatorDataRow({
       {/* Final Assessment */}
       <td className="px-3 py-3 min-w-[160px]">
         {isEditable ? (
-          <input
+          <Input
+            size="sm"
             value={record.final_assessment || ''}
             onChange={(e) => handleFieldChange('final_assessment', e.target.value)}
             placeholder="Final assessment"
-            className="w-full rounded-lg border border-border-default dark:border-border-dark bg-white dark:bg-background-dark text-text-main dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary px-3 py-2 text-sm text-left"
+            aria-label="Final assessment"
+            inputClassName="text-left"
           />
         ) : (
           <span className="text-sm text-text-main dark:text-white">
@@ -144,11 +151,12 @@ function IndicatorDataRow({
       {/* Note */}
       <td className="px-3 py-3 min-w-[180px]">
         {isEditable ? (
-          <textarea
+          <Textarea
+            rows={2}
             value={record.note || ''}
             onChange={(e) => handleFieldChange('note', e.target.value)}
             placeholder="Additional notes..."
-            className="w-full rounded-lg border border-border-default dark:border-border-dark bg-white dark:bg-background-dark text-text-main dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary px-3 py-2 text-sm"
+            aria-label="Note"
           />
         ) : (
           <span className="text-sm text-text-secondary dark:text-gray-400">

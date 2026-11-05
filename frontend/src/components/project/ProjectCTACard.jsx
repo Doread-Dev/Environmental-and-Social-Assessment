@@ -10,6 +10,7 @@
  */
 
 import { cn } from '@/utils/cn'
+import { Button } from '@/components/ui'
 
 /**
  * @param {Object} props
@@ -47,13 +48,12 @@ function ProjectCTACard({
 
       {/* Button */}
       <div className="relative z-10">
-        <button
-          onClick={onClick}
-          className="bg-primary hover:bg-primary-hover text-white font-bold py-3 px-6 rounded-lg shadow-lg shadow-primary/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2"
-        >
+        <Button variant="primary" size="lg" onClick={onClick}>
           <span>{buttonText}</span>
-          <span className="material-symbols-outlined text-[20px]">{buttonIcon}</span>
-        </button>
+          <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+            {buttonIcon}
+          </span>
+        </Button>
       </div>
     </div>
   )

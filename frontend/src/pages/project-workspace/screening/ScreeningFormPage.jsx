@@ -8,7 +8,7 @@
 
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Alert, StickyFooter, Modal, Button, useToast } from '@/components/ui'
+import { Alert, StickyFooter, Modal, Button, useToast, LoadingState } from '@/components/ui'
 import { ScreeningInfoSection, RiskCategorySelector, ImpactSection } from '@/components/screening'
 import { useScreening, useProjectContext } from '@/hooks'
 import { cn } from '@/utils/cn'
@@ -67,14 +67,7 @@ function ScreeningFormPage() {
 
   // Show loading state FIRST (before any redirects)
   if (screeningLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading screening...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState message="Loading screening..." />
   }
 
   // NOTE: We don't redirect here anymore - ScreeningRouter handles the routing logic
@@ -194,7 +187,9 @@ function ScreeningFormPage() {
         <div className="flex flex-col gap-2 py-6">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg text-primary">
-              <span className="material-symbols-outlined">assignment</span>
+              <span className="material-symbols-outlined" aria-hidden="true">
+                assignment
+              </span>
             </div>
             <h2 className="text-text-main dark:text-white text-2xl font-bold">
               Environmental Integration Screening
@@ -213,12 +208,12 @@ function ScreeningFormPage() {
         {/* Form Sections */}
         <form className="flex flex-col gap-8">
           {/* Section 1: Screening Information */}
-          <section className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
-            <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-gray-50/50 dark:bg-white/5 flex justify-between items-center">
+          <section className="bg-surface dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
+            <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-background dark:bg-white/5 flex justify-between items-center">
               <h3 className="font-bold text-lg text-text-main dark:text-white">
                 1. Screening Information
               </h3>
-              <span className="text-xs text-text-secondary bg-white dark:bg-background-dark px-2 py-1 rounded border border-border-default dark:border-border-dark">
+              <span className="text-xs text-text-secondary bg-surface dark:bg-background-dark px-2 py-1 rounded border border-border-default dark:border-border-dark">
                 Required
               </span>
             </div>
@@ -232,8 +227,8 @@ function ScreeningFormPage() {
           </section>
 
           {/* Section 2: Risk Category */}
-          <section className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
-            <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-gray-50/50 dark:bg-white/5">
+          <section className="bg-surface dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
+            <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-background dark:bg-white/5">
               <h3 className="font-bold text-lg text-text-main dark:text-white">
                 2. Project Risk Category
               </h3>
@@ -250,12 +245,12 @@ function ScreeningFormPage() {
           </section>
 
           {/* Section 3: Potential Impacts */}
-          <section className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
-            <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-gray-50/50 dark:bg-white/5 flex justify-between items-center">
+          <section className="bg-surface dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
+            <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-background dark:bg-white/5 flex justify-between items-center">
               <h3 className="font-bold text-lg text-text-main dark:text-white">
                 3. Potential Impacts
               </h3>
-              <span className="text-xs text-text-secondary bg-white dark:bg-background-dark px-2 py-1 rounded border border-border-default dark:border-border-dark">
+              <span className="text-xs text-text-secondary bg-surface dark:bg-background-dark px-2 py-1 rounded border border-border-default dark:border-border-dark">
                 Required
               </span>
             </div>
@@ -290,7 +285,7 @@ function ScreeningFormPage() {
                 'flex items-center gap-2 px-6 py-2.5 rounded-lg',
                 'border border-border-default dark:border-border-dark',
                 'text-text-main dark:text-white font-medium',
-                'hover:bg-gray-50/50 dark:hover:bg-white/5',
+                'hover:bg-background dark:hover:bg-white/5',
                 'transition-colors',
                 (isSavingDraft || isSubmitting) && 'opacity-50 cursor-not-allowed'
               )}
@@ -308,7 +303,9 @@ function ScreeningFormPage() {
                 (isSubmitting || isSavingDraft) && 'opacity-50 cursor-not-allowed'
               )}
             >
-              <span className="material-symbols-outlined text-sm">send</span>
+              <span className="material-symbols-outlined text-sm" aria-hidden="true">
+                send
+              </span>
               {isSubmitting ? 'Submitting...' : 'Submit Screening'}
             </button>
           </div>

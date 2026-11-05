@@ -30,7 +30,15 @@
 - Rewrite `CLAUDE.md` to match; keep it short and point to the docs.
 - README at the root.
 
+## Tests
+- One Playwright spec per golden flow above (1–9), named after the flow, each starting from a fresh `esms_test` database with seeded users; the specs run in the CI job.
+- Each E2E flow checks the visible result in the UI and the stored state through the API (e.g. status, `status_history`, audit entry).
+- Viewer flow: every write endpoint the UI uses answers 403 for a viewer token.
+- Test gap list: each module the owner picks gets a unit or integration test; coverage thresholds raised after.
+- Docs: a test (or CI step) fails if `backend/docs/` or `frontend/docs/` come back, and checks that every route in the route table appears in the API reference.
+
 ## Done when
+- [ ] Every item under Tests has a test (file names listed in Result).
 - [ ] E2E suite green and running in CI; docs reviewed by the owner.
 - [ ] Test gap list reviewed by the owner; agreed tests added.
 - [ ] `plan/README.md` progress table complete.

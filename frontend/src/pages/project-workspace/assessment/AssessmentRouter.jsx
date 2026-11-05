@@ -8,6 +8,7 @@ import { useAssessment, useProjectContext } from '@/hooks'
 import { isStepLocked } from '@/utils/workflowSteps'
 import AssessmentGatewayPage from './AssessmentGatewayPage'
 import AssessmentReviewPage from './AssessmentReviewPage'
+import { LoadingState } from '@/components/ui'
 
 /**
  * Assessment Workflow Flow:
@@ -29,22 +30,20 @@ export default function AssessmentRouter() {
   const { assessment, isLoading } = useAssessment(projectId)
 
   if (isLoading) {
-    return (
-      <div className="flex w-full items-center justify-center py-20">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading assessment...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState message="Loading assessment..." />
   }
 
   // Tool 2 stays locked until the screening is approved (backend workflow)
   if (isStepLocked(workflow, 'assessment')) {
     return (
       <div className="max-w-4xl mx-auto p-8">
-        <div className="bg-white dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark p-8 text-center">
-          <span className="material-symbols-outlined text-6xl text-gray-400 mb-4">lock</span>
+        <div className="bg-surface dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark p-8 text-center">
+          <span
+            className="material-symbols-outlined text-6xl text-text-disabled mb-4"
+            aria-hidden="true"
+          >
+            lock
+          </span>
           <h2 className="text-2xl font-bold text-text-main dark:text-white mb-2">
             Complete Screening First
           </h2>

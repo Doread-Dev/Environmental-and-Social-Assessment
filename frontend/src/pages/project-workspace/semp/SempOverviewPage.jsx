@@ -10,6 +10,7 @@ import { isStepLocked } from '@/utils/workflowSteps'
 import { SempToolCard } from '@/components/semp'
 import { V3LockedSection } from '@/components/layout/V3LockedNav'
 import { V3_LOCKED_LOCATIONS } from '@/routes/routes.config'
+import { PAGE_TITLE, PAGE_DESCRIPTION } from '@/components/ui'
 
 export default function SempOverviewPage() {
   const { projectId } = useParams()
@@ -36,12 +37,8 @@ export default function SempOverviewPage() {
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4 border-b border-border-default dark:border-border-dark pb-6">
           <div className="flex flex-col gap-2">
-            <h1 className="text-text-main dark:text-white text-3xl md:text-4xl font-black tracking-tight font-display">
-              Environmental & Social Management Plan
-            </h1>
-            <p className="text-text-secondary dark:text-gray-400 text-lg font-normal">
-              Management, mitigation, and monitoring actions
-            </p>
+            <h1 className={PAGE_TITLE}>Environmental & Social Management Plan</h1>
+            <p className={PAGE_DESCRIPTION}>Management, mitigation, and monitoring actions</p>
           </div>
         </div>
 
@@ -49,11 +46,15 @@ export default function SempOverviewPage() {
         {isLocked && (
           <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800 rounded-xl p-6 flex flex-col sm:flex-row items-center gap-4 mb-2">
             <div className="size-12 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center shrink-0 text-orange-600 dark:text-orange-400">
-              <span className="material-symbols-outlined text-2xl">lock</span>
+              <span className="material-symbols-outlined text-2xl" aria-hidden="true">
+                lock
+              </span>
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Tools Locked</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
+              <h3 className="text-lg font-bold text-text-main dark:text-white mb-1">
+                Tools Locked
+              </h3>
+              <p className="text-text-secondary dark:text-gray-400 text-sm">
                 You must complete and get approval for the{' '}
                 <strong>Environmental Assessment (Tool 2)</strong> before starting the management
                 plans.
@@ -77,7 +78,9 @@ export default function SempOverviewPage() {
           }
         >
           <h2 className="text-lg font-bold text-text-main dark:text-white flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">handyman</span>
+            <span className="material-symbols-outlined text-primary" aria-hidden="true">
+              handyman
+            </span>
             Management Tools
           </h2>
 

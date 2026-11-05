@@ -1,11 +1,18 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Input, Button, Table, Pagination, Icon, Dropdown, Select, Alert } from '@/components/ui'
 import {
-  WorkflowProgressBar,
-  ScreeningCategoryBadge,
-  ProjectStatusBadge,
-} from '@/components/dashboard'
+  Input,
+  Button,
+  Table,
+  Pagination,
+  Icon,
+  Select,
+  StatusBadge,
+  LoadingState,
+  ErrorState,
+  PageHeader,
+} from '@/components/ui'
+import { WorkflowProgressBar, ScreeningCategoryBadge } from '@/components/dashboard'
 import { useProjects } from '@/hooks'
 import { useAuth } from '@/contexts'
 import { formatDateRange, formatDuration, calculateDurationMonths } from '@/utils'
@@ -17,10 +24,13 @@ import { ROUTES, getProjectRoute } from '@/routes/routes.config'
  */
 function ProjectListPage() {
   const navigate = useNavigate()
-  const { projects, isLoading, error, fetchProjects } = useProjects()
   const { canCreateProject } = useAuth()
 
   // State
+  const [view, setView] = useState('active') // archived projects are hidden by default (D17)
+  const { projects, isLoading, error, fetchProjects } = useProjects({
+    archived: view === 'archived',
+  })
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [riskFilter, setRiskFilter] = useState('all')
@@ -111,6 +121,11 @@ function ProjectListPage() {
     { value: 'F', label: 'F - Positive Impact' },
   ]
 
+  const viewOptions = [
+    { value: 'active', label: 'Active projects' },
+    { value: 'archived', label: 'Archived projects' },
+  ]
+
   const sortOptions = [
     { value: 'updatedAt', label: 'Last Updated' },
     { value: 'title', label: 'Title' },
@@ -126,45 +141,27 @@ function ProjectListPage() {
   ]
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading projects...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState message="Loading projects..." />
   }
 
   if (error && projects.length === 0) {
-    return (
-      <div className="flex flex-col gap-4 max-w-md mx-auto mt-12">
-        <Alert variant="error">Failed to load projects: {error}</Alert>
-        <Button onClick={() => fetchProjects()} variant="primary">
-          Try Again
-        </Button>
-      </div>
-    )
+    return <ErrorState title="Failed to load projects" message={error} onRetry={fetchProjects} />
   }
 
   return (
     <div className="flex flex-col gap-8">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h2 className="text-text-main dark:text-white text-2xl font-bold tracking-tight">
-            Projects
-          </h2>
-          <p className="text-text-secondary mt-1 text-sm">
-            Manage environmental and social compliance across all active initiatives.
-          </p>
-        </div>
-        {canCreateProject && (
-          <Button variant="primary" leftIcon={<Icon name="add" />} onClick={handleNewProject}>
-            Create New Project
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        title="Projects"
+        description="Manage environmental and social compliance across all active initiatives."
+        actions={
+          canCreateProject && (
+            <Button variant="primary" leftIcon={<Icon name="add" />} onClick={handleNewProject}>
+              Create New Project
+            </Button>
+          )
+        }
+      />
 
       {/* Filters and Search */}
       <div className="flex flex-col xl:flex-row gap-4 items-start xl:items-center justify-between">
@@ -181,58 +178,57 @@ function ProjectListPage() {
             className="w-full sm:w-80"
           />
 
+          {/* View: active or archived projects (D17) */}
+          <Select
+            aria-label="Projects shown"
+            value={view}
+            onChange={(e) => {
+              setView(e.target.value)
+              setCurrentPage(1)
+            }}
+            options={viewOptions}
+            className="w-full sm:w-48"
+          />
+
           {/* Status Filter */}
-          <Dropdown
-            trigger={
-              <Button variant="secondary" rightIcon={<Icon name="expand_more" />}>
-                Status: {statusOptions.find((o) => o.value === statusFilter)?.label || 'All'}
-              </Button>
-            }
-            items={statusOptions.map((opt) => ({
-              label: opt.label,
-              onClick: () => {
-                setStatusFilter(opt.value)
-                setCurrentPage(1)
-              },
-              active: statusFilter === opt.value,
-            }))}
+          <Select
+            aria-label="Status filter"
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value)
+              setCurrentPage(1)
+            }}
+            options={statusOptions.map((o) => ({ ...o, label: `Status: ${o.label}` }))}
+            className="w-full sm:w-48"
           />
 
           {/* Risk Filter */}
-          <Dropdown
-            trigger={
-              <Button variant="secondary" rightIcon={<Icon name="expand_more" />}>
-                Risk: {riskOptions.find((o) => o.value === riskFilter)?.label || 'All Categories'}
-              </Button>
-            }
-            items={riskOptions.map((opt) => ({
-              label: opt.label,
-              onClick: () => {
-                setRiskFilter(opt.value)
-                setCurrentPage(1)
-              },
-              active: riskFilter === opt.value,
-            }))}
+          <Select
+            aria-label="Risk category filter"
+            value={riskFilter}
+            onChange={(e) => {
+              setRiskFilter(e.target.value)
+              setCurrentPage(1)
+            }}
+            options={riskOptions.map((o) => ({ ...o, label: `Risk: ${o.label}` }))}
+            className="w-full sm:w-56"
           />
         </div>
 
         {/* Sort */}
         <div className="flex items-center gap-2 flex-shrink-0 self-end xl:self-auto">
-          <span className="text-sm text-text-secondary">Sort by:</span>
-          <Dropdown
-            trigger={
-              <Button variant="ghost" rightIcon={<Icon name="sort" />}>
-                {sortOptions.find((o) => o.value === sortBy)?.label || 'Last Updated'}
-              </Button>
-            }
-            items={sortOptions.map((opt) => ({
-              label: opt.label,
-              onClick: () => {
-                setSortBy(opt.value)
-                setCurrentPage(1)
-              },
-              active: sortBy === opt.value,
-            }))}
+          <label htmlFor="project-sort" className="text-sm text-text-secondary dark:text-gray-400">
+            Sort by:
+          </label>
+          <Select
+            id="project-sort"
+            value={sortBy}
+            onChange={(e) => {
+              setSortBy(e.target.value)
+              setCurrentPage(1)
+            }}
+            options={sortOptions}
+            className="w-44"
           />
         </div>
       </div>
@@ -322,11 +318,16 @@ function ProjectListPage() {
                       </div>
                     </Table.Cell>
                     <Table.Cell>
-                      <ProjectStatusBadge status={project.workflow?.status} size="sm" />
+                      {project.archived ? (
+                        <StatusBadge status="archived" size="sm" />
+                      ) : (
+                        <StatusBadge status={project.workflow?.status} size="sm" />
+                      )}
                     </Table.Cell>
                     <Table.Cell className="text-right">
                       <button
-                        className="text-sm font-medium text-text-secondary hover:text-primary transition-colors flex items-center justify-end gap-1 ml-auto"
+                        type="button"
+                        className="text-sm font-medium text-text-secondary dark:text-gray-400 hover:text-primary dark:hover:text-green-300 transition-colors flex items-center justify-end gap-1 ml-auto rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                         onClick={(e) => {
                           e.stopPropagation()
                           handleProjectClick(project)
@@ -348,12 +349,13 @@ function ProjectListPage() {
       {(totalPages > 1 || filteredAndSortedProjects.length > 0) && (
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <p className="text-sm text-text-secondary">
+            <p className="text-sm text-text-secondary dark:text-gray-400">
               Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
               {Math.min(currentPage * itemsPerPage, filteredAndSortedProjects.length)} of{' '}
               {filteredAndSortedProjects.length} results
             </p>
             <Select
+              aria-label="Projects per page"
               value={String(itemsPerPage)}
               onChange={(e) => {
                 setItemsPerPage(Number(e.target.value))
@@ -362,7 +364,6 @@ function ProjectListPage() {
               options={itemsPerPageOptions}
               size="sm"
               className="w-[160px]"
-              selectClassName="h-9 text-sm pl-3 pr-8"
             />
           </div>
           {totalPages > 1 && (

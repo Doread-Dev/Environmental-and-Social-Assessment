@@ -46,7 +46,7 @@ function Avatar({
 
   const statusColors = {
     online: 'bg-green-500',
-    offline: 'bg-gray-400',
+    offline: 'bg-text-disabled',
     away: 'bg-yellow-500',
     busy: 'bg-red-500',
   }
@@ -69,7 +69,11 @@ function Avatar({
             shapes[shape]
           )}
         >
-          {fallback || <span className="material-symbols-outlined">person</span>}
+          {fallback || (
+            <span className="material-symbols-outlined" aria-hidden="true">
+              person
+            </span>
+          )}
         </div>
       ) : (
         <img

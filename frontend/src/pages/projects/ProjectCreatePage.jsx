@@ -1,7 +1,17 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { Breadcrumb, Card, Input, Textarea, Button, Alert, Icon } from '@/components/ui'
+import {
+  Breadcrumb,
+  Card,
+  Input,
+  Textarea,
+  Button,
+  Alert,
+  Icon,
+  PAGE_TITLE,
+  PAGE_DESCRIPTION,
+} from '@/components/ui'
 import { validateProjectForm } from '@/utils/validators'
 import { projectService } from '@/services/projectService'
 import { extractErrorMessage } from '@/services/api'
@@ -103,10 +113,8 @@ function ProjectCreatePage() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="text-text-main dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-tight">
-            Create New Project
-          </h1>
-          <p className="text-text-secondary dark:text-gray-400 text-base font-normal">
+          <h1 className={PAGE_TITLE}>Create New Project</h1>
+          <p className={PAGE_DESCRIPTION}>
             Enter the initial details to register the project in the ESMS.
           </p>
         </div>

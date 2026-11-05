@@ -1,9 +1,9 @@
 /**
  * ConfirmUserActionModal
  * Asks before deactivating a user or resetting their password. An in-app dialog rather than
- * window.confirm, which some browsers and embedded views suppress (it then returns false at once).
+ * window.confirm, which some browsers and embedded views suppress (the shared ConfirmDialog).
  */
-import { Modal, Button, Icon } from '@/components/ui'
+import { ConfirmDialog } from '@/components/ui'
 
 const COPY = {
   deactivate: {
@@ -28,24 +28,15 @@ export function ConfirmUserActionModal({ action, user, onConfirm, onClose }) {
   const copy = COPY[action]
 
   return (
-    <Modal isOpen onClose={onClose} title={copy.title} size="lg">
-      <div className="flex flex-col gap-4">
-        <p className="text-sm text-text-main dark:text-white">{copy.body(user.name)}</p>
-        <Modal.Footer className="mt-2">
-          <Button type="button" variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            variant={copy.variant}
-            onClick={onConfirm}
-            leftIcon={<Icon name={copy.icon} />}
-          >
-            {copy.confirm}
-          </Button>
-        </Modal.Footer>
-      </div>
-    </Modal>
+    <ConfirmDialog
+      title={copy.title}
+      message={<p>{copy.body(user.name)}</p>}
+      variant={copy.variant}
+      confirmLabel={copy.confirm}
+      confirmIcon={copy.icon}
+      onConfirm={onConfirm}
+      onClose={onClose}
+    />
   )
 }
 

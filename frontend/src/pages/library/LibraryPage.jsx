@@ -8,7 +8,18 @@
  * One request for the whole list (useLibrary()); search and the place filter work on it here.
  */
 import { useMemo, useRef, useState } from 'react'
-import { Alert, Button, Card, Icon, Input, LoadingSpinner, useToast } from '@/components/ui'
+import {
+  Button,
+  Card,
+  Icon,
+  Input,
+  Select,
+  useToast,
+  PAGE_TITLE,
+  PAGE_DESCRIPTION,
+  LoadingState,
+  ErrorState,
+} from '@/components/ui'
 import { ConfirmDeleteModal, PdfViewer } from '@/components/files'
 import { GENERAL_LABEL, LibraryDocumentFormModal, PlaceBadges } from '@/components/library'
 import { useLibrary, useLibraryManagement, useLookups } from '@/hooks'
@@ -18,7 +29,6 @@ import { libraryService } from '@/services/libraryService'
 import { saveBlob } from '@/utils/saveBlob'
 import { acceptAttribute, checkFile, formatBytes, libraryRules } from '@/utils/fileRules'
 import { formatDate } from '@/utils/formatters'
-import { cn } from '@/utils/cn'
 
 const ALL = ''
 const GENERAL = '__general'
@@ -218,9 +228,9 @@ export default function LibraryPage() {
               <span className="material-symbols-outlined text-3xl text-primary" aria-hidden="true">
                 menu_book
               </span>
-              <h1 className="text-3xl font-bold text-text-main dark:text-white">Library</h1>
+              <h1 className={PAGE_TITLE}>Library</h1>
             </div>
-            <p className="text-text-secondary dark:text-gray-400 text-sm">
+            <p className={PAGE_DESCRIPTION}>
               Organisation guidance, the same for every project. Documents linked to a tool also
               open from its Guidance button.
             </p>
@@ -241,17 +251,11 @@ export default function LibraryPage() {
             onChange={(e) => setSearch(e.target.value)}
             aria-label="Search the library"
           />
-          <select
+          <Select
             value={place}
             onChange={(e) => setPlace(e.target.value)}
             aria-label="Place filter"
-            className={cn(
-              'rounded-lg border px-3 py-2.5 text-sm sm:w-72',
-              'border-border-default dark:border-border-dark',
-              'bg-surface dark:bg-surface-dark',
-              'text-text-main dark:text-white',
-              'focus:ring-primary focus:border-primary'
-            )}
+            className="sm:w-72"
           >
             <option value={ALL}>All places</option>
             <option value={GENERAL}>{GENERAL_LABEL}</option>
@@ -265,30 +269,18 @@ export default function LibraryPage() {
                 ))}
               </optgroup>
             ))}
-          </select>
+          </Select>
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <LoadingSpinner size="lg" />
-          </div>
+          <LoadingState message="Loading library..." variant="section" />
         ) : error ? (
-          <Alert
-            variant="error"
+          <ErrorState
+            variant="section"
             title="Could not load the library"
-            action={
-              <Button
-                variant="outline"
-                size="sm"
-                leftIcon={<Icon name="refresh" />}
-                onClick={retry}
-              >
-                Try again
-              </Button>
-            }
-          >
-            {error}
-          </Alert>
+            message={error}
+            onRetry={retry}
+          />
         ) : shown.length === 0 ? (
           <div className="text-center py-16 border border-dashed border-border-default dark:border-border-dark rounded-xl">
             <span

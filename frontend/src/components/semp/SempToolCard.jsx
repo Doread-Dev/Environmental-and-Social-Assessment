@@ -48,7 +48,7 @@ export default function SempToolCard({
       )
     }
     return (
-      <span className="px-2 py-1 bg-gray-50/50 text-text-secondary text-xs font-bold rounded dark:bg-surface-dark dark:text-gray-300">
+      <span className="px-2 py-1 bg-background text-text-secondary text-xs font-bold rounded dark:bg-surface-dark dark:text-gray-300">
         Not Started
       </span>
     )
@@ -63,7 +63,7 @@ export default function SempToolCard({
   }
 
   return (
-    <div className="flex flex-col bg-white dark:bg-surface-dark border border-border-default dark:border-border-dark rounded-xl shadow-sm hover:shadow-md transition-shadow h-full relative overflow-hidden">
+    <div className="flex flex-col bg-surface dark:bg-surface-dark border border-border-default dark:border-border-dark rounded-xl shadow-sm hover:shadow-md transition-shadow h-full relative overflow-hidden">
       {pulse && (
         <div className="absolute top-0 right-0 p-2">
           <div className="size-2 rounded-full bg-red-500 animate-pulse"></div>
@@ -77,7 +77,9 @@ export default function SempToolCard({
             <div
               className={cn('flex items-center p-2.5 rounded-lg', config.iconBg, config.iconColor)}
             >
-              <span className="material-symbols-outlined">{config.icon}</span>
+              <span className="material-symbols-outlined" aria-hidden="true">
+                {config.icon}
+              </span>
             </div>
             <div>
               <p className="text-xs text-text-secondary dark:text-gray-400 font-semibold uppercase tracking-wider">
@@ -101,7 +103,7 @@ export default function SempToolCard({
             className={cn(
               'w-full px-4 py-2.5 rounded-lg font-medium text-sm transition-colors',
               status === 'completed'
-                ? 'border border-border-default dark:border-border-dark text-text-main dark:text-white hover:bg-gray-50/50 dark:hover:bg-white/5'
+                ? 'border border-border-default dark:border-border-dark text-text-main dark:text-white hover:bg-background dark:hover:bg-white/5'
                 : 'bg-primary hover:bg-primary-hover text-white shadow-md'
             )}
           >

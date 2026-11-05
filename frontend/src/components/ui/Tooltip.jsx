@@ -8,6 +8,8 @@ import { cn } from '@/utils/cn'
  * @param {Object} props
  * @param {string|React.ReactNode} props.content - Tooltip content
  * @param {'top'|'bottom'|'left'|'right'} props.position - Tooltip position
+ * @param {string} [props.triggerClassName] - Classes of the wrapper around the trigger (e.g.
+ *   `flex min-w-0 w-full` so a truncated title can shrink)
  * @param {number} props.delay - Show delay in ms
  *
  * @example
@@ -15,7 +17,14 @@ import { cn } from '@/utils/cn'
  *   <Button variant="ghost"><Icon name="edit" /></Button>
  * </Tooltip>
  */
-function Tooltip({ content, position = 'top', delay = 200, className, children }) {
+function Tooltip({
+  content,
+  position = 'top',
+  delay = 200,
+  className,
+  triggerClassName,
+  children,
+}) {
   const [isVisible, setIsVisible] = useState(false)
   const [coords, setCoords] = useState({ top: 0, left: 0 })
   const triggerRef = useRef(null)
@@ -82,7 +91,7 @@ function Tooltip({ content, position = 'top', delay = 200, className, children }
         onMouseLeave={hideTooltip}
         onFocus={showTooltip}
         onBlur={hideTooltip}
-        className="inline-flex"
+        className={cn('inline-flex', triggerClassName)}
       >
         {children}
       </span>
@@ -95,7 +104,7 @@ function Tooltip({ content, position = 'top', delay = 200, className, children }
             className={cn(
               'fixed z-50 pointer-events-none',
               'px-3 py-1.5 rounded-lg',
-              'bg-gray-900 dark:bg-surface-dark text-white',
+              'bg-text-main dark:bg-surface-dark text-white',
               'text-sm font-medium shadow-lg',
               'animate-fade-in',
               positionClasses[position],

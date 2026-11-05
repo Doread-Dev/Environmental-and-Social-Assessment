@@ -2,6 +2,7 @@ import { Navigate, Outlet, useLocation, useOutletContext, useParams } from 'reac
 import { useWorkspace } from '@/hooks'
 import { getRedirectStep } from '@/utils/workflowSteps'
 import { ROUTES, getProjectRoute } from './routes.config'
+import { LoadingState } from '@/components/ui'
 
 const STEP_ROUTES = {
   screening: ROUTES.SCREENING,
@@ -26,14 +27,7 @@ function WorkflowRouteGuard({ step }) {
   const { workflow, isLoading } = useWorkspace(projectId)
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading {step} access...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState message="Loading {step} access..." />
   }
 
   const redirectStep = getRedirectStep(workflow, step)

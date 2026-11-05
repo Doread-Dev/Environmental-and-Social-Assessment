@@ -3,7 +3,7 @@
  * قائمة اختيار Ranking تعتمد على impactLevels
  */
 
-import { cn } from '@/utils/cn'
+import { Select } from '@/components/ui'
 import { IMPACT_LEVEL_CONFIG } from '@/utils/impactLevels'
 import { RANKING_HELP } from '@/utils/rankingHelp'
 
@@ -14,6 +14,7 @@ import { RANKING_HELP } from '@/utils/rankingHelp'
  * @param {string} [props.categoryCode] - كود الفئة للسؤال
  * @param {number} [props.questionNumber] - رقم السؤال داخل الفئة
  * @param {boolean} [props.disabled] - معطل
+ * @param {string} [props.ariaLabel] - Accessible name (default "Ranking")
  * @param {string} [props.className] - classes إضافية
  */
 function RankingSelect({
@@ -22,6 +23,7 @@ function RankingSelect({
   categoryCode,
   questionNumber,
   disabled = false,
+  ariaLabel,
   className,
 }) {
   const levelKeys = ['not_applicable', 'negligible', 'low', 'medium', 'high']
@@ -35,20 +37,16 @@ function RankingSelect({
   }
 
   return (
-    <select
+    <Select
+      aria-label={ariaLabel || 'Ranking'}
       value={value || ''}
       onChange={(e) => onChange(e.target.value || null)}
       disabled={disabled}
-      className={cn(
-        'w-full rounded-lg border border-border-default dark:border-border-dark',
-        'bg-white dark:bg-background-dark text-text-main dark:text-white',
-        'focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary',
-        'px-3 py-2 text-sm font-medium',
-        'disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50/50 dark:disabled:bg-white/5',
-        className
-      )}
+      placeholder="Select ranking"
+      size="sm"
+      className={className}
+      selectClassName="font-medium"
     >
-      <option value="">Select ranking</option>
       {levels.map((level) => {
         const helpText = getHelpText(level.key)
         return (
@@ -57,7 +55,7 @@ function RankingSelect({
           </option>
         )
       })}
-    </select>
+    </Select>
   )
 }
 

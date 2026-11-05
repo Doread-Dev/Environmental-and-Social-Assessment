@@ -26,9 +26,12 @@ function MonitoringDataTable({
 }) {
   if (data.length === 0) {
     return (
-      <div className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark p-8">
+      <div className="bg-surface dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark p-8">
         <div className="text-center">
-          <span className="material-symbols-outlined text-5xl text-text-secondary dark:text-gray-500 mb-3 block">
+          <span
+            className="material-symbols-outlined text-5xl text-text-secondary dark:text-gray-500 mb-3 block"
+            aria-hidden="true"
+          >
             inventory_2
           </span>
           <p className="text-text-secondary dark:text-gray-400">
@@ -40,10 +43,10 @@ function MonitoringDataTable({
   }
 
   return (
-    <div className="bg-white dark:bg-card-dark rounded-b-xl rounded-t-none shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
+    <div className="bg-surface dark:bg-card-dark rounded-b-xl rounded-t-none shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
       {/* Header */}
       {(categoryCode || categoryName) && (
-        <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-gray-50/50 dark:bg-white/5">
+        <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-background dark:bg-white/5">
           <div className="flex items-center gap-3">
             {categoryCode && (
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary font-bold text-sm">
@@ -59,8 +62,8 @@ function MonitoringDataTable({
       <div className="monitoring-table-container w-full">
         <table className="w-full monitoring-table">
           <thead>
-            <tr className="bg-gray-50/50 dark:bg-white/5 border-b border-border-default dark:border-border-dark">
-              <th className="sticky left-0 z-30 px-4 py-3 text-left text-xs font-bold text-text-main dark:text-white uppercase tracking-wider bg-gray-50/50 dark:bg-white/5 min-w-[280px]">
+            <tr className="bg-background dark:bg-white/5 border-b border-border-default dark:border-border-dark">
+              <th className="sticky left-0 z-30 px-4 py-3 text-left text-xs font-bold text-text-main dark:text-white uppercase tracking-wider bg-background dark:bg-white/5 min-w-[280px]">
                 Indicator Definition
               </th>
               <th className="px-4 py-3 text-left text-xs font-bold text-text-main dark:text-white uppercase tracking-wider min-w-[160px]">

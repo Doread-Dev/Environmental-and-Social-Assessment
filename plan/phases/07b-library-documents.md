@@ -77,7 +77,7 @@ Reworking phase 7 code is fine (owner): choose the clean design, not the smalles
 - Request counts: a tool page adds at most one library request, and none when it's cached (`requestCounts.test.jsx`).
 
 ## Done when
-- [ ] Owner has uploaded Annex 1 and opened it from Tool 4 without leaving the page, as an editor and as a viewer, in light and dark mode. *(Owner step after merge. The same flow was checked in the browser with the demo sample PDF: editor and viewer, light and dark, desktop and 375 px, unsaved Tool 4 input kept.)*
+- [x] Owner has uploaded Annex 1 and opened it from Tool 4 without leaving the page, as an editor and as a viewer, in light and dark mode. *(Owner step after merge. The same flow was checked in the browser with the demo sample PDF: editor and viewer, light and dark, desktop and 375 px, unsaved Tool 4 input kept.)* Done by the owner: Annex 1 uploaded to the local library and linked to Tools 3 and 4.
 - [x] Project documents page grouped by place; PDF preview works; Office downloads.
 - [x] `CLAUDE.md` describes places, the library, project documents and the viewer.
 

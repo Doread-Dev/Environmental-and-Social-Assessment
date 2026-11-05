@@ -117,7 +117,7 @@ describe('Settings → Activity log (D65)', () => {
     expect(within(row).getByText('Management activities removed')).toBeInTheDocument()
     expect(within(row).getByText('Water network')).toBeInTheDocument()
     expect(within(row).getByText('Management activities (Tool 3)')).toBeInTheDocument()
-    expect(within(row).getByText(/03 Nov 2026/)).toBeInTheDocument()
+    expect(within(row).getByText(/3 Nov 2026/)).toBeInTheDocument()
 
     const userRow = screen.getByText('Omar').closest('tr')
     expect(within(userRow).getByText('Role changed')).toBeInTheDocument()

@@ -7,6 +7,8 @@ import { GuidanceButton, useCurrentPlace } from '@/components/library'
 import ProjectSidebar from './ProjectSidebar'
 import MobileMenu from './MobileMenu'
 import BrandLogo from './BrandLogo'
+import { ArchivedNotice } from '@/components/project'
+import { Button, ErrorState, LoadingState } from '@/components/ui'
 
 /**
  * ProjectLayout Component
@@ -92,46 +94,23 @@ function ProjectLayout() {
   // Error state (a failed background refetch keeps the loaded project on screen)
   if (error && !project) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background dark:bg-background-dark">
-        <div className="flex flex-col items-center gap-4 max-w-md text-center p-8">
-          <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-            <span className="material-symbols-outlined text-3xl text-red-600 dark:text-red-400">
-              error
-            </span>
-          </div>
-          <h2 className="text-xl font-bold text-text-main dark:text-white">
-            Failed to Load Project
-          </h2>
-          <p className="text-text-secondary dark:text-gray-400">{error}</p>
-          <div className="flex gap-3 mt-2">
-            <button
-              onClick={() => navigate(ROUTES.PROJECTS)}
-              className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-main dark:hover:text-white transition-colors"
-            >
-              Back to Projects
-            </button>
-            <button
-              onClick={() => refetch()}
-              className="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary-hover text-white rounded-lg transition-colors"
-            >
-              Try Again
-            </button>
-          </div>
-        </div>
-      </div>
+      <ErrorState
+        variant="screen"
+        title="Failed to Load Project"
+        message={error}
+        onRetry={refetch}
+        actions={
+          <Button variant="secondary" size="sm" onClick={() => navigate(ROUTES.PROJECTS)}>
+            Back to Projects
+          </Button>
+        }
+      />
     )
   }
 
   // Loading state (first load only)
   if (isLoading || !enhancedProject) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-background dark:bg-background-dark">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading project...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState message="Loading project..." variant="screen" />
   }
 
   return (
@@ -164,11 +143,14 @@ function ProjectLayout() {
             {/* Mobile Menu Button */}
             <div className="lg:hidden">
               <button
+                type="button"
                 onClick={handleMenuToggle}
-                className="text-text-main dark:text-white"
+                className="flex p-1 rounded-lg text-text-main dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                 aria-label="Toggle menu"
               >
-                <span className="material-symbols-outlined">menu</span>
+                <span className="material-symbols-outlined" aria-hidden="true">
+                  menu
+                </span>
               </button>
             </div>
 
@@ -181,20 +163,19 @@ function ProjectLayout() {
             <GuidanceButton place={place} />
             {/* Export Excel Button - Only show on Screening Summary page when status is submitted */}
             {showExportButton && (
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={handleExportClick}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors shadow-sm"
+                leftIcon={
+                  <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                    download
+                  </span>
+                }
               >
-                <span className="material-symbols-outlined text-[18px]">download</span>
                 Export Excel
-              </button>
+              </Button>
             )}
-            <button
-              className="text-text-secondary hover:text-text-main dark:hover:text-white transition-colors"
-              aria-label="Help"
-            >
-              <span className="material-symbols-outlined">help</span>
-            </button>
           </div>
         </header>
 
@@ -208,6 +189,7 @@ function ProjectLayout() {
           )}
         >
           <div className="max-w-7xl mx-auto">
+            <ArchivedNotice project={enhancedProject} className="mb-6" />
             <Outlet context={{ project: enhancedProject, workflow, counts, can }} />
           </div>
         </main>

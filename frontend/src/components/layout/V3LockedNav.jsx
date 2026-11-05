@@ -49,7 +49,10 @@ export function V3LockedButton({ item, variant = 'nav', className }) {
             data-testid="v3-locked-icon-circle"
             className="flex items-center justify-center shrink-0 size-12 rounded-full bg-primary-soft dark:bg-primary/20"
           >
-            <span className="material-symbols-outlined text-2xl leading-none text-primary">
+            <span
+              className="material-symbols-outlined text-2xl leading-none text-primary"
+              aria-hidden="true"
+            >
               {item.icon}
             </span>
           </span>

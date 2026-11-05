@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts'
 import { ROUTES } from './routes.config'
+import { LoadingState } from '@/components/ui'
 
 /**
  * ProtectedRoute Component
@@ -21,16 +22,7 @@ function ProtectedRoute({ children }) {
 
   // Show loading state while checking auth
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background dark:bg-background-dark">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">
-            Verifying authentication...
-          </p>
-        </div>
-      </div>
-    )
+    return <LoadingState message="Verifying authentication..." variant="screen" />
   }
 
   // Check if user is authenticated

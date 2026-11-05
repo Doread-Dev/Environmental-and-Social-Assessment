@@ -6,6 +6,7 @@
 
 import { useState } from 'react'
 import { cn } from '@/utils/cn'
+import { Input, Select } from '@/components/ui'
 
 const MODES = [
   { key: 'user', label: 'Internal user', icon: 'person' },
@@ -107,58 +108,36 @@ export default function ResponsibleSelect({
       </div>
 
       {mode === 'user' ? (
-        <div className="relative w-full group">
-          <select
-            aria-label="Responsible user"
-            value={responsibleId || ''}
-            onChange={(e) =>
-              onChange({ responsible: e.target.value || null, responsible_text: '' })
-            }
-            className={cn(
-              'w-full px-2 py-1 pr-7 rounded',
-              'bg-transparent border border-transparent',
-              'text-sm text-text-main dark:text-white',
-              'appearance-none cursor-pointer transition-colors',
-              'hover:bg-primary/5',
-              'focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50',
-              'focus:bg-surface dark:focus:bg-surface-dark'
-            )}
-          >
-            <option value="">Select...</option>
-            {unlistedUser && (
-              <option value={unlistedUser._id} disabled>
-                {unlistedUser.name}
-              </option>
-            )}
-            {users.map((user) => (
-              <option
-                key={user._id}
-                value={user._id}
-                className="bg-surface dark:bg-surface-dark text-text-main dark:text-white"
-              >
-                {user.name}
-              </option>
-            ))}
-          </select>
-          <span className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-text-secondary dark:text-gray-400 opacity-60 group-hover:opacity-100 transition-opacity">
-            <span className="material-symbols-outlined text-lg">expand_more</span>
-          </span>
-        </div>
+        <Select
+          variant="cell"
+          aria-label="Responsible user"
+          value={responsibleId || ''}
+          onChange={(e) => onChange({ responsible: e.target.value || null, responsible_text: '' })}
+          placeholder="Select..."
+          className="w-full"
+        >
+          {unlistedUser && (
+            <option value={unlistedUser._id} disabled>
+              {unlistedUser.name}
+            </option>
+          )}
+          {users.map((user) => (
+            <option key={user._id} value={user._id}>
+              {user.name}
+            </option>
+          ))}
+        </Select>
       ) : (
-        <input
+        <Input
+          variant="cell"
           type="text"
           aria-label="External party"
           dir="auto"
           value={text}
           onChange={(e) => onChange({ responsible: null, responsible_text: e.target.value })}
           placeholder="e.g. Contractor, Municipality"
-          className={cn(
-            'w-full min-w-0 px-2 py-1 text-sm rounded',
-            'bg-transparent text-text-main dark:text-white',
-            'border border-border-default dark:border-border-dark',
-            'placeholder:text-text-secondary/60 dark:placeholder:text-gray-500',
-            'focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50'
-          )}
+          className="w-full min-w-0"
+          inputClassName="border-border-default dark:border-border-dark"
         />
       )}
     </div>

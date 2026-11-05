@@ -40,7 +40,9 @@ export function SettingsNav() {
             )
           }
         >
-          <span className="material-symbols-outlined text-lg">{tab.icon}</span>
+          <span className="material-symbols-outlined text-lg" aria-hidden="true">
+            {tab.icon}
+          </span>
           {tab.label}
         </NavLink>
       ))}

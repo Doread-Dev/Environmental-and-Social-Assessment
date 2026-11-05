@@ -18,8 +18,8 @@ describe('ProjectDetailsCard', () => {
     expect(screen.getByText('Project Details')).toBeInTheDocument()
     expect(valueOf('Location')).toBe('Aleppo, Al-Salam district')
     expect(valueOf('Component / Activity')).toBe('Water network rehabilitation')
-    expect(valueOf('Start Date')).toBe('January 15, 2026')
-    expect(valueOf('End Date')).toBe('December 31, 2026')
+    expect(valueOf('Start Date')).toBe('15 Jan 2026')
+    expect(valueOf('End Date')).toBe('31 Dec 2026')
     expect(screen.queryByText('Not specified')).not.toBeInTheDocument()
   })
 

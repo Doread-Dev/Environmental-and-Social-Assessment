@@ -6,12 +6,12 @@
  */
 
 import { cn } from '@/utils/cn'
-import { formatDateFull } from '@/utils/formatters'
+import { formatDate } from '@/utils/formatters'
 
 const NOT_SPECIFIED = 'Not specified'
 
 const textOrEmpty = (value) => (value && value.trim() ? value : NOT_SPECIFIED)
-const dateOrEmpty = (value) => (value ? formatDateFull(value) : NOT_SPECIFIED)
+const dateOrEmpty = (value) => (value ? formatDate(value) : NOT_SPECIFIED)
 
 /**
  * @param {Object} props
@@ -19,13 +19,26 @@ const dateOrEmpty = (value) => (value ? formatDateFull(value) : NOT_SPECIFIED)
  * @param {string} props.component - Project component / activity
  * @param {string} props.startDate - Start date
  * @param {string} props.endDate - End date
+ * @param {Array<{label: string, icon: string, value: string}>} [props.extraRows] - Rows after
+ *   the dates (e.g. "Screening approved by"); an empty value shows "Not specified"
+ * @param {string} [props.title] - Card title
  */
-function ProjectDetailsCard({ location, component, startDate, endDate, className, ...props }) {
+function ProjectDetailsCard({
+  location,
+  component,
+  startDate,
+  endDate,
+  extraRows = [],
+  title = 'Project Details',
+  className,
+  ...props
+}) {
   const rows = [
     { label: 'Location', icon: 'location_on', value: textOrEmpty(location) },
     { label: 'Component / Activity', icon: 'category', value: textOrEmpty(component) },
     { label: 'Start Date', icon: 'event', value: dateOrEmpty(startDate) },
     { label: 'End Date', icon: 'event_available', value: dateOrEmpty(endDate) },
+    ...extraRows.map((row) => ({ ...row, value: textOrEmpty(row.value) })),
   ]
 
   return (
@@ -38,15 +51,20 @@ function ProjectDetailsCard({ location, component, startDate, endDate, className
     >
       <div className="flex items-center gap-2">
         <div className="p-2 rounded-lg bg-primary/10">
-          <span className="material-symbols-outlined text-primary">info</span>
+          <span className="material-symbols-outlined text-primary" aria-hidden="true">
+            info
+          </span>
         </div>
-        <h4 className="text-sm font-bold text-text-main dark:text-white">Project Details</h4>
+        <h4 className="text-sm font-bold text-text-main dark:text-white">{title}</h4>
       </div>
 
       <dl className="flex flex-col divide-y divide-border-default dark:divide-border-dark">
         {rows.map((row) => (
           <div key={row.label} className="flex items-start gap-3 py-2">
-            <span className="material-symbols-outlined text-[18px] text-text-secondary dark:text-gray-400 mt-0.5">
+            <span
+              className="material-symbols-outlined text-[18px] text-text-secondary dark:text-gray-400 mt-0.5"
+              aria-hidden="true"
+            >
               {row.icon}
             </span>
             <div className="flex flex-col min-w-0">

@@ -16,3 +16,7 @@ import '@fontsource/ibm-plex-sans-arabic/arabic-400.css'
 import '@fontsource/ibm-plex-sans-arabic/arabic-500.css'
 import '@fontsource/ibm-plex-sans-arabic/arabic-600.css'
 import '@fontsource/ibm-plex-sans-arabic/arabic-700.css'
+
+// Icons (D37, phase 11): Material Symbols Outlined, self-hosted from the `material-symbols` package
+// (exact version; the variable font, so FILL and the weights keep working). Never from Google Fonts.
+import 'material-symbols/outlined.css'

@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const ApiError = require("./ApiError");
 const TableRevision = require("../models/tableRevision.model");
+const { inTransaction } = require("./transaction");
 
 // Stale saves (D62, D73): every write of project data carries the version the client loaded.
 // Project, screening and assessment: the record's `updatedAt` (ISO string). Tools 3, 4 and
@@ -85,9 +86,14 @@ const releaseRevision = async (projectId, table, claimed) => {
   }
 };
 
-// Runs `write` under a claimed revision; returns the new revision.
+// Runs `write` under a claimed revision; returns the new revision. In a transaction (phase 11) a
+// failed write rolls the claim back with everything else; without one the claim is given back.
 const withRevision = async (projectId, table, revision, write) => {
   const claimed = await claimRevision(projectId, table, revision);
+  if (inTransaction()) {
+    await write();
+    return claimed;
+  }
   try {
     await write();
   } catch (err) {

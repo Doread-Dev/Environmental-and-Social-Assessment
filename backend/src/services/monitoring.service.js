@@ -6,6 +6,7 @@ const normalizeResponsible = require("../utils/responsible");
 const validationMessage = require("../utils/validationMessage");
 const { requireSempComplete } = require("./workflow.service");
 const { assertCurrentRevision, getRevision, withRevision } = require("../utils/version");
+const { atomic } = require("../utils/transaction");
 
 const TABLE = "monitoring";
 
@@ -65,18 +66,21 @@ const upsertForProject = async (projectId, { records, version }) => {
   }
 
   const project = new mongoose.Types.ObjectId(String(projectId));
-  const revision = await withRevision(projectId, TABLE, version, async () => {
-    if (prepared.length === 0) return;
-    await MonitoringRecord.bulkWrite(
-      prepared.map(({ indicator, ...fields }) => ({
-        updateOne: {
-          filter: { project, indicator: new mongoose.Types.ObjectId(indicator) },
-          update: { $set: fields },
-          upsert: true,
-        },
-      }))
-    );
-  });
+  // One transaction for the revision and the rows when MongoDB supports one (phase 11).
+  const revision = await atomic(() =>
+    withRevision(projectId, TABLE, version, async () => {
+      if (prepared.length === 0) return;
+      await MonitoringRecord.bulkWrite(
+        prepared.map(({ indicator, ...fields }) => ({
+          updateOne: {
+            filter: { project, indicator: new mongoose.Types.ObjectId(indicator) },
+            update: { $set: fields },
+            upsert: true,
+          },
+        }))
+      );
+    })
+  );
   return { records: await findRecords(projectId), version: revision };
 };
 

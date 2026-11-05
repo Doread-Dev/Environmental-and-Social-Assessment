@@ -1,7 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { QueryClientProvider } from '@tanstack/react-query'
-import { SpeedInsights } from '@vercel/speed-insights/react'
 import { ThemeProvider, AuthProvider } from '@/contexts'
 import { ToastProvider } from '@/components/ui'
 import { queryClient } from '@/services/queryClient'
@@ -16,7 +15,6 @@ createRoot(document.getElementById('root')).render(
         <ThemeProvider>
           <ToastProvider>
             <App />
-            <SpeedInsights />
           </ToastProvider>
         </ThemeProvider>
       </AuthProvider>

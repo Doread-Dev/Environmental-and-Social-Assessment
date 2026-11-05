@@ -1,9 +1,14 @@
-require("dotenv").config();
+// The .env next to package.json, whatever folder the service starts in (deploy/).
+require("dotenv").config({ path: require("node:path").resolve(__dirname, "../.env"), quiet: true });
 const mongoose = require("mongoose");
 const app = require("./app");
 const connectDB = require("./config/database");
+const { supportsTransactions } = require("./utils/transaction");
 
 const PORT = process.env.PORT || 3000;
+// Behind IIS/nginx on the same machine, HOST=127.0.0.1 keeps the app reachable only through the
+// proxy (deploy/). Unset: every interface, as before.
+const HOST = process.env.HOST || undefined;
 
 // Validate required env vars before starting (security: fail fast in production)
 function validateEnv() {
@@ -24,8 +29,14 @@ validateEnv();
 // Connect to database, then start server (so we don't accept requests before DB is ready)
 (async () => {
   await connectDB();
-  const server = app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  if (!(await supportsTransactions())) {
+    console.warn(
+      "MongoDB is not a replica set: critical actions and bulk saves run without transactions. " +
+        "On the server, run MongoDB as a single-node replica set (deploy/README.md)."
+    );
+  }
+  const server = app.listen(PORT, HOST, () => {
+    console.log(`Server running on ${HOST ?? "all interfaces"}, port ${PORT}`);
   });
 
   // Handle unhandled promise rejections
@@ -34,13 +45,15 @@ validateEnv();
     server.close(() => process.exit(1));
   });
 
-  // Handle SIGTERM: close server then MongoDB for clean shutdown
-  process.on("SIGTERM", () => {
+  // SIGTERM (systemd) or SIGINT (Ctrl+C, NSSM on Windows): close the server, then MongoDB.
+  const shutdown = () => {
     server.close(() => {
       mongoose.connection
         .close()
         .then(() => process.exit(0))
         .catch(() => process.exit(0));
     });
-  });
+  };
+  process.on("SIGTERM", shutdown);
+  process.on("SIGINT", shutdown);
 })();

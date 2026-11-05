@@ -1,6 +1,6 @@
 # ESMS v2 — Phase plan
 
-What we build is decided in [DECISIONS.md](DECISIONS.md) (D1–D74). This file says **in which order**. Each phase is done in its own conversation: open the phase file, do exactly that scope, finish with its "Done when" list.
+What we build is decided in [DECISIONS.md](DECISIONS.md) (D1–D75). This file says **in which order**. Each phase is done in its own conversation: open the phase file, do exactly that scope, finish with its "Done when" list.
 
 The v2 prototype (`Environmental-and-Social-Assessment-main version 2/`, git-ignored) is a **reference only** — see [V2_INVENTORY.md](V2_INVENTORY.md). Port code from it only where a phase file names it; never edit it. Anything from v2 not covered by a decision: keep this repo's behavior and ask the owner.
 

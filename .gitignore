@@ -39,6 +39,8 @@ Thumbs.db
 *~
 
 # Build outputs
+# Server releases made by deploy/build-release.mjs
+release/
 dist/
 build/
 coverage/

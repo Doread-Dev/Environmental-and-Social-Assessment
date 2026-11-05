@@ -1,6 +1,7 @@
 const LibraryDocument = require("../models/libraryDocument.model");
 const ApiError = require("../utils/ApiError");
 const audit = require("./audit.service");
+const { atomic } = require("../utils/transaction");
 const storage = require("./fileStorage.service");
 const { LIBRARY_EXTENSIONS } = require("../config/files");
 
@@ -75,23 +76,26 @@ const replaceFile = async (id, file, user) => {
   const old = { name: doc.original_name, size: doc.size, stored_name: doc.stored_name };
   const storedName = await storage.store(FOLDER, file.buffer, checked.extension);
   try {
-    doc.set({
-      original_name: checked.originalName,
-      stored_name: storedName,
-      mime_type: checked.mime,
-      size: checked.size,
-      updated_by: user._id,
+    // The row and its entry in one transaction on a replica set (phase 11).
+    await atomic(async () => {
+      doc.set({
+        original_name: checked.originalName,
+        stored_name: storedName,
+        mime_type: checked.mime,
+        size: checked.size,
+        updated_by: user._id,
+      });
+      await doc.save();
+      await audit.record(user, "library.replace_file", {
+        target: { type: "library_document", id: doc._id, label: doc.title },
+        snapshot: { title: doc.title, old_name: old.name, old_size: old.size },
+        details: { new_name: doc.original_name, new_size: doc.size },
+      });
     });
-    await doc.save();
   } catch (err) {
     await storage.remove(FOLDER, storedName);
     throw err;
   }
-  await audit.record(user, "library.replace_file", {
-    target: { type: "library_document", id: doc._id, label: doc.title },
-    snapshot: { title: doc.title, old_name: old.name, old_size: old.size },
-    details: { new_name: doc.original_name, new_size: doc.size },
-  });
   await storage.remove(FOLDER, old.stored_name);
   return doc.populate(PEOPLE);
 };
@@ -101,21 +105,24 @@ const deleteDocument = async (id, user) => {
   // Checked before the row goes, so a tampered name is refused (404) and nothing is deleted.
   storage.storedPath(FOLDER, doc.stored_name);
   await doc.populate(PEOPLE);
-  await LibraryDocument.deleteOne({ _id: doc._id });
-  await audit.record(user, "library.delete", {
-    target: { type: "library_document", id: doc._id, label: doc.title },
-    snapshot: {
-      title: doc.title,
-      description: doc.description,
-      places: doc.places,
-      order: doc.order,
-      name: doc.original_name,
-      size: doc.size,
-      mime_type: doc.mime_type,
-      uploaded_by: doc.uploaded_by?._id ?? null,
-      uploaded_by_name: doc.uploaded_by?.name ?? null,
-      uploaded_at: doc.createdAt,
-    },
+  // The row and its entry in one transaction on a replica set (phase 11); the file on disk after.
+  await atomic(async () => {
+    await LibraryDocument.deleteOne({ _id: doc._id });
+    await audit.record(user, "library.delete", {
+      target: { type: "library_document", id: doc._id, label: doc.title },
+      snapshot: {
+        title: doc.title,
+        description: doc.description,
+        places: doc.places,
+        order: doc.order,
+        name: doc.original_name,
+        size: doc.size,
+        mime_type: doc.mime_type,
+        uploaded_by: doc.uploaded_by?._id ?? null,
+        uploaded_by_name: doc.uploaded_by?.name ?? null,
+        uploaded_at: doc.createdAt,
+      },
+    });
   });
   await storage.remove(FOLDER, doc.stored_name);
 };

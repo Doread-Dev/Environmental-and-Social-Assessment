@@ -34,7 +34,8 @@ const prepareRows = async (Model, projectId, rows, existingIds) => {
 // Replaces a project's whole table (Tools 3 and 4) in one request (D32): a row with `_id` updates
 // that row (id kept), a row without one is created, an existing row left out is deleted. Every
 // row is checked first, so an invalid row leaves the table untouched; the writes then go out as
-// one ordered bulkWrite, under the table's revision (D62): `version` is the revision the client
+// one ordered bulkWrite, under the table's revision (D62); callers run it in atomic() so on a
+// replica set the revision, the rows and the audit entry are one transaction (phase 11): `version` is the revision the client
 // loaded; it is checked and raised in one conditional update right before the write, so two saves
 // of the same revision cannot both pass (409). Returns the rows it deleted (as they were), for the
 // audit log (D65), and the new revision.

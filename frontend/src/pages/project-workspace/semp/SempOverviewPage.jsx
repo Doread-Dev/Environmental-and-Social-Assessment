@@ -7,7 +7,9 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { useProjectContext } from '@/hooks'
 import { isStepLocked } from '@/utils/workflowSteps'
-import { SempToolCard, SempCTABanner } from '@/components/semp'
+import { SempToolCard } from '@/components/semp'
+import { V3LockedSection } from '@/components/layout/V3LockedNav'
+import { V3_LOCKED_LOCATIONS } from '@/routes/routes.config'
 
 export default function SempOverviewPage() {
   const { projectId } = useParams()
@@ -103,15 +105,12 @@ export default function SempOverviewPage() {
             />
           </div>
         </section>
-        {/* CTA Banner Area */}
-        {!isLocked && (
-          <div className="mt-auto pt-6">
-            <SempCTABanner
-              title="Develop the Social and Environmental Management Plan (SEMP)"
-              description="Outline management activities and mitigation measures based on assessment findings. High-risk impacts require immediate action planning and prioritization."
-            />
-          </div>
-        )}
+        {/* SEMP Plan, locked until v3 (D46, D48, D59, D70) */}
+        <V3LockedSection
+          location={V3_LOCKED_LOCATIONS.SEMP_OVERVIEW}
+          variant="card"
+          className="mt-auto pt-6"
+        />
       </div>
     </div>
   )

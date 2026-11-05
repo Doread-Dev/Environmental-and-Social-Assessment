@@ -3,8 +3,14 @@ import { NavLink, useParams, useNavigate, useLocation } from 'react-router-dom'
 import { cn } from '@/utils'
 import { isStepDone, isStepLocked as isWorkflowStepLocked } from '@/utils/workflowSteps'
 import { useTheme, useAuth, ROLE_LABELS } from '@/contexts'
-import { PROJECT_WORKFLOW_NAV, PROJECT_SECONDARY_NAV, ROUTES } from '@/routes/routes.config'
+import {
+  PROJECT_WORKFLOW_NAV,
+  PROJECT_SECONDARY_NAV,
+  ROUTES,
+  V3_LOCKED_LOCATIONS,
+} from '@/routes/routes.config'
 import { Avatar, Tooltip } from '@/components/ui'
+import { V3LockedSection } from './V3LockedNav'
 
 /**
  * ProjectSidebar Component
@@ -409,6 +415,9 @@ function ProjectSidebar({ project, className }) {
             </NavLink>
           )
         })}
+
+        {/* v3 modules, locked (D48, D70) */}
+        <V3LockedSection location={V3_LOCKED_LOCATIONS.PROJECT_SUPPORT} className="mt-5" />
       </div>
 
       {/* Footer - User Info */}

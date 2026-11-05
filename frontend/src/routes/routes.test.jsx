@@ -37,6 +37,12 @@ describe('app routes (D64)', () => {
     expect(used).toEqual(['assessment', 'management', 'mitigation', 'monitoring', 'screening'])
   })
 
+  it('has no route for the v3 modules, which are locked buttons only (D48, D70)', () => {
+    const v3 = /semp-plan|stakeholder|organization|ghg|environmental-data/i
+    expect(all.filter((r) => r.path && v3.test(r.path))).toEqual([])
+    expect(Object.values(ROUTES).filter((path) => v3.test(path))).toEqual([])
+  })
+
   it('has the Library in the main navigation and Documents instead of Annex', () => {
     expect(MAIN_NAV_ITEMS.map((item) => item.id)).toEqual(['dashboard', 'projects', 'library'])
     expect(MAIN_NAV_ITEMS.find((item) => item.id === 'library').path).toBe(ROUTES.LIBRARY)

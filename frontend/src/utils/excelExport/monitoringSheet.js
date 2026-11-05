@@ -35,12 +35,13 @@ const HEADERS = [
   'Q3',
   'Q4',
   'Total',
-  'Score',
+  // The record's final_assessment, as the Tool 5 page calls it (v1 labelled it "Score")
+  'Final Assessment',
   'Ranking',
   'Responsibility',
   'Note',
 ]
-const WIDTHS = [5, 40, 50, 40, 12, 12, 12, 12, 12, 10, 10, 28, 22, 30]
+const WIDTHS = [5, 40, 50, 40, 12, 12, 12, 12, 12, 10, 22, 28, 22, 30]
 const LAST_COL = HEADERS.length
 
 /**

@@ -318,7 +318,7 @@ describe('completeness: every field the app holds for the tool is in its sheet, 
     expect(hasRow(rows, 'Status:', 'In progress')).toBe(true)
   })
 
-  it('Tool 5: every indicator with baseline, quarters, total, score, ranking, responsible, note', async () => {
+  it('Tool 5: every indicator with baseline, quarters, total, final assessment, ranking, responsible, note', async () => {
     const rows = rowsOf(
       (
         await sheetOf(
@@ -333,6 +333,9 @@ describe('completeness: every field the app holds for the tool is in its sheet, 
       true
     )
     expect(hasRow(rows, 'Category (Tool 1):', 'B', 'Status:', 'In progress')).toBe(true)
+    // The column holding final_assessment is labelled as on the Tool 5 page, not "Score"
+    expect(hasRow(rows, 'Total', 'Final Assessment', 'Ranking')).toBe(true)
+    expect(rows.some((row) => /\| Score \|/.test(row))).toBe(false)
     expect(
       hasRow(
         rows,

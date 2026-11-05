@@ -6,6 +6,7 @@ import { ThemeProvider, AuthProvider } from '@/contexts'
 import { ToastProvider } from '@/components/ui'
 import { queryClient } from '@/services/queryClient'
 import App from './App.jsx'
+import './fonts'
 import './index.css'
 
 createRoot(document.getElementById('root')).render(

@@ -1,7 +1,7 @@
-/* Font Import - Must be before @import "tailwindcss" */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+/* Text font: IBM Plex Sans + IBM Plex Sans Arabic, self-hosted (src/fonts.js, D72) — never from
+   fonts.googleapis.com (a test fails if it comes back). */
 
-/* Material Symbols Icons */
+/* Material Symbols Icons (still from Google Fonts; bundling them is phase 11, D37) */
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
 @import 'tailwindcss';
@@ -166,9 +166,11 @@ html:not(.dark) body {
   --color-green-900: #003f27;
   --color-green-950: #002b1b;
 
-  /* Font family: Inter everywhere (D71). Tailwind 4 reads --font-sans for font-sans and the
-     base html font. Loaded from Google Fonts above; offline bundling is phase 11 (D37). */
-  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Font family (D71, D72): IBM Plex Sans, with IBM Plex Sans Arabic for Arabic text, both
+     self-hosted (src/fonts.js). Tailwind 4 reads --font-sans for font-sans and the base html font. */
+  --font-sans:
+    'IBM Plex Sans', 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+    Roboto, sans-serif;
 
   /* Border Radius */
   --radius-sm: 0.25rem;

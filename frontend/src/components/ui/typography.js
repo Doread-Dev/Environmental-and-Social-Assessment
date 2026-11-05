@@ -1,5 +1,6 @@
 /**
- * Type scale of the app (D71). One font family (Inter, `font-sans`), these sizes:
+ * Type scale of the app (D71). One font family (IBM Plex Sans + IBM Plex Sans Arabic,
+ * self-hosted, D72; `font-sans`) in the weights 400/500/600/700, and these sizes:
  * - page title (h1): PAGE_TITLE — PageHeader uses it; the few custom headers use it too
  * - page description: PAGE_DESCRIPTION
  * - section / card title (h2/h3): SECTION_TITLE (cards: `Card.Title`)

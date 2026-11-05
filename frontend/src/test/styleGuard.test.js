@@ -111,6 +111,10 @@ describe('style guard (D71)', () => {
     expect(hits).toEqual([])
   })
 
+  it('never uses window.alert / window.prompt (in-app dialogs and toasts only)', () => {
+    expect(findAll(/(?<![\w.])(?:window\.)?(?:alert|prompt)\(/g)).toEqual([])
+  })
+
   it('has one date format: dates go through utils/formatters, not toLocale*String', () => {
     const re = /\.toLocale(?:Date|Time)?String\(/g
     expect(findAll(re, { except: ['utils/formatters.js'] })).toEqual([])

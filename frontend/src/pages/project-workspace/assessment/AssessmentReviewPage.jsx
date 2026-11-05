@@ -648,7 +648,7 @@ export default function AssessmentReviewPage() {
               </p>
               <div
                 className={cn(
-                  'text-4xl font-black mb-3 tracking-tight',
+                  'text-4xl font-bold mb-3 tracking-tight',
                   calculatedTotalImpact === 'high'
                     ? 'text-red-600 dark:text-red-400'
                     : calculatedTotalImpact === 'medium'

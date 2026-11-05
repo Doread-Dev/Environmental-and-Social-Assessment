@@ -317,7 +317,7 @@ function ScreeningSummaryPage() {
                 <div className="relative z-10 flex flex-col md:flex-row gap-6 md:items-center">
                   {/* Category Circle */}
                   <div className="flex-shrink-0 w-16 h-16 rounded-full bg-yellow-500/20 border-2 border-yellow-500 flex items-center justify-center text-yellow-500">
-                    <span className="text-2xl font-black">{screening.category_code}</span>
+                    <span className="text-2xl font-bold">{screening.category_code}</span>
                   </div>
 
                   {/* Category Info */}

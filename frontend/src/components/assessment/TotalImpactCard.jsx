@@ -62,7 +62,7 @@ export default function TotalImpactCard({ impact = 'negligible' }) {
               warning
             </span>
           )}
-          <h2 className={cn('text-3xl font-black uppercase tracking-tight', config.textClass)}>
+          <h2 className={cn('text-3xl font-bold uppercase tracking-tight', config.textClass)}>
             {impactLabels[impact] || 'Unknown'}
           </h2>
           <p className={cn('text-xs font-medium mt-1', config.textClass)}>

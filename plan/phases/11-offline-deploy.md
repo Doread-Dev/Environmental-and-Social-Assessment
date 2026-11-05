@@ -5,9 +5,9 @@
 **Decisions:** D6, D37, D38 (+ D47 backups, D64 viewer, D65 critical-actions log).
 
 ## Offline (D37)
-- Self-host Inter and Material Symbols (font files in the repo or via npm packages like `@fontsource/inter` / `material-symbols`); remove the Google Fonts `@import`s in `index.css` and any `<link>` in `index.html`.
+- Self-host the Material Symbols icons (e.g. the `material-symbols` npm package); remove the last Google Fonts `@import` in `index.css` and drop the Material Symbols exception in `src/test/fonts.test.js`. The text font (IBM Plex Sans + Arabic) is already self-hosted since phase 10 (D72).
 - Replace remote images (`LoginPage.jsx` if still there) with local assets. (`ProjectContextCard.jsx`'s map was removed in phase 10.)
-- Phase 10 (D71) made Inter the one font family (`--font-sans` in `index.css`); it still loads from Google Fonts, as do the Material Symbols.
+- Phase 10 (D72): the text font is offline already; only the icons are left.
 - Remove `@vercel/speed-insights` (`main.jsx`, `package.json`) and `vercel.json`.
 - Verify: run with the network cable / adapter off — no failed requests in DevTools.
 

@@ -39,7 +39,7 @@
 - [ ] Owner walk-through of the PR; remaining page-level items are in phase 13.
 
 ## Result (2026-11-05)
-- **Font:** Inter everywhere (`--font-sans` in `@theme`, so Tailwind's base and `font-sans` use it); still loaded from Google Fonts — self-hosting is phase 11 (D37), already listed there. Type scale in `components/ui/typography.js` (`PAGE_TITLE`, `PAGE_DESCRIPTION`, `SECTION_TITLE`).
+- **Font (D72, owner review):** IBM Plex Sans + IBM Plex Sans Arabic everywhere (`--font-sans` in `@theme`, so Tailwind's base and `font-sans` use it), self-hosted from `@fontsource` (`src/fonts.js`, weights 400–700), so it works offline; the Google Fonts import of the text font is gone (`src/test/fonts.test.js`). The three `font-black` uses became `font-bold` (Plex stops at 700). Type scale in `components/ui/typography.js` (`PAGE_TITLE`, `PAGE_DESCRIPTION`, `SECTION_TITLE`).
 - **Form controls:** `components/ui/formControl.js` (`controlClasses`, sizes, label/error/helper, read-only look) used by `Input`, `Select`, `Textarea`; `Select` takes `options` or `<option>/<optgroup>` children, an optional placeholder and a borderless `cell` variant. All 6 raw selects (ranking, responsible, activity-log filter, users status/role filters, library place filter) and the project-list dropdown filters use it; `Dropdown` removed.
 - **Colours:** every light-mode `gray-*`, `bg-white`, raw hex (`#11d452` focus ring, CSS scrollbars) replaced by tokens.
 - **Buttons:** one `Button` (focus-visible ring, AKF primary, danger `red-600`); hand-styled primary/secondary buttons and the Tools 3–5 save buttons migrated.

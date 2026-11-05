@@ -19,9 +19,13 @@ $log = Join-Path $LogDir 'backup.log'
 Push-Location (Join-Path $appDir 'backend')
 try {
   "==== $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') backup" | Out-File -Append -Encoding utf8 $log
-  # cmd /c merges the script's stderr into stdout without PowerShell 5.1 turning it into errors.
-  $output = & cmd /c "`"$node`" scripts\backup.js $args 2>&1"
+  # Node's stderr is merged in as text; with 'Continue', PowerShell 5.1 does not turn those lines
+  # into a terminating error. Arguments go as an array, never one quoted string (5.1 strips
+  # inner double quotes of native arguments).
+  $ErrorActionPreference = 'Continue'
+  $output = & $node scripts\backup.js @args 2>&1 | ForEach-Object { "$_" }
   $code = $LASTEXITCODE
+  $ErrorActionPreference = 'Stop'
   $output | Out-File -Append -Encoding utf8 $log
   $output | Write-Output
   exit $code

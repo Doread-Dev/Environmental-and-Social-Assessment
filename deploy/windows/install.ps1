@@ -71,7 +71,9 @@ $nodeCmd = Get-Command node -ErrorAction SilentlyContinue
 if (-not $nodeCmd) { Fail 'Node.js is not installed (INSTALL-WINDOWS.md, step 2)' }
 $node = $nodeCmd.Source
 $wanted = ((Get-Content (Join-Path $sourceDir '.nvmrc') -Raw).Trim() -replace '^v', '').Split('.')[0]
-$have = (& $node -p 'process.versions.node.split(".")[0]').Trim()
+# Parsed here, not with node -p '...': Windows PowerShell 5.1 strips the double quotes inside an
+# argument to a native program, so inline JavaScript breaks (backend/tests/deployScripts.test.js).
+$have = ((& $node --version) -replace '^v', '').Split('.')[0]
 if ($have -ne $wanted) { Fail "Node $have found, the app needs Node $wanted" }
 Write-Host "Node $(& $node --version) at $node"
 
@@ -125,7 +127,10 @@ if (Test-Path $envFile) {
   Write-Host "Kept the existing $envFile"
 }
 else {
-  $secret = (& $node -e 'console.log(require("crypto").randomBytes(48).toString("base64url"))').Trim()
+  # 48 random bytes, base64url (64 characters), from .NET: no inline JavaScript (see step 1).
+  $bytes = New-Object byte[] 48
+  [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+  $secret = [Convert]::ToBase64String($bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_')
   $text = Get-Content (Join-Path $installFull 'deploy\config\esms.env.example') -Raw
   $text = Set-EnvValue $text 'JWT_SECRET' $secret
   $text = Set-EnvValue $text 'PORT' "$Port"

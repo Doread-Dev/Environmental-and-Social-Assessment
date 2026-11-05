@@ -9,6 +9,105 @@ import { describe, expect, it } from "vitest";
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const install = fs.readFileSync(path.join(repo, "deploy/windows/install.ps1"), "utf8");
 
+// Windows PowerShell 5.1 strips the double quotes inside an argument to a native program:
+// `& $node -p 'a.split(".")'` reaches node as `a.split(.)` (found by the owner's service test,
+// 2026-11-05). So no .ps1 in deploy/windows may pass inline JavaScript or a quoted string to a
+// native program; it passes plain words and paths as an array instead.
+const windowsDir = path.join(repo, "deploy/windows");
+const scripts = fs
+  .readdirSync(windowsDir)
+  .filter((f) => f.endsWith(".ps1"))
+  .map((f) => [f, fs.readFileSync(path.join(windowsDir, f), "utf8")]);
+
+// Code lines only: no <# … #> blocks (their line breaks kept, so line numbers stay true), no #
+// comments.
+const codeLines = (text) =>
+  text
+    .replace(/<#[\s\S]*?#>/g, (block) => block.replace(/[^\n]/g, ""))
+    .split(/\r?\n/)
+    .map((line, i) => [i + 1, line])
+    .filter(([, line]) => line.trim() !== "" && !line.trim().startsWith("#"));
+
+// A line that starts a native program: `& $exe …`, `& node …`, `& x.exe …`, Invoke-Native, cmd.
+const NATIVE_CALL =
+  /(?:^|[\s(=])(?:&\s*(?:\$\w+|[\w.-]+\.exe\b|node\b|cmd\b)|Invoke-Native\s|cmd(?:\.exe)?\s+\/c)/i;
+
+// The string literals of one PowerShell line, each read on its own: '…' ('' is a quote inside)
+// and "…" (` escapes the next character). Returns [{ quote: "'" | '"', body }].
+const stringLiterals = (line) => {
+  const found = [];
+  for (let i = 0; i < line.length; i += 1) {
+    const quote = line[i];
+    if (quote !== "'" && quote !== '"') continue;
+    let body = "";
+    let j = i + 1;
+    for (; j < line.length; j += 1) {
+      if (quote === "'" && line[j] === "'" && line[j + 1] === "'") {
+        body += "'";
+        j += 1;
+      } else if (quote === '"' && line[j] === "`") {
+        body += line[j] + (line[j + 1] ?? "");
+        j += 1;
+      } else if (line[j] === quote) break;
+      else body += line[j];
+    }
+    found.push({ quote, body });
+    i = j;
+  }
+  return found;
+};
+
+// A double quote inside a string literal: '…"…' or "…`"…".
+const hasEmbeddedQuote = (line) =>
+  stringLiterals(line).some(({ quote, body }) =>
+    quote === "'" ? body.includes('"') : body.includes('`"')
+  );
+
+const nativeQuoteProblems = (text) =>
+  codeLines(text).flatMap(([n, line]) => {
+    const problems = [];
+    if (
+      /\bnode(?:\.exe)?\b[^\n]*\s(?:-e|-p|--eval|--print)\b|\$node\s+(?:-e|-p|--eval|--print)\b/i.test(
+        line
+      )
+    ) {
+      problems.push(`line ${n}: inline JavaScript (node -e/-p)`);
+    }
+    if (NATIVE_CALL.test(line) && hasEmbeddedQuote(line)) {
+      problems.push(`line ${n}: a quoted string inside an argument to a native program`);
+    }
+    if (/\bcmd(?:\.exe)?\s+\/c\b/i.test(line))
+      problems.push(`line ${n}: cmd /c with a command string`);
+    return problems;
+  });
+
+describe("deploy/windows/*.ps1: arguments to native programs survive Windows PowerShell 5.1", () => {
+  it.each(scripts.map(([f]) => f))("%s passes no inline JavaScript or quoted string", (file) => {
+    const [, text] = scripts.find(([f]) => f === file);
+    expect(nativeQuoteProblems(text)).toEqual([]);
+  });
+
+  it("the check catches what broke the owner's install (and similar calls)", () => {
+    const broken = [
+      "$have = (& $node -p 'process.versions.node.split(\".\")[0]').Trim()",
+      '  $secret = (& $node -e \'console.log(require("crypto").randomBytes(48).toString("base64url"))\').Trim()',
+      '  $output = & cmd /c "`"$node`" scripts\\backup.js $args 2>&1"',
+      "Invoke-Native $node @('-e', 'console.log(\"x\")')",
+    ];
+    for (const line of broken) expect(nativeQuoteProblems(line)).not.toEqual([]);
+  });
+
+  it("a scheduled-task argument (a cmdlet parameter, not a native call) may keep its quotes", () => {
+    const ok = [
+      "  $action = New-ScheduledTaskAction -Execute 'powershell.exe' `",
+      '    -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$script`" -LogDir `"$logDir`""',
+      "  Invoke-Native $node @('scripts\\init-replica-set.js') | Write-Host",
+      "$have = ((& $node --version) -replace '^v', '').Split('.')[0]",
+    ].join("\n");
+    expect(nativeQuoteProblems(ok)).toEqual([]);
+  });
+});
+
 describe("deploy/windows/install.ps1 names", () => {
   it("the service's display name is its -ServiceName (Windows refuses two equal display names)", () => {
     expect(install).toMatch(/@\('DisplayName', \$ServiceName\)/);

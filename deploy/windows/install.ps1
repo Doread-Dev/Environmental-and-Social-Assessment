@@ -180,7 +180,9 @@ $settings = @(
   @('AppParameters', 'src\server.js'),
   @('AppDirectory', $backendDir),
   @('AppEnvironmentExtra', 'NODE_ENV=production'),
-  @('DisplayName', 'ESMS'),
+  # The service name, so a second install (a test one) never clashes: Windows refuses two
+  # services with the same display name.
+  @('DisplayName', $ServiceName),
   @('Description', 'ESMS - Environmental and Social Management System (Node.js)'),
   @('Start', 'SERVICE_AUTO_START'),
   @('DependOnService', $MongoServiceName),

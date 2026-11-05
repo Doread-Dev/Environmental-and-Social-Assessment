@@ -37,7 +37,7 @@
 ## Done when
 - [ ] Inventory and case list at the bottom of this file, reviewed by the owner.
 - [ ] Every agreed problem fixed with a test, or explicitly deferred by the owner.
-- [ ] Shared unsaved-changes guard used by every editing page; no `window.confirm` / `window.alert` left in `src/`.
+- [ ] Shared unsaved-changes guard used by every editing page; no `window.confirm` / `window.alert` left in `src/` (after phase 10 only the three unsaved-changes prompts of Tools 3, 4, 5 remain; remove them from the allow-list in `src/test/styleGuard.test.js`). Confirmations use `ConfirmDialog` (`components/ui`).
 - [ ] The most important unhappy paths added to the phase 12 E2E list.
 
 ## Found during phase

@@ -10,6 +10,7 @@
 
 import { useAuth, ROLE_LABELS } from '@/contexts'
 import { cn } from '@/utils/cn'
+import { Input } from '@/components/ui'
 
 /**
  * @param {Object} props
@@ -42,60 +43,37 @@ function ScreeningInfoSection({
 
   return (
     <div className={cn('grid grid-cols-1 md:grid-cols-2 gap-6', className)} {...props}>
-      {/* Officer Name */}
-      <div className="col-span-1">
-        <label className="block text-sm font-medium text-text-main dark:text-gray-200 mb-2">
-          Program Officer Name <span className="text-red-500">*</span>
-        </label>
-        <input
-          className="w-full bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
-          readOnly
-          type="text"
-          value={displayName}
-        />
-      </div>
+      {/* Officer Name (read-only: the signed-in or recorded officer) */}
+      <Input
+        label="Program Officer Name"
+        required
+        readOnly
+        type="text"
+        value={displayName}
+        inputClassName="font-medium"
+      />
 
       {/* Officer Position */}
-      <div className="col-span-1">
-        <label className="block text-sm font-medium text-text-main dark:text-gray-200 mb-2">
-          Program Officer Position <span className="text-red-500">*</span>
-        </label>
-        <input
-          className="w-full bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
-          readOnly
-          type="text"
-          value={displayPosition}
-        />
-      </div>
+      <Input
+        label="Program Officer Position"
+        required
+        readOnly
+        type="text"
+        value={displayPosition}
+        inputClassName="font-medium"
+      />
 
       {/* Screening Date */}
-      <div className="col-span-1 md:col-span-2">
-        <label className="block text-sm font-medium text-text-main dark:text-gray-200 mb-2">
-          Screening Date <span className="text-red-500">*</span>
-        </label>
-        <div className="relative">
-          <input
-            className={cn(
-              'w-full rounded-lg border border-border-default dark:border-border-dark',
-              'bg-white dark:bg-background-dark',
-              'text-text-main dark:text-white',
-              'focus:ring-primary focus:border-primary',
-              'px-3 py-2.5 text-sm',
-              error && 'border-red-500 focus:border-red-500 focus:ring-red-500'
-            )}
-            type="date"
-            value={screeningDate || ''}
-            onChange={(e) => onDateChange?.(e.target.value)}
-            disabled={readOnly}
-          />
-        </div>
-        {error && (
-          <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
-            <span className="material-symbols-outlined text-base">error</span>
-            {error}
-          </p>
-        )}
-      </div>
+      <Input
+        className="md:col-span-2"
+        label="Screening Date"
+        required
+        type="date"
+        value={screeningDate || ''}
+        onChange={(e) => onDateChange?.(e.target.value)}
+        disabled={readOnly}
+        error={error}
+      />
     </div>
   )
 }

@@ -6,35 +6,13 @@
  * `permissions`; per-project `allowed_actions` (workspace, project list) add the workflow state.
  * The frontend keeps no role lists of its own.
  */
-import { createContext, useContext, useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { authService } from '@/services/authService'
 import { extractErrorMessage } from '@/services/api'
 import { queryKeys } from '@/services/queryKeys'
-
-/**
- * Role names (display and the user form only — never used for permission checks)
- */
-export const USER_ROLES = {
-  ADMIN: 'admin',
-  ENVIRONMENTAL_SPECIALIST: 'environmental_specialist',
-  PROGRAM_MANAGER: 'program_manager',
-  PROJECT_MANAGER: 'project_manager',
-  ENVIRONMENTAL_FOCAL_POINT: 'environmental_focal_point',
-  VIEWER: 'viewer',
-}
-
-/**
- * Role display names
- */
-export const ROLE_LABELS = {
-  admin: 'Administrator',
-  environmental_specialist: 'Environmental Specialist',
-  program_manager: 'Program Manager',
-  project_manager: 'Project Manager',
-  environmental_focal_point: 'Environmental Focal Point',
-  viewer: 'Viewer',
-}
+import { AuthContext } from './useAuth'
+import { USER_ROLES, ROLE_LABELS } from '@/utils/roles'
 
 const NO_PERMISSIONS = []
 
@@ -47,9 +25,6 @@ function readStoredAuth() {
   }
   return { user: authService.getUser(), token: authService.getToken() }
 }
-
-// Create context
-const AuthContext = createContext(undefined)
 
 /**
  * AuthProvider Component
@@ -202,20 +177,3 @@ export function AuthProvider({ children }) {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
-
-/**
- * Custom hook to use auth context
- * @returns {Object} Auth context value
- * @throws {Error} If used outside of AuthProvider
- */
-export function useAuth() {
-  const context = useContext(AuthContext)
-
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-
-  return context
-}
-
-export default AuthContext

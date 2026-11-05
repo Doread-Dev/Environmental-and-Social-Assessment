@@ -58,7 +58,9 @@ function SidePanel({ onClose, title, subtitle, icon, className, children }) {
             className="p-1 rounded-lg text-text-secondary dark:text-gray-400 hover:text-text-main dark:hover:text-white hover:bg-background dark:hover:bg-background-dark transition-colors"
             aria-label="Close"
           >
-            <span className="material-symbols-outlined">close</span>
+            <span className="material-symbols-outlined" aria-hidden="true">
+              close
+            </span>
           </button>
         </header>
         <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>

@@ -11,7 +11,14 @@ import { useMonitoring, useProjectContext, useLookups, useUsers } from '@/hooks'
 import { assessmentQuery } from '@/hooks/useAssessment'
 import { isStepLocked } from '@/utils/workflowSteps'
 import { MonitoringDataTable } from '@/components/tables'
-import { Alert, useToast } from '@/components/ui'
+import {
+  Alert,
+  useToast,
+  LoadingState,
+  PAGE_TITLE,
+  PAGE_DESCRIPTION,
+  Button,
+} from '@/components/ui'
 import { cn } from '@/utils/cn'
 export default function MonitoringDataEntryPage() {
   const { projectId } = useParams()
@@ -65,7 +72,10 @@ export default function MonitoringDataEntryPage() {
       icon: 'delete',
       className: 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400',
     },
-    E: { icon: 'speed', className: 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400' },
+    E: {
+      icon: 'speed',
+      className: 'bg-background dark:bg-white/5 text-text-secondary dark:text-gray-400',
+    },
     F: {
       icon: 'science',
       className: 'bg-primary-soft dark:bg-primary/20 text-primary dark:text-green-300',
@@ -156,16 +166,7 @@ export default function MonitoringDataEntryPage() {
   const saveBtn = getSaveButtonContent()
 
   if (isLoading || lookupsLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">
-            Loading monitoring data...
-          </p>
-        </div>
-      </div>
-    )
+    return <LoadingState message="Loading monitoring data..." />
   }
 
   return (
@@ -174,45 +175,34 @@ export default function MonitoringDataEntryPage() {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-border-default dark:border-border-dark pb-6">
           <div>
-            <h1 className="text-text-main dark:text-white text-3xl font-black leading-tight tracking-tight">
-              Monitoring Data Entry
-            </h1>
-            <p className="text-primary text-base font-normal mt-1">
+            <h1 className={PAGE_TITLE}>Monitoring Data Entry</h1>
+            <p className={PAGE_DESCRIPTION}>
               Enter and review cumulative environmental and social monitoring data over time.
             </p>
           </div>
           <div className="gap-2 flex items-center justify-center">
-            <button
-              type="button"
-              onClick={handleBack}
-              className="flex items-center justify-center gap-2 rounded-lg h-10 px-4 bg-white dark:bg-surface-dark border border-border-default dark:border-border-dark hover:bg-gray-50/50 dark:hover:bg-white/3 text-text-main dark:text-white text-sm font-bold transition-all shadow-sm"
-            >
-              <span className="material-symbols-outlined text-lg">arrow_back</span>
+            <Button variant="secondary" type="button" onClick={handleBack}>
+              <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                arrow_back
+              </span>
               <span>Cancel</span>
-            </button>
+            </Button>
             {canEdit && (
-              <button
-                type="button"
+              <Button
+                variant="primary"
                 onClick={handleSave}
                 disabled={isLocked || isSaving || (justSaved && !hasUnsavedChanges)}
-                className={cn(
-                  'flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-5 gap-2 text-sm font-bold leading-normal tracking-[0.015em] shadow-md transition-all transform',
-                  isLocked
-                    ? 'bg-primary/50 cursor-not-allowed'
-                    : isSaving
-                      ? 'bg-primary/70 cursor-wait'
-                      : justSaved && !hasUnsavedChanges
-                        ? 'bg-green-600 hover:bg-green-700 text-white border border-transparent'
-                        : 'bg-primary hover:bg-green-500 text-primary-content'
-                )}
+                isLoading={isSaving}
+                leftIcon={
+                  saveBtn.icon ? (
+                    <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                      {saveBtn.icon}
+                    </span>
+                  ) : undefined
+                }
               >
-                {saveBtn.spinner ? (
-                  <span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <span className="material-symbols-outlined text-lg">{saveBtn.icon}</span>
-                )}
-                <span className="truncate">{saveBtn.text}</span>
-              </button>
+                {saveBtn.text}
+              </Button>
             )}
           </div>
         </div>
@@ -228,13 +218,15 @@ export default function MonitoringDataEntryPage() {
         {isLocked && (
           <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800 rounded-xl p-6 flex flex-col sm:flex-row items-center gap-4">
             <div className="size-12 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center shrink-0 text-orange-600 dark:text-orange-400">
-              <span className="material-symbols-outlined text-2xl">lock</span>
+              <span className="material-symbols-outlined text-2xl" aria-hidden="true">
+                lock
+              </span>
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+              <h3 className="text-lg font-bold text-text-main dark:text-white mb-1">
                 Monitoring Locked
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
+              <p className="text-text-secondary dark:text-gray-400 text-sm">
                 You must complete and get approval for the{' '}
                 <strong>Environmental Assessment (Tool 2)</strong> before entering monitoring data.
               </p>
@@ -273,11 +265,12 @@ export default function MonitoringDataEntryPage() {
             const currentRanking = rankingLevels.sort((a, b) => b.value - a.value)[0] ||
               defaultRanking || { key: 'not_applicable', label: 'N/A', value: -1 }
             const rankingStyles = {
-              negligible: 'bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-400',
+              negligible: 'bg-background dark:bg-white/5 text-text-main dark:text-gray-400',
               low: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
               medium: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300',
               high: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
-              not_applicable: 'bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400',
+              not_applicable:
+                'bg-background dark:bg-white/5 text-text-secondary dark:text-gray-400',
             }
             const iconConfig = categoryIconMap[category.code] || {
               icon: 'analytics',
@@ -287,13 +280,13 @@ export default function MonitoringDataEntryPage() {
             return (
               <div
                 key={category.code}
-                className="bg-white dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden"
+                className="bg-surface dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden"
               >
                 {/* Accordion Header */}
                 <button
                   type="button"
                   onClick={() => toggleCategory(category.code)}
-                  className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors"
+                  className="w-full px-6 py-4 flex items-center justify-between hover:bg-background dark:hover:bg-white/5 transition-colors"
                 >
                   <div className="flex items-center gap-4">
                     <div
@@ -302,7 +295,9 @@ export default function MonitoringDataEntryPage() {
                         iconConfig.className
                       )}
                     >
-                      <span className="material-symbols-outlined">{iconConfig.icon}</span>
+                      <span className="material-symbols-outlined" aria-hidden="true">
+                        {iconConfig.icon}
+                      </span>
                     </div>
                     <div className="text-left">
                       <h2 className="text-lg font-bold text-text-main dark:text-white">
@@ -328,6 +323,7 @@ export default function MonitoringDataEntryPage() {
                       'material-symbols-outlined text-2xl text-text-secondary dark:text-gray-400 transition-transform',
                       isExpanded && 'rotate-180'
                     )}
+                    aria-hidden="true"
                   >
                     expand_more
                   </span>

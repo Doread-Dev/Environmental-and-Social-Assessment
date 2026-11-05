@@ -57,7 +57,7 @@ function ProjectProgressTimeline({
     // Rejected status (for screening & assessment)
     if (status === 'rejected') {
       return {
-        bgColor: 'bg-white dark:bg-surface-dark border-2 border-red-500',
+        bgColor: 'bg-surface dark:bg-surface-dark border-2 border-red-500',
         icon: 'priority_high',
         iconColor: 'text-red-500',
         label: 'Rejected',
@@ -72,7 +72,7 @@ function ProjectProgressTimeline({
     // Submitted (screening & assessment) - pending approval
     if (status === 'submitted') {
       return {
-        bgColor: 'bg-white dark:bg-surface-dark border-2 border-amber-500',
+        bgColor: 'bg-surface dark:bg-surface-dark border-2 border-amber-500',
         icon: 'hourglass_top',
         iconColor: 'text-amber-500',
         label: 'Pending Approval',
@@ -87,7 +87,7 @@ function ProjectProgressTimeline({
     // In progress (a screening/assessment draft too)
     if (status === 'in_progress') {
       return {
-        bgColor: 'bg-white dark:bg-surface-dark border-2 border-primary',
+        bgColor: 'bg-surface dark:bg-surface-dark border-2 border-primary',
         icon: 'edit_document',
         iconColor: 'text-primary',
         label: 'In Progress',
@@ -101,7 +101,8 @@ function ProjectProgressTimeline({
 
     // not_started or locked
     return {
-      bgColor: 'bg-gray-100 dark:bg-white/5 border-2 border-border-default dark:border-border-dark',
+      bgColor:
+        'bg-background dark:bg-white/5 border-2 border-border-default dark:border-border-dark',
       icon: null,
       iconColor: 'text-text-secondary',
       label: 'Pending',
@@ -133,7 +134,7 @@ function ProjectProgressTimeline({
       {/* Timeline */}
       <div className="relative">
         {/* Background Progress Bar - Full width gray bar */}
-        <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-100 dark:bg-white/5 -translate-y-1/2 rounded-full z-0"></div>
+        <div className="absolute top-1/2 left-0 w-full h-1 bg-background dark:bg-white/5 -translate-y-1/2 rounded-full z-0"></div>
         {/* Progress Bar - Primary colored portion */}
         <div
           className="absolute top-1/2 left-0 h-1 bg-primary/30 -translate-y-1/2 rounded-full z-0 transition-all duration-500"
@@ -159,7 +160,10 @@ function ProjectProgressTimeline({
                   )}
                 >
                   {config.icon ? (
-                    <span className={cn('material-symbols-outlined text-[18px]', config.iconColor)}>
+                    <span
+                      className={cn('material-symbols-outlined text-[18px]', config.iconColor)}
+                      aria-hidden="true"
+                    >
                       {config.icon}
                     </span>
                   ) : (

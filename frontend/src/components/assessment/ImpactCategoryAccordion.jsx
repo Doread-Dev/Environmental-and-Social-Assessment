@@ -81,17 +81,20 @@ export default function ImpactCategoryAccordion({
 
   return (
     <details
-      className="group bg-white dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark shadow-sm overflow-hidden"
+      className="group bg-surface dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark shadow-sm overflow-hidden"
       open={isOpen}
       onToggle={(e) => setIsOpen(e.target.open)}
     >
       {/* Summary Header */}
-      <summary className="flex cursor-pointer items-center justify-between gap-4 px-6 py-4 bg-white dark:bg-surface-dark hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors select-none sticky top-0 z-10 border-b border-transparent group-open:border-border-default dark:group-open:border-border-dark">
+      <summary className="flex cursor-pointer items-center justify-between gap-4 px-6 py-4 bg-surface dark:bg-surface-dark hover:bg-background dark:hover:bg-white/5 transition-colors select-none sticky top-0 z-10 border-b border-transparent group-open:border-border-default dark:group-open:border-border-dark">
         <div className="flex items-center gap-4">
           <div
             className={cn('flex items-center justify-center size-8 rounded-full', category.iconBg)}
           >
-            <span className={cn('material-symbols-outlined text-[20px]', category.iconColor)}>
+            <span
+              className={cn('material-symbols-outlined text-[20px]', category.iconColor)}
+              aria-hidden="true"
+            >
               {category.icon}
             </span>
           </div>
@@ -105,12 +108,15 @@ export default function ImpactCategoryAccordion({
               'text-xs font-medium px-2 py-1 rounded border',
               highestConfig
                 ? `${highestConfig.bgClass} ${highestConfig.textClass} border-current/20`
-                : 'bg-gray-100 dark:bg-white/5 text-text-secondary dark:text-white border-border-default dark:border-border-dark'
+                : 'bg-background dark:bg-white/5 text-text-secondary dark:text-white border-border-default dark:border-border-dark'
             )}
           >
             {scoreText}
           </span>
-          <span className="material-symbols-outlined text-text-secondary transition-transform duration-300 group-open:rotate-180">
+          <span
+            className="material-symbols-outlined text-text-secondary transition-transform duration-300 group-open:rotate-180"
+            aria-hidden="true"
+          >
             expand_more
           </span>
         </div>
@@ -119,7 +125,7 @@ export default function ImpactCategoryAccordion({
       {/* Content */}
       <div className="p-0 overflow-x-auto">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-gray-50/50 dark:bg-white/5 text-text-main dark:text-white">
+          <thead className="bg-background dark:bg-white/5 text-text-main dark:text-white">
             <tr>
               <th className="py-3 px-6 text-xs font-semibold uppercase tracking-wider w-[35%] border-b border-border-default dark:border-border-dark">
                 Assessment Question
@@ -156,7 +162,7 @@ export default function ImpactCategoryAccordion({
             )}
           </tbody>
           {/* Footer with Category Score */}
-          <tfoot className="bg-gray-50/50 dark:bg-white/5 border-t border-border-default dark:border-border-dark">
+          <tfoot className="bg-background dark:bg-white/5 border-t border-border-default dark:border-border-dark">
             <tr>
               <td className="py-3 px-6" colSpan="3">
                 <div className="flex items-center justify-end gap-6 text-sm">

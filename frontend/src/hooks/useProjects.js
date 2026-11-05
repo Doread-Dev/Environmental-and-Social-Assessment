@@ -1,7 +1,9 @@
 /**
  * useProjects Hook
  * The project list (D31): each project comes with its screening/assessment summary, `workflow`
- * state and `allowed_actions` from the backend, in one request.
+ * state and `allowed_actions` from the backend, in one request. `{ archived: true }` lists the
+ * archived projects instead (D17). Delete, archive, restore and purge (admin, D60) refresh both
+ * lists, the dashboard and the project's workspace.
  */
 import { useCallback } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -11,40 +13,53 @@ import { queryKeys } from '@/services/queryKeys'
 
 const NO_PROJECTS = []
 
-/**
- * Custom hook for the project list
- * @returns {Object} Projects state and methods
- */
-export function useProjects() {
+/** Wrap a mutation as `(id) => Promise<{ success, error? }>` */
+function useProjectAction(mutationFn, { removeWorkspace = false } = {}) {
   const queryClient = useQueryClient()
-  const query = useQuery({ queryKey: queryKeys.projects, queryFn: projectService.getAll })
-
-  const deleteMutation = useMutation({
-    mutationFn: (id) => projectService.delete(id),
+  const mutation = useMutation({
+    mutationFn,
     onSuccess: (_data, id) => {
-      queryClient.removeQueries({ queryKey: queryKeys.workspace(id) })
+      if (removeWorkspace) queryClient.removeQueries({ queryKey: queryKeys.workspace(id) })
+      else queryClient.invalidateQueries({ queryKey: queryKeys.workspace(id) })
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard })
       return queryClient.invalidateQueries({ queryKey: queryKeys.projects })
     },
   })
-
-  /**
-   * Delete a project
-   * @param {string} id - Project ID
-   * @returns {Promise<{success: boolean, error?: string}>}
-   */
-  const { mutateAsync: deleteAsync } = deleteMutation
-  const deleteProject = useCallback(
+  const { mutateAsync } = mutation
+  const run = useCallback(
     async (id) => {
       try {
-        await deleteAsync(id)
+        await mutateAsync(id)
         return { success: true }
       } catch (err) {
         return { success: false, error: extractErrorMessage(err) }
       }
     },
-    [deleteAsync]
+    [mutateAsync]
   )
+  return [run, mutation.isPending ? mutation.variables : null]
+}
+
+/**
+ * Custom hook for the project list
+ * @param {Object} [options]
+ * @param {boolean} [options.archived] - List the archived projects (D17)
+ * @returns {Object} Projects state and methods
+ */
+export function useProjects({ archived = false } = {}) {
+  const query = useQuery({
+    queryKey: archived ? queryKeys.archivedProjects : queryKeys.projects,
+    queryFn: archived ? projectService.getArchived : projectService.getAll,
+  })
+
+  const [deleteProject, deletingId] = useProjectAction((id) => projectService.delete(id), {
+    removeWorkspace: true,
+  })
+  const [purgeProject, purgingId] = useProjectAction((id) => projectService.purge(id), {
+    removeWorkspace: true,
+  })
+  const [archiveProject, archivingId] = useProjectAction((id) => projectService.archive(id))
+  const [restoreProject, restoringId] = useProjectAction((id) => projectService.restore(id))
 
   return {
     projects: query.data ?? NO_PROJECTS,
@@ -52,7 +67,15 @@ export function useProjects() {
     error: query.error ? extractErrorMessage(query.error) : null,
     fetchProjects: query.refetch,
     deleteProject,
-    deletingId: deleteMutation.isPending ? deleteMutation.variables : null,
+    deletingId,
+    archiveProject,
+    archivingId,
+    restoreProject,
+    restoringId,
+    purgeProject,
+    purgingId,
+    /** Id of the project an action is running on, or null */
+    busyId: deletingId || purgingId || archivingId || restoringId,
   }
 }
 

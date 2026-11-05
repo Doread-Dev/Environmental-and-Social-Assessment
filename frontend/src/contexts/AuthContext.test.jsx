@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import api from '@/services/api'
-import { AuthProvider, useAuth } from './AuthContext'
+import { AuthProvider } from './AuthContext'
+import { useAuth } from './useAuth'
 import { createTestQueryClient, mockGet, signIn } from '@/test/utils'
 import { QueryClientProvider } from '@tanstack/react-query'
 

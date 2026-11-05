@@ -33,7 +33,7 @@ function ProjectMetricCard({
   return (
     <div
       className={cn(
-        'bg-white dark:bg-surface-dark p-5 rounded-xl border border-border-default dark:border-border-dark shadow-sm flex flex-col gap-3',
+        'bg-surface dark:bg-surface-dark p-5 rounded-xl border border-border-default dark:border-border-dark shadow-sm flex flex-col gap-3',
         className
       )}
       {...props}
@@ -42,7 +42,9 @@ function ProjectMetricCard({
         {/* Icon */}
         {icon && (
           <div className={cn('p-2 rounded-lg', iconBgColor)}>
-            <span className={cn('material-symbols-outlined', iconColor)}>{icon}</span>
+            <span className={cn('material-symbols-outlined', iconColor)} aria-hidden="true">
+              {icon}
+            </span>
           </div>
         )}
         {/* Title Label */}

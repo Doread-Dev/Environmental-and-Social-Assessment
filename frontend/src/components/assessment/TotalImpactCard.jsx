@@ -57,6 +57,7 @@ export default function TotalImpactCard({ impact = 'negligible' }) {
             <span
               className="material-symbols-outlined text-red-500 mb-2"
               style={{ fontSize: '40px' }}
+              aria-hidden="true"
             >
               warning
             </span>

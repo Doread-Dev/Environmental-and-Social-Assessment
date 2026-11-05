@@ -9,12 +9,22 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useToast } from '@/components/ui'
+import {
+  Button,
+  Input,
+  Textarea,
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  StatusBadge,
+  useToast,
+  PAGE_TITLE,
+} from '@/components/ui'
 import { useProjectContext, useScreening } from '@/hooks'
-import { useAuth, ROLE_LABELS } from '@/contexts'
+import { useAuth } from '@/contexts'
+import { getReviewer, positionOf } from '@/utils/reviewer'
 import { getScreeningCategory } from '@/utils/screeningDisplay'
-import { formatDateShort } from '@/utils/formatters'
-import { cn } from '@/utils/cn'
+import { formatDate } from '@/utils/formatters'
 function ScreeningSummaryPage() {
   const navigate = useNavigate()
   const { projectId } = useParams()
@@ -133,48 +143,30 @@ function ScreeningSummaryPage() {
   // Show error state with Try Again - AFTER all hooks
   if (screeningError) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4 max-w-md text-center">
-          <p className="text-text-secondary dark:text-gray-400">{screeningError}</p>
-          <button
-            type="button"
-            onClick={() => refetchScreening()}
-            className="px-4 py-2 bg-primary text-white rounded-lg"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
+      <ErrorState
+        title="Failed to load the screening"
+        message={screeningError}
+        onRetry={refetchScreening}
+      />
     )
   }
 
   // Show loading state - AFTER all hooks
   if (screeningLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading screening...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState message="Loading screening..." />
   }
 
   if (!screening) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <p className="text-text-secondary dark:text-gray-400 mb-4">
-            No screening data found for this project.
-          </p>
-          <button
-            onClick={() => navigate(`/app/projects/${projectId}/screening`)}
-            className="px-6 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-bold text-sm shadow-md transition-colors"
-          >
+      <EmptyState
+        icon="fact_check"
+        title="No screening data found for this project."
+        action={
+          <Button onClick={() => navigate(`/app/projects/${projectId}/screening`)}>
             Start Screening
-          </button>
-        </div>
-      </div>
+          </Button>
+        }
+      />
     )
   }
 
@@ -187,15 +179,17 @@ function ScreeningSummaryPage() {
 
   const officer =
     screening?.officer && typeof screening.officer === 'object' ? screening.officer : null
+  // Approved / rejected: the reviewer, from the record or its status history (D16).
   // When pending approval and current user can approve: show current user in "Approved By" so approval is linked to them
+  const asPerson = (user) => (user ? { name: user.name, position: positionOf(user) } : null)
   const approvalUser =
     status === 'approved'
-      ? screening?.approved_by
+      ? getReviewer(screening, 'approved')
       : status === 'rejected'
-        ? screening?.reject_by
+        ? getReviewer(screening, 'rejected')
         : status === 'submitted' && canApproveScreening && currentUser
-          ? currentUser
-          : officer
+          ? asPerson(currentUser)
+          : asPerson(officer)
 
   // Parse impacts into list items
   const negativeItems =
@@ -214,39 +208,7 @@ function ScreeningSummaryPage() {
 
   // Format screening date - لا يظهر في حالة submitted
   const screeningDateFormatted =
-    status !== 'submitted' && screening.screening_date
-      ? formatDateShort(screening.screening_date)
-      : ''
-
-  // Status badge config
-  const statusBadgeConfig = {
-    submitted: {
-      label: 'pending approval',
-      bgColor: 'bg-orange-100 dark:bg-orange-900/30',
-      textColor: 'text-orange-700 dark:text-orange-400',
-      borderColor: 'border-orange-200 dark:border-orange-800',
-    },
-    approved: {
-      label: 'approved',
-      bgColor: 'bg-green-100 dark:bg-green-900/30',
-      textColor: 'text-green-700 dark:text-green-400',
-      borderColor: 'border-green-200 dark:border-green-800',
-    },
-    rejected: {
-      label: 'rejected',
-      bgColor: 'bg-red-100 dark:bg-red-900/30',
-      textColor: 'text-red-700 dark:text-red-400',
-      borderColor: 'border-red-200 dark:border-red-800',
-    },
-    draft: {
-      label: 'draft',
-      bgColor: 'bg-gray-100 dark:bg-white/5',
-      textColor: 'text-gray-700 dark:text-gray-400',
-      borderColor: 'border-border-default dark:border-border-dark',
-    },
-  }
-
-  const badgeConfig = statusBadgeConfig[status] || statusBadgeConfig.draft
+    status !== 'submitted' && screening.screening_date ? formatDate(screening.screening_date) : ''
 
   // Parse project components (split by comma or use project_component field)
   const projectComponents =
@@ -260,25 +222,17 @@ function ScreeningSummaryPage() {
     <div className="flex flex-col gap-8">
       {/* Main Container - مطابق للتصميم الأصلي */}
       <form className="flex flex-col gap-8 print-container">
-        <div className="max-w-[960px] mx-auto bg-white dark:bg-surface-dark shadow-sm rounded-xl overflow-hidden min-h-[800px] flex flex-col print-container">
+        <div className="max-w-[960px] mx-auto bg-surface dark:bg-surface-dark shadow-sm rounded-xl overflow-hidden min-h-[800px] flex flex-col print-container">
           {/* Header Section */}
           <div className="p-8 pb-4 border-b border-border-default dark:border-border-dark">
             <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-text-main dark:text-white">
-                    Environmental Integration Screening
-                  </h1>
-                  <span
-                    className={cn(
-                      'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border',
-                      badgeConfig.bgColor,
-                      badgeConfig.textColor,
-                      badgeConfig.borderColor
-                    )}
-                  >
-                    {badgeConfig.label}
-                  </span>
+                  <h1 className={PAGE_TITLE}>Environmental Integration Screening</h1>
+                  <StatusBadge
+                    status={status}
+                    label={status === 'submitted' ? 'Pending Approval' : undefined}
+                  />
                 </div>
                 <p className="text-text-secondary dark:text-gray-400 text-sm md:text-base">
                   Project: {project?.title || 'N/A'}
@@ -305,8 +259,11 @@ function ScreeningSummaryPage() {
                 Program Officer
               </h3>
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-gray-500 dark:text-gray-400 text-sm">
+                <div className="w-8 h-8 rounded-full bg-background dark:bg-white/5 flex items-center justify-center">
+                  <span
+                    className="material-symbols-outlined text-text-secondary dark:text-gray-400 text-sm"
+                    aria-hidden="true"
+                  >
                     person
                   </span>
                 </div>
@@ -315,9 +272,7 @@ function ScreeningSummaryPage() {
                     {officer?.name || 'N/A'}
                   </p>
                   <p className="text-xs text-text-secondary dark:text-gray-400">
-                    {officer?.job_title?.title_name ||
-                      (officer?.role ? ROLE_LABELS[officer.role] : null) ||
-                      'Program Officer'}
+                    {positionOf(officer) || 'Program Officer'}
                   </p>
                 </div>
               </div>
@@ -333,7 +288,7 @@ function ScreeningSummaryPage() {
                   projectComponents.map((component, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-50/50 dark:bg-white/5 text-gray-800 dark:text-gray-200"
+                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-background dark:bg-white/5 text-text-main dark:text-gray-200"
                     >
                       {component}
                     </span>
@@ -350,10 +305,12 @@ function ScreeningSummaryPage() {
           {/* Risk Category Card */}
           {categoryInfo && (
             <div className="p-8">
-              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-900 to-gray-800 dark:from-gray-800 dark:to-black text-white p-8 shadow-md">
+              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-green-900 to-green-950 dark:from-card-dark dark:to-background-dark text-white p-8 shadow-md">
                 {/* Background Icon */}
                 <div className="absolute top-0 right-0 p-4 opacity-10">
-                  <span className="material-symbols-outlined text-[120px]">security</span>
+                  <span className="material-symbols-outlined text-[120px]" aria-hidden="true">
+                    security
+                  </span>
                 </div>
 
                 {/* Main Content */}
@@ -368,7 +325,7 @@ function ScreeningSummaryPage() {
                     <h2 className="text-lg font-bold mb-1">
                       Category {screening.category_code}: {categoryInfo.label}
                     </h2>
-                    <p className="text-gray-300 dark:text-gray-400 text-sm leading-relaxed max-w-2xl">
+                    <p className="text-green-100 dark:text-gray-300 text-sm leading-relaxed max-w-2xl">
                       {categoryInfo.description}
                     </p>
                   </div>
@@ -377,10 +334,10 @@ function ScreeningSummaryPage() {
                 {/* Justification Section */}
                 {screening.category_reason && (
                   <div className="mt-6 pt-6 border-t border-white/10">
-                    <h4 className="text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">
+                    <h4 className="text-xs uppercase tracking-wider text-text-disabled font-semibold mb-2">
                       Justification
                     </h4>
-                    <p className="text-sm text-gray-200 dark:text-gray-300 italic">
+                    <p className="text-sm text-green-50 dark:text-gray-200 italic">
                       "{screening.category_reason}"
                     </p>
                   </div>
@@ -394,7 +351,9 @@ function ScreeningSummaryPage() {
             {/* Negative Impacts */}
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-2 pb-2 border-b border-border-default dark:border-border-dark">
-                <span className="material-symbols-outlined text-orange-500">warning</span>
+                <span className="material-symbols-outlined text-orange-500" aria-hidden="true">
+                  warning
+                </span>
                 <h3 className="text-base font-bold text-text-main dark:text-white">
                   Potential Negative Impacts
                 </h3>
@@ -419,7 +378,9 @@ function ScreeningSummaryPage() {
             {/* Positive Impacts */}
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-2 pb-2 border-b border-border-default dark:border-border-dark">
-                <span className="material-symbols-outlined text-primary">verified</span>
+                <span className="material-symbols-outlined text-primary" aria-hidden="true">
+                  verified
+                </span>
                 <h3 className="text-base font-bold text-text-main dark:text-white">
                   Potential Positive Impacts
                 </h3>
@@ -444,49 +405,30 @@ function ScreeningSummaryPage() {
 
           {/* Approval Section */}
           <div className="mt-6 mb-6 px-8">
-            <section className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
-              <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-gray-50/50 dark:bg-white/5">
+            <section className="bg-surface dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
+              <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-background dark:bg-white/5">
                 <h3 className="font-bold text-lg text-text-main dark:text-white">
                   Approval and Recommendations
                 </h3>
               </div>
               <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Approved/Rejected By */}
-                <div className="col-span-1">
-                  <label className="block text-sm font-medium text-text-main dark:text-gray-200 mb-2">
-                    {status === 'approved'
-                      ? 'Approved By'
-                      : status === 'rejected'
-                        ? 'Rejected By'
-                        : 'Approved By'}{' '}
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    className="w-full bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
-                    readOnly
-                    type="text"
-                    value={approvalUser?.name || 'N/A'}
-                    disabled
-                  />
-                </div>
+                <Input
+                  label={status === 'rejected' ? 'Rejected By' : 'Approved By'}
+                  readOnly
+                  type="text"
+                  value={approvalUser?.name || 'N/A'}
+                  inputClassName="font-medium"
+                />
 
                 {/* Position */}
-                <div className="col-span-1">
-                  <label className="block text-sm font-medium text-text-main dark:text-gray-200 mb-2">
-                    Position <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    className="w-full bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
-                    readOnly
-                    type="text"
-                    value={
-                      approvalUser?.job_title?.title_name ||
-                      (approvalUser?.role ? ROLE_LABELS[approvalUser.role] : null) ||
-                      'N/A'
-                    }
-                    disabled
-                  />
-                </div>
+                <Input
+                  label="Position"
+                  readOnly
+                  type="text"
+                  value={approvalUser?.position || 'N/A'}
+                  inputClassName="font-medium"
+                />
 
                 {/* Reject Reason (shown when rejected) */}
                 {status === 'rejected' && screening.reject_reason && (
@@ -505,14 +447,8 @@ function ScreeningSummaryPage() {
                 {/* Recommendations (only shown when not rejected) */}
                 {status !== 'rejected' && (
                   <div className="col-span-1 md:col-span-2">
-                    <label className="block text-sm font-medium text-text-main dark:text-gray-200 mb-2">
-                      Recommendations / Next Steps{' '}
-                      {status === 'submitted' && canApproveScreening && (
-                        <span className="text-red-500">*</span>
-                      )}
-                    </label>
-                    <textarea
-                      className="w-full rounded-lg border border-border-default dark:border-border-dark bg-white dark:bg-background-dark text-text-main dark:text-white focus:ring-primary focus:border-primary px-3 py-2.5 text-sm"
+                    <Textarea
+                      label="Recommendations / Next Steps"
                       placeholder="Enter any specific recommendations for the project team (optional)..."
                       rows={3}
                       value={recommendations}
@@ -520,10 +456,10 @@ function ScreeningSummaryPage() {
                       disabled={
                         status === 'approved' || status === 'rejected' || !canApproveScreening
                       }
+                      helperText={
+                        status === 'submitted' && canApproveScreening ? 'Optional' : undefined
+                      }
                     />
-                    {status === 'submitted' && canApproveScreening && (
-                      <p className="text-xs text-text-secondary mt-1">Optional</p>
-                    )}
                   </div>
                 )}
               </div>
@@ -531,7 +467,7 @@ function ScreeningSummaryPage() {
           </div>
 
           {/* Footer */}
-          <div className="mt-auto bg-gray-50 dark:bg-white/5 border-t border-border-default dark:border-border-dark p-8">
+          <div className="mt-auto bg-background dark:bg-white/5 border-t border-border-default dark:border-border-dark p-8">
             <div className="flex flex-col gap-6">
               {/* Action Buttons */}
               {status === 'submitted' && canApproveScreening && (
@@ -540,39 +476,38 @@ function ScreeningSummaryPage() {
                   {showRejectInput && (
                     <div className="w-full space-y-3 p-4 bg-red-50 dark:bg-red-900/10 rounded-lg border border-red-200 dark:border-red-800 mb-4">
                       <div className="flex flex-col gap-2">
-                        <label className="text-red-600 dark:text-red-400 text-sm font-bold">
-                          Reason for Rejection
-                        </label>
-                        <textarea
+                        <Textarea
+                          label="Reason for Rejection"
                           value={rejectReasonInput}
                           onChange={(e) => setRejectReasonInput(e.target.value)}
                           placeholder="Please provide a reason for rejecting this screening..."
                           rows={3}
-                          className="w-full rounded-lg border border-red-300 dark:border-red-700 bg-white dark:bg-background-dark text-text-main dark:text-white focus:ring-red-500 focus:border-red-500 px-3 py-2.5 text-sm"
+                          helperText="Explain why this screening is being rejected (optional but recommended)"
                         />
-                        <p className="text-xs text-text-secondary">
-                          Explain why this screening is being rejected (optional but recommended)
-                        </p>
                       </div>
                       <div className="flex gap-3 justify-end">
-                        <button
+                        <Button
+                          variant="secondary"
                           type="button"
                           onClick={handleCancelReject}
                           disabled={isProcessing}
-                          className="px-6 py-2.5 rounded-lg border border-border-default dark:border-border-dark hover:bg-gray-50/50 dark:hover:bg-white/5 text-text-main dark:text-white font-bold text-sm transition-colors flex items-center gap-2 disabled:opacity-50"
                         >
-                          <span className="material-symbols-outlined text-lg">close</span>
+                          <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                            close
+                          </span>
                           Cancel
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="danger"
                           type="button"
                           onClick={handleConfirmReject}
                           disabled={isProcessing}
-                          className="px-6 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-md transition-colors flex items-center gap-2 disabled:opacity-50"
                         >
-                          <span className="material-symbols-outlined text-lg">check</span>
+                          <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                            check
+                          </span>
                           {isProcessing ? 'Rejecting...' : 'Confirm Rejection'}
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   )}
@@ -580,24 +515,28 @@ function ScreeningSummaryPage() {
                   {/* Action Buttons */}
                   {!showRejectInput && (
                     <>
-                      <button
+                      <Button
+                        variant="danger"
                         type="button"
                         onClick={handleRejectClick}
                         disabled={isProcessing}
-                        className="px-6 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-md transition-colors flex items-center gap-2 disabled:opacity-50"
                       >
-                        <span className="material-symbols-outlined text-lg">close</span>
+                        <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                          close
+                        </span>
                         Reject
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="primary"
                         type="button"
                         onClick={handleApprove}
                         disabled={isProcessing}
-                        className="px-6 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-bold text-sm shadow-md transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <span className="material-symbols-outlined text-lg">verified</span>
+                        <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                          verified
+                        </span>
                         {isProcessing ? 'Processing...' : 'Approve & Complete Screening'}
-                      </button>
+                      </Button>
                     </>
                   )}
                 </div>
@@ -605,27 +544,23 @@ function ScreeningSummaryPage() {
 
               {status === 'approved' && (
                 <div className="flex justify-end gap-4 no-print">
-                  <button
-                    type="button"
-                    onClick={handleProceedToAssessment}
-                    className="px-6 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-bold text-sm shadow-md transition-colors flex items-center gap-2"
-                  >
+                  <Button variant="primary" type="button" onClick={handleProceedToAssessment}>
                     Proceed to Assessment
-                    <span className="material-symbols-outlined text-lg">arrow_forward</span>
-                  </button>
+                    <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                      arrow_forward
+                    </span>
+                  </Button>
                 </div>
               )}
 
               {status === 'rejected' && can('screening.edit') && (
                 <div className="flex justify-end gap-4 no-print">
-                  <button
-                    type="button"
-                    onClick={handleEdit}
-                    className="px-6 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-bold text-sm shadow-md transition-colors flex items-center gap-2"
-                  >
-                    <span className="material-symbols-outlined text-lg">edit</span>
+                  <Button variant="primary" type="button" onClick={handleEdit}>
+                    <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                      edit
+                    </span>
                     Edit Screening
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>

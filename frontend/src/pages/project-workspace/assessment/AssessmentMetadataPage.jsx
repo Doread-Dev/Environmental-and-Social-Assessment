@@ -8,7 +8,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment, useScreening, useProjectContext } from '@/hooks'
 import { useAuth } from '@/contexts'
 import { MetadataInfoSection, MetadataFormSection } from '@/components/assessment'
-import { LoadingSpinner, StickyFooter } from '@/components/ui'
+import { LoadingSpinner, StickyFooter, LoadingState, PageHeader, Button } from '@/components/ui'
 import { validateAssessmentMetadata } from '@/utils'
 
 export default function AssessmentMetadataPage() {
@@ -43,14 +43,7 @@ export default function AssessmentMetadataPage() {
   }, [assessment, isLoading])
 
   if (isLoading) {
-    return (
-      <div className="flex w-full items-center justify-center py-20">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading metadata...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState message="Loading metadata..." />
   }
 
   const handleChange = (newData) => {
@@ -89,16 +82,14 @@ export default function AssessmentMetadataPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-text-main dark:text-white">
-          Environmental Assessment Metadata
-        </h1>
-        <p className="text-text-secondary mt-1">Assessment Information & Metadata</p>
-      </div>
+      <PageHeader
+        className="mb-8"
+        title="Environmental Assessment Metadata"
+        description="Assessment Information & Metadata"
+      />
 
       {/* Form Card */}
-      <div className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden mb-20">
+      <div className="bg-surface dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden mb-20">
         {/* Info Section */}
         <MetadataInfoSection
           officer={
@@ -122,19 +113,13 @@ export default function AssessmentMetadataPage() {
 
       {/* Sticky Footer */}
       <StickyFooter>
-        <button
-          onClick={handleBack}
-          disabled={isSaving}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border-default dark:border-border-dark text-text-main dark:text-white font-medium hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <span className="material-symbols-outlined text-sm">arrow_back</span>
+        <Button variant="secondary" onClick={handleBack} disabled={isSaving}>
+          <span className="material-symbols-outlined text-sm" aria-hidden="true">
+            arrow_back
+          </span>
           Back to Assessment Overview
-        </button>
-        <button
-          onClick={handleSave}
-          disabled={isSaving || readOnly}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-medium shadow-md transition-colors transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+        </Button>
+        <Button variant="primary" onClick={handleSave} disabled={isSaving || readOnly}>
           {isSaving ? (
             <>
               <LoadingSpinner size="sm" />
@@ -143,10 +128,12 @@ export default function AssessmentMetadataPage() {
           ) : (
             <>
               Save and Continue
-              <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              <span className="material-symbols-outlined text-sm" aria-hidden="true">
+                arrow_forward
+              </span>
             </>
           )}
-        </button>
+        </Button>
       </StickyFooter>
     </div>
   )

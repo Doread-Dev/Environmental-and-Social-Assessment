@@ -11,7 +11,7 @@ import { useMonitoring, useProjectContext } from '@/hooks'
 import { assessmentQuery } from '@/hooks/useAssessment'
 import { isStepLocked } from '@/utils/workflowSteps'
 import { useLookups } from '@/hooks'
-import { useToast } from '@/components/ui'
+import { useToast, LoadingState, PAGE_TITLE, PAGE_DESCRIPTION, Button } from '@/components/ui'
 
 export default function MonitoringOverviewPage() {
   const { projectId } = useParams()
@@ -25,16 +25,7 @@ export default function MonitoringOverviewPage() {
   const isLocked = isStepLocked(workflow, 'monitoring')
 
   if (isLoading || lookupsLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">
-            Loading monitoring data...
-          </p>
-        </div>
-      </div>
-    )
+    return <LoadingState message="Loading monitoring data..." />
   }
 
   const categoryStats = getAllCategoryStats()
@@ -57,23 +48,21 @@ export default function MonitoringOverviewPage() {
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4 border-b border-border-default dark:border-border-dark pb-6">
           <div className="flex flex-col gap-2">
-            <h1 className="text-text-main dark:text-white text-3xl md:text-4xl font-black tracking-tight font-display">
-              Environmental & Social Monitoring
-            </h1>
-            <p className="text-primary font-medium">Tool 5 – Monitoring and Evaluation</p>
+            <h1 className={PAGE_TITLE}>Environmental & Social Monitoring</h1>
+            <p className={PAGE_DESCRIPTION}>Tool 5 – Monitoring and Evaluation</p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <button
+            <Button
+              variant="primary"
               type="button"
               onClick={() => navigate(`/app/projects/${projectId}/monitoring/data-entry`)}
               disabled={isLocked}
-              className="flex items-center justify-center gap-2 h-10 px-6 rounded-lg bg-primary hover:bg-primary-hover text-white font-bold text-sm shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span className="material-symbols-outlined text-base">
+              <span className="material-symbols-outlined text-base" aria-hidden="true">
                 {can('monitoring.edit') ? 'add_circle' : 'visibility'}
               </span>
               {can('monitoring.edit') ? 'Enter / Edit Data' : 'View Data'}
-            </button>
+            </Button>
             {can('export') && (
               <button
                 type="button"
@@ -104,7 +93,9 @@ export default function MonitoringOverviewPage() {
                 disabled={isLocked}
                 className="flex items-center justify-center gap-2 h-10 px-6 rounded-lg border border-primary text-primary hover:bg-primary/10 dark:hover:bg-primary/20 font-bold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span className="material-symbols-outlined text-base">download</span>
+                <span className="material-symbols-outlined text-base" aria-hidden="true">
+                  download
+                </span>
                 Export Excel
               </button>
             )}
@@ -115,13 +106,15 @@ export default function MonitoringOverviewPage() {
         {isLocked && (
           <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800 rounded-xl p-6 flex flex-col sm:flex-row items-center gap-4">
             <div className="size-12 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center shrink-0 text-orange-600 dark:text-orange-400">
-              <span className="material-symbols-outlined text-2xl">lock</span>
+              <span className="material-symbols-outlined text-2xl" aria-hidden="true">
+                lock
+              </span>
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+              <h3 className="text-lg font-bold text-text-main dark:text-white mb-1">
                 Monitoring Locked
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
+              <p className="text-text-secondary dark:text-gray-400 text-sm">
                 You must complete and get approval for the{' '}
                 <strong>Environmental Assessment (Tool 2)</strong> before starting monitoring.
               </p>
@@ -139,8 +132,8 @@ export default function MonitoringOverviewPage() {
         <section
           className={
             isLocked
-              ? 'bg-white dark:bg-card-dark rounded-xl p-6 shadow-sm border border-border-default dark:border-border-dark opacity-50 pointer-events-none grayscale'
-              : 'bg-white dark:bg-card-dark rounded-xl p-6 shadow-sm border border-border-default dark:border-border-dark'
+              ? 'bg-surface dark:bg-card-dark rounded-xl p-6 shadow-sm border border-border-default dark:border-border-dark opacity-50 pointer-events-none grayscale'
+              : 'bg-surface dark:bg-card-dark rounded-xl p-6 shadow-sm border border-border-default dark:border-border-dark'
           }
         >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
@@ -152,12 +145,14 @@ export default function MonitoringOverviewPage() {
                 </span>
                 {completedQuarters.baseline ? (
                   <div className="flex items-center gap-2 text-green-600 dark:text-green-400 font-bold text-lg">
-                    <span className="material-symbols-outlined text-base">check_circle</span>
+                    <span className="material-symbols-outlined text-base" aria-hidden="true">
+                      check_circle
+                    </span>
                     Entered
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 font-bold text-lg">
-                    <span className="material-symbols-outlined text-base">
+                  <div className="flex items-center gap-2 text-text-secondary dark:text-gray-400 font-bold text-lg">
+                    <span className="material-symbols-outlined text-base" aria-hidden="true">
                       radio_button_unchecked
                     </span>
                     Not Entered
@@ -169,7 +164,10 @@ export default function MonitoringOverviewPage() {
                   Number of quarters recorded
                 </span>
                 <div className="flex items-center gap-2 text-text-main dark:text-white font-bold text-lg">
-                  <span className="material-symbols-outlined text-base text-text-secondary dark:text-gray-400">
+                  <span
+                    className="material-symbols-outlined text-base text-text-secondary dark:text-gray-400"
+                    aria-hidden="true"
+                  >
                     calendar_today
                   </span>
                   {quartersRecorded}

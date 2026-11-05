@@ -12,6 +12,7 @@ import {
   SettingsNav,
 } from '@/components/settings'
 import { useAuth } from '@/contexts'
+import { PAGE_TITLE, PAGE_DESCRIPTION } from '@/components/ui'
 
 export default function SettingsPage() {
   const { canManageUsers, canDeleteProject } = useAuth()
@@ -22,10 +23,12 @@ export default function SettingsPage() {
         {/* Page Header */}
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
-            <span className="material-symbols-outlined text-3xl text-primary">settings</span>
-            <h1 className="text-3xl font-bold text-text-main dark:text-white">Settings</h1>
+            <span className="material-symbols-outlined text-3xl text-primary" aria-hidden="true">
+              settings
+            </span>
+            <h1 className={PAGE_TITLE}>Settings</h1>
           </div>
-          <p className="text-text-secondary dark:text-gray-400 text-sm">
+          <p className={PAGE_DESCRIPTION}>
             {canManageUsers ? 'Manage users and projects' : 'Manage projects'}
           </p>
         </div>

@@ -129,9 +129,11 @@ describe('Project documents page (D64 d)', () => {
     expect(screen.getByRole('button', { name: 'Open Screening form.pdf' })).toBeInTheDocument()
   })
 
-  it('says so on an archived project', async () => {
+  it('offers no upload on an archived project (the layout shows the read-only notice)', async () => {
     renderPage({ actions: [], project: { archived: true } })
-    expect(await screen.findByText(/can be opened and downloaded but not added/)).toBeVisible()
+    await screen.findByText('Screening form.pdf')
+    expect(screen.queryByText('Uploading files')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /upload/i })).not.toBeInTheDocument()
   })
 
   it('uploads several files to a place one after the other, then refreshes once', async () => {

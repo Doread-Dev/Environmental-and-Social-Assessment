@@ -108,6 +108,7 @@ function AccordionTrigger({ className, children, ...props }) {
           'transition-transform duration-200',
           isOpen && 'rotate-180'
         )}
+        aria-hidden="true"
       >
         expand_more
       </span>

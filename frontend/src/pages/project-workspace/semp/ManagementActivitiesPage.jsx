@@ -8,8 +8,14 @@ import { useParams, useNavigate, useOutletContext } from 'react-router-dom'
 import { useManagementActivities } from '@/hooks/useSemp'
 import { ManagementActivitiesTable } from '@/components/semp'
 import { useUsers } from '@/hooks'
-import { cn } from '@/utils/cn'
-import { useToast } from '@/components/ui'
+import {
+  useToast,
+  LoadingState,
+  PAGE_TITLE,
+  PAGE_DESCRIPTION,
+  Button,
+  ConfirmDialog,
+} from '@/components/ui'
 
 export default function ManagementActivitiesPage() {
   const { projectId } = useParams()
@@ -35,6 +41,8 @@ export default function ManagementActivitiesPage() {
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [justSaved, setJustSaved] = useState(false)
+  // Asks before exporting an empty template (in-app dialog, not window.confirm)
+  const [confirmEmptyExport, setConfirmEmptyExport] = useState(false)
   const hasInitialized = useRef(false)
 
   // Auto-create first row if empty on load
@@ -74,13 +82,9 @@ export default function ManagementActivitiesPage() {
             return true
           })
 
-          if (validActivities.length === 0) {
-            const shouldExportEmpty = window.confirm(
-              'No saved activities found. Do you want to export an empty template?'
-            )
-            if (!shouldExportEmpty) {
-              return
-            }
+          if (validActivities.length === 0 && !event.detail?.confirmedEmpty) {
+            setConfirmEmptyExport(true)
+            return
           }
 
           const { exportTool, exportStatus } = await import('@/utils/excelExport')
@@ -153,14 +157,7 @@ export default function ManagementActivitiesPage() {
   const saveBtn = getSaveButtonContent()
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading activities...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState message="Loading activities..." />
   }
 
   return (
@@ -169,46 +166,39 @@ export default function ManagementActivitiesPage() {
       <div className="shrink-0 flex flex-wrap justify-between items-end gap-3 px-6 md:px-10 py-6 border-b border-border-default dark:border-border-dark bg-background dark:bg-background-dark">
         <div className="flex min-w-72 flex-col gap-2">
           <div className="flex items-center gap-2 text-primary text-sm font-bold uppercase tracking-wider">
-            <span className="material-symbols-outlined text-lg">build</span>
+            <span className="material-symbols-outlined text-lg" aria-hidden="true">
+              build
+            </span>
             <span>Tool 3</span>
           </div>
-          <h1 className="text-text-main dark:text-white text-2xl md:text-3xl font-black leading-tight tracking-[-0.033em]">
-            Environmental & Social Management
-          </h1>
-          <p className="text-text-secondary dark:text-gray-400 text-sm font-normal leading-normal">
-            Operational planning and risk mitigation tracking.
-          </p>
+          <h1 className={PAGE_TITLE}>Environmental & Social Management</h1>
+          <p className={PAGE_DESCRIPTION}>Operational planning and risk mitigation tracking.</p>
         </div>
 
         <div className="gap-2 flex items-center justify-center">
-          <button
-            onClick={handleBack}
-            className="flex items-center justify-center gap-2 rounded-lg h-10 px-4 bg-white dark:bg-surface-dark border border-border-default dark:border-border-dark hover:bg-gray-50/50 dark:hover:bg-white/3 text-text-main dark:text-white text-sm font-bold transition-all shadow-sm"
-          >
-            <span className="material-symbols-outlined text-lg">arrow_back</span>
+          <Button variant="secondary" onClick={handleBack}>
+            <span className="material-symbols-outlined text-lg" aria-hidden="true">
+              arrow_back
+            </span>
             <span>Back</span>
-          </button>
+          </Button>
 
           {canEdit && (
-            <button
+            <Button
+              variant="primary"
               onClick={handleSave}
-              disabled={isSaving || (justSaved && !hasUnsavedChanges)} // Disable if already saved to prevent double submitting without changes? Or keep enabled? User said "stays as Saved", implied purely feedback. I'll keep enabled or follow standard UX. Disable on Saved is good UX.
-              className={cn(
-                'flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-5 gap-2 text-sm font-bold leading-normal tracking-[0.015em] shadow-md transition-all transform ',
-                isSaving
-                  ? 'bg-primary/70 cursor-wait'
-                  : justSaved && !hasUnsavedChanges
-                    ? 'bg-green-600 hover:bg-green-700 text-white border border-transparent'
-                    : 'bg-primary hover:bg-green-500 text-primary-content'
-              )}
+              disabled={isSaving || (justSaved && !hasUnsavedChanges)}
+              isLoading={isSaving}
+              leftIcon={
+                saveBtn.icon ? (
+                  <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                    {saveBtn.icon}
+                  </span>
+                ) : undefined
+              }
             >
-              {saveBtn.spinner ? (
-                <span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <span className="material-symbols-outlined text-lg">{saveBtn.icon}</span>
-              )}
-              <span className="truncate">{saveBtn.text}</span>
-            </button>
+              {saveBtn.text}
+            </Button>
           )}
         </div>
       </div>
@@ -218,7 +208,10 @@ export default function ManagementActivitiesPage() {
         <div className="mx-4 md:mx-10 mt-4">
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
             <div className="flex items-start gap-3">
-              <span className="material-symbols-outlined text-red-600 dark:text-red-400 text-xl">
+              <span
+                className="material-symbols-outlined text-red-600 dark:text-red-400 text-xl"
+                aria-hidden="true"
+              >
                 error
               </span>
               <div className="flex-1">
@@ -240,6 +233,24 @@ export default function ManagementActivitiesPage() {
           readOnly={!canEdit}
         />
       </div>
+
+      {confirmEmptyExport && (
+        <ConfirmDialog
+          title="Export an empty template"
+          message={<p>No saved activities found. Do you want to export an empty template?</p>}
+          confirmLabel="Export"
+          confirmIcon="download"
+          onConfirm={() => {
+            setConfirmEmptyExport(false)
+            window.dispatchEvent(
+              new CustomEvent('semp-export', {
+                detail: { toolType: 'tool3', confirmedEmpty: true },
+              })
+            )
+          }}
+          onClose={() => setConfirmEmptyExport(false)}
+        />
+      )}
     </div>
   )
 }

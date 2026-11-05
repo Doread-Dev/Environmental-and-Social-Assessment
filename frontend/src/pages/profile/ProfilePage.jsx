@@ -1,4 +1,4 @@
-import { Card, Icon, useToast } from '@/components/ui'
+import { Card, Icon, useToast, PAGE_TITLE, PAGE_DESCRIPTION } from '@/components/ui'
 import { ChangePasswordForm } from '@/components/auth'
 import { useAuth, ROLE_LABELS } from '@/contexts'
 
@@ -23,11 +23,9 @@ export default function ProfilePage() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <Icon name="person" className="text-3xl text-primary" />
-            <h1 className="text-3xl font-bold text-text-main dark:text-white">Profile</h1>
+            <h1 className={PAGE_TITLE}>Profile</h1>
           </div>
-          <p className="text-text-secondary dark:text-gray-400 text-sm">
-            Your account details and password
-          </p>
+          <p className={PAGE_DESCRIPTION}>Your account details and password</p>
         </div>
 
         <Card>

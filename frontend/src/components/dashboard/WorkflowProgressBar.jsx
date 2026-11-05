@@ -1,5 +1,5 @@
 import { cn } from '@/utils'
-import { workflowStepStatuses } from '@/utils/workflowStatuses'
+import { getStatusBadge, getStatusBarColor } from '@/utils/statusBadges'
 
 /**
  * WorkflowProgressBar - شريط تقدم سير العمل (S/A/M/R)
@@ -22,11 +22,6 @@ function WorkflowProgressBar({ progress, showLabels = true, size = 'md', classNa
     { key: 'monitoring', label: 'Mon', fullLabel: 'Monitoring' },
   ]
 
-  const getStatusColor = (status) => {
-    const statusConfig = workflowStepStatuses[status] || workflowStepStatuses.not_started
-    return statusConfig.color || 'bg-gray-200 dark:bg-border-dark'
-  }
-
   const barHeight = size === 'sm' ? 'h-1.5' : 'h-2'
   const labelSize = size === 'sm' ? 'text-[10px]' : 'text-xs'
 
@@ -36,13 +31,13 @@ function WorkflowProgressBar({ progress, showLabels = true, size = 'md', classNa
       <div className={cn('flex gap-2', barHeight)}>
         {steps.map((step) => {
           const status = progress?.steps?.[step.key]?.status || 'not_started'
-          const color = getStatusColor(status)
+          const color = getStatusBarColor(status)
 
           return (
             <div
               key={step.key}
               className={cn('flex-1 rounded-full transition-colors', color)}
-              title={`${step.fullLabel}: ${workflowStepStatuses[status]?.label ?? status}`}
+              title={`${step.fullLabel}: ${getStatusBadge(status).label}`}
             />
           )
         })}

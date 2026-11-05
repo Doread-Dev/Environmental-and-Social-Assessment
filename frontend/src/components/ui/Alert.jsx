@@ -9,7 +9,7 @@ import { cn } from '@/utils/cn'
  * @param {string} props.title - Alert title
  * @param {boolean} props.dismissible - Allow dismiss
  * @param {Function} props.onDismiss - Dismiss callback
- * @param {React.ReactNode} props.icon - Custom icon
+ * @param {string} props.icon - Material Symbols icon name (default per variant)
  * @param {React.ReactNode} props.action - Action button
  *
  * @example
@@ -77,7 +77,10 @@ function Alert({
       {...props}
     >
       {/* Icon */}
-      <span className={cn('material-symbols-outlined text-xl flex-shrink-0', styles.icon)}>
+      <span
+        className={cn('material-symbols-outlined text-xl flex-shrink-0', styles.icon)}
+        aria-hidden="true"
+      >
         {icon || styles.defaultIcon}
       </span>
 
@@ -100,7 +103,9 @@ function Alert({
           )}
           aria-label="Dismiss"
         >
-          <span className="material-symbols-outlined text-xl">close</span>
+          <span className="material-symbols-outlined text-xl" aria-hidden="true">
+            close
+          </span>
         </button>
       )}
     </div>

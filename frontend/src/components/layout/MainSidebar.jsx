@@ -51,7 +51,9 @@ function MainSidebar({ className }) {
                 )
               }
             >
-              <span className="material-symbols-outlined">{item.icon}</span>
+              <span className="material-symbols-outlined" aria-hidden="true">
+                {item.icon}
+              </span>
               {item.label}
             </NavLink>
           ))}
@@ -78,7 +80,9 @@ function MainSidebar({ className }) {
               )
             }
           >
-            <span className="material-symbols-outlined">settings</span>
+            <span className="material-symbols-outlined" aria-hidden="true">
+              settings
+            </span>
             Settings
           </NavLink>
         </div>

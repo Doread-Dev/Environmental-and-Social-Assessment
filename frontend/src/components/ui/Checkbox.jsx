@@ -67,7 +67,7 @@ const Checkbox = forwardRef(
               className={cn(
                 'peer appearance-none rounded',
                 'border-2 border-border-default dark:border-border-dark',
-                'bg-white dark:bg-black/20',
+                'bg-surface dark:bg-black/20',
                 'checked:bg-primary checked:border-primary',
                 'focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2',
                 'transition-all duration-200 cursor-pointer',
@@ -84,7 +84,10 @@ const Checkbox = forwardRef(
                 'pointer-events-none transition-opacity'
               )}
             >
-              <span className="material-symbols-outlined text-sm font-bold leading-none">
+              <span
+                className="material-symbols-outlined text-sm font-bold leading-none"
+                aria-hidden="true"
+              >
                 {indeterminate ? 'remove' : 'check'}
               </span>
             </span>
@@ -112,7 +115,9 @@ const Checkbox = forwardRef(
         {/* Error message */}
         {error && (
           <p className="text-sm text-error flex items-center gap-1 ml-8">
-            <span className="material-symbols-outlined text-base">error</span>
+            <span className="material-symbols-outlined text-base" aria-hidden="true">
+              error
+            </span>
             {error}
           </p>
         )}

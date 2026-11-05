@@ -40,7 +40,9 @@ function ProjectWorkbookCard({ projectId, className }) {
     >
       <div className="flex items-center gap-2">
         <div className="p-2 rounded-lg bg-primary/10">
-          <span className="material-symbols-outlined text-primary">table_view</span>
+          <span className="material-symbols-outlined text-primary" aria-hidden="true">
+            table_view
+          </span>
         </div>
         <h4 className="text-sm font-bold text-text-main dark:text-white">Project workbook</h4>
       </div>
@@ -55,7 +57,11 @@ function ProjectWorkbookCard({ projectId, className }) {
         onClick={handleExport}
         disabled={!hasData}
         isLoading={isExporting}
-        leftIcon={<span className="material-symbols-outlined text-[18px]">download</span>}
+        leftIcon={
+          <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+            download
+          </span>
+        }
       >
         Export project workbook
       </Button>

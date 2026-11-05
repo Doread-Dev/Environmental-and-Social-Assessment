@@ -61,8 +61,8 @@ export default function TotalScoreCard({ scores = {} }) {
                       ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/30'
                       : item.level === IMPACT_LEVELS.HIGH
                         ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800/30'
-                        : 'bg-gray-50/50 dark:bg-white/5 border-border-default dark:border-border-dark'
-                  : 'bg-gray-50/50 dark:bg-white/5 border-border-default dark:border-border-dark opacity-60'
+                        : 'bg-background dark:bg-white/5 border-border-default dark:border-border-dark'
+                  : 'bg-background dark:bg-white/5 border-border-default dark:border-border-dark opacity-60'
               )}
             >
               <span

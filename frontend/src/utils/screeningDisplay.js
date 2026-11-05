@@ -54,8 +54,8 @@ export const screeningCategories = {
     labelAr: 'معلومات غير كافية',
     description: 'Cannot proceed - requires additional information gathering',
     descriptionAr: 'معلومات غير كافية - لا يمكن المتابعة',
-    bgColor: 'bg-gray-50/50 dark:bg-white/5',
-    textColor: 'text-gray-700 dark:text-gray-400',
+    bgColor: 'bg-background dark:bg-white/5',
+    textColor: 'text-text-main dark:text-gray-400',
     borderColor: 'border-border-default dark:border-border-dark',
     canProceed: true,
   },
@@ -69,37 +69,6 @@ export const screeningCategories = {
     textColor: 'text-risk-f-text dark:text-green-300',
     borderColor: 'border-primary-border dark:border-green-800',
     canProceed: true,
-  },
-}
-
-export const screeningStatuses = {
-  draft: {
-    label: 'Draft',
-    labelAr: 'مسودة',
-    bgColor: 'bg-gray-50/50 dark:bg-white/5',
-    textColor: 'text-gray-600 dark:text-gray-300',
-    borderColor: 'border-border-default dark:border-border-dark',
-  },
-  submitted: {
-    label: 'Submitted',
-    labelAr: 'تم الإرسال',
-    bgColor: 'bg-blue-50 dark:bg-blue-900/20',
-    textColor: 'text-blue-700 dark:text-blue-300',
-    borderColor: 'border-blue-100 dark:border-blue-800',
-  },
-  approved: {
-    label: 'Approved',
-    labelAr: 'تمت الموافقة',
-    bgColor: 'bg-green-50 dark:bg-green-900/20',
-    textColor: 'text-green-700 dark:text-green-300',
-    borderColor: 'border-green-100 dark:border-green-800',
-  },
-  rejected: {
-    label: 'Rejected',
-    labelAr: 'مرفوض',
-    bgColor: 'bg-red-50 dark:bg-red-900/20',
-    textColor: 'text-red-700 dark:text-red-300',
-    borderColor: 'border-red-100 dark:border-red-800',
   },
 }
 

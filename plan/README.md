@@ -1,6 +1,6 @@
 # ESMS v2 — Phase plan
 
-What we build is decided in [DECISIONS.md](DECISIONS.md) (D1–D70). This file says **in which order**. Each phase is done in its own conversation: open the phase file, do exactly that scope, finish with its "Done when" list.
+What we build is decided in [DECISIONS.md](DECISIONS.md) (D1–D71). This file says **in which order**. Each phase is done in its own conversation: open the phase file, do exactly that scope, finish with its "Done when" list.
 
 The v2 prototype (`Environmental-and-Social-Assessment-main version 2/`, git-ignored) is a **reference only** — see [V2_INVENTORY.md](V2_INVENTORY.md). Port code from it only where a phase file names it; never edit it. Anything from v2 not covered by a decision: keep this repo's behavior and ask the owner.
 
@@ -20,10 +20,11 @@ The v2 prototype (`Environmental-and-Social-Assessment-main version 2/`, git-ign
 | 7b | [Reference library & project documents](phases/07b-library-documents.md) | D64 | 7a |
 | 8 | [UI & Excel from v2](phases/08-ui-excel.md) | D49–D52, D54, D55, D59, D63 a–c, D67 b–d, D68, D69 | 7b |
 | 9 | [v3 locked buttons](phases/09-v3-locked.md) | D46, D48, D59, D70 | 7b, 8 |
-| 10 | [UI polish](phases/10-ui-polish.md) | D43 | 9 |
+| 10 | [UI polish (system-wide pass)](phases/10-ui-polish.md) | D43, D71 | 9 |
 | 10a | [Unhappy paths & edge cases](phases/10a-unhappy-paths.md) | D61, D62 | 10 |
 | 11 | [Offline & server deployment](phases/11-offline-deploy.md) | D6, D37, D38, D63 d | 10a |
 | 12 | [E2E tests & documentation](phases/12-e2e-docs.md) | D39, D44 | 11 |
+| 13 | [Page-by-page UI review](phases/13-page-by-page-ui-review.md) | D71 | 12 |
 
 Order matters: removals before new code (less to secure), backend rules before the frontend switches to them, data layer before the UI work that sits on it, deployment last because Vercel stays in use until then (D38).
 
@@ -59,6 +60,7 @@ Order matters: removals before new code (less to secure), backend rules before t
 | 7b | Done (owner uploads Annex 1 after merge) | `claude/phase-07b-library-documents-ce1ce8` | Places registry in `/lookups` (5 workflow + 4 locked v3 places); reference library (`LibraryDocument`, PDF only, `manage_library` = admin + specialist, `library.replace_file` / `library.delete` logged); one storage helper for project documents and library; Annex A–H → project Documents by place + Other; shared in-app `PdfViewer`; Library page (search, place filter, grouped place picker with v3 tags); "Guidance (n)" side panel on screening, assessment, Tools 3–5; demo seed adds a generated sample PDF; 775 backend / 170 frontend tests, lines backend 96% / frontend 41% |
 | 8 | Done (owner checks screens + exports) | `claude/phase-08-ui-excel-e32899` — [PR #19](https://github.com/Doread-Dev/Environmental-and-Social-Assessment/pull/19) | After the owner review (D68: rules from the app, not the client's workbook sketch): exports keep this repo's own layouts, complete for each tool (completeness test), one tool per file or the project workbook (a sheet per tool with data, D67 b); status + date in file name and printed footer (D67 d); Arabic cells right-to-left; `responsible_text` in exports and a user / external-party switch on Tools 3–5; Tool 2 submit shows "changed N of 50" (D67 c); no prefill of Tool 2 inputs, project activity and description required at submit, monitoring ranking empty until picked (D69); D63 a–c; AKF palette, login page with the local logo (no box), AKF emblem as brand mark everywhere and tab icon; viewers see "View"; downloads fixed for an `UPLOADS_DIR` under a dot folder; `vendor-excel` 930 kB (ExcelJS 4.4.0 is latest, limit raised for that chunk only); 779 backend / 216 frontend tests, lines backend 96% / frontend 58% |
 | 9 | Done | `claude/phase-09-v3-locked-buttons-2959ad` | Reduced scope (D70, owner): locked v3 buttons only, the four modules are not ported; their designs, place keys, v2 file lists and agreed rules moved to V3_VISION.md. `V3_LOCKED_NAV` + `V3LockedNav` (focusable `aria-disabled` buttons, "Available in v3", no link/route): SEMP Plan card on the SEMP overview, Stakeholder Awareness in the project sidebar, GHG Emissions + Environmental Data Collection in the main sidebar and mobile menu; route-table test for v3 paths (backend) and the router (frontend); 780 backend / 224 frontend tests, lines backend 96% / frontend 59% |
-| 10 | Not started | | |
+| 10 | Done (owner walks the PR) | `claude/phase-10-ui-polish-61e58e` | System-wide pass (D71): Inter + type scale, shared form controls (one Select), tokens only, one Button / StatusBadge / Loading-Empty-Error state / ConfirmDialog / PageHeader, one date format, D16 reviewer fields from status history, archive / restore / purge UI (D17, D60), gateway + Project Context card, icon a11y and accessible modals, dead code removed, style guard test; lint 0 warnings; 780 backend / 286 frontend tests, frontend lines 62% |
 | 11 | Not started | | |
 | 12 | Not started | | |
+| 13 | Not started | | |

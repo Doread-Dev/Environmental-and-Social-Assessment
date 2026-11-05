@@ -1,9 +1,8 @@
 /**
  * ConfirmDeleteModal
- * Asks before deleting a file or a library document (in-app dialog: some embedded views suppress
- * window.confirm).
+ * Asks before deleting a file or a library document (the shared ConfirmDialog).
  */
-import { Modal, Button, Icon } from '@/components/ui'
+import { ConfirmDialog } from '@/components/ui'
 
 /**
  * @param {Object} props
@@ -20,27 +19,20 @@ export function ConfirmDeleteModal({
   onClose,
 }) {
   return (
-    <Modal isOpen onClose={onClose} title={title} size="lg">
-      <div className="flex flex-col gap-4">
-        <p className="text-sm text-text-main dark:text-white">
+    <ConfirmDialog
+      title={title}
+      message={
+        <p>
           Delete <span dir="auto">&quot;{name}&quot;</span>? {note}
         </p>
-        <Modal.Footer className="mt-2">
-          <Button type="button" variant="ghost" onClick={onClose} disabled={isDeleting}>
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            variant="danger"
-            onClick={onConfirm}
-            isLoading={isDeleting}
-            leftIcon={<Icon name="delete" />}
-          >
-            Delete
-          </Button>
-        </Modal.Footer>
-      </div>
-    </Modal>
+      }
+      variant="danger"
+      confirmLabel="Delete"
+      confirmIcon="delete"
+      isLoading={isDeleting}
+      onConfirm={onConfirm}
+      onClose={onClose}
+    />
   )
 }
 

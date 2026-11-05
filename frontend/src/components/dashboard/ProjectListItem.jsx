@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@/components/ui'
-import { ScreeningCategoryBadge, ProjectStatusBadge } from './index'
+import { ScreeningCategoryBadge } from './index'
+import { StatusBadge } from '@/components/ui'
 import { cn } from '@/utils'
 import { getProjectRoute } from '@/routes/routes.config'
 
@@ -58,7 +59,7 @@ function ProjectListItem({ project, onClick, className, ...props }) {
         />
       </div>
       <div className="flex gap-2 mt-2 ml-10">
-        <ProjectStatusBadge status={projectStatus} size="sm" />
+        <StatusBadge status={projectStatus} size="sm" />
         {categoryCode && <ScreeningCategoryBadge category={categoryCode} size="sm" showLabel />}
       </div>
     </li>

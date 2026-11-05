@@ -7,7 +7,14 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment, useProjectContext } from '@/hooks'
 import { MethodChecklistItem, ConsultationChecklistItem } from '@/components/assessment'
-import { LoadingSpinner, StickyFooter, useToast } from '@/components/ui'
+import {
+  LoadingSpinner,
+  StickyFooter,
+  useToast,
+  LoadingState,
+  PageHeader,
+  Button,
+} from '@/components/ui'
 import { assessmentMethods, consultationMethods } from '@/utils/assessmentMethods'
 
 export default function AssessmentMethodsPage() {
@@ -72,14 +79,7 @@ export default function AssessmentMethodsPage() {
   }, [methods, consultations, isLoading])
 
   if (isLoading) {
-    return (
-      <div className="flex w-full items-center justify-center py-20">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading methods...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState message="Loading methods..." />
   }
 
   const handleMethodChange = (methodId, checked) => {
@@ -162,22 +162,20 @@ export default function AssessmentMethodsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-text-main dark:text-white">
-          Assessment Methods & Consultation
-        </h1>
-        <p className="text-text-secondary mt-1">
-          Document the methods used for environmental assessment and community consultation
-        </p>
-      </div>
+      <PageHeader
+        className="mb-8"
+        title="Assessment Methods & Consultation"
+        description="Document the methods used for environmental assessment and community consultation"
+      />
 
       {/* Methods Section */}
-      <div className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark mb-6">
+      <div className="bg-surface dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark mb-6">
         <div className="p-6 md:p-8 border-b border-border-default dark:border-border-dark">
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
-              <span className="material-symbols-outlined text-primary">science</span>
+              <span className="material-symbols-outlined text-primary" aria-hidden="true">
+                science
+              </span>
             </div>
             <h2 className="text-lg font-bold text-text-main dark:text-white">
               Environmental Assessment Methods
@@ -201,11 +199,13 @@ export default function AssessmentMethodsPage() {
       </div>
 
       {/* Consultation Section */}
-      <div className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark mb-20">
+      <div className="bg-surface dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark mb-20">
         <div className="p-6 md:p-8 border-b border-border-default dark:border-border-dark">
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-lg bg-green-50 dark:bg-green-900/30 flex items-center justify-center">
-              <span className="material-symbols-outlined text-primary">groups</span>
+              <span className="material-symbols-outlined text-primary" aria-hidden="true">
+                groups
+              </span>
             </div>
             <h2 className="text-lg font-bold text-text-main dark:text-white">
               Public and Community Consultation
@@ -233,19 +233,13 @@ export default function AssessmentMethodsPage() {
       {/* Sticky Footer */}
       {/* Sticky Footer */}
       <StickyFooter>
-        <button
-          onClick={handleBack}
-          disabled={isSaving}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border-default dark:border-border-dark text-text-main dark:text-white font-medium hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <span className="material-symbols-outlined text-sm">arrow_back</span>
+        <Button variant="secondary" onClick={handleBack} disabled={isSaving}>
+          <span className="material-symbols-outlined text-sm" aria-hidden="true">
+            arrow_back
+          </span>
           Back
-        </button>
-        <button
-          onClick={handleSave}
-          disabled={isSaving || readOnly}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-medium shadow-md transition-colors transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+        </Button>
+        <Button variant="primary" onClick={handleSave} disabled={isSaving || readOnly}>
           {isSaving ? (
             <>
               <LoadingSpinner size="sm" />
@@ -254,10 +248,12 @@ export default function AssessmentMethodsPage() {
           ) : (
             <>
               Save and Continue
-              <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              <span className="material-symbols-outlined text-sm" aria-hidden="true">
+                arrow_forward
+              </span>
             </>
           )}
-        </button>
+        </Button>
       </StickyFooter>
     </div>
   )

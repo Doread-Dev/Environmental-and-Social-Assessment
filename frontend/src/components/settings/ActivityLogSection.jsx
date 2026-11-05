@@ -8,7 +8,7 @@
 import { Fragment, useState } from 'react'
 import { useAuditLogs, useLookups } from '@/hooks'
 import { ROLE_LABELS } from '@/contexts'
-import { Table, Badge, Pagination, Button, Icon } from '@/components/ui'
+import { Table, Badge, Pagination, Icon, Select, LoadingState, ErrorState } from '@/components/ui'
 import { cn } from '@/utils/cn'
 import {
   AUDIT_ACTION_FILTER_GROUPS,
@@ -110,19 +110,13 @@ export function ActivityLogSection() {
               Deletions, archive and restore, and user or access changes, with who did them
             </p>
           </div>
-          <select
+          <Select
             value={action}
             onChange={(e) => changeAction(e.target.value)}
             aria-label="Action filter"
-            className={cn(
-              'rounded-lg border px-3 py-2.5 text-sm sm:w-72',
-              'border-border-default dark:border-border-dark',
-              'bg-surface dark:bg-surface-dark',
-              'text-text-main dark:text-white',
-              'focus:ring-primary focus:border-primary'
-            )}
+            placeholder="All actions"
+            className="sm:w-72"
           >
-            <option value="">All actions</option>
             {AUDIT_ACTION_FILTER_GROUPS.map((group) => (
               <optgroup key={group.label} label={group.label}>
                 {group.all && <option value={group.all}>All — {group.label}</option>}
@@ -133,31 +127,20 @@ export function ActivityLogSection() {
                 ))}
               </optgroup>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
 
       <div className="p-6">
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="flex flex-col items-center gap-4">
-              <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-              <p className="text-text-secondary dark:text-gray-400 text-sm">
-                Loading activity log...
-              </p>
-            </div>
-          </div>
+          <LoadingState message="Loading activity log..." variant="section" />
         ) : error ? (
-          <div
-            role="alert"
-            className="flex flex-col items-center gap-3 py-12 text-center text-text-secondary dark:text-gray-400"
-          >
-            <Icon name="error" className="text-4xl text-error" />
-            <p className="text-sm">Could not load the activity log: {error}</p>
-            <Button variant="secondary" size="sm" onClick={() => refetch()}>
-              Try again
-            </Button>
-          </div>
+          <ErrorState
+            variant="section"
+            title="Could not load the activity log"
+            message={error}
+            onRetry={refetch}
+          />
         ) : (
           <>
             <div

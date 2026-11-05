@@ -5,7 +5,14 @@
  * upload and delete (files.edit); archived projects are read-only.
  */
 import { useMemo, useState } from 'react'
-import { Alert, Button, Icon, LoadingSpinner, useToast } from '@/components/ui'
+import {
+  Alert,
+  useToast,
+  PAGE_TITLE,
+  PAGE_DESCRIPTION,
+  LoadingState,
+  ErrorState,
+} from '@/components/ui'
 import { DocumentSection } from '@/components/documents'
 import { ConfirmDeleteModal, PdfViewer } from '@/components/files'
 import { useLookups, useProjectContext, useProjectFiles } from '@/hooks'
@@ -73,10 +80,8 @@ export default function ProjectDocumentsPage() {
       <div className="max-w-[1200px] mx-auto flex flex-col gap-8 pb-20">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4 border-b border-border-default dark:border-border-dark pb-6">
           <div className="flex flex-col gap-2">
-            <h1 className="text-text-main dark:text-white text-3xl md:text-4xl font-black tracking-tight font-display">
-              Documents
-            </h1>
-            <p className="text-text-secondary dark:text-gray-400 text-lg font-normal">
+            <h1 className={PAGE_TITLE}>Documents</h1>
+            <p className={PAGE_DESCRIPTION}>
               This project&apos;s own files, by tool. Organisation guidance is in the Library.
             </p>
           </div>
@@ -90,42 +95,24 @@ export default function ProjectDocumentsPage() {
           </div>
         </div>
 
-        {project?.archived ? (
-          <Alert variant="warning" title="Archived project">
-            This project is archived: files can be opened and downloaded but not added or deleted.
+        {/* Archived: the layout shows the read-only notice (ArchivedNotice) */}
+        {!project?.archived && canEdit && uploadRules && (
+          <Alert variant="info" title="Uploading files">
+            Allowed: {uploadRules.extensions.map((ext) => `.${ext}`).join(', ')} — up to{' '}
+            {formatBytes(uploadRules.max_bytes)} per file. You can pick several files at once. PDFs
+            open in the app; other files download.
           </Alert>
-        ) : (
-          canEdit &&
-          uploadRules && (
-            <Alert variant="info" title="Uploading files">
-              Allowed: {uploadRules.extensions.map((ext) => `.${ext}`).join(', ')} — up to{' '}
-              {formatBytes(uploadRules.max_bytes)} per file. You can pick several files at once.
-              PDFs open in the app; other files download.
-            </Alert>
-          )
         )}
 
         {isLoading || placesLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <LoadingSpinner size="lg" />
-          </div>
+          <LoadingState message="Loading documents..." variant="section" />
         ) : error ? (
-          <Alert
-            variant="error"
+          <ErrorState
+            variant="section"
             title="Could not load the documents"
-            action={
-              <Button
-                variant="outline"
-                size="sm"
-                leftIcon={<Icon name="refresh" />}
-                onClick={retry}
-              >
-                Try again
-              </Button>
-            }
-          >
-            {error}
-          </Alert>
+            message={error}
+            onRetry={retry}
+          />
         ) : (
           <div className="grid grid-cols-1 gap-4" aria-label="Documents by tool">
             {sections.map((section) => (

@@ -1,8 +1,16 @@
 import { forwardRef, useId } from 'react'
 import { cn } from '@/utils/cn'
+import {
+  CONTROL_SIZES,
+  ERROR_TEXT_CLASSES,
+  HELPER_TEXT_CLASSES,
+  LABEL_CLASSES,
+  READ_ONLY_CLASSES,
+  controlClasses,
+} from './formControl'
 
 /**
- * Input component with label, icon, and validation support
+ * Input component with label, icon, and validation support (shared form-control look, D71)
  *
  * @param {Object} props
  * @param {string} props.label - Input label
@@ -10,7 +18,8 @@ import { cn } from '@/utils/cn'
  * @param {string} props.helperText - Helper text below input
  * @param {React.ReactNode} props.leftIcon - Icon on left side
  * @param {React.ReactNode} props.rightIcon - Icon on right side
- * @param {'sm'|'md'|'lg'} props.size - Input size
+ * @param {'sm'|'md'|'lg'} props.size - Input size (md = Button md)
+ * @param {'default'|'cell'} props.variant - `cell`: borderless inside a table cell
  * @param {boolean} props.required - Mark as required
  * @param {string} props.className - Additional classes for wrapper
  * @param {string} props.inputClassName - Additional classes for input
@@ -29,6 +38,7 @@ const Input = forwardRef(
       leftIcon,
       rightIcon,
       size = 'md',
+      variant = 'default',
       required = false,
       disabled = false,
       className,
@@ -42,106 +52,66 @@ const Input = forwardRef(
     const id = propId || generatedId
     const errorId = `${id}-error`
     const helperId = `${id}-helper`
-
-    // Size styles
-    const sizes = {
-      sm: 'h-9 text-sm',
-      md: 'h-11 text-base',
-      lg: 'h-12 text-base',
-    }
+    const isCell = variant === 'cell'
 
     const paddingLeft = {
       sm: leftIcon ? 'pl-9' : 'pl-3',
-      md: leftIcon ? 'pl-11' : 'pl-4',
-      lg: leftIcon ? 'pl-12' : 'pl-4',
+      md: leftIcon ? 'pl-10' : 'pl-3',
+      lg: leftIcon ? 'pl-11' : 'pl-4',
     }
-
     const paddingRight = {
       sm: rightIcon ? 'pr-9' : 'pr-3',
-      md: rightIcon ? 'pr-11' : 'pr-4',
-      lg: rightIcon ? 'pr-12' : 'pr-4',
+      md: rightIcon ? 'pr-10' : 'pr-3',
+      lg: rightIcon ? 'pr-11' : 'pr-4',
     }
-
-    const iconPositionLeft = {
-      sm: 'left-3',
-      md: 'left-4',
-      lg: 'left-4',
-    }
-
-    const iconPositionRight = {
-      sm: 'right-3',
-      md: 'right-4',
-      lg: 'right-4',
-    }
+    const iconLeft = { sm: 'left-3', md: 'left-3', lg: 'left-4' }
+    const iconRight = { sm: 'right-3', md: 'right-3', lg: 'right-4' }
 
     return (
       <div className={cn('flex flex-col gap-1.5', className)}>
-        {/* Label */}
         {label && (
-          <label
-            htmlFor={id}
-            className={cn(
-              'text-sm font-semibold',
-              'text-text-main dark:text-gray-200',
-              disabled && 'opacity-50'
-            )}
-          >
+          <label htmlFor={id} className={cn(LABEL_CLASSES, disabled && 'opacity-50')}>
             {label}
             {required && <span className="text-error ml-1">*</span>}
           </label>
         )}
 
-        {/* Input wrapper */}
         <div className="relative">
-          {/* Left icon */}
           {leftIcon && (
             <span
               className={cn(
-                'absolute top-1/2 -translate-y-1/2',
-                iconPositionLeft[size],
-                'text-text-muted dark:text-gray-500',
-                'pointer-events-none'
+                'absolute top-1/2 -translate-y-1/2 flex pointer-events-none',
+                iconLeft[size],
+                'text-text-secondary dark:text-gray-400'
               )}
+              aria-hidden="true"
             >
               {leftIcon}
             </span>
           )}
 
-          {/* Input */}
           <input
             ref={ref}
             id={id}
             disabled={disabled}
-            aria-invalid={!!error}
+            aria-required={required || undefined}
+            aria-invalid={error ? true : undefined}
             aria-describedby={error ? errorId : helperText ? helperId : undefined}
             className={cn(
-              'w-full rounded-lg',
-              'border bg-white dark:bg-black/20',
-              'text-text-main dark:text-white',
-              'placeholder:text-text-muted/70 dark:placeholder:text-gray-500',
-              'transition-all duration-200',
-              'focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary',
-              sizes[size],
-              paddingLeft[size],
-              paddingRight[size],
-              // Border colors
-              error
-                ? 'border-error focus:border-error focus:ring-error/20'
-                : 'border-input-border dark:border-input-border-dark',
-              // Disabled state
-              disabled && 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-white/5',
+              controlClasses({ variant, error: !!error }),
+              READ_ONLY_CLASSES,
+              isCell ? 'px-2 py-1' : cn(CONTROL_SIZES[size], paddingLeft[size], paddingRight[size]),
               inputClassName
             )}
             {...props}
           />
 
-          {/* Right icon */}
           {rightIcon && (
             <span
               className={cn(
-                'absolute top-1/2 -translate-y-1/2',
-                iconPositionRight[size],
-                'text-text-muted dark:text-gray-500'
+                'absolute top-1/2 -translate-y-1/2 flex',
+                iconRight[size],
+                'text-text-secondary dark:text-gray-400'
               )}
             >
               {rightIcon}
@@ -149,17 +119,17 @@ const Input = forwardRef(
           )}
         </div>
 
-        {/* Error message */}
         {error && (
-          <p id={errorId} className="text-sm text-error flex items-center gap-1">
-            <span className="material-symbols-outlined text-base">error</span>
+          <p id={errorId} className={ERROR_TEXT_CLASSES}>
+            <span className="material-symbols-outlined text-base" aria-hidden="true">
+              error
+            </span>
             {error}
           </p>
         )}
 
-        {/* Helper text */}
         {!error && helperText && (
-          <p id={helperId} className="text-sm text-text-secondary dark:text-gray-400">
+          <p id={helperId} className={HELPER_TEXT_CLASSES}>
             {helperText}
           </p>
         )}

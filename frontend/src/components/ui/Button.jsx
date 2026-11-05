@@ -6,7 +6,7 @@ import LoadingSpinner from './LoadingSpinner'
  * Button component with multiple variants and sizes
  *
  * @param {Object} props
- * @param {'primary'|'secondary'|'outline'|'ghost'|'danger'} props.variant - Button style variant
+ * @param {'primary'|'secondary'|'outline'|'ghost'|'danger'} props.variant - Button style variant (the app's only button styles, D71)
  * @param {'sm'|'md'|'lg'} props.size - Button size
  * @param {boolean} props.disabled - Disable button
  * @param {boolean} props.isLoading - Show loading spinner
@@ -38,44 +38,47 @@ const Button = forwardRef(
     },
     ref
   ) => {
-    // Base styles
+    // Base styles (one focus ring for every button, visible on keyboard focus, D71)
     const baseStyles = cn(
-      'inline-flex items-center justify-center',
-      'font-medium rounded-lg',
-      'transition-all duration-200',
-      'focus:outline-none focus:ring-2 focus:ring-offset-2',
+      'inline-flex items-center justify-center shrink-0 whitespace-nowrap',
+      'font-semibold rounded-lg',
+      'transition-colors duration-200',
+      'focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+      'focus-visible:ring-offset-surface dark:focus-visible:ring-offset-surface-dark',
       'disabled:opacity-50 disabled:cursor-not-allowed'
     )
 
     // Variant styles
     const variants = {
       primary: cn(
-        'bg-primary hover:bg-primary-hover',
-        'text-white',
-        'shadow-[0_4px_14px_0_rgba(17,212,82,0.3)]',
-        'focus:ring-primary/50',
-        'dark:shadow-[0_4px_14px_0_rgba(17,212,82,0.2)]'
+        'bg-primary hover:bg-primary-hover disabled:hover:bg-primary',
+        'text-white shadow-sm shadow-primary/20',
+        'focus-visible:ring-primary/50'
       ),
       secondary: cn(
         'bg-surface dark:bg-surface-dark',
         'border border-border-default dark:border-border-dark',
         'text-text-main dark:text-white',
         'hover:bg-background dark:hover:bg-background-dark',
-        'focus:ring-border-default'
+        'focus-visible:ring-primary/40'
       ),
       outline: cn(
-        'border-2 border-primary',
-        'text-primary',
+        'border border-primary',
+        'text-primary dark:text-green-300 dark:border-green-400/60',
         'hover:bg-primary/10 dark:hover:bg-primary/20',
-        'focus:ring-primary/50'
+        'focus-visible:ring-primary/50'
       ),
       ghost: cn(
         'text-text-secondary dark:text-gray-400',
         'hover:text-text-main dark:hover:text-white',
-        'hover:bg-background dark:hover:bg-surface-dark',
-        'focus:ring-border-default'
+        'hover:bg-background dark:hover:bg-white/5',
+        'focus-visible:ring-primary/40'
       ),
-      danger: cn('bg-error hover:bg-red-600', 'text-white', 'focus:ring-error/50'),
+      danger: cn(
+        'bg-red-600 hover:bg-red-700 disabled:hover:bg-red-600',
+        'text-white shadow-sm',
+        'focus-visible:ring-red-500/50'
+      ),
     }
 
     // Size styles
@@ -103,13 +106,21 @@ const Button = forwardRef(
         {isLoading ? (
           <>
             <LoadingSpinner size={iconSizes[size]} />
-            <span>{children}</span>
+            {children}
           </>
         ) : (
           <>
-            {leftIcon && <span className="flex-shrink-0 h-6">{leftIcon}</span>}
-            {children && <span>{children}</span>}
-            {rightIcon && <span className="flex-shrink-0 h-6">{rightIcon}</span>}
+            {leftIcon && (
+              <span className="flex-shrink-0 flex" aria-hidden="true">
+                {leftIcon}
+              </span>
+            )}
+            {children}
+            {rightIcon && (
+              <span className="flex-shrink-0 flex" aria-hidden="true">
+                {rightIcon}
+              </span>
+            )}
           </>
         )}
       </button>

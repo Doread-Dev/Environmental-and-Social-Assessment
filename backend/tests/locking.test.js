@@ -18,7 +18,13 @@ const kinds = [
     name: "assessment",
     base: "/api/v1/assessments",
     stage: "screening_approved",
-    body: (project) => ({ project, project_activity: "Pipes", description: "Replace pipes" }),
+    body: (project) => ({
+      project,
+      project_activity: "Pipes",
+      description: "Replace pipes",
+      environmental_setting: "Urban",
+      legal_requirements: "Permit",
+    }),
   },
 ];
 
@@ -38,7 +44,12 @@ describe.each(kinds)("$name locking (D13) and status history (D16)", ({ base, st
   // Submit and PUT carry the version the client loaded (D62).
   const patch = async (id, action, token, payload = {}) => {
     const url = `${base}/${id}/${action}`;
-    const sent = action === "submit" ? await withVersion(url, payload) : payload;
+    const sent =
+      action === "submit"
+        ? await withVersion(url, payload)
+        : action === "approve" && !("recommendations" in payload)
+          ? { recommendations: "Approved", ...payload }
+          : payload;
     return request(app).patch(url).set(auth(token)).send(sent);
   };
   const put = async (id, token) =>
@@ -119,10 +130,13 @@ describe("assessment child edits are locked too (D13)", () => {
     await seedLookups();
     const editor = await loginAs("project_manager");
     const project = await createProject({ stage: "screening_approved" });
-    const created = await request(app)
-      .post("/api/v1/assessments")
-      .set(auth(editor.token))
-      .send({ project: project._id.toString(), project_activity: "A", description: "B" });
+    const created = await request(app).post("/api/v1/assessments").set(auth(editor.token)).send({
+      project: project._id.toString(),
+      project_activity: "A",
+      description: "B",
+      environmental_setting: "C",
+      legal_requirements: "D",
+    });
     const id = created.body.data._id;
     const url = `/api/v1/assessments/${id}/submit`;
     expect(

@@ -3,8 +3,11 @@
  * Matches design from: 17.Management Activities Table.html
  */
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '@/services/queryKeys'
+import { UnsavedExportDialog } from '@/components/export'
 import { useManagementActivities } from '@/hooks/useSemp'
 import { ManagementActivitiesTable } from '@/components/semp'
 import { useUsers } from '@/hooks'
@@ -44,6 +47,10 @@ export default function ManagementActivitiesPage() {
   const [justSaved, setJustSaved] = useState(false)
   // Asks before exporting an empty template (in-app dialog, not window.confirm)
   const [confirmEmptyExport, setConfirmEmptyExport] = useState(false)
+  // Export with unsaved edits: save first (D74 3)
+  const [confirmUnsavedExport, setConfirmUnsavedExport] = useState(false)
+  const [isSavingForExport, setIsSavingForExport] = useState(false)
+  const queryClient = useQueryClient()
   const hasInitialized = useRef(false)
 
   // Auto-create first row if empty on load
@@ -58,55 +65,47 @@ export default function ManagementActivitiesPage() {
     }
   }, [isLoading, canEdit, managementActivities, addManagementActivity])
 
-  // Handle export event from SempFullWidthLayout
+  // The file always holds what is saved (D74 3): the cached table and the current workflow status
+  const exportSaved = useCallback(
+    async ({ confirmedEmpty = false } = {}) => {
+      try {
+        if (!project) throw new Error('Project data is not available')
+        const rows = queryClient.getQueryData(queryKeys.management(projectId))?.rows ?? []
+        if (rows.length === 0 && !confirmedEmpty) {
+          setConfirmEmptyExport(true)
+          return
+        }
+        const current = queryClient.getQueryData(queryKeys.workspace(projectId))?.workflow
+        const { exportTool, exportStatus } = await import('@/utils/excelExport')
+        const fileName = await exportTool(
+          'tool3',
+          { project, rows },
+          exportStatus(current ?? workflow, 'tool3')
+        )
+        toast.success(`Downloaded ${fileName}`)
+      } catch (error) {
+        console.error('[ManagementActivitiesPage] Export error:', error)
+        toast.error(`Failed to export Excel file: ${error.message || 'Unknown error'}`)
+      }
+    },
+    [project, projectId, queryClient, workflow, toast]
+  )
+
+  // Handle export event from SempFullWidthLayout: with unsaved edits, ask to save first
   useEffect(() => {
     if (!projectId) return
 
-    const handleExportEvent = async (event) => {
-      if (event.detail?.toolType === 'tool3') {
-        try {
-          const exportProject = project
-          if (!exportProject) {
-            throw new Error('Project data is not available')
-          }
-
-          // Filter out placeholder/temporary activities (those with _isNew flag or temp IDs)
-          const validActivities = (managementActivities || []).filter((activity) => {
-            // Skip activities with temporary IDs (starting with "temp_")
-            if (
-              activity._id &&
-              typeof activity._id === 'string' &&
-              activity._id.startsWith('temp_')
-            ) {
-              return false
-            }
-            return true
-          })
-
-          if (validActivities.length === 0 && !event.detail?.confirmedEmpty) {
-            setConfirmEmptyExport(true)
-            return
-          }
-
-          const { exportTool, exportStatus } = await import('@/utils/excelExport')
-          const fileName = await exportTool(
-            'tool3',
-            { project: exportProject, rows: validActivities },
-            exportStatus(workflow, 'tool3')
-          )
-          toast.success(`Downloaded ${fileName}`)
-        } catch (error) {
-          console.error('[ManagementActivitiesPage] Export error:', error)
-          toast.error(`Failed to export Excel file: ${error.message || 'Unknown error'}`)
-        }
-      }
+    const handleExportEvent = (event) => {
+      if (event.detail?.toolType !== 'tool3') return
+      if (canEdit && hasUnsavedChanges) setConfirmUnsavedExport(true)
+      else exportSaved()
     }
 
     window.addEventListener('semp-export', handleExportEvent)
     return () => {
       window.removeEventListener('semp-export', handleExportEvent)
     }
-  }, [project, projectId, workflow, managementActivities, toast])
+  }, [projectId, canEdit, hasUnsavedChanges, exportSaved])
 
   // Handlers
   const handleUpdate = (rowId, field, value) => {
@@ -139,6 +138,15 @@ export default function ManagementActivitiesPage() {
   // Leaving with unsaved edits (Back, sidebar, browser Back, refresh) asks Save / Discard / Stay
   // in the shared in-app dialog (D61); the auto-added empty first row alone does not count.
   useUnsavedChanges(canEdit && hasUnsavedChanges, handleSave)
+
+  // "Save and export": a failed save (its error, or the stale dialog) exports nothing
+  const saveAndExport = async () => {
+    setIsSavingForExport(true)
+    const result = await handleSave()
+    setIsSavingForExport(false)
+    setConfirmUnsavedExport(false)
+    if (result.success) await exportSaved()
+  }
 
   const handleBack = () => navigate(`/app/projects/${projectId}/semp`)
 
@@ -241,13 +249,17 @@ export default function ManagementActivitiesPage() {
           confirmIcon="download"
           onConfirm={() => {
             setConfirmEmptyExport(false)
-            window.dispatchEvent(
-              new CustomEvent('semp-export', {
-                detail: { toolType: 'tool3', confirmedEmpty: true },
-              })
-            )
+            exportSaved({ confirmedEmpty: true })
           }}
           onClose={() => setConfirmEmptyExport(false)}
+        />
+      )}
+
+      {confirmUnsavedExport && (
+        <UnsavedExportDialog
+          isSaving={isSavingForExport}
+          onSaveAndExport={saveAndExport}
+          onClose={() => setConfirmUnsavedExport(false)}
         />
       )}
     </div>

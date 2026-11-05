@@ -89,7 +89,16 @@ const getProject = async (id) => {
   return project;
 };
 
+// A project may end on the day it starts, never before (D74 1). On an update the date not sent is
+// the stored one.
+const assertDateOrder = (startDate, endDate) => {
+  if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
+    throw new ApiError(400, "End date cannot be before the start date");
+  }
+};
+
 const createProject = async (payload) => {
+  assertDateOrder(payload.start_date, payload.end_date);
   return Project.create(payload);
 };
 
@@ -99,6 +108,7 @@ const updateProject = async (id, { version, ...payload }) => {
   if (!project) throw new ApiError(404, "Project not found");
   assertCurrentVersion(project, version);
   await assertProjectWritable(id);
+  assertDateOrder(payload.start_date ?? project.start_date, payload.end_date ?? project.end_date);
   const updated = await updateIfCurrent(Project, { _id: id, archived: { $ne: true } }, version, {
     $set: payload,
   });

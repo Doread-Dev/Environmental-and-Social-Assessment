@@ -13,6 +13,7 @@ import {
   calculateTotalImpact,
   changedQuestionsSummary,
 } from '@/utils/impactCalculations'
+import { assessmentSubmitError } from '@/utils/validators'
 import {
   ImpactCategoryAccordion,
   TotalScoreCard,
@@ -204,6 +205,12 @@ export default function AssessmentScoringPage() {
   const handleSubmit = async () => {
     if (!assessment?._id) {
       toast.warning('Please complete and save the metadata step first.')
+      return
+    }
+    // The metadata a submit needs (D74 2), worded like the backend's answer
+    const metadataError = assessmentSubmitError(assessment)
+    if (metadataError) {
+      toast.error(metadataError)
       return
     }
     // Validate potential impacts are required

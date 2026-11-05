@@ -16,11 +16,12 @@ import {
   PageHeader,
   Button,
 } from '@/components/ui'
-import { validateAssessmentMetadata } from '@/utils'
 
 const FIELDS = ['project_activity', 'description', 'environmental_setting', 'legal_requirements']
 const fromAssessment = (assessment) =>
   Object.fromEntries(FIELDS.map((field) => [field, assessment?.[field] || '']))
+// A draft is never blocked: the fields are checked at submit (D74 2)
+const NO_ERRORS = {}
 const sameForm = (a, b) => FIELDS.every((field) => a[field] === b[field])
 
 export default function AssessmentMetadataPage() {
@@ -37,8 +38,6 @@ export default function AssessmentMetadataPage() {
   // The form as loaded (or last saved): leaving with anything else asks first (D61)
   const [baseline, setBaseline] = useState(() => fromAssessment(assessment))
 
-  const [errors, setErrors] = useState({})
-
   // Update formData when assessment loads or changes
   useEffect(() => {
     if (assessment && !isLoading) {
@@ -49,14 +48,10 @@ export default function AssessmentMetadataPage() {
 
   const isDirty = !readOnly && !sameForm(formData, baseline)
 
-  // Validate and save; the shared guard's "Save" uses it too (it then leaves where the user was
-  // going, not to the next step)
+  // Save; the shared guard's "Save" uses it too (it then leaves where the user was going, not to
+  // the next step). A draft saves with any field empty: the four fields are required at submit
+  // (D74 2), checked there.
   const save = async () => {
-    const validation = validateAssessmentMetadata(formData)
-    if (!validation.valid) {
-      setErrors(validation.errors)
-      return { success: false }
-    }
     const result = await saveMetadata(formData)
     if (result.success) setBaseline(formData)
     return result
@@ -68,22 +63,7 @@ export default function AssessmentMetadataPage() {
     return <LoadingState message="Loading metadata..." />
   }
 
-  const handleChange = (newData) => {
-    setFormData(newData)
-    // Clear errors when user starts typing
-    if (errors.project_activity && newData.project_activity) {
-      setErrors((prev) => ({ ...prev, project_activity: null }))
-    }
-    if (errors.description && newData.description) {
-      setErrors((prev) => ({ ...prev, description: null }))
-    }
-    if (errors.environmental_setting && newData.environmental_setting) {
-      setErrors((prev) => ({ ...prev, environmental_setting: null }))
-    }
-    if (errors.legal_requirements && newData.legal_requirements) {
-      setErrors((prev) => ({ ...prev, legal_requirements: null }))
-    }
-  }
+  const handleChange = (newData) => setFormData(newData)
 
   const handleSave = async () => {
     const result = await save()
@@ -130,7 +110,7 @@ export default function AssessmentMetadataPage() {
         <MetadataFormSection
           formData={formData}
           onChange={handleChange}
-          errors={errors}
+          errors={NO_ERRORS}
           readOnly={readOnly}
         />
       </div>

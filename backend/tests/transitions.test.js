@@ -23,7 +23,13 @@ const kinds = [
     name: "assessment",
     base: "/api/v1/assessments",
     stage: "screening_approved",
-    body: (project) => ({ project, project_activity: "Pipes", description: "Replace pipes" }),
+    body: (project) => ({
+      project,
+      project_activity: "Pipes",
+      description: "Replace pipes",
+      environmental_setting: "Urban",
+      legal_requirements: "Permit",
+    }),
   },
 ];
 
@@ -42,10 +48,16 @@ describe.each(kinds)("$name status transitions", ({ base, stage, body }) => {
     return { editor, specialist, project, id: created.body.data._id };
   }
 
-  // Submit carries the version the client loaded (D62); approve/reject don't.
+  // Submit carries the version the client loaded (D62); approve/reject don't. Approve needs
+  // recommendations (D74 5): a default unless the test sends its own.
   const patch = async (id, action, token, payload = {}) => {
     const url = `${base}/${id}/${action}`;
-    const body = action === "submit" ? await withVersion(url, payload) : payload;
+    const body =
+      action === "submit"
+        ? await withVersion(url, payload)
+        : action === "approve" && !("recommendations" in payload)
+          ? { recommendations: "Approved", ...payload }
+          : payload;
     return request(app).patch(url).set(auth(token)).send(body);
   };
 

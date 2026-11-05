@@ -23,7 +23,13 @@ async function setup({ component = "Water network rehabilitation", body = {} } =
   const res = await request(app)
     .post("/api/v1/assessments")
     .set(auth(token))
-    .send({ project: project._id.toString(), description: "Replace pipes", ...body });
+    .send({
+      project: project._id.toString(),
+      description: "Replace pipes",
+      environmental_setting: "Dense residential area",
+      legal_requirements: "Excavation permit",
+      ...body,
+    });
   return { token, project, res };
 }
 
@@ -103,9 +109,49 @@ describe("required fields are checked at submit (D57, D69)", () => {
     expect(sent.body.error).toBe("Fill in Project activity before submitting");
   });
 
-  it("submits once both are filled", async () => {
+  it("submits once all four are filled", async () => {
     const { token, res } = await setup({ body: { project_activity: "Pipes" } });
     expect((await submit(res.body.data._id, token)).status).toBe(200);
+  });
+
+  it("environmental setting and legal requirements are required at submit too (D74 2)", async () => {
+    const { token, res } = await setup({
+      body: { project_activity: "Pipes", environmental_setting: "", legal_requirements: " " },
+    });
+    const sent = await submit(res.body.data._id, token);
+
+    expect(sent.status).toBe(400);
+    expect(sent.body.error).toBe(
+      "Fill in Environmental setting and Legal requirements before submitting"
+    );
+  });
+
+  it("names every missing field in one message", async () => {
+    const { token, res } = await setup({
+      body: { description: "", environmental_setting: "", legal_requirements: "" },
+    });
+    const sent = await submit(res.body.data._id, token);
+
+    expect(sent.body.error).toBe(
+      "Fill in Project activity, Description, Environmental setting and Legal requirements before submitting"
+    );
+  });
+
+  it("a draft still saves with all four empty (D74 2)", async () => {
+    const { token, res } = await setup({ body: { project_activity: "Pipes" } });
+    const url = `/api/v1/assessments/${res.body.data._id}`;
+    const put = await request(app)
+      .put(url)
+      .set(auth(token))
+      .send(
+        await withVersion(url, {
+          project_activity: "",
+          description: "",
+          environmental_setting: "",
+          legal_requirements: "",
+        })
+      );
+    expect(put.status).toBe(200);
   });
 });
 

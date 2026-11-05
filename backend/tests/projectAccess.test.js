@@ -120,6 +120,8 @@ async function requestFor(route, ids) {
     "put /projects/:id/mitigation": { rows: [] },
     "put /projects/:id/monitoring": { records: [] },
     "patch /files/:fileId": { category: null },
+    "patch /screenings/:id/approve": { recommendations: "ok" },
+    "patch /assessments/:id/approve": { recommendations: "ok" },
   };
   const full = `/api/v1${url}`;
   return { url: full, body: await withVersion(full, bodies[route.key] ?? {}) };

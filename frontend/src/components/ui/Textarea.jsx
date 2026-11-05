@@ -1,5 +1,6 @@
 import { forwardRef, useId } from 'react'
 import { cn } from '@/utils/cn'
+import { MAX_TEXT_LENGTH } from '@/utils/textLimits'
 import {
   ERROR_TEXT_CLASSES,
   HELPER_TEXT_CLASSES,
@@ -37,6 +38,8 @@ const Textarea = forwardRef(
       className,
       textareaClassName,
       id: propId,
+      // Free text: the shared limit (D74 4); a smaller one can be passed
+      maxLength = MAX_TEXT_LENGTH,
       ...props
     },
     ref
@@ -63,6 +66,7 @@ const Textarea = forwardRef(
         )}
 
         <textarea
+          maxLength={maxLength}
           ref={ref}
           id={id}
           rows={rows}

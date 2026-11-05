@@ -90,12 +90,13 @@ export function validateDates(startDate, endDate) {
     errors.endDate = 'End date is required'
   }
 
+  // A project may end on the day it starts, never before (D74 1; the backend checks the same)
   if (startDate && endDate) {
     const start = new Date(startDate)
     const end = new Date(endDate)
 
-    if (end <= start) {
-      errors.endDate = 'End date must be after start date'
+    if (end < start) {
+      errors.endDate = 'End date cannot be before the start date'
     }
   }
 
@@ -171,27 +172,25 @@ export function validateScreeningForm(data) {
   }
 }
 
+// The assessment metadata a submit needs (D74 2). A draft may leave any of them empty (D69).
+const REQUIRED_AT_SUBMIT = [
+  ['project_activity', 'Project activity'],
+  ['description', 'Description'],
+  ['environmental_setting', 'Environmental setting'],
+  ['legal_requirements', 'Legal requirements'],
+]
+
 /**
- * التحقق من صحة البيانات الوصفية
+ * Why the assessment cannot be submitted yet, worded as the backend's 400; null when it can.
+ * @param {Object|null} assessment - The saved assessment
+ * @returns {string|null} e.g. "Fill in Environmental setting and Legal requirements before submitting"
  */
-export function validateAssessmentMetadata(data) {
-  const errors = {}
-
-  if (!data.project_activity?.trim()) {
-    errors.project_activity = 'Project activity is required'
-  }
-
-  if (!data.description?.trim()) {
-    errors.description = 'Description is required'
-  }
-
-  if (!data.environmental_setting?.trim()) {
-    errors.environmental_setting = 'Environmental setting is required'
-  }
-
-  if (!data.legal_requirements?.trim()) {
-    errors.legal_requirements = 'Legal requirements are required'
-  }
-
-  return { valid: Object.keys(errors).length === 0, errors }
+export function assessmentSubmitError(assessment) {
+  const missing = REQUIRED_AT_SUBMIT.filter(([field]) => !assessment?.[field]?.trim()).map(
+    ([, label]) => label
+  )
+  if (missing.length === 0) return null
+  const list =
+    missing.length > 1 ? `${missing.slice(0, -1).join(', ')} and ${missing.at(-1)}` : missing[0]
+  return `Fill in ${list} before submitting`
 }

@@ -7,6 +7,22 @@ const paste = (cell, { text, html }) =>
     clipboardData: { getData: (type) => (type === 'text/plain' ? text : html) },
   })
 
+describe('EditableCell free-text limit (D74 4)', () => {
+  it('typing or pasting past 30,000 characters is cut at the limit', () => {
+    const onChange = vi.fn()
+    const { container } = render(<EditableCell value="" onChange={onChange} multiline />)
+    const cell = container.querySelector('[contenteditable="true"]')
+
+    paste(cell, { text: 'x'.repeat(30005) })
+    expect(onChange).toHaveBeenLastCalledWith('x'.repeat(30000))
+
+    cell.textContent = 'y'.repeat(30001)
+    fireEvent.input(cell)
+    expect(onChange).toHaveBeenLastCalledWith('y'.repeat(30000))
+    expect(cell.textContent).toHaveLength(30000)
+  })
+})
+
 describe('EditableCell paste (phase 10a: what is shown is what is saved)', () => {
   it('pastes formatted text as plain text', () => {
     const onChange = vi.fn()

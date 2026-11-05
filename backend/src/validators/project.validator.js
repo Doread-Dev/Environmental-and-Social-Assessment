@@ -1,12 +1,13 @@
 const Joi = require("joi");
+const { text } = require("./text.validator");
 const { recordVersion } = require("./version.validator");
 
 const createProjectSchema = Joi.object({
-  title: Joi.string().trim().required(),
-  location: Joi.string().trim().required(),
+  title: text().trim().required(),
+  location: text().trim().required(),
   start_date: Joi.date().required(),
   end_date: Joi.date().required(),
-  project_component: Joi.string().trim().optional(),
+  project_component: text().trim().optional(),
 });
 
 // The version the client loaded (the project's `updatedAt`) is required: stale → 409 (D62).

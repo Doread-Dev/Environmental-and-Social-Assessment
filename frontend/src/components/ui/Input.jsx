@@ -1,5 +1,6 @@
 import { forwardRef, useId } from 'react'
 import { cn } from '@/utils/cn'
+import { MAX_TEXT_LENGTH } from '@/utils/textLimits'
 import {
   CONTROL_SIZES,
   ERROR_TEXT_CLASSES,
@@ -44,6 +45,8 @@ const Input = forwardRef(
       className,
       inputClassName,
       id: propId,
+      // Free text: the shared limit (D74 4); a smaller one can be passed
+      maxLength = MAX_TEXT_LENGTH,
       ...props
     },
     ref
@@ -91,6 +94,7 @@ const Input = forwardRef(
           )}
 
           <input
+            maxLength={maxLength}
             ref={ref}
             id={id}
             disabled={disabled}

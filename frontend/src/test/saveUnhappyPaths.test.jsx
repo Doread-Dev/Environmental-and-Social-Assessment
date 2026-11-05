@@ -4,7 +4,7 @@
  * shows the `extractErrorMessage` text.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import api from '@/services/api'
 import ProjectLayout from '@/components/layout/ProjectLayout'
 import SempFullWidthLayout from '@/components/layout/SempFullWidthLayout'
@@ -279,7 +279,10 @@ describe('double actions: one request per action (D61)', () => {
     fireEvent.change(await screen.findByPlaceholderText(/recommendations/i), {
       target: { value: 'Proceed' },
     })
-    const approve = screen.getByRole('button', { name: /Approve & Complete Assessment/ })
+    // Approve asks first (D74 6); a double click on the dialog's Approve sends one request
+    fireEvent.click(screen.getByRole('button', { name: /Approve & Complete Assessment/ }))
+    const dialog = await screen.findByRole('dialog', { name: 'Approve the assessment?' })
+    const approve = within(dialog).getByRole('button', { name: 'Approve' })
     fireEvent.click(approve)
     fireEvent.click(approve)
 
@@ -359,6 +362,8 @@ describe('server errors on a save show their reason (D61)', () => {
       target: { value: 'Proceed' },
     })
     fireEvent.click(screen.getByRole('button', { name: /Approve & Complete Assessment/ }))
+    const dialog = await screen.findByRole('dialog', { name: 'Approve the assessment?' })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Approve' }))
 
     expect(
       await screen.findByText('Cannot approve a assessment that is approved')

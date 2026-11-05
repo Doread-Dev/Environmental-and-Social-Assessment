@@ -8,6 +8,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment, useScreening, useProjectContext } from '@/hooks'
 import { useAuth } from '@/contexts'
+import { ReviewDecisionDialog } from '@/components/review'
 import { getReviewer, positionOf } from '@/utils/reviewer'
 import { useLookups } from '@/hooks'
 import { IMPACT_LEVEL_CONFIG } from '@/utils/impactLevels'
@@ -46,6 +47,8 @@ export default function AssessmentReviewPage() {
 
   const toast = useToast()
   const [recommendations, setRecommendations] = useState(assessment?.recommendations || '')
+  // Approve and reject ask first, in the same dialog as the screening (D74 6)
+  const [decision, setDecision] = useState(null)
   const [showRejectInput, setShowRejectInput] = useState(false)
   const [rejectReasonInput, setRejectReasonInput] = useState('')
 
@@ -896,7 +899,7 @@ export default function AssessmentReviewPage() {
                       <Button
                         variant="danger"
                         type="button"
-                        onClick={handleConfirmReject}
+                        onClick={() => setDecision('reject')}
                         disabled={isSaving}
                         className="flex-1"
                       >
@@ -926,7 +929,7 @@ export default function AssessmentReviewPage() {
                     <Button
                       variant="primary"
                       type="button"
-                      onClick={handleApprove}
+                      onClick={() => setDecision('approve')}
                       disabled={isSaving || !recommendations.trim()}
                     >
                       <span className="material-symbols-outlined text-lg" aria-hidden="true">
@@ -935,6 +938,19 @@ export default function AssessmentReviewPage() {
                       {isSaving ? 'Processing...' : 'Approve & Complete Assessment'}
                     </Button>
                   </div>
+                )}
+                {decision && (
+                  <ReviewDecisionDialog
+                    decision={decision}
+                    tool="assessment"
+                    isLoading={isSaving}
+                    onClose={() => setDecision(null)}
+                    onConfirm={async () => {
+                      if (decision === 'approve') await handleApprove()
+                      else await handleConfirmReject()
+                      setDecision(null)
+                    }}
+                  />
                 )}
               </>
             )}

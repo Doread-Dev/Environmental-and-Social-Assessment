@@ -180,24 +180,33 @@ const assertAllQuestionsScored = async (id) => {
   }
 };
 
-// Required fields (D57) are checked when the assessment is submitted: it may start empty (D69).
+// Required fields (D57) are checked when the assessment is submitted: a draft may leave any of
+// them empty (D69). All four metadata fields are required at submit (D74 2).
 const REQUIRED_AT_SUBMIT = [
   ["project_activity", "Project activity"],
   ["description", "Description"],
+  ["environmental_setting", "Environmental setting"],
+  ["legal_requirements", "Legal requirements"],
 ];
+
+// "A", "A and B", "A, B and C"
+const listOf = (labels) =>
+  labels.length > 1 ? `${labels.slice(0, -1).join(", ")} and ${labels.at(-1)}` : labels[0];
 
 const assertRequiredFilled = (assessment) => {
   const missing = REQUIRED_AT_SUBMIT.filter(([field]) => isEmpty(assessment[field])).map(
     ([, label]) => label
   );
   if (missing.length) {
-    throw new ApiError(400, `Fill in ${missing.join(" and ")} before submitting`);
+    throw new ApiError(400, `Fill in ${listOf(missing)} before submitting`);
   }
 };
 
 // `version` = the `updatedAt` the client loaded (D62): a stale submit → 409 before the checks.
 const submitAssessment = async (id, submittedBy, version) => {
-  const assessment = await Assessment.findById(id).select("project_activity description updatedAt");
+  const assessment = await Assessment.findById(id).select(
+    "project_activity description environmental_setting legal_requirements updatedAt"
+  );
   if (!assessment) throw new ApiError(404, "Assessment not found");
   assertCurrentVersion(assessment, version);
   assertRequiredFilled(assessment);

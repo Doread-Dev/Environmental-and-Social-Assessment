@@ -2,7 +2,7 @@
 
 **Goal:** every screen behaves correctly outside the happy path, not only when the user does everything in the expected order. Found by walking the whole app on purpose, not one bug at a time (D61).
 
-**Decisions:** D61, D62, D73 (+ D13, D17, D28a, D39).
+**Decisions:** D61, D62, D73, D74 (+ D13, D17, D28a, D39).
 
 **Owner's concept (D73, 2026-11-05):** stale saves warn and reload, no merge; an expired session signs in again on the page without losing input; plain bugs are fixed here with a test, behaviour or product choices go back to the owner (list below and in the PR).
 
@@ -47,7 +47,7 @@
 
 ## Done when
 - [x] Every item under Tests has a test (file names listed in Result).
-- [ ] Inventory and case list at the bottom of this file, reviewed by the owner. *(Written below; owner review pending, with the open questions.)*
+- [x] Inventory and case list at the bottom of this file, reviewed by the owner. *(The owner answered the six questions: D74.)*
 - [x] Every agreed problem fixed with a test, or explicitly deferred by the owner. *(Plain bugs fixed with tests; the behaviour questions below wait for the owner.)*
 - [x] Shared unsaved-changes guard used by every editing page; no `window.confirm` / `window.alert` left in `src/` (after phase 10 only the three unsaved-changes prompts of Tools 3, 4, 5 remain; remove them from the allow-list in `src/test/styleGuard.test.js`). Confirmations use `ConfirmDialog` (`components/ui`).
 - [x] The most important unhappy paths added to the phase 12 E2E list.
@@ -95,6 +95,8 @@
 ### Browser check (ports 3001/5174, throwaway DB `esms_phase10a_check`, admin + demo users per role)
 Demo seed with versions; a test project per state (not started, screening draft / submitted / rejected, category E, assessment draft / submitted / rejected, SEMP empty, archived, Arabic + long text with 40 Tool 3 rows). Checked: guard dialog and its Save on the screening form; Tool 3 stale save (another user saved via the API) → dialog, input kept, nothing overwritten, Reload shows their row; screening submitted by another user while editing → dialog → Reload shows "Pending Approval"; expired token mid-edit → sign-in dialog, input kept, Save again works; unknown project URLs (B2 found here); locked tool by URL redirects; archived project read-only; category E opens Tool 2; rejected → edit → resubmit; viewer sees no edit/export controls on any tool page; Arabic 40-row Tool 3 renders without page overflow.
 
+D74 round (same setup, fresh DB, dropped afterwards): an end date before the start refused on project create, a one-day project created; assessment metadata saved as a draft with two fields cleared, Submit then refused with "Fill in Environmental setting and Legal requirements before submitting" (no request); Tool 3 Export with an unsaved edit opens "You have unsaved changes" (Save and export / Cancel), Cancel keeps the edit; screening Approve disabled until recommendations are typed, then the shared "Approve the screening?" dialog, approved; assessment reject with a reason through "Reject the assessment?", rejected; stale-save dialog on Tool 4 after another user saved (Reload shows their row) and the sign-in dialog after a broken token (input kept, Save again → Saved) re-checked. Servers stopped, 3001/5174 free, no worktree node process, launch.json restored.
+
 ### Inventory (screens and actions)
 | Screen | Actions |
 |---|---|
@@ -135,13 +137,19 @@ Demo seed with versions; a test project per state (not started, screening draft 
 | Pasted text | Tools 3/4 cells | what is shown is saved | formatting shown, not saved (B10) | plain text |
 | Loading | all pages | loading state, no flashes | as expected | unchanged |
 
-### Questions for the owner (not decided here)
-1. **Project dates:** the app refuses an end date on or before the start date, the backend accepts any. Should the backend refuse it too (400), and is a one-day project (same start and end date) allowed?
-2. **Assessment metadata:** "Save and Continue" requires environmental setting and legal requirements (all four fields), while the backend and D69 only require project activity and description, at submit. Keep the page rule, or let a draft be saved with them empty?
-3. **Exports with unsaved edits:** Tools 3, 4 and 5 export what is on the screen, including edits not saved yet, under the saved status. Export only the saved table, or ask first when there are unsaved edits?
-4. **Very long text:** no field has a maximum length; one Excel cell holds at most 32,767 characters. Add a maximum (e.g. 30,000) to text fields, or leave it?
-5. **Assessment approve** requires recommendations in the app (the backend does not; for screening they are optional by D56). Keep?
-6. **Screening approve** has no confirmation step (reject asks for the reason). Add a ConfirmDialog like submit?
+### Owner answers (D74, 2026-11-05) — built in this phase
+The six questions raised by the walk were answered by the owner and built here (DECISIONS D74).
+
+| # | Question | Answer (D74) | Where | Tests |
+|---|---|---|---|---|
+| 1 | Project dates: page refused "on or before", backend nothing | Backend 400 "End date cannot be before the start date" on create and update (one date sent → compared with the stored one); a one-day project is allowed; the page rule is "before" only | `project.service.js` `assertDateOrder`; `utils/validators.js` `validateDates` | `backend/tests/ownerRulesD74.test.js`; `frontend/src/utils/validators.test.js`, `frontend/src/test/ownerRulesD74.test.jsx` |
+| 2 | Assessment metadata: page required all four to save a draft | A draft saves with any field empty; submit requires all four (project activity, description, environmental setting, legal requirements), 400 naming the missing ones; scoring's Submit says the same before sending (extends D69) | `assessment.service.js` `REQUIRED_AT_SUBMIT`; `AssessmentMetadataPage`, `AssessmentScoringPage`, `assessmentSubmitError` | `backend/tests/assessmentScores.test.js`; `frontend/src/test/ownerRulesD74.test.jsx`, `frontend/src/utils/validators.test.js` |
+| 3 | Tools 3/4/5 exported unsaved edits | With unsaved edits Export opens "You have unsaved changes" (Save and export / Cancel); a failed save (stale 409 included) exports nothing; every export reads the saved data and the current status | `components/export/UnsavedExportDialog`; Tools 3/4/5 pages | `frontend/src/test/ownerRulesD74.test.jsx` |
+| 4 | No maximum length (Excel cell limit 32,767) | Every free-text field ≤ 30,000 characters: Joi `text()` → 400; shared `Input`/`Textarea` default `maxLength`; grid cells cut at it; shorter limits stay (a maximum, not a D57 minimum) | `validators/text.validator.js`; `utils/textLimits.js`, `Input`, `Textarea`, `EditableCell` | `backend/tests/ownerRulesD74.test.js`; `frontend/src/test/ownerRulesD74.test.jsx`, `frontend/src/components/semp/EditableCell.test.jsx` |
+| 5 | Recommendations: required for assessment in the page only, optional for screening | Required to approve in both tools: server 400 "Recommendations are required to approve", Approve disabled until typed (replaces D56's "optional") | `validators/text.validator.js` `recommendations()`; `ScreeningSummaryPage`, `AssessmentReviewPage` | `backend/tests/ownerRulesD74.test.js`; `frontend/src/test/ownerRulesD74.test.jsx` |
+| 6 | Screening approve without confirmation | Approve and reject confirm in both tools, one wording and layout | `components/review/ReviewDecisionDialog` | `frontend/src/test/ownerRulesD74.test.jsx`, `frontend/src/test/saveUnhappyPaths.test.jsx` |
+
+Existing suites adjusted for the new rules (approve sends recommendations, assessments carry all four fields): `backend/tests/transitions.test.js`, `locking.test.js`, `projectAccess.test.js`, `assessmentScores.test.js`. The demo seed already sends recommendations and all four fields.
 
 ## Found during phase
 - UI/UX items written to [phase 13](13-page-by-page-ui-review.md) (D72 c): Arabic in the Tools 3/4 grid cells is forced left to right; very long cell text makes rows hundreds of pixels tall; the Tool 5 lock card names Tool 2 and links to it (the gate is Tools 3 and 4; the route guard makes the card mostly unreachable); "Save and Continue" is disabled for viewers on the assessment pages, with no forward button; "Save as Draft" in scoring gives no success feedback; the session and stale-save dialogs need a look in both themes and on mobile.

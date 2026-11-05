@@ -83,7 +83,36 @@ const sameDisk = (a, b) => {
   return fs.statSync(left).dev === fs.statSync(right).dev;
 };
 
+/**
+ * The "never the database disk" rule (D75 3) as one answer: `same`, `different`, or `unknown` when
+ * it cannot be checked from here — MongoDB did not report its data folder (an access rule, or the
+ * default folder, which `getCmdLineOpts` does not list), or that folder is not on this machine
+ * (MongoDB in a container or on another host). The backup treats `unknown` like `same`: it
+ * refuses unless the operator passes `--allow-same-disk` after checking the disks themselves.
+ * @param {string} backupDir
+ * @param {string|null} dbPath MongoDB's dbPath as the server reports it
+ * @returns {{ status: "same"|"different"|"unknown", reason: string }}
+ */
+const diskCheck = (backupDir, dbPath) => {
+  if (!dbPath) {
+    return {
+      status: "unknown",
+      reason: "MongoDB did not report its data folder (storage.dbPath)",
+    };
+  }
+  if (!fs.existsSync(dbPath)) {
+    return {
+      status: "unknown",
+      reason: `MongoDB's data folder (${dbPath}) is not on this machine`,
+    };
+  }
+  return sameDisk(backupDir, dbPath)
+    ? { status: "same", reason: `same disk as the database (${dbPath})` }
+    : { status: "different", reason: `not on the database disk (${dbPath})` };
+};
+
 module.exports = {
+  diskCheck,
   PREFIX,
   PARTIAL,
   DEFAULT_KEEP_DAYS,

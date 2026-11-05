@@ -75,7 +75,9 @@ All settings are in `backend/.env` (template: [config/esms.env.example](config/e
 the install scripts write it). The ones IT chooses:
 
 - `BACKUP_DIR` — **a second disk or a network share, never the database disk.** The backup refuses
-  a folder on the same disk as MongoDB's data. Windows: `E:\ESMS-backups` or
+  a folder on the same disk as MongoDB's data, and also refuses when it cannot check (MongoDB
+  does not report `storage.dbPath`, or its data folder is not on this machine): keep `dbPath`
+  in MongoDB's config file, as the install scripts and `deploy/config` do. Windows: `E:\ESMS-backups` or
   `\\backup-server\esms`; Linux: a mounted disk or share such as `/mnt/backup/esms`.
 - `BACKUP_KEEP_DAYS` — default 30.
 - `UPLOADS_DIR` — where project files and the library PDFs are kept.

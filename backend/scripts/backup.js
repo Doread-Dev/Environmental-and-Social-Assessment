@@ -5,7 +5,8 @@
 // Usage (settings from backend/.env; deploy/windows/backup.ps1 and deploy/linux/backup.sh call
 // this, the scheduled task / systemd timer runs them daily):
 //   node scripts/backup.js
-//   node scripts/backup.js --allow-same-disk   # tests only: BACKUP_DIR on the database disk
+//   node scripts/backup.js --allow-same-disk   # tests only: skip the database-disk rule (also
+//                                              # needed when the disk cannot be checked)
 //
 // Settings: MONGODB_URI, UPLOADS_DIR (default backend/uploads), BACKUP_DIR (required: a second
 // disk or a network share, never the database disk), BACKUP_KEEP_DAYS (default 30),
@@ -18,7 +19,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const mongoose = require("mongoose");
 const ops = require("./lib/ops");
-const { PARTIAL, backupName, keepDays, expiredBackups, sameDisk } = require("./lib/backup");
+const { PARTIAL, backupName, keepDays, expiredBackups, diskCheck } = require("./lib/backup");
 
 const ARCHIVE = "database.archive.gz";
 
@@ -58,14 +59,22 @@ async function main() {
   await client.connect();
   try {
     const db = client.db();
-    const dbPath = await databasePath(client);
-    if (dbPath && sameDisk(backupRoot, dbPath) && !args["allow-same-disk"]) {
-      throw new Error(
-        `BACKUP_DIR (${backupRoot}) is on the same disk as the database (${dbPath}). Use a ` +
-          "second disk or a network share: a disk failure would take both."
-      );
+    // Never the database disk (D75 3); a disk that cannot be checked is refused too, so a backup
+    // never passes the rule silently. --allow-same-disk is the explicit override.
+    const disk = diskCheck(backupRoot, await databasePath(client));
+    if (disk.status !== "different") {
+      if (!args["allow-same-disk"]) {
+        throw new Error(
+          disk.status === "same"
+            ? `BACKUP_DIR (${backupRoot}) is on the ${disk.reason}. Use a second disk or a ` +
+                "network share: a disk failure would take both."
+            : `Could not check that BACKUP_DIR (${backupRoot}) is not on the database disk: ` +
+                `${disk.reason}. Set storage.dbPath in MongoDB's config file (deploy/config), or ` +
+                "run with --allow-same-disk after checking the disks yourself."
+        );
+      }
+      console.log(`Disk check overridden (--allow-same-disk): ${disk.reason}.`);
     }
-    if (!dbPath) console.warn("Could not read the database folder; the disk check was skipped.");
 
     const started = new Date();
     const name = backupName(started);

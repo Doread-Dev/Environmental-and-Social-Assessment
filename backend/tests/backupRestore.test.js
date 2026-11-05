@@ -58,6 +58,20 @@ describe("scripts/backup.js and scripts/restore.js", () => {
     expect(result.stderr).toMatch(/must not be inside UPLOADS_DIR/);
   });
 
+  // Locally the backup folder is on the database disk ("same disk"); in CI MongoDB runs in a
+  // container, so its data folder cannot be checked from the runner ("could not check"). Either
+  // way the backup refuses without the explicit override, and writes nothing.
+  // Needs no Database Tools: it stops before mongodump.
+  it("refuses a BACKUP_DIR on the database disk or on a disk it cannot check, unless overridden", () => {
+    const backupDir = tempDir("backups");
+    const result = run("backup.js", [], { BACKUP_DIR: backupDir });
+    expect(result.status).toBe(1);
+    expect(result.stderr).toMatch(
+      /is on the same disk as the database|Could not check that BACKUP_DIR .* is not on the database disk/
+    );
+    expect(fs.readdirSync(backupDir)).toEqual([]);
+  });
+
   it("restore refuses a folder that is not a finished backup", () => {
     const result = run("restore.js", ["--from", tempDir("not-a-backup"), "--yes"]);
     expect(result.status).toBe(1);

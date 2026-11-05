@@ -11,7 +11,7 @@ const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 const mongoose = require("mongoose");
 const ops = require("./lib/ops");
-const { sameDisk } = require("./lib/backup");
+const { diskCheck } = require("./lib/backup");
 const { kernelCompatibility, nodeMajor } = require("./lib/serverCheck");
 
 const results = [];
@@ -111,11 +111,12 @@ async function main() {
     report("FAIL", "BACKUP_DIR", "not set: a folder on a second disk or a network share");
   } else {
     const backupDir = path.resolve(env.BACKUP_DIR);
-    const onDbDisk = dbPath && sameDisk(backupDir, dbPath);
+    // The same rule as the backup: a disk that cannot be checked fails like the database disk.
+    const disk = diskCheck(backupDir, dbPath);
     report(
-      onDbDisk ? "FAIL" : "OK",
+      disk.status === "different" ? "OK" : "FAIL",
       `BACKUP_DIR ${backupDir}`,
-      onDbDisk ? `same disk as the database (${dbPath})` : "not on the database disk"
+      disk.status === "unknown" ? `cannot check the disk: ${disk.reason}` : disk.reason
     );
     const tool = spawnSync(ops.toolPath("mongodump", env), ["--version"], { encoding: "utf8" });
     report(

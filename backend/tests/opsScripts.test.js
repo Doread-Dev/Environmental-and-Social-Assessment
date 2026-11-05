@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { require } from "./helpers/app.js";
 
 const backup = require("../../scripts/lib/backup");
@@ -84,6 +84,55 @@ describe("the backup folder is never on the database disk", () => {
     } finally {
       fs.rmSync(base, { recursive: true, force: true });
     }
+  });
+
+  describe("diskCheck: same, different, or cannot be checked", () => {
+    afterEach(() => vi.restoreAllMocks());
+
+    it("unknown when MongoDB did not report its data folder (never a silent pass)", () => {
+      const result = backup.diskCheck(os.tmpdir(), null);
+      expect(result.status).toBe("unknown");
+      expect(result.reason).toMatch(/did not report its data folder/);
+    });
+
+    it("unknown when the data folder is not on this machine (a container, another host)", () => {
+      const result = backup.diskCheck(os.tmpdir(), "/data/db-not-on-this-machine-esms");
+      expect(result.status).toBe("unknown");
+      expect(result.reason).toMatch(/is not on this machine/);
+    });
+
+    it("same when the backup folder is on the database disk", () => {
+      const base = fs.mkdtempSync(path.join(os.tmpdir(), "esms-disk-"));
+      try {
+        fs.mkdirSync(path.join(base, "db"));
+        expect(backup.diskCheck(path.join(base, "backups"), path.join(base, "db")).status).toBe(
+          "same"
+        );
+      } finally {
+        fs.rmSync(base, { recursive: true, force: true });
+      }
+    });
+
+    it("different when the volumes differ", () => {
+      const base = fs.mkdtempSync(path.join(os.tmpdir(), "esms-disk-"));
+      try {
+        const db = path.join(base, "db");
+        const backups = path.join(base, "backups");
+        fs.mkdirSync(db);
+        fs.mkdirSync(backups);
+        const realStat = fs.statSync;
+        vi.spyOn(fs, "statSync").mockImplementation((p, ...rest) => {
+          const stat = realStat(p, ...rest);
+          return path.resolve(p) === path.resolve(backups) ? { ...stat, dev: stat.dev + 1 } : stat;
+        });
+        expect(backup.diskCheck(backups, db)).toEqual({
+          status: "different",
+          reason: `not on the database disk (${db})`,
+        });
+      } finally {
+        fs.rmSync(base, { recursive: true, force: true });
+      }
+    });
   });
 });
 

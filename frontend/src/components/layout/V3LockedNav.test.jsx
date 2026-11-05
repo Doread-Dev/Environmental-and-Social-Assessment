@@ -153,4 +153,19 @@ describe('locked v3 buttons (D48, D70)', () => {
       expect(screen.queryByText('Coming soon')).toBeNull()
     }
   )
+
+  it('the SEMP Plan card centres its icon in a circle of its own', async () => {
+    signInAs('admin')
+    renderApp(routes, '/app/projects/p1/semp')
+
+    const button = await screen.findByRole('button', { name: 'SEMP Plan' })
+    // The icon font sets `display`, which would cancel `flex` centring on the same element: the
+    // circle is a separate flex box and the glyph sits inside it
+    const circle = within(button).getByTestId('v3-locked-icon-circle')
+    expect(circle).toHaveClass('flex', 'items-center', 'justify-center', 'rounded-full')
+    expect(circle).not.toHaveClass('material-symbols-outlined')
+    const glyph = circle.querySelector('.material-symbols-outlined')
+    expect(glyph).not.toBeNull()
+    expect(glyph).toHaveTextContent('assignment')
+  })
 })

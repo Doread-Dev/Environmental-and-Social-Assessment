@@ -41,17 +41,26 @@ export function V3LockedButton({ item, variant = 'nav', className }) {
       <span
         className={cn('flex min-w-0', isCard ? 'items-start gap-4' : 'flex-1 items-center gap-3')}
       >
-        <span
-          aria-hidden="true"
-          className={cn(
-            'material-symbols-outlined shrink-0',
-            isCard
-              ? 'flex items-center justify-center size-12 rounded-full text-2xl bg-primary-soft dark:bg-primary/20 text-primary'
-              : 'text-[20px] text-text-secondary dark:text-gray-400'
-          )}
-        >
-          {item.icon}
-        </span>
+        {isCard ? (
+          // The circle is its own flex box: the icon font's display rule would otherwise
+          // override `flex` and leave the glyph in the circle's top-left corner.
+          <span
+            aria-hidden="true"
+            data-testid="v3-locked-icon-circle"
+            className="flex items-center justify-center shrink-0 size-12 rounded-full bg-primary-soft dark:bg-primary/20"
+          >
+            <span className="material-symbols-outlined text-2xl leading-none text-primary">
+              {item.icon}
+            </span>
+          </span>
+        ) : (
+          <span
+            aria-hidden="true"
+            className="material-symbols-outlined shrink-0 text-[20px] text-text-secondary dark:text-gray-400"
+          >
+            {item.icon}
+          </span>
+        )}
         <span className="flex flex-col min-w-0">
           <span
             id={labelId}

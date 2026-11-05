@@ -28,6 +28,18 @@ export default function EditableCell({
     onChange(newValue)
   }
 
+  // Pasted text goes in as plain text: the cell saves its text only, so pasted formatting,
+  // links or images would show here but never be saved (phase 10a)
+  const handlePaste = (e) => {
+    e.preventDefault()
+    const text = e.clipboardData?.getData('text/plain') ?? ''
+    const plain = multiline ? text : text.replace(/\s*\n\s*/g, ' ')
+    if (!document.execCommand?.('insertText', false, plain)) {
+      e.currentTarget.textContent = (e.currentTarget.textContent || '') + plain
+    }
+    onChange(e.currentTarget.textContent || '')
+  }
+
   const handleKeyDown = (e) => {
     // Prevent Enter for single line
     if (!multiline && e.key === 'Enter') {
@@ -42,6 +54,7 @@ export default function EditableCell({
       contentEditable={!readOnly}
       onInput={handleInput}
       onKeyDown={handleKeyDown}
+      onPaste={handlePaste}
       suppressContentEditableWarning
       data-placeholder={placeholder}
       dir="ltr"

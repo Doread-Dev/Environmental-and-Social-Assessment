@@ -13,15 +13,21 @@ import { useParams, useSearchParams } from 'react-router-dom'
 import { useScreening } from '@/hooks'
 import ScreeningFormPage from './ScreeningFormPage'
 import ScreeningSummaryPage from './ScreeningSummaryPage'
-import { LoadingState } from '@/components/ui'
+import { ErrorState, LoadingState } from '@/components/ui'
 
 function ScreeningRouter() {
   const { projectId } = useParams()
   const [searchParams] = useSearchParams()
-  const { screening, isLoading } = useScreening(projectId)
+  const { screening, isLoading, loadError, refetch } = useScreening(projectId)
 
   // Check if we're in edit mode (from rejected status)
   const isEditMode = searchParams.get('edit') === 'true'
+
+  // A failed read is shown here, before the pages below mount the same query (a new observer of
+  // a failed query refetches it, which would loop between this router and the page)
+  if (loadError) {
+    return <ErrorState title="Failed to load the screening" message={loadError} onRetry={refetch} />
+  }
 
   // Show loading state
   if (isLoading) {

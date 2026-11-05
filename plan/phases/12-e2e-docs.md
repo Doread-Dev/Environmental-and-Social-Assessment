@@ -16,7 +16,12 @@
   6. Viewer: sees everything, no edit/export controls; direct API writes 403.
   7. Archive / restore; delete blocked when something is approved.
   8. Locked v3 buttons visible and inert.
-  9. Unhappy paths agreed in phase 10a (D61), at least: leaving an edited page asks Save / Discard / Stay; a 409 from a stale tab is shown and the page recovers; expired session mid-edit.
+  9. Unhappy paths agreed in phase 10a (D61, D73), at least:
+     - leaving an edited page (sidebar link, browser Back, sign out) asks Save / Discard / Stay; Save saves and leaves, Discard leaves, Stay keeps the input; refresh asks only while there are changes;
+     - two tabs on one Tool 3 table (and one screening): the second save shows "Someone else changed this", nothing is overwritten (check the rows through the API), Reload shows the other tab's rows, the next save works;
+     - an expired session mid-edit (token replaced by an expired one): the sign-in dialog opens over the page, the input is kept, signing in again and pressing Save stores it; "Sign in as someone else" ends on the login page;
+     - an unknown project id in a Tools 3/4 URL shows "Project not found" and sends one workspace request (no loop);
+     - a double click on Save sends one request.
 - One command to run; documented in `CLAUDE.md`.
 - Add the E2E run as a job in `.github/workflows/ci.yml`.
 

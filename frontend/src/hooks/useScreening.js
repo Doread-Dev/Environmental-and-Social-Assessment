@@ -105,6 +105,8 @@ export function useScreening(projectId) {
     isLoading: !!projectId && query.isPending,
     isSaving,
     error: error ?? (query.error ? extractErrorMessage(query.error) : null),
+    // The screening could not be read at all (not a failed save, not a failed background refresh)
+    loadError: query.error && query.data === undefined ? extractErrorMessage(query.error) : null,
     refetch: query.refetch,
     saveDraft,
     submit,

@@ -3,6 +3,8 @@ import { cn } from '@/utils'
 import { MAIN_NAV_ITEMS } from '@/routes/routes.config'
 import { useAuth } from '@/contexts'
 import BrandLogo from './BrandLogo'
+import { V3LockedSection } from './V3LockedNav'
+import { V3_LOCKED_LOCATIONS } from '@/routes/routes.config'
 
 /**
  * MainSidebar Component
@@ -54,6 +56,9 @@ function MainSidebar({ className }) {
             </NavLink>
           ))}
         </div>
+
+        {/* v3 modules, locked (D48, D70) */}
+        <V3LockedSection location={V3_LOCKED_LOCATIONS.ORGANIZATION} className="mt-6" />
       </nav>
 
       {/* Footer Section - Settings (Environmental Specialist only) */}

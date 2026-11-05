@@ -8,9 +8,11 @@ import {
   PROJECT_WORKFLOW_NAV,
   PROJECT_SECONDARY_NAV,
   ROUTES,
+  V3_LOCKED_LOCATIONS,
 } from '@/routes/routes.config'
 import { Avatar, Tooltip } from '@/components/ui'
 import BrandLogo from './BrandLogo'
+import { V3LockedSection } from './V3LockedNav'
 
 /**
  * MobileMenu Component
@@ -313,26 +315,35 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
             <div className="flex flex-col gap-1">
               {variant === 'main' ? (
                 // Main navigation
-                MAIN_NAV_ITEMS.map((item) => (
-                  <NavLink
-                    key={item.id}
-                    to={item.path}
-                    className={({ isActive }) =>
-                      cn(
-                        'flex items-center gap-3',
-                        'px-4 py-3 rounded-lg',
-                        'text-base font-medium',
-                        'transition-colors',
-                        isActive
-                          ? 'bg-primary/10 text-primary'
-                          : 'text-text-secondary hover:text-text-main hover:bg-background dark:hover:bg-background-dark'
-                      )
-                    }
-                  >
-                    <span className="material-symbols-outlined">{item.icon}</span>
-                    {item.label}
-                  </NavLink>
-                ))
+                <>
+                  {MAIN_NAV_ITEMS.map((item) => (
+                    <NavLink
+                      key={item.id}
+                      to={item.path}
+                      className={({ isActive }) =>
+                        cn(
+                          'flex items-center gap-3',
+                          'px-4 py-3 rounded-lg',
+                          'text-base font-medium',
+                          'transition-colors',
+                          isActive
+                            ? 'bg-primary/10 text-primary'
+                            : 'text-text-secondary hover:text-text-main hover:bg-background dark:hover:bg-background-dark'
+                        )
+                      }
+                    >
+                      <span className="material-symbols-outlined">{item.icon}</span>
+                      {item.label}
+                    </NavLink>
+                  ))}
+
+                  {/* v3 modules, locked (D48, D70) */}
+                  <V3LockedSection
+                    location={V3_LOCKED_LOCATIONS.ORGANIZATION}
+                    className="mt-6"
+                    headingClassName="px-4"
+                  />
+                </>
               ) : (
                 // Project navigation
                 <>
@@ -461,6 +472,13 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                       </NavLink>
                     )
                   })}
+
+                  {/* v3 modules, locked (D48, D70) */}
+                  <V3LockedSection
+                    location={V3_LOCKED_LOCATIONS.PROJECT_SUPPORT}
+                    className="mt-4"
+                    headingClassName="px-4"
+                  />
                 </>
               )}
             </div>

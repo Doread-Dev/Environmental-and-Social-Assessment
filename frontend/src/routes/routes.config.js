@@ -140,6 +140,58 @@ export const PROJECT_WORKFLOW_NAV = [
 ]
 
 /**
+ * Where the locked v3 buttons sit (D48, D59), with the heading shown above them (if any)
+ */
+export const V3_LOCKED_LOCATIONS = Object.freeze({
+  SEMP_OVERVIEW: 'semp_overview',
+  PROJECT_SUPPORT: 'project_support',
+  ORGANIZATION: 'organization',
+})
+
+export const V3_LOCKED_HEADINGS = Object.freeze({
+  [V3_LOCKED_LOCATIONS.PROJECT_SUPPORT]: 'Project support tools',
+  [V3_LOCKED_LOCATIONS.ORGANIZATION]: 'Organization tools',
+})
+
+/**
+ * v3 modules shown as locked buttons (D48, D70). They are not links and have no route; no env
+ * variable, query flag or role turns them on — building the module in v3 does. `place` is the
+ * module's key in the backend places registry (D64 a).
+ */
+export const V3_LOCKED_NAV = Object.freeze([
+  {
+    id: 'semp-plan',
+    label: 'SEMP Plan',
+    icon: 'assignment',
+    location: V3_LOCKED_LOCATIONS.SEMP_OVERVIEW,
+    place: 'semp_plan',
+    description:
+      "The project's Social and Environmental Management Plan document: roles, responsibilities, objectives, training, incidents and records.",
+  },
+  {
+    id: 'stakeholder-awareness',
+    label: 'Stakeholder Awareness',
+    icon: 'campaign',
+    location: V3_LOCKED_LOCATIONS.PROJECT_SUPPORT,
+    place: 'stakeholder_awareness',
+  },
+  {
+    id: 'ghg-emissions',
+    label: 'GHG Emissions',
+    icon: 'co2',
+    location: V3_LOCKED_LOCATIONS.ORGANIZATION,
+    place: 'ghg_emissions',
+  },
+  {
+    id: 'environmental-data',
+    label: 'Environmental Data Collection',
+    icon: 'dataset',
+    location: V3_LOCKED_LOCATIONS.ORGANIZATION,
+    place: 'environmental_data',
+  },
+])
+
+/**
  * Secondary navigation items for ProjectSidebar
  */
 export const PROJECT_SECONDARY_NAV = [

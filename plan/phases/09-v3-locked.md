@@ -1,41 +1,41 @@
-# Phase 9 — v3 modules as locked code
+# Phase 9 — v3 locked buttons
 
-**Goal:** port the four v3 modules so v3 only has to switch them on, while in v2 they are **unreachable**: no mounted endpoint, no route, not in the frontend bundle. The UI shows locked buttons.
+**Goal:** the four v3 modules show as **locked buttons** in the agreed places. Nothing of the modules themselves is built or ported: no endpoint, no route, no model, no page, no `v3/` folder (D70). Their designs are kept in [V3_VISION.md](../V3_VISION.md) for the v3 review.
 
-**Decisions:** D46, D48 (+ D47 §7 area already in the file module, D64 places, D65 critical-actions log, D66 access seams).
+**Decisions:** D46, D48 (locked buttons, no switch), D59 (SEMP Plan button place), D64 (place keys), D70 (no port of the v2 module code).
 
-## Modules and v2 sources
+## Locked buttons
 
-| Module | Scope | v2 backend | v2 frontend | Locked button location |
-|---|---|---|---|---|
-| SEMP Plan | Project | `models/sempPlan.model.js`, `services/sempPlan.service.js`, `validators/sempPlan.validator.js`, `controllers/sempPlan.controller.js`, `routes/sempPlan.routes.js` | `pages/project-workspace/semp-plan/SempPlanPage.jsx`, `hooks/useSempPlan.js`, `services/sempPlanService.js`, `utils/excelExport/sempWorkbook.js`, `exportSempPlan.js`, `constants/sempRecordCategories.js` | SEMP overview page, in place of the "Coming soon" card (D59) |
-| Stakeholder Awareness | Project | `stakeholderAwarenessReport.*` (model/service/validator/controller/routes) | `pages/project-workspace/stakeholder-awareness/`, `hooks/useStakeholderAwarenessReport.js`, `services/stakeholderAwarenessService.js`, `utils/stakeholderAwareness.js` | Project sidebar, "Project support tools" section |
-| GHG Emissions | Organization | `organizationGhgReport.*` | `pages/organization/ghg-emissions/`, `hooks/useGhgEmissionsReport.js`, `services/ghgEmissionsService.js`, `utils/ghgEmissions.js` | Main sidebar + mobile menu, "Organization tools" |
-| Environmental Data Collection | Organization | `organizationEnvironmentalDataReport.*` | `pages/organization/environmental-data-collection/`, `hooks/useEnvironmentalDataCollectionReport.js`, `services/environmentalDataCollectionService.js`, `utils/environmentalDataCollection.js` | Main sidebar + mobile menu, "Organization tools" |
+| Module | Scope | Place key | Button location |
+|---|---|---|---|
+| SEMP Plan | Project | `semp_plan` | SEMP overview page, in place of the "Coming soon" card (D59) |
+| Stakeholder Awareness | Project | `stakeholder_awareness` | Project sidebar, under "Project support tools" |
+| GHG Emissions | Organization | `ghg_emissions` | Main sidebar + mobile menu, under "Organization tools" |
+| Environmental Data Collection | Organization | `environmental_data` | Main sidebar + mobile menu, under "Organization tools" |
 
-## How "locked" is built
-- Backend code lives under `backend/src/v3/<module>/` (or the normal folders with a clear `v3` marker — decide once). Routers are **not** required from `routes/index.js`. Models are not registered at startup (nothing requires them), so no collection is created.
-- Frontend code lives under `frontend/src/v3/<module>/`; no route in `routes/index.jsx` imports it, so Vite leaves it out of the build. ESLint/Prettier still check it.
-- One constant `V3_LOCKED_NAV` in `routes.config.js` describes the locked buttons (label, icon, location). Locked buttons are not links: lock icon + "Available in v3" tooltip, keyboard-accessible.
-- No env variable, query flag or role can enable them. Enabling = a code change in v3.
-- **D69:** the SEMP Plan must not prefill its narrative inputs (v2 copies them from the approved Tools 1/2); they start empty.
-- While porting, align the code with our rules so v3 needs little rework: `admin` role in writer lists, auth on every route, no `status`-style client fields, shared `normalizeResponsibility`, project delete cascade includes SEMP Plan, Stakeholder reports and `semp_record` files (cascade code written but only active when the module is), files via our `ProjectFile` module (not v2 attachments), no v2 feature-flag code (`featureAccess.js`, `FeatureRouteGuard`).
-
-## Places, log and access (D64–D66)
-- Each module's page uses its place key from `config/places.js` (`semp_plan`, `stakeholder_awareness`, `ghg_emissions`, `environmental_data`) for its "Guidance" button, so library documents already linked to it show up when v3 opens.
-- Critical actions in the ported (dead) code (deletes, user/access changes) call the shared audit helper; project-scoped modules use the project-access check and `requirePermission` (D66). Organisation modules (GHG, Environmental Data) are not project-scoped.
+- One constant `V3_LOCKED_NAV` in `routes/routes.config.js` describes each button: label, Material Symbols icon, location, place key.
+- A locked button is **not a link** and has no route: lock icon, "Available in v3", keyboard-focusable, `aria-disabled` + a description. Light and dark mode, desktop and 375 px. AKF tokens only (D49), `components/ui` + `cn()`.
+- Every role sees them, the viewer included. No env variable, query flag or role can enable them; enabling = building the module in v3.
 
 ## Tests
-- A test that lists the mounted Express routes and fails if any v3 path (`/semp-plan`, `/stakeholder-awareness`, `/organization-*`) is reachable.
-- Build test: the production bundle contains none of the v3 page names (grep `dist/`).
-- Unit tests for pure v3 helpers (normalizers, summaries) so they don't rot.
-- Locked buttons render, are not navigable, show the tooltip.
+- The buttons render in each location (main sidebar, mobile menu, project sidebar, SEMP overview), have no `href`, a click does not navigate, and expose the "Available in v3" description.
+- The frontend router has no v3 route.
+- Backend route table: fails if any v3 path (`/semp-plan`, `/stakeholder-awareness`, `/organization-*`) is mounted.
+- `semp_record` files still answer 404 (existing test in `projectFiles.test.js`).
+
+## v3 notes (for when the modules are built)
+- **D69:** the SEMP Plan must not prefill its narrative inputs (v2 copies them from the approved Tools 1/2); they start empty.
+- The rest of the agreed rules (D46, D47, D64–D66) is in [V3_VISION.md](../V3_VISION.md) → "v3 modules (designs kept from v2)".
 
 ## Done when
-- [ ] v3 endpoints unreachable, pages absent from the bundle, locked buttons visible in the agreed places.
-- [ ] `CLAUDE.md` explains the `v3/` folders and how v3 will enable them.
+- [x] Locked buttons visible in the agreed places for every role; not navigable; no v3 route or endpoint.
+- [x] `CLAUDE.md` describes the locked buttons, D70, and that there are no `v3/` folders.
 
 ## Out of scope
-Turning any of them on.
+Building, porting or turning on any of the four modules.
 
 ## Found during phase
+- **Choices made here:** the SEMP Plan card shows on every SEMP overview (the old "Coming soon" banner showed only once Tools 3/4 were open); Stakeholder Awareness also shows in the project variant of the mobile menu, the project sidebar's counterpart below `lg`. The unused `SempCTABanner` was removed.
+- **Not fixed (UI polish, phase 10):** at 375 px the long project title overflows: in the project mobile menu it runs past its card, and a fragment of it is drawn over the page heading (seen on the SEMP overview with the demo project). Not caused by this phase.
+- **Not fixed (script):** `seed-demo-project.js` on an empty database stops with `400 "value" must contain at least 1 items` on the scores call; it needs `npm run seed` first. The order is right, the error message is not helpful.
+- Browser check: throwaway DB `esms_phase9_check` (dropped afterwards), ports 3001/5174 (stopped); 3000/5173 and `esms` untouched.

@@ -79,8 +79,11 @@ What it does (it prints each step; any `FAILED` line says what to fix, then run 
 4. `-ConfigureMongo` adds the replica set (`replication: replSetName: rs0`) to MongoDB's
    `mongod.cfg` (a copy is kept as `mongod.cfg.before-esms`), restarts MongoDB and initiates the
    replica set, and fills the lookup lists (impact questions, indicators, job titles);
-5. creates the Windows service **ESMS** (starts with Windows, after MongoDB, restarts by itself
-   after a crash, runs as the low-privilege account `NT SERVICE\ESMS`, logs in `C:\ESMS\logs`);
+5. creates the Windows service **ESMS** (starts with Windows, restarts by itself after a crash,
+   runs as the low-privilege account `NT SERVICE\ESMS`, logs in `C:\ESMS\logs`). It does not
+   depend on the MongoDB service: when MongoDB is stopped or restarted, ESMS keeps running, shows
+   errors meanwhile and recovers by itself once MongoDB is back; at boot the start order does
+   not matter (ESMS retries until MongoDB answers);
 6. creates the scheduled task **ESMS Backup** (every day at 02:00);
 7. starts ESMS and runs the server check.
 
@@ -144,6 +147,10 @@ open Task Scheduler → *ESMS Backup* → *Properties* → *Change User or Group
 that can write to the share (tick *Run whether user is logged on or not*).
 
 ## Daily operation
+
+Restarting MongoDB (updates, maintenance) needs nothing else: ESMS keeps running, answers with
+errors while MongoDB is away, and works again within a few seconds once MongoDB is back. There is
+no need to restart ESMS afterwards.
 
 | Task | Command (administrator PowerShell) |
 |---|---|

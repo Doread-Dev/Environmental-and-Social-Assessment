@@ -190,20 +190,30 @@ $settings = @(
   @('DisplayName', $ServiceName),
   @('Description', 'ESMS - Environmental and Social Management System (Node.js)'),
   @('Start', 'SERVICE_AUTO_START'),
-  @('DependOnService', $MongoServiceName),
   @('AppStdout', (Join-Path $logDir 'esms-out.log')),
   @('AppStderr', (Join-Path $logDir 'esms-err.log')),
   @('AppRotateFiles', '1'),
   @('AppRotateOnline', '1'),
   @('AppRotateBytes', '10485760'),
   @('AppStopMethodConsole', '15000'),
+  # No dependency on the MongoDB service (owner's service test, 2026-11-06): with one, stopping
+  # or restarting MongoDB stopped ESMS too, and Windows never started it again. Instead the app
+  # keeps running while MongoDB is away (requests fail meanwhile) and reconnects by itself; at
+  # boot, server.js exits when MongoDB does not answer within 10 s and NSSM starts it again.
   @('AppExit', 'Default', 'Restart'),
-  @('AppRestartDelay', '5000')
+  @('AppRestartDelay', '5000'),
+  # An exit within 1.5 s of the start counts as a crash loop and NSSM waits longer each time. A
+  # failed MongoDB connect exits only after the 10 s timeout, so boot retries stay every ~15 s.
+  @('AppThrottle', '1500')
 )
 foreach ($s in $settings) {
   $out = Invoke-Native $NssmPath (@('set', $ServiceName) + $s)
   if ($LASTEXITCODE -ne 0) { Fail "nssm set $ServiceName $($s -join ' '): $out" }
 }
+# An install from before 2026-11-06 depended on MongoDB: clear it on an update.
+Invoke-Native $NssmPath @('reset', $ServiceName, 'DependOnService') | Out-Null
+$dependsOn = @((Get-Service -Name $ServiceName).ServicesDependedOn | ForEach-Object { $_.Name })
+if ($dependsOn.Count -gt 0) { Fail "$ServiceName still depends on $($dependsOn -join ', '): run nssm reset $ServiceName DependOnService" }
 # Its own low-privilege account: reads the app, writes only its uploads and logs.
 Invoke-Native sc.exe @('config', $ServiceName, 'obj=', $serviceAccount) | Out-Null
 if ($LASTEXITCODE -ne 0) { Fail "could not set the service account $serviceAccount" }

@@ -130,6 +130,15 @@ This is also how documents that must never be in the code repository reach the s
 the library's **Annex 1** PDF (a client document): upload it once in the app, and it travels in
 the backups.
 
+## When MongoDB restarts
+
+ESMS does not depend on the MongoDB service (no Windows service dependency; on Linux only
+`Wants=`/`After=`): when MongoDB is stopped or restarted (an update, maintenance), ESMS keeps
+running, answers with errors meanwhile, and reconnects by itself once MongoDB is back. At boot the
+start order does not matter: if MongoDB is not answering yet, ESMS stops after 10 seconds and the
+service manager (NSSM / systemd) starts it again until MongoDB answers. Stopping ESMS on purpose
+(`Stop-Service ESMS`, `systemctl stop esms`) keeps it stopped.
+
 ## Logs and health
 
 - Health: `http://127.0.0.1:3000/health` → `{"success":true,"message":"Server is running"}`.

@@ -1,6 +1,6 @@
 # ESMS v2 — Phase plan
 
-What we build is decided in [DECISIONS.md](DECISIONS.md) (D1–D75). This file says **in which order**. Each phase is done in its own conversation: open the phase file, do exactly that scope, finish with its "Done when" list.
+What we build is decided in [DECISIONS.md](DECISIONS.md) (D1–D76). This file says **in which order**. Each phase is done in its own conversation: open the phase file, do exactly that scope, finish with its "Done when" list.
 
 The v2 prototype (`Environmental-and-Social-Assessment-main version 2/`, git-ignored) is a **reference only** — see [V2_INVENTORY.md](V2_INVENTORY.md). Port code from it only where a phase file names it; never edit it. Anything from v2 not covered by a decision: keep this repo's behavior and ask the owner.
 
@@ -23,8 +23,9 @@ The v2 prototype (`Environmental-and-Social-Assessment-main version 2/`, git-ign
 | 10 | [UI polish (system-wide pass)](phases/10-ui-polish.md) | D43, D71 | 9 |
 | 10a | [Unhappy paths & edge cases](phases/10a-unhappy-paths.md) | D61, D62, D73 | 10 |
 | 11 | [Offline & server deployment](phases/11-offline-deploy.md) | D6, D37, D38, D63 d | 10a |
-| 12 | [E2E tests & documentation](phases/12-e2e-docs.md) | D39, D44 | 11 |
-| 13 | [Page-by-page UI/UX review](phases/13-page-by-page-ui-review.md) | D71, D72 | 12 |
+| 12 | [E2E tests & documentation](phases/12-e2e-docs.md) | D39, D44, D76 | 11 |
+| 13 | [Page-by-page UI/UX review & design system](phases/13-page-by-page-ui-review.md) | D71, D72, D76 4 | 12 |
+| 14 | [User guide](phases/14-user-guide.md) | D76 1 | 13 |
 
 Order matters: removals before new code (less to secure), backend rules before the frontend switches to them, data layer before the UI work that sits on it, deployment last because Vercel stays in use until then (D38).
 
@@ -67,3 +68,4 @@ Order matters: removals before new code (less to secure), backend rules before t
 | 11 | Done (owner reviews; Windows service/task registration and the Linux path still to run once on a real machine) | `claude/phase-11-offline-deploy-4c7f17` | Owner concept as D75: offline (Material Symbols bundled, Speed Insights gone, no inline script), Express serves `frontend/dist` (cache headers, SPA fallback; Vercel kept until the server is live, same-origin `/api/v1` when `VITE_API_URL` is unset), CORS only with `FRONTEND_URL`, CSP with `frame-src blob:`, `express-rate-limit` 8 + `ipKeyGenerator`; single-node replica set with `atomic()` transactions for every critical action + audit entry and the Tools 3–5 bulk saves; `deploy/` for Windows (NSSM, PowerShell) and Ubuntu (systemd, bash), IIS/nginx examples, release builder, guides; daily backup (mongodump + uploads, 30 days, second disk/share) with restore check run on Windows; CI jobs Backend (replica set) + Deploy scripts; 926 backend / 410 frontend tests, lines backend 96% / frontend 78% |
 | 12 | Not started | | |
 | 13 | Not started | | |
+| 14 | Not started | | |

@@ -2,7 +2,9 @@
 
 **Goal:** every screen looks finished, consistent and behaves well, so the version ships clean — enterprise-grade QA/UX is release scope (D72). Phase 10 unified what is shared across the app (components, tokens, type scale, states); this phase walks **every element of every screen, one by one, UI and UX**, and cleans what is left.
 
-**Decisions:** D71, D72 (+ D43, D49, STYLE_GUIDE rules in `CLAUDE.md`).
+**Owner's aim (D76 4, 2026-11-06; to be refined in this phase's own concept talk):** this is the **design-system phase**. The owner wants a full design system and enterprise-grade UI/UX, down to hover states and the smallest details, plus front-end performance. The v3 restructure must be able to reuse that UI and design system as it is. Phase 12 wrote no design-system doc: today's style rules sit in `docs/` in a short section marked "replaced by the design system of phase 13"; this phase replaces that section.
+
+**Decisions:** D71, D72, D76 4 (+ D43, D49, the style rules in `docs/` — today's rules, replaced by this phase's design system).
 
 **Fed by every phase (D72):** each phase writes the UI/UX issues it finds below, under its screen, instead of fixing them on the side.
 

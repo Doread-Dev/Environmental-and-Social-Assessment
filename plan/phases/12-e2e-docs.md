@@ -52,9 +52,107 @@
 - Docs: a test (or CI step) fails if `backend/docs/` or `frontend/docs/` come back, and checks that every route in the route table appears in the API reference.
 
 ## Done when
-- [ ] Every item under Tests has a test (file names listed in Result).
-- [ ] E2E suite green and running in CI; docs reviewed by the owner.
-- [ ] Untested-modules list in the PR body and below, for the owner's review; coverage floors raised.
-- [ ] `plan/README.md` progress table complete.
+- [x] Every item under Tests has a test (file names listed in Result).
+- [x] E2E suite green and running in CI (job **E2E**); docs reviewed by the owner — *open: owner review*.
+- [x] Untested-modules list in the PR body and below, for the owner's review; coverage floors raised.
+- [x] `plan/README.md` progress table complete.
+
+## Result
+
+Branch `claude/phase-12-e2e-docs-a8d581`. Owner's concept answers written as **D76**; new
+[phase 14](14-user-guide.md) (user guide); phase 13 Goal carries the design-system aim (D76 4).
+
+**E2E (`e2e/`).** Own package (Playwright **1.65.0**, ExcelJS 4.4.0, exact versions, lockfile),
+Chromium only (`channel: 'chromium'`, new headless; no separate headless shell), one worker, no
+retries, web-first assertions, no fixed sleeps. `npm test` = build the frontend into
+`e2e/.build/dist` with an empty `VITE_API_URL` (same guard as the release builder) + run every flow.
+`scripts/start-server.mjs` is the Playwright web server: refuses a database not ending in `_test`,
+drops `esms_e2e_test`, seeds the lookups, creates the bootstrap admin, then runs
+`backend/src/server.js` with `NODE_ENV=production` on **port 3100**, every setting set explicitly (no
+developer `.env` leaks in). Each flow creates its own users (through the admin API, temporary
+password → own password, like a real user) and projects (`projectAt(step)`), never the demo project.
+19 tests, ~3.5 min locally. CI job **E2E**: MongoDB 7.0 as replica set `rs0`, backend installed with
+`--omit=dev`, e2e lint + Prettier, `playwright install --with-deps --no-shell chromium`, `npm test`;
+Playwright report + traces uploaded on failure.
+
+**Test gaps (D76 3).** New unit/integration tests for every module with logic that had none (list
+under Tests). Coverage: backend lines 96.5 → **97.4 %** (949 tests), frontend lines 78 → **87.2 %**
+(494 tests). Floors raised: backend 95/90/94/96 → **96/91/95/97**, frontend 77/72/71/78 →
+**85/78/80/87** (statements/branches/functions/lines).
+
+**Docs (D44, D76).** `backend/docs/` and `frontend/docs/` deleted. New `docs/`: `README.md` (index),
+`architecture.md`, `api-reference.md` (per router, all 55 routes), `data-models.md`,
+`roles-and-permissions.md` (matrices checked against the code), `workflow-rules.md`,
+`developer-guide.md`, `style-guide.md` (old STYLE_GUIDE translated + the CLAUDE.md style rules,
+marked "replaced by the design system of phase 13"). Deployment and backups link `deploy/` (three
+backup details that were only in CLAUDE.md moved into `deploy/README.md`). New root `README.md`;
+`backend/README.md` and `frontend/README.md` reduced to pointers. `CLAUDE.md` rewritten (200 → ~140
+lines): every rule kept or linked to the doc it moved to.
+
+### Tests, item by item
+- **One spec per golden flow (1–11), CI job:** `e2e/tests/01-admin-creates-users.spec.js`,
+  `02-screening-submit-approve.spec.js`, `03-assessment-defaults-submit-approve.spec.js`,
+  `04-semp-bulk-save-monitoring.spec.js`, `05-documents-and-library.spec.js`,
+  `05a-critical-actions-log.spec.js`, `06-viewer-read-only.spec.js`,
+  `07-archive-restore-delete.spec.js`, `08-v3-locked-buttons.spec.js`,
+  `09-unhappy-paths.spec.js` (5 tests: leave guard incl. Back, sign-out and refresh; two tabs on
+  Tool 3 and screening; expired session; unknown project id; double click), `10-excel-export.spec.js`,
+  `11-arabic-text.spec.js`; `.github/workflows/ci.yml` job `e2e`.
+- **UI + stored state through the API:** every spec (status, `status_history`, audit entries, rows,
+  files, versions).
+- **Viewer: every write endpoint the UI uses → 403:** `06-viewer-read-only.spec.js` (34 write
+  routes, then "nothing changed").
+- **Excel export:** `10-excel-export.spec.js` (Tool 1 and Tool 3 files + project workbook: sheet
+  names, `Tool1_<title>_Approved_<date>.xlsx` / `Tool3_…_Completed_…` / `ESMS_<title>_<date>.xlsx`,
+  key cells, footers).
+- **Arabic:** `11-arabic-text.spec.js` (typed in the UI; API values exact; shown after reload;
+  every exported cell `readingOrder: 'rtl'`).
+- **Test gaps:** backend `tests/coverageGaps.test.js` (error handler branches, ApiError,
+  `GET /monitoring/:id`, `connectDB` failure, a real `server.js` start + `/health` + shutdown);
+  frontend `services/toolServices.test.js` (screening/assessment services, query client retry
+  rules), `components/appShell.test.jsx` (ErrorBoundary incl. chunk reload, OfflineBanner,
+  `useOnlineStatus`), `components/ui/navigationPrimitives.test.jsx` (Pagination, Tooltip, Accordion),
+  `utils/excelExport/index.test.js`, `components/layout/Header.test.jsx` (Header + ProfilePage),
+  `pages/projects/ProjectListPage.test.jsx`, `pages/project-workspace/monitoring/MonitoringOverviewPage.test.jsx`,
+  `pages/auth/LoginPage.test.jsx` (form added), `contexts/ThemeContext.test.jsx` (+ ImpactScoreRow,
+  WorkflowProgressBar), `components/semp/sempTables.test.jsx` (Tools 3/4 grids).
+- **Docs:** `backend/tests/docs.test.js` (old docs folders absent, every route in the API
+  reference, permission matrices = `config/permissions.js`, no broken relative link in `docs/`,
+  READMEs, `CLAUDE.md`).
 
 ## Found during phase
+
+**Modules left without a direct unit test (D76 3), for the owner's review:**
+- `frontend/src/App.jsx`, `main.jsx`, `fonts.js` — wiring only (providers, imports); every E2E flow
+  loads them; `fonts.test.js` / `offline.test.js` check the font imports.
+- `components/layout/MainLayout.jsx`, `AuthLayout.jsx`, `pages/NotFoundPage.jsx` — display only, no
+  logic (MainLayout only passes the mobile-menu open state to Header / MobileMenu).
+- `components/dashboard/ScreeningCategoryBadge.jsx`, `components/monitoring/MonitoringCategoryCard.jsx`,
+  `MonitoringProgressTimeline.jsx`, `components/assessment/MetadataFormSection.jsx`,
+  `ConsultationChecklistItem.jsx`, `components/screening/ImpactSection.jsx` — display components
+  (rendered in page tests and E2E, no logic of their own).
+- Low but not zero unit coverage, flows covered end to end: `ScreeningFormPage` (41 %),
+  `AssessmentGatewayPage` (36 %), `AssessmentScoringPage` (55 %), `ScreeningSummaryPage` (59 %),
+  `AssessmentReviewPage` (63 %) — each has unit tests (unsaved changes, stale save, D74 rules) and is
+  driven by E2E flows 2, 3, 9, 10, 11.
+- `backend/src/server.js` shows 0 % because it runs in a child process (`coverageGaps.test.js`,
+  `productionChecks.test.js` and E2E start it); `src/db/seed.js` 80 % (its CLI wrapper; the data
+  function is used by every test).
+
+**Other findings:**
+- **Playwright's Chromium and `Content-Disposition: attachment`:** under Playwright 1.65 (Chromium
+  158) a `fetch` of the file download endpoints reaches the page as an empty **204**, although the
+  server sends 200 with the file (server log; Chrome 152 in the app's browser pane gets the bytes).
+  The E2E fixture (`e2e/support/test.js`) passes those two endpoints through Playwright unchanged.
+  *Owner: please download one project file and one library PDF in your current Chrome/Edge to make
+  sure real browsers are not affected.*
+- **This machine:** Playwright's Chromium does not start from `%LOCALAPPDATA%\ms-playwright` ("side-by-side
+  configuration is incorrect"); the same files start from another folder. Local runs use
+  `PLAYWRIGHT_BROWSERS_PATH` (in the developer guide and CLAUDE.md). CI (Linux) is not affected.
+- **Header "Export Excel" race:** a click before the tool page has loaded is lost (UI issue, written
+  into phase 13 with three other UI findings).
+- `components/ui/Accordion.jsx` is not used anywhere (tested now; phase 13 can remove or use it).
+- The error handler returns the message of an unexpected (non-`ApiError`) error to the client with
+  status 500 (e.g. a library message). Not changed (behaviour, not in scope); worth a look in a
+  security pass.
+- `.claude/launch.json` gained an `e2e-server` entry (port 3100) for the preview pane.

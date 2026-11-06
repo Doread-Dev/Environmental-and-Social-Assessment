@@ -1,86 +1,54 @@
-# Environmental and Social Assessment (ESMS)
+# ESMS — Environmental and Social Management System
 
-> An app system for managing environmental and social assessments of development projects — React frontend and Express/MongoDB backend.
+A workflow application for the environmental and social due diligence of development projects
+(Aga Khan Foundation – Syria). A project goes through five tools in a fixed order:
 
-## Overview
+**Screening (Tool 1) → Assessment (Tool 2) → SEMP: Management activities (Tool 3) + Mitigation plan
+(Tool 4) → Monitoring (Tool 5)**
 
-**Why this project exists.** Development projects often need structured environmental and social due diligence: screening, assessment, SEMP (Social and Environmental Management Plan), and monitoring. Doing this in spreadsheets or ad-hoc tools is error-prone and hard to audit. This project provides a single, auditable workflow from screening through monitoring, with role-based access and document storage.
+Editors fill in and submit each tool; environmental specialists approve or reject screenings and
+assessments; viewers read. Projects keep their documents; a reference library holds organisation
+guidance shown next to the tools; admins manage users and read a log of critical actions. Every tool
+exports to Excel. The app runs offline on one internal server.
 
-**What it is.** The **Environmental and Social Management System (ESMS)** is one product from a user’s perspective: you log in, work with projects, run screenings and assessments, maintain SEMPs and monitoring, and attach annex files. Under the hood it is **two applications**: a **frontend** (React 19, Vite 7, Tailwind CSS, React Router 7) and a **backend** (Node.js, Express, MongoDB, Mongoose, JWT). The frontend talks to the backend REST API; the backend handles auth, business logic, and persistence. It is **not** a generic project-management tool — it is focused on the ESMS workflow (screening → assessment → SEMP → monitoring) and related lookups, users, and attachments.
+## Repository
 
-## Quick Start
+| Folder | What |
+|---|---|
+| [`backend/`](backend) | Node.js 26 + Express 4 + Mongoose 8 REST API (`/api/v1`); in production it also serves the frontend |
+| [`frontend/`](frontend) | React 19 + Vite 7 + TanStack Query + Tailwind CSS 4 single-page app |
+| [`e2e/`](e2e) | Playwright end-to-end tests of the golden flows |
+| [`deploy/`](deploy) | server install, backup and restore for Windows Server and Ubuntu |
+| [`docs/`](docs) | technical documentation |
+| [`plan/`](plan) | the rework plan: decisions (D1–D76) and phases |
 
-1. **Prerequisites:** Node.js (LTS) and a running MongoDB (local or remote).
+## Quick start (development)
 
-2. **Backend (API):**
-   - Install dependencies:
-    ```bash
-      cd backend
-      npm install
-    ```
-   - Create `backend/.env` from the example:
-     - Windows PowerShell:
-       ```bash
-       Copy-Item .env.example .env
-       ```
-     - macOS/Linux/Git Bash:
-       ```bash
-       cp .env.example .env
-       ```
-   - Set required env vars in `backend/.env`:
-     - `MONGODB_URI` (required)
-     - `JWT_SECRET` (required, **32+ chars**)
-     - (optional) `PORT` (default `3000`), `JWT_EXPIRES_IN`, `FRONTEND_URL` (default dev origin `http://localhost:5173`)
-   - (Recommended) Seed lookups (impact categories/questions, indicators, job titles):
-     ```bash
-     npm run seed
-     ```
-   - Run the API:
-     ```bash
-     npm run dev
-     ```
-     Health check: `GET http://localhost:3000/health`  
-     API base: `http://localhost:3000/api/v1`
+Needs Node 26 and a local MongoDB.
 
-3. **Frontend (Web UI):**
-   - Install dependencies:
-    ```bash
-      cd frontend
-      npm install
-    ```
-   - Create `frontend/.env` from the example and set the API base URL:
-     - Windows PowerShell:
-       ```bash
-       Copy-Item .env.example .env
-       ```
-     - macOS/Linux/Git Bash:
-       ```bash
-       cp .env.example .env
-       ```
-     - In `frontend/.env`, set:
-       - `VITE_API_URL=http://localhost:3000/api/v1`
-   - Run the frontend:
-     ```bash
-     npm run dev
-     ```
-   - Open the Vite URL (default `http://localhost:5173`).
+```bash
+cd backend && npm ci
+```
 
-For more details (including env vars and seed behavior), see [backend/README.md](backend/README.md) and [frontend/README.md](frontend/README.md).
+Create `backend/.env` with at least `MONGODB_URI`, `JWT_SECRET` (32+ characters) and
+`FRONTEND_URL=http://localhost:5173` ([all settings](docs/developer-guide.md#backendenv)), then:
+
+```bash
+cd backend && npm run seed && node scripts/create-admin.js && npm run dev
+```
+
+```bash
+cd frontend && npm ci && npm run dev
+```
+
+Open http://localhost:5173 and sign in with the admin you created.
+
+Tests: `npm test` in `backend/` and `frontend/`; the end-to-end flows with `npm test` in `e2e/`
+([developer guide](docs/developer-guide.md#tests)).
 
 ## Documentation
 
-| Area | Where to go |
-|------|-------------|
-| **Frontend** — setup, scripts, tech stack | [frontend/README.md](frontend/README.md) |
-| **Frontend** — architecture, routing, state, API, components, hooks, features | [frontend/docs/](frontend/docs/) (e.g. [ARCHITECTURE.md](frontend/docs/ARCHITECTURE.md), [SERVICES_AND_API.md](frontend/docs/SERVICES_AND_API.md), [FEATURES.md](frontend/docs/FEATURES.md)) |
-| **Backend** — setup, scripts, env vars | [backend/README.md](backend/README.md) |
-| **Backend** — architecture, API reference, models, auth, middlewares, config | [backend/docs/](backend/docs/) (e.g. [ARCHITECTURE.md](backend/docs/ARCHITECTURE.md), [API_REFERENCE.md](backend/docs/API_REFERENCE.md), [CONFIGURATION_AND_DEPLOYMENT.md](backend/docs/CONFIGURATION_AND_DEPLOYMENT.md)) |
-
-## Environment Setup
-
-- **Node:** Use an LTS version. Both `frontend` and `backend` have their own `package.json`; install in each folder with `npm install`.
-- **MongoDB:** Required for the backend. Run MongoDB locally or use a cloud instance and set the connection string in the backend `.env`.
-- **Backend `.env`:** In `backend/`, define at least the MongoDB URL, JWT secret, and any port/CORS/origin you need. All supported variables and production notes are in [backend/README.md](backend/README.md) and [backend/docs/CONFIGURATION_AND_DEPLOYMENT.md](backend/docs/CONFIGURATION_AND_DEPLOYMENT.md).
-- **Frontend API base URL:** The frontend uses an API base URL (often via env or config) to call the backend. Point it to your backend (e.g. `http://localhost:3000` in development). Details in [frontend/README.md](frontend/README.md) and [frontend/docs/SERVICES_AND_API.md](frontend/docs/SERVICES_AND_API.md).
-
-After cloning, run `npm install` in both `frontend` and `backend`, configure the backend `.env`, then start backend and frontend as in [Quick Start](#quick-start).
+- [Technical docs](docs/README.md): architecture, API reference, data models, roles and
+  permissions, workflow rules, developer guide, style rules.
+- [Server installation and backups](deploy/README.md) (for IT).
+- [Decisions](plan/DECISIONS.md) and [phase plan](plan/README.md).

@@ -3,6 +3,9 @@
 [Unit]
 Description=ESMS (Environmental and Social Management System)
 Documentation=file:///opt/esms/deploy/INSTALL-LINUX.md
+# Wants/After only: start after MongoDB at boot, but a MongoDB stop or restart never stops ESMS
+# (no Requires=, BindsTo= or PartOf=). The app reconnects by itself; if MongoDB is not up at
+# boot, server.js exits after 10 s and Restart=always starts it again.
 After=network-online.target mongod.service
 Wants=network-online.target mongod.service
 

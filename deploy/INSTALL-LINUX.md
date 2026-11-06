@@ -88,7 +88,8 @@ What it does (each step is printed; a `FAILED` line says what to fix, then run i
    `mongod.conf.before-esms`), restarts MongoDB, initiates the replica set, and fills the lookup
    lists;
 5. installs `esms.service` (starts with the server, restarts after a crash, may write only to the
-   uploads folder) and `esms-backup.timer` (every day at 02:00);
+   uploads folder; a MongoDB restart does not stop it, it recovers by itself) and
+   `esms-backup.timer` (every day at 02:00);
 6. starts ESMS and runs the server check.
 
 It must end with `ESMS answers on http://127.0.0.1:3000/health` and the check list.

@@ -114,15 +114,87 @@ describe("deploy/windows/install.ps1 names", () => {
     expect(install).not.toMatch(/@\('DisplayName', '[^']*'\)/);
   });
 
-  it("the service account, the backup task and the MongoDB dependency come from parameters", () => {
+  it("the service account and the backup task come from parameters", () => {
     expect(install).toContain('$serviceAccount = "NT SERVICE\\$ServiceName"');
     expect(install).toContain('$taskName = "$ServiceName Backup"');
-    expect(install).toMatch(/@\('DependOnService', \$MongoServiceName\)/);
+  });
+});
+
+// A MongoDB restart must never stop ESMS (owner's service test, 2026-11-06): with a Windows
+// service dependency, stopping MongoDB stopped ESMS and nothing started it again. The app keeps
+// running, reconnects by itself, and is restarted by the service manager when it exits.
+const unit = fs.readFileSync(path.join(repo, "deploy/linux/esms.service"), "utf8");
+const unitLines = unit.split(/\r?\n/).filter((line) => !line.trim().startsWith("#"));
+
+describe("MongoDB restarts never stop ESMS", () => {
+  it("install.ps1 sets no service dependency and clears one left by an older install", () => {
+    expect(codeLines(install).map(([, line]) => line)).not.toContainEqual(
+      expect.stringMatching(/'DependOnService'\s*,/)
+    );
+    expect(install).toMatch(/@\('reset', \$ServiceName, 'DependOnService'\)/);
+    expect(install).toMatch(/ServicesDependedOn/);
+  });
+
+  it("install.ps1 restarts the app when it exits (also at boot before MongoDB answers)", () => {
+    expect(install).toMatch(/@\('AppExit', 'Default', 'Restart'\)/);
+    expect(install).toMatch(/@\('AppRestartDelay', '\d+'\)/);
+    expect(install).toMatch(/@\('AppThrottle', '\d+'\)/);
+  });
+
+  it("esms.service only orders after mongod (Wants/After), never Requires/BindsTo/PartOf", () => {
+    for (const key of ["Requires", "BindsTo", "PartOf", "Requisite"]) {
+      expect(unitLines.filter((line) => line.startsWith(`${key}=`))).toEqual([]);
+    }
+    expect(unitLines).toContain("Wants=network-online.target mongod.service");
+    expect(unitLines).toContain("After=network-online.target mongod.service");
+    expect(unitLines).toContain("Restart=always");
+  });
+
+  it("the checks catch a dependency", () => {
+    const withDependency = "  @('DependOnService', $MongoServiceName),";
+    expect(codeLines(withDependency).map(([, line]) => line)).toContainEqual(
+      expect.stringMatching(/'DependOnService'\s*,/)
+    );
   });
 
   it("every nssm and sc.exe call targets $ServiceName, never a fixed name", () => {
     const calls = install.match(/@\('(?:install|set)', [^)]*\)|sc\.exe @\([^)]*\)/g) ?? [];
     expect(calls.length).toBeGreaterThan(0);
     for (const call of calls) expect(call).toContain("$ServiceName");
+  });
+});
+
+// Windows PowerShell 5.1 decodes a native program's output with the console code page, so Node's
+// UTF-8 came out wrong in backup.log and the kit's log (owner's service test, 2026-11-06). Every
+// script that runs node sets the console to UTF-8 first; the scripts themselves stay ASCII (5.1
+// reads a .ps1 without a BOM in the ANSI code page).
+describe("deploy/windows/*.ps1: Node's UTF-8 output is read as UTF-8", () => {
+  const UTF8_LINE =
+    /^try \{ \[Console\]::OutputEncoding = New-Object System\.Text\.UTF8Encoding \$false \} catch \{ \}$/;
+
+  it("every script that runs node sets [Console]::OutputEncoding to UTF-8 before it", () => {
+    const runsNode = scripts.filter(([, text]) => /\$node\b/.test(text));
+    expect(runsNode.map(([name]) => name).sort()).toEqual([
+      "backup.ps1",
+      "install.ps1",
+      "restore.ps1",
+      "test-backup-restore.ps1",
+    ]);
+    for (const [name, text] of runsNode) {
+      const lines = codeLines(text);
+      const set = lines.find(([, line]) => UTF8_LINE.test(line.trim()));
+      expect(set, name).toBeDefined();
+      const firstNode = lines.find(([, line]) => /&\s*\$node\b|Invoke-Native \$node\b/.test(line));
+      if (firstNode) expect(set[0], name).toBeLessThan(firstNode[0]);
+    }
+  });
+
+  it("the scripts are plain ASCII", () => {
+    for (const [name, text] of scripts) {
+      expect(
+        [...text].filter((c) => c.charCodeAt(0) > 127),
+        name
+      ).toEqual([]);
+    }
   });
 });

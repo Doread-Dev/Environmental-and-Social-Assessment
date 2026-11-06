@@ -35,6 +35,10 @@ param(
   [switch]$NoBackupTask
 )
 $ErrorActionPreference = 'Stop'
+# Node writes UTF-8, but Windows PowerShell 5.1 decodes a native program's output with the console
+# code page (a dash came out as three wrong characters, owner's service test 2026-11-06). Without a console
+# (the scheduled task) there is nothing to set.
+try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false } catch { }
 
 function Step($text) { Write-Host "`n== $text" -ForegroundColor Cyan }
 function Fail($text) { Write-Host "FAILED: $text" -ForegroundColor Red; exit 1 }

@@ -1,6 +1,6 @@
 /**
  * TotalImpactCard Component
- * بطاقة التأثير الإجمالي للمشروع
+ * The project's total impact
  */
 
 import { cn } from '@/utils/cn'
@@ -8,7 +8,7 @@ import { IMPACT_LEVEL_CONFIG } from '@/utils/impactLevels'
 
 /**
  * @param {Object} props
- * @param {string} props.impact - مستوى التأثير
+ * @param {string} props.impact - Impact level
  */
 export default function TotalImpactCard({ impact = 'negligible' }) {
   const config = IMPACT_LEVEL_CONFIG[impact] || IMPACT_LEVEL_CONFIG.negligible

@@ -2,12 +2,12 @@ import { cn } from '@/utils'
 import { getStatusBadge, getStatusBarColor } from '@/utils/statusBadges'
 
 /**
- * WorkflowProgressBar - شريط تقدم سير العمل (S/A/M/R)
+ * WorkflowProgressBar - workflow progress (S/A/M/R)
  *
  * @param {Object} props
  * @param {Object} props.progress - workflow state from the backend (`workflow.steps` is read)
- * @param {boolean} props.showLabels - عرض التسميات (default: true)
- * @param {'sm'|'md'} props.size - الحجم (default: 'md')
+ * @param {boolean} props.showLabels - Show the labels (default: true)
+ * @param {'sm'|'md'} props.size - Size (default: 'md')
  *
  * @example
  * <WorkflowProgressBar

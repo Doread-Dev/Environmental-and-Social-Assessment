@@ -1,6 +1,6 @@
 /**
  * ImpactScoreRow Component
- * صف تقييم تأثير واحد
+ * One impact question with its level and note
  */
 
 import { cn } from '@/utils/cn'
@@ -9,11 +9,11 @@ import { Select, Textarea } from '@/components/ui'
 
 /**
  * @param {Object} props
- * @param {Object} props.question - السؤال
- * @param {Object} props.score - النتيجة الحالية
- * @param {Function} props.onScoreChange - callback للتغيير
- * @param {Function} props.onNoteChange - callback للملاحظة
- * @param {boolean} props.readOnly - وضع القراءة فقط
+ * @param {Object} props.question - The question
+ * @param {Object} props.score - The current level and note
+ * @param {Function} props.onScoreChange - Called when the level changes
+ * @param {Function} props.onNoteChange - Called when the note changes
+ * @param {boolean} props.readOnly - Read-only mode
  */
 export default function ImpactScoreRow({
   question,

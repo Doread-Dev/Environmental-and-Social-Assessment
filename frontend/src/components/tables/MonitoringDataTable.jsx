@@ -1,19 +1,19 @@
 /**
  * MonitoringDataTable Component
- * جدول بيانات المراقبة (مطابق لـ MASTER_PLAN)
+ * Monitoring data table (indicators of one category)
  */
 
 import IndicatorDataRow from '@/components/monitoring/IndicatorDataRow'
 
 /**
  * @param {Object} props
- * @param {Array} props.data - بيانات المؤشرات مع السجلات [{indicator, record}]
- * @param {Function} props.onUpdateScore - تحديث قيمة ربع سنوية (recordId, quarter, value) => void
- * @param {Function} props.onUpdateField - تحديث حقل (recordId, field, value) => void
- * @param {boolean} [props.isEditable] - قابل للتعديل
- * @param {string} [props.categoryCode] - كود الفئة
- * @param {string} [props.categoryName] - اسم الفئة
- * @param {Array} [props.users] - قائمة المستخدمين للعمود Responsibility
+ * @param {Array} props.data - Indicators with their records [{indicator, record}]
+ * @param {Function} props.onUpdateScore - Sets a quarter's value (recordId, quarter, value) => void
+ * @param {Function} props.onUpdateField - Sets a field (recordId, field, value) => void
+ * @param {boolean} [props.isEditable] - Editable
+ * @param {string} [props.categoryCode] - Category code
+ * @param {string} [props.categoryName] - Category name
+ * @param {Array} [props.users] - Users for the Responsibility column
  */
 function MonitoringDataTable({
   data = [],

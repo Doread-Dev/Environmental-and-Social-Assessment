@@ -1,11 +1,10 @@
 /**
  * ScreeningInfoSection Component
- * قسم معلومات الفرز (القسم 1)
- * مطابق للتصميم الأصلي حرفياً
+ * Screening details (section 1)
  *
  * Features:
- * - اسم المسؤول ومنصبه (read-only من بيانات المستخدم الحالي)
- * - تاريخ الفرز (قابل للتعديل)
+ * - officer name and position (read-only, from the current user)
+ * - screening date (editable)
  */
 
 import { useAuth, ROLE_LABELS } from '@/contexts'
@@ -14,12 +13,12 @@ import { Input } from '@/components/ui'
 
 /**
  * @param {Object} props
- * @param {string} props.officerName - اسم المسؤول
- * @param {string} props.officerPosition - منصب المسؤول
- * @param {string} props.screeningDate - تاريخ الفرز
- * @param {Function} props.onDateChange - callback عند تغيير التاريخ
- * @param {boolean} props.readOnly - وضع القراءة فقط
- * @param {string} props.error - رسالة الخطأ
+ * @param {string} props.officerName - Officer name
+ * @param {string} props.officerPosition - Officer position
+ * @param {string} props.screeningDate - Screening date
+ * @param {Function} props.onDateChange - Called when the date changes
+ * @param {boolean} props.readOnly - Read-only mode
+ * @param {string} props.error - Error message
  */
 function ScreeningInfoSection({
   officerName,

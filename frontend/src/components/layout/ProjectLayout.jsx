@@ -5,6 +5,7 @@ import { ROUTES } from '@/routes/routes.config'
 import { useWorkspace } from '@/hooks'
 import { useSaveConflict } from '@/contexts'
 import { GuidanceButton, useCurrentPlace } from '@/components/library'
+import { requestExport, useExportReady } from '@/components/export'
 import ProjectSidebar from './ProjectSidebar'
 import MobileMenu from './MobileMenu'
 import BrandLogo from './BrandLogo'
@@ -61,17 +62,17 @@ function ProjectLayout() {
   const showExportButton =
     canExport && (showScreeningExport || showAssessmentExport || isMonitoringDataEntryPage)
 
-  const handleExportClick = () => {
-    if (isScreeningPage) {
-      // Trigger export event that ScreeningSummaryPage listens to
-      window.dispatchEvent(new CustomEvent('screening-export'))
-    } else if (isAssessmentPage) {
-      // Trigger export event that AssessmentReviewPage listens to
-      window.dispatchEvent(new CustomEvent('assessment-export'))
-    } else if (isMonitoringDataEntryPage) {
-      window.dispatchEvent(new CustomEvent('monitoring-export'))
-    }
-  }
+  // The page that answers the export (ScreeningSummaryPage, AssessmentReviewPage,
+  // MonitoringDataEntryPage); the button is disabled until it is ready (phase 12a)
+  const exportEvent = isScreeningPage
+    ? 'screening-export'
+    : isAssessmentPage
+      ? 'assessment-export'
+      : isMonitoringDataEntryPage
+        ? 'monitoring-export'
+        : null
+  const exportReady = useExportReady(exportEvent)
+  const handleExportClick = () => requestExport(exportEvent)
 
   // Project with its workflow state, summaries and allowed actions (sidebar, mobile menu, pages)
   const enhancedProject = useMemo(() => {
@@ -163,12 +164,13 @@ function ProjectLayout() {
           {/* Right Actions */}
           <div className="flex items-center gap-3 sm:gap-6">
             <GuidanceButton place={place} />
-            {/* Export Excel Button - Only show on Screening Summary page when status is submitted */}
+            {/* Export Excel: screening / assessment once submitted, monitoring data entry */}
             {showExportButton && (
               <Button
                 variant="secondary"
                 size="sm"
                 onClick={handleExportClick}
+                disabled={!exportReady}
                 leftIcon={
                   <span className="material-symbols-outlined text-lg" aria-hidden="true">
                     download

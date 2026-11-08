@@ -12,7 +12,8 @@
 #   5. systemd: esms.service (starts with the server), esms-backup.timer (daily at 02:00)
 #   6. starts ESMS, waits for /health, runs scripts/check-server.js
 # NOTE: written for Ubuntu 24.04 / 26.04 with systemd and checked with bash -n, but NOT yet run
-# on a real Linux server (phase 11 ran the Windows path). Read INSTALL-LINUX.md first.
+# on a real Linux server (only the Windows path was run on a test machine). Read INSTALL-LINUX.md
+# first.
 set -euo pipefail
 
 usage() {
@@ -50,12 +51,12 @@ fail() { echo "FAILED: $*" >&2; exit 1; }
 SOURCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 step "1. Checks"
-NODE="$(command -v node)" || fail "Node.js is not installed (INSTALL-LINUX.md, step 2)"
+NODE="$(command -v node)" || fail "Node.js is not installed (INSTALL-LINUX.md, step 3)"
 WANTED_NODE="$(tr -d ' v\r\n' < "$SOURCE_DIR/.nvmrc" | cut -d. -f1)"
 NODE_MAJOR="$("$NODE" -p 'process.versions.node.split(".")[0]')"
 [[ "$NODE_MAJOR" == "$WANTED_NODE" ]] || fail "Node $NODE_MAJOR found, the app needs Node $WANTED_NODE"
 echo "Node $("$NODE" --version) at $NODE"
-command -v mongod > /dev/null || fail "MongoDB (mongod) is not installed (INSTALL-LINUX.md, step 3)"
+command -v mongod > /dev/null || fail "MongoDB (mongod) is not installed (INSTALL-LINUX.md, step 4)"
 MONGO_VERSION="$(mongod --version | sed -n 's/^db version v\([0-9.]*\).*/\1/p')"
 echo "MongoDB $MONGO_VERSION, kernel $(uname -r)"
 (cd "$SOURCE_DIR/backend" && "$NODE" scripts/check-server.js --mongodb-version "$MONGO_VERSION") ||
@@ -74,7 +75,7 @@ if [[ "$SOURCE_DIR" != "$APP_DIR" ]]; then
     KEEP_ENV="$(mktemp)"
     cp -p "$APP_DIR/backend/.env" "$KEEP_ENV"
   fi
-  for part in backend frontend deploy .nvmrc VERSION; do
+  for part in backend frontend deploy .nvmrc VERSION CHANGELOG.md; do
     [[ -e "$SOURCE_DIR/$part" ]] || continue
     rm -rf "${APP_DIR:?}/$part"
     cp -a "$SOURCE_DIR/$part" "$APP_DIR/$part"

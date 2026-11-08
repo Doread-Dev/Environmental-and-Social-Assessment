@@ -1,6 +1,6 @@
 /**
  * ConsultationChecklistItem Component
- * عنصر قائمة تحقق للاستشارات المجتمعية (CommunityConsultation)
+ * Checklist item for one community consultation type (CommunityConsultation)
  */
 
 import { cn } from '@/utils/cn'
@@ -8,12 +8,12 @@ import { Checkbox, Input, Textarea } from '@/components/ui'
 
 /**
  * @param {Object} props
- * @param {Object} props.consultation - بيانات نوع الاستشارة
- * @param {boolean} props.checked - هل محدد
- * @param {string} props.participants - المشاركون (من communityConsultation.model)
- * @param {Function} props.onCheckedChange - callback للتحديد
- * @param {Function} props.onParticipantsChange - callback للمشاركين
- * @param {boolean} props.readOnly - وضع القراءة فقط
+ * @param {Object} props.consultation - The consultation type
+ * @param {boolean} props.checked - Whether it is selected
+ * @param {string} props.participants - Participants (communityConsultation.model)
+ * @param {Function} props.onCheckedChange - Called when selected or cleared
+ * @param {Function} props.onParticipantsChange - Called when the participants change
+ * @param {boolean} props.readOnly - Read-only mode
  */
 export default function ConsultationChecklistItem({
   consultation,

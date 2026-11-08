@@ -25,7 +25,7 @@ fails when a mounted route is missing from this page.
 - **Free text** is at most 30,000 characters (D74 4).
 - **Rate limits:** 1000 requests / 7 min per user (per IP without a valid token); login: 10 failed
   attempts / 15 min per IP.
-- Outside `/api/v1`: `GET /health` (no auth) and, in production, the built frontend
+- Outside `/api/v1`: `GET /health` (no auth; `{ success, message, version }`, the release version, D77) and, in production, the built frontend
   ([architecture](architecture.md#single-process)).
 
 ## Auth (`auth.routes.js`)

@@ -1,6 +1,6 @@
 /**
  * AssessmentRouter
- * مكون توجيه ذكي لصفحات التقييم
+ * Picks the assessment page for the assessment's state
  */
 
 import { useParams } from 'react-router-dom'
@@ -13,16 +13,16 @@ import { ErrorState, LoadingState } from '@/components/ui'
 /**
  * Assessment Workflow Flow:
  *
- * 1. /assessment → AssessmentRouter يفحص الحالة:
- *    - screening.status !== 'approved' → يعرض رسالة "Complete Screening First"
- *    - لا يوجد assessment → AssessmentGatewayPage
- *    - status = 'draft' → AssessmentGatewayPage (يعرض Continue button)
- *    - status = 'submitted' أو 'rejected' أو 'approved' → AssessmentReviewPage
+ * 1. /assessment → AssessmentRouter checks the state:
+ *    - screening.status !== 'approved' → shows "Complete Screening First"
+ *    - no assessment → AssessmentGatewayPage
+ *    - status = 'draft' → AssessmentGatewayPage (with the Continue button)
+ *    - status = 'submitted', 'rejected' or 'approved' → AssessmentReviewPage
  *
  * 2. /assessment/metadata → AssessmentMetadataPage
  * 3. /assessment/methods → AssessmentMethodsPage
  * 4. /assessment/scoring → AssessmentScoringPage
- * 5. /assessment/review → AssessmentReviewPage (للعرض/الموافقة)
+ * 5. /assessment/review → AssessmentReviewPage (view / approve)
  */
 export default function AssessmentRouter() {
   const { projectId } = useParams()
@@ -64,7 +64,7 @@ export default function AssessmentRouter() {
     )
   }
 
-  // تحديد الصفحة المناسبة
+  // Which page to show
   if (!assessment || !assessment._id) {
     return <AssessmentGatewayPage />
   }
@@ -77,6 +77,6 @@ export default function AssessmentRouter() {
     return <AssessmentReviewPage />
   }
 
-  // draft - يعرض Gateway للمتابعة
+  // draft: the gateway, to continue
   return <AssessmentGatewayPage />
 }

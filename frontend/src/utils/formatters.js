@@ -58,7 +58,7 @@ export function formatDateRange(startDate, endDate) {
 }
 
 /**
- * حساب مدة المشروع بالأشهر
+ * Project duration in months
  * @param {string} startDate
  * @param {string} endDate
  * @returns {number}
@@ -76,7 +76,7 @@ export function calculateDurationMonths(startDate, endDate) {
 }
 
 /**
- * تنسيق مدة المشروع
+ * Formats a project duration
  * @param {number} months
  * @returns {string}
  */

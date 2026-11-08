@@ -16,8 +16,8 @@ import { queryKeys } from '@/services/queryKeys'
 import { useProjectSave } from './useProjectSave'
 
 /**
- * Hook لإدارة حالة الفرز
- * @param {string} projectId - معرف المشروع
+ * The screening of a project and its actions
+ * @param {string} projectId - Project id
  */
 export function useScreening(projectId) {
   const query = useQuery({
@@ -43,7 +43,7 @@ export function useScreening(projectId) {
     [queryClient, projectId]
   )
 
-  // حفظ كمسودة
+  // Save as draft
   const saveDraft = useCallback(
     (data) => {
       // status is server-owned: a new screening starts as draft
@@ -64,7 +64,7 @@ export function useScreening(projectId) {
     [projectId, screeningId, save, fail, store, version]
   )
 
-  // إرسال للموافقة: save the form first, then move it to submitted through the transition
+  // Submit for approval: save the form first, then move it to submitted through the transition
   const submit = useCallback(
     (data) => {
       const payload = { project: projectId, ...data }
@@ -79,7 +79,7 @@ export function useScreening(projectId) {
     [projectId, screeningId, save, store, version]
   )
 
-  // الموافقة
+  // Approve
   const approve = useCallback(
     (recommendations) => {
       if (!screeningId) return Promise.resolve(fail('Screening record not found.'))
@@ -88,7 +88,7 @@ export function useScreening(projectId) {
     [screeningId, save, fail, store]
   )
 
-  // الرفض
+  // Reject
   const reject = useCallback(
     (rejectReason) => {
       if (!screeningId) return Promise.resolve(fail('Screening record not found.'))

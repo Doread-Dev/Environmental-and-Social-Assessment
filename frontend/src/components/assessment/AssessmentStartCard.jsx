@@ -1,6 +1,6 @@
 /**
  * AssessmentStartCard Component
- * بطاقة بدء التقييم (في Gateway Page)
+ * Start / continue card of the assessment gateway
  */
 
 import { cn } from '@/utils/cn'
@@ -8,9 +8,9 @@ import { Button, StatusBadge } from '@/components/ui'
 
 /**
  * @param {Object} props
- * @param {string} props.status - حالة التقييم (not_started/in_progress/completed)
- * @param {Function} props.onStart - callback عند النقر على Start
- * @param {Function} props.onContinue - callback عند النقر على Continue
+ * @param {string} props.status - Assessment state (not_started / in_progress / completed)
+ * @param {Function} props.onStart - Called on Start
+ * @param {Function} props.onContinue - Called on Continue
  * @param {boolean} [props.canStart] - May the user create the assessment (`assessment.create`)
  * @param {boolean} [props.canEdit] - May the user edit it (`assessment.edit`); viewers only view
  */

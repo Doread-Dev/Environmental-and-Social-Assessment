@@ -1,6 +1,6 @@
 /**
  * RankingSelect Component
- * قائمة اختيار Ranking تعتمد على impactLevels
+ * Ranking select, built from impactLevels
  */
 
 import { Select } from '@/components/ui'
@@ -9,13 +9,13 @@ import { RANKING_HELP } from '@/utils/rankingHelp'
 
 /**
  * @param {Object} props
- * @param {string} props.value - القيمة الحالية (negligible/low/medium/high/not_applicable، أو '' = لم تُختر)
- * @param {Function} props.onChange - دالة التغيير (value) => void؛ null عند اختيار الخيار الفارغ (D69)
- * @param {string} [props.categoryCode] - كود الفئة للسؤال
- * @param {number} [props.questionNumber] - رقم السؤال داخل الفئة
- * @param {boolean} [props.disabled] - معطل
+ * @param {string} props.value - Current value (negligible / low / medium / high / not_applicable, or '' = not picked)
+ * @param {Function} props.onChange - (value) => void; null when the empty option is picked (D69)
+ * @param {string} [props.categoryCode] - The question's category code
+ * @param {number} [props.questionNumber] - Question number within the category
+ * @param {boolean} [props.disabled] - Disabled
  * @param {string} [props.ariaLabel] - Accessible name (default "Ranking")
- * @param {string} [props.className] - classes إضافية
+ * @param {string} [props.className] - Extra classes
  */
 function RankingSelect({
   value,

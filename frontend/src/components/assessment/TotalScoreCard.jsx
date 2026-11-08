@@ -1,6 +1,6 @@
 /**
  * TotalScoreCard Component
- * بطاقة النتيجة الإجمالية للمشروع
+ * The project's total score
  */
 
 import { cn } from '@/utils/cn'
@@ -8,7 +8,7 @@ import { IMPACT_LEVELS, IMPACT_LEVEL_CONFIG } from '@/utils/impactLevels'
 
 /**
  * @param {Object} props
- * @param {Object} props.scores - إجمالي النتائج
+ * @param {Object} props.scores - Count per level
  */
 export default function TotalScoreCard({ scores = {} }) {
   const scoreItems = [

@@ -2,18 +2,18 @@ import { Icon } from '@/components/ui'
 import { cn } from '@/utils'
 
 /**
- * MetricCard - بطاقة عرض المقاييس الإحصائية
+ * MetricCard - one statistic on the dashboard
  *
  * @param {Object} props
- * @param {string} props.title - عنوان المقياس
- * @param {number|string} props.value - قيمة المقياس
- * @param {string} props.icon - اسم الأيقونة (Material Symbols)
- * @param {string} props.iconBgColor - لون خلفية الأيقونة (default: 'bg-blue-50')
- * @param {string} props.iconColor - لون الأيقونة (default: 'text-blue-600')
- * @param {string} props.badge - نص Badge (اختياري)
- * @param {string} props.badgeVariant - نوع Badge (default: 'warning')
- * @param {string} props.subtitle - نص فرعي (اختياري)
- * @param {boolean} props.highlight - هل البطاقة مميزة (للتنبيه)
+ * @param {string} props.title - Title
+ * @param {number|string} props.value - Value
+ * @param {string} props.icon - Material Symbols icon name
+ * @param {string} props.iconBgColor - Icon background (default: 'bg-blue-50')
+ * @param {string} props.iconColor - Icon colour (default: 'text-blue-600')
+ * @param {string} props.badge - Badge text (optional)
+ * @param {string} props.badgeVariant - Badge variant (default: 'warning')
+ * @param {string} props.subtitle - Subtitle (optional)
+ * @param {boolean} props.highlight - Highlighted card (an alert)
  *
  * @example
  * <MetricCard

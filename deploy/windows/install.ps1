@@ -3,7 +3,7 @@
   folder, no internet needed. In an administrator PowerShell:
 
     powershell -ExecutionPolicy Bypass -File .\deploy\windows\install.ps1 `
-      -BackupDir E:\ESMS-backups -NssmPath C:\Tools\nssm\win64\nssm.exe -ConfigureMongo
+      -BackupDir E:\ESMS-backups -NssmPath C:\Tools\nssm\nssm-2.24\win64\nssm.exe -ConfigureMongo
 
   Steps (each is safe to run again; an update is the same command from the new release folder):
     1. checks: administrator, Node (the version in .nvmrc), NSSM, the MongoDB service, mongodump
@@ -14,7 +14,8 @@
     4. -ConfigureMongo: adds the rs0 replica set to the MongoDB service's mongod.cfg (a copy is
        kept) and restarts MongoDB; then initiates the replica set (scripts\init-replica-set.js)
        and fills the lookup lists (src\db\seed.js, safe to run again)
-    5. the ESMS Windows service (NSSM): starts with Windows, after MongoDB, restarts on a crash,
+    5. the ESMS Windows service (NSSM): starts with Windows, restarts on a crash, no dependency on
+       the MongoDB service (it retries until MongoDB answers),
        runs as its own low-privilege account "NT SERVICE\<ServiceName>", logs in <InstallDir>\logs
     6. the scheduled task "<ServiceName> Backup": every day at -BackupTime (02:00)
     7. starts ESMS, waits for /health, runs scripts\check-server.js
@@ -113,7 +114,7 @@ if ($sourceDir -ne $installFull) {
   $envFile = Join-Path $installFull 'backend\.env'
   $keptEnv = $null
   if (Test-Path $envFile) { $keptEnv = Get-Content $envFile -Raw }
-  foreach ($part in @('backend', 'frontend', 'deploy', '.nvmrc', 'VERSION')) {
+  foreach ($part in @('backend', 'frontend', 'deploy', '.nvmrc', 'VERSION', 'CHANGELOG.md')) {
     $from = Join-Path $sourceDir $part
     if (-not (Test-Path $from)) { continue }
     $to = Join-Path $installFull $part

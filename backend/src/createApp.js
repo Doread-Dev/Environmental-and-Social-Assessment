@@ -8,6 +8,8 @@ const { apiLimiter } = require("./middlewares/rateLimiter");
 const { serveFrontend } = require("./middlewares/frontend");
 const parseTrustProxy = require("./config/trustProxy");
 const { helmetOptions, corsOptions } = require("./config/security");
+// The release version (D77): IT reads it from GET /health to tell which build runs
+const { version } = require("../package.json");
 
 /**
  * Builds the Express app from the environment (src/app.js passes process.env; tests pass their
@@ -38,11 +40,12 @@ const createApp = (env) => {
     app.use(morgan("combined"));
   }
 
-  // Health check route (no rate limit)
+  // Health check route (no rate limit), with the version of the running release
   app.get("/health", (req, res) => {
     res.status(200).json({
       success: true,
       message: "Server is running",
+      version,
     });
   });
 

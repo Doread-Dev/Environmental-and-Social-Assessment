@@ -1,13 +1,11 @@
 /**
  * ProjectHeader Component
- * رأس المشروع مع معلومات أساسية
- * مطابق للتصميم الأصلي حرفياً
+ * Project header with the main details
  *
  * Features:
- * - عنوان المشروع مع badge الحالة في نفس السطر
- * - الموقع والتاريخ مع bullet separator
- * - أعضاء الفريق (Avatars) مع ring-2
- * - زر Edit Project
+ * - project title with the status badge on the same line
+ * - location and dates with a bullet separator
+ * - Edit Project button
  */
 
 import { useState } from 'react'
@@ -38,10 +36,10 @@ const normalizeDateInput = (value) => {
 
 /**
  * @param {Object} props
- * @param {Object} props.project - بيانات المشروع
+ * @param {Object} props.project - The project
  * @param {string} [props.status] - Overall workflow status (workflow.status) shown as a badge
- * @param {boolean} props.showEditButton - عرض زر التعديل (default: true)
- * @param {Function} props.onEdit - callback عند النقر على التعديل
+ * @param {boolean} props.showEditButton - Show the edit button (default: true)
+ * @param {Function} props.onEdit - Called with the changes on save
  */
 const FORM_FIELDS = ['title', 'location', 'startDate', 'endDate', 'description']
 const EMPTY_FORM = { title: '', location: '', startDate: '', endDate: '', description: '' }
@@ -156,22 +154,6 @@ function ProjectHeader({ project, status, showEditButton = true, onEdit, classNa
     saveEdit()
   }
 
-  // Mock team members (في الإنتاج سيأتي من API)
-  const _teamMembers = [
-    {
-      name: 'Sarah Jenkins',
-      avatar: null,
-    },
-    {
-      name: 'Ahmed Hassan',
-      avatar: null,
-    },
-    {
-      name: 'Maria Santos',
-      avatar: null,
-    },
-  ]
-
   return (
     <div
       className={cn(
@@ -184,7 +166,9 @@ function ProjectHeader({ project, status, showEditButton = true, onEdit, classNa
       <div className="flex flex-col gap-2">
         {/* Title with Badge */}
         <div className="flex items-center gap-3 flex-wrap">
-          <h1 className={PAGE_TITLE}>{project.title || project.name}</h1>
+          <h1 dir="auto" className={PAGE_TITLE}>
+            {project.title || project.name}
+          </h1>
           {project._id && (
             <span className="text-xs text-text-secondary dark:text-gray-400 font-mono bg-background dark:bg-white/10 px-2 py-1 rounded">
               ID: {project._id}
@@ -201,7 +185,7 @@ function ProjectHeader({ project, status, showEditButton = true, onEdit, classNa
               <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
                 location_on
               </span>
-              {location}
+              <span dir="auto">{location}</span>
             </span>
           )}
           {dateRange && (

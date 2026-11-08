@@ -1,6 +1,6 @@
 /**
  * AssessmentMetadataPage
- * صفحة البيانات الوصفية للتقييم
+ * Assessment metadata page
  */
 
 import { useState, useEffect } from 'react'

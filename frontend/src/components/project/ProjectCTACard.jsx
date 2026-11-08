@@ -1,12 +1,11 @@
 /**
  * ProjectCTACard Component
- * بطاقة الدعوة للإجراء (Next Step CTA)
- * مطابق للتصميم الأصلي حرفياً
+ * Next-step card (call to action)
  *
  * Features:
- * - خلفية متدرجة (gradient)
- * - تأثير ضبابي في الزاوية اليمنى العلوية
- * - زر أخضر مع shadow-lg shadow-primary/30
+ * - gradient background
+ * - soft glow in the top right corner
+ * - green button with shadow-lg shadow-primary/30
  */
 
 import { cn } from '@/utils/cn'
@@ -14,11 +13,11 @@ import { Button } from '@/components/ui'
 
 /**
  * @param {Object} props
- * @param {string} props.title - عنوان الإجراء
- * @param {string} props.description - وصف الإجراء
- * @param {string} props.buttonText - نص الزر
- * @param {string} props.buttonIcon - أيقونة الزر
- * @param {Function} props.onClick - callback عند النقر
+ * @param {string} props.title - Action title
+ * @param {string} props.description - Action description
+ * @param {string} props.buttonText - Button text
+ * @param {string} props.buttonIcon - Button icon
+ * @param {Function} props.onClick - Called on click
  */
 function ProjectCTACard({
   title,

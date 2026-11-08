@@ -6,7 +6,7 @@ import { useDashboard } from '@/hooks'
 import { useAuth } from '@/contexts'
 
 /**
- * DashboardPage - صفحة لوحة التحكم الرئيسية
+ * DashboardPage - the main dashboard
  * Layout: MainLayout
  */
 function DashboardPage() {

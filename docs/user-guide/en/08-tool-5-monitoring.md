@@ -10,7 +10,7 @@ monitoring is saved, not submitted or approved, and stays editable.
 
 Tool 5 opens when Tools 3 and 4 are both complete (at least one row each, every row with its
 description; see [Tools 3 and 4](07-tools-3-4-semp.md#semp-complete)). Until then the page shows
-**Monitoring Locked** and points you to Tools 3 and 4.
+**Monitoring Locked**; **Go to SEMP** takes you to Tools 3 and 4.
 
 <a id="monitoring-overview"></a>
 ## The monitoring overview

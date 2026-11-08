@@ -75,7 +75,7 @@ if [[ "$SOURCE_DIR" != "$APP_DIR" ]]; then
     KEEP_ENV="$(mktemp)"
     cp -p "$APP_DIR/backend/.env" "$KEEP_ENV"
   fi
-  for part in backend frontend deploy .nvmrc VERSION CHANGELOG.md; do
+  for part in backend frontend deploy docs .nvmrc VERSION CHANGELOG.md; do
     [[ -e "$SOURCE_DIR/$part" ]] || continue
     rm -rf "${APP_DIR:?}/$part"
     cp -a "$SOURCE_DIR/$part" "$APP_DIR/$part"

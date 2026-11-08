@@ -26,7 +26,8 @@ node deploy/build-release.mjs
   raise it in `backend/`, `frontend/` and `e2e/package.json` and add an entry at the top of
   [CHANGELOG.md](../CHANGELOG.md) in the same pull request.
 - A name ending in `-modified` means the checkout had uncommitted changes: don't ship that one.
-- The zip holds `VERSION` (version, commit, build time) and `CHANGELOG.md`.
+- The zip holds `VERSION` (version, commit, build time), `CHANGELOG.md` and `docs/user-guide/`
+  (the user guide the in-app Help page reads).
 
 ## 2. Bring an update to the server
 
@@ -151,6 +152,7 @@ Changing `JWT_SECRET` in `backend\.env` signs everybody out.
 | Install step by step | IT | [INSTALL-WINDOWS.md](INSTALL-WINDOWS.md), [INSTALL-LINUX.md](INSTALL-LINUX.md) |
 | This runbook | owner | `deploy/OWNER-RUNBOOK.md` |
 | Server settings, every line explained | IT, owner | [config/esms.env.example](config/esms.env.example) |
+| User guide, English and Arabic (also the in-app Help page) | everyone | [docs/user-guide/](../docs/user-guide/README.md) |
 | Technical docs (architecture, API, data, roles, workflow rules) | developers | [docs/](../docs/README.md) |
 | Setup, commands, tests, CI | developers | [docs/developer-guide.md](../docs/developer-guide.md) |
 | Decisions and the phase plan | owner, developers | [plan/DECISIONS.md](../plan/DECISIONS.md), [plan/README.md](../plan/README.md) |

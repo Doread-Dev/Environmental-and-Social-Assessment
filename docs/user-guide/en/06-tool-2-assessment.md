@@ -28,8 +28,10 @@ The first page, **Environmental Assessment**, shows the project, the workflow pr
 ## Page 1: Metadata
 
 **Environmental Assessment Metadata**. The top part, **Project & Officer Details**, is filled in by
-ESMS: the **Officer Name** and **Officer Position** (yours until someone submits), the screening
-**Category** and the project's dates.
+ESMS: the **Officer Name** and **Officer Position**, the screening **Category** and the project's dates.
+The person who submits the assessment is recorded as its officer. If someone else submitted it
+before (for example before a rejection), their name is struck through and yours shows below it with
+**(on submit)**: you will be recorded if you submit it.
 
 Then four questions, each with a text box:
 

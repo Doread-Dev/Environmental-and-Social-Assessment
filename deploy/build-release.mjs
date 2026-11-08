@@ -6,6 +6,7 @@
 //   backend/   src, scripts, package.json, package-lock.json, node_modules (production only)
 //   frontend/dist/   the built app (calls its own origin: /api/v1)
 //   deploy/    install, backup and restore scripts, configs, guides
+//   docs/user-guide/   the user guide the in-app Help page reads (backend services/help.service.js)
 //   .nvmrc, VERSION, CHANGELOG.md
 // <version> is the version of the three package.json files (2.0.0 for v2, D77); when they differ,
 // the build stops. The backend packages are plain JavaScript (no native modules), so one release
@@ -86,10 +87,15 @@ function build() {
   }
   run('npm', ['ci', '--omit=dev', '--no-audit', '--no-fund'], backendOut)
 
-  // 3. Deploy scripts and guides, the Node version, the changelog, and what this release is.
+  // 3. Deploy scripts and guides, the user guide, the Node version, the changelog, and what this
+  //    release is.
   fs.cpSync(path.join(root, 'deploy'), path.join(out, 'deploy'), {
     recursive: true,
     filter: (src) => !src.startsWith(outRoot),
+  })
+  // The user guide: the Help endpoint reads it from <release>/docs/user-guide, next to backend/.
+  fs.cpSync(path.join(root, 'docs', 'user-guide'), path.join(out, 'docs', 'user-guide'), {
+    recursive: true,
   })
   fs.copyFileSync(path.join(root, '.nvmrc'), path.join(out, '.nvmrc'))
   fs.copyFileSync(path.join(root, 'CHANGELOG.md'), path.join(out, 'CHANGELOG.md'))

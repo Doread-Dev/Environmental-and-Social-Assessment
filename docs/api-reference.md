@@ -114,13 +114,14 @@ Reads only; the writes are the bulk saves under Projects.
 | `DELETE /files/:fileId` | `files.edit` | record:ProjectFile | 204. Archived → 409. Logged `file.delete` (name, area, category, size, uploader, date). |
 | `PATCH /files/:fileId` | `files.edit` | record:ProjectFile | `{ category }` — `semp_record` files only (404 until v3). |
 
-## Lookups, dashboard, audit log
+## Lookups, dashboard, audit log, help
 
 | Route | Permission | Access | Notes |
 |---|---|---|---|
 | `GET /lookups` | — | — | `{ impact_categories, impact_questions, indicators, job_titles, places, place_groups }` (the only lookup endpoint; places from `config/places.js`, D64 a). |
 | `GET /dashboard` | — | list | `{ stats: { total_projects, by_status, high_risk (category A/B) }, latest_projects (5, newest update first) }`; archived left out. |
 | `GET /audit-logs` | `read_audit_log` | — | Newest first; query `page`, `limit` (≤ 100, default 50), `action` (an action or a prefix such as `user.`), `from` / `to` (ISO, inclusive) → `{ data, pagination }`. Invalid → 400. No endpoint writes, edits or deletes entries. |
+| `GET /help` | — | — | The in-app user guide (phase 14, D78) for this user, from `docs/user-guide/<lang>/`: query `lang` (`en` default, `ar`; else 400) → `{ lang, parts: [{ id, title, intro, sections: [{ id, title, body }] }] }` (Markdown). Only the parts and sections whose `requires` permissions the user all has and whose `unless` permissions they lack (`can()`, `services/help.service.js`); links become `#<id>`, or plain text when the target is hidden. Read once per language in production. |
 
 ## Reference library (`library.routes.js`, D64 b)
 

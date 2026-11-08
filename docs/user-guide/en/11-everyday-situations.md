@@ -116,5 +116,6 @@ computer.
 <a id="version"></a>
 ## Which version am I using?
 
-This guide describes ESMS 2.0.0. The app shows its version number in small print; IT or the
-administrator may ask you for it when you report a problem.
+This guide describes ESMS 2.0.0. Outside a project, open the menu under your name (top right): its
+last line shows the version, for example "ESMS v2.0.0". IT or the administrator may ask you for it
+when you report a problem.

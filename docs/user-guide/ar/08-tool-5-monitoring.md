@@ -9,8 +9,8 @@ id: monitoring
 للتعديل.
 
 تُفتح الأداة 5 عند اكتمال الأداتين 3 و4 كلتيهما (سطر واحد على الأقل في كل منهما، ولكل سطر وصفه؛
-انظر [الأداتان 3 و4](07-tools-3-4-semp.md#semp-complete)). وقبل ذلك تعرض الصفحة **Monitoring Locked**
-وتوجّهك إلى الأداتين 3 و4.
+انظر [الأداتان 3 و4](07-tools-3-4-semp.md#semp-complete)). وقبل ذلك تعرض الصفحة **Monitoring Locked**،
+ويأخذك **Go to SEMP** إلى الأداتين 3 و4.
 
 <a id="monitoring-overview"></a>
 ## صفحة الرصد

@@ -14,6 +14,7 @@ const auditLogsRoutes = require("./auditLogs.routes");
 const dashboardRoutes = require("./dashboard.routes");
 const filesRoutes = require("./files.routes");
 const libraryRoutes = require("./library.routes");
+const helpRoutes = require("./help.routes");
 
 const router = express.Router();
 
@@ -38,5 +39,6 @@ router.use("/audit-logs", auditLogsRoutes);
 router.use("/dashboard", dashboardRoutes);
 router.use("/files", filesRoutes);
 router.use("/library", libraryRoutes);
+router.use("/help", helpRoutes);
 
 module.exports = router;

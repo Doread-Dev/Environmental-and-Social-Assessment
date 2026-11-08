@@ -10,7 +10,7 @@ import { require } from "./helpers/app.js";
 import { LANGUAGES, guideDir, guideFor, partFiles, readGuide, repo } from "./helpers/userGuide.js";
 
 const { ROLES } = require("../../src/config/roles");
-const { isPermission, permissionsFor } = require("../../src/config/permissions");
+const { isPermission } = require("../../src/config/permissions");
 
 const guides = Object.fromEntries(LANGUAGES.map((lang) => [lang, readGuide(lang)]));
 const allIds = (parts) => parts.flatMap((part) => [part.id, ...part.sections.map((s) => s.id)]);
@@ -91,7 +91,7 @@ describe("user guide (phase 14)", () => {
 
   it("every role in config/roles.js has its own section in 'Your role' and in the quick start", () => {
     for (const role of ROLES) {
-      const parts = guideFor(guides.en, permissionsFor({ role }));
+      const parts = guideFor(guides.en, role);
       const sectionsOf = (id) => parts.find((part) => part.id === id)?.sections ?? [];
       const own = (section) => section.requires.length > 0 || section.unless.length > 0;
       expect(sectionsOf("your-role").filter(own).length, role).toBeGreaterThan(0);
@@ -100,10 +100,10 @@ describe("user guide (phase 14)", () => {
   });
 
   it("a read-only role sees no section that needs a permission it lacks", () => {
-    const viewer = guideFor(guides.en, permissionsFor({ role: "viewer" }));
+    const viewer = guideFor(guides.en, "viewer");
     const tagged = viewer.flatMap((part) => part.sections).filter((s) => s.requires.length > 0);
     expect(tagged).toEqual([]);
-    const admin = guideFor(guides.en, permissionsFor({ role: "admin" }));
+    const admin = guideFor(guides.en, "admin");
     expect(admin.flatMap((part) => part.sections).some((s) => s.id === "users")).toBe(true);
     expect(admin.flatMap((part) => part.sections).some((s) => s.id === "role-reading")).toBe(false);
   });

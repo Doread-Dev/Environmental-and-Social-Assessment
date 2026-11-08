@@ -788,14 +788,17 @@ export default function AssessmentReviewPage() {
                     </p>
                   </div>
                 )}
-                <div className="flex justify-end gap-4 pt-4 border-t border-border-default dark:border-border-dark">
-                  <Button variant="primary" type="button" onClick={handleEdit}>
-                    <span className="material-symbols-outlined text-lg" aria-hidden="true">
-                      edit
-                    </span>
-                    Edit Assessment
-                  </Button>
-                </div>
+                {/* Only users who may edit (allowed_actions), as on the screening (phase 12a) */}
+                {can('assessment.edit') && (
+                  <div className="flex justify-end gap-4 pt-4 border-t border-border-default dark:border-border-dark">
+                    <Button variant="primary" type="button" onClick={handleEdit}>
+                      <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                        edit
+                      </span>
+                      Edit Assessment
+                    </Button>
+                  </div>
+                )}
               </>
             )}
 

@@ -55,7 +55,8 @@ for the organisation's internal, offline server.
   until then); the Tool 5 lock cards named Tool 2 instead of Tools 3 and 4; "Save as Draft" on the
   assessment scoring gave no "Saved" feedback; Arabic project titles, locations and texts are shown
   right to left (`dir="auto"`), also in the Tools 3/4 cells; the Tools 3/4 pages have the phone /
-  tablet menu, and the menu shows done tools like the desktop sidebar.
+  tablet menu, and the menu shows done tools like the desktop sidebar; a viewer no longer sees
+  "Edit Assessment" on a rejected assessment.
 - The Material Symbols font in the build is a subset (~170 kB instead of ~4 MB).
 - Cleaned: unused files and exports, stale comments, `.gitignore`; docs checked against the code.
 

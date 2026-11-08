@@ -140,6 +140,7 @@ Fixed:
 | Tool 5 lock card (data entry **and** overview, same text): names Management Activities (Tool 3) and the Mitigation Plan (Tool 4) and leads to the SEMP overview | yes: button **"Go to SEMP"** (was "Go to Assessment") | `MonitoringDataEntryPage.test.jsx`, `MonitoringOverviewPage.test.jsx` |
 | Assessment scoring "Save as Draft" shows **"Saved"** (check icon, disabled) after a successful save, until the next change — as Tools 3–5 | yes: "Saved" state | `pages/project-workspace/assessment/AssessmentScoringPage.test.jsx` |
 | `dir="auto"` on displayed user text: project list, dashboard list, Settings → Projects, project header, project sidebar, mobile menu, Project Details / Context card, screening summary and assessment review (project title, reject reason, recommendations), Tools 3/4 cells (`dir="ltr"` → `auto`, `text-left` → `text-start`) | no | `src/test/arabicDirection.test.jsx` |
+| Rejected assessment: **"Edit Assessment"** only with `assessment.edit` in `allowed_actions` (a viewer saw it; the screening already checked `screening.edit`). Other tool pages checked: Tools 3/4 cards say "View Tool" to viewers, monitoring "View Data", the assessment gateway gates Start / Continue — nothing else to fix (found by the user-guide session) | no (hidden for viewers) | `pages/project-workspace/assessment/AssessmentReviewPage.test.jsx` |
 | Tools 3/4 (`SempFullWidthLayout`): menu button + the project `MobileMenu` below `lg` (also on the locked view); the mobile menu now shows a done check for the expandable tools (Assessment, SEMP) like the desktop sidebar | no | `components/layout/SempFullWidthLayout.test.jsx` (menu states = desktop sidebar states) |
 
 ### 4. Icon font
@@ -162,7 +163,9 @@ axes stay; `fetch` is never called; the plugin writes the font next to a copy of
 three versions differ) and adds `CHANGELOG.md` and the version to `VERSION`; both install scripts
 copy `CHANGELOG.md` to the server. Tests: `backend/tests/health.test.js`,
 `backend/tests/release.test.js`, `frontend/src/components/layout/Header.test.jsx`.
-Release build run once: see "Found during phase".
+Release build run once on commit `e5c6339`: `release/esms-2.0.0-2026-11-08-e5c6339.zip` (7.4 MB; the
+folder 25 MB) with `VERSION` (`ESMS 2.0.0`, commit, build time, Node 26.13.0), `CHANGELOG.md`, and
+the 169 kB icon font in `frontend/dist`. Not committed (`release/` is ignored).
 
 ### 6–7. Handover docs
 `deploy/IT-CHECKLIST.md` (server OS and sizing with the reasoning, the kernel check, installers
@@ -176,7 +179,7 @@ by the link test in `backend/tests/docs.test.js` (which now also covers `CHANGEL
 ### Checks and coverage
 Backend: 966 tests (+ 15 replica-set only), lint 0, Prettier clean; coverage 96.8 / 91.2 / 95.9 / 97.4 %
 (statements / branches / functions / lines): the floors 96/91/95/97 already equal these rounded
-down. Frontend: 531 tests, lint 0, Prettier clean, build OK; coverage 86.6 / 80.4 / 81.7 / 88.0 %:
+down. Frontend: 533 tests, lint 0, Prettier clean, build OK; coverage 86.6 / 80.4 / 81.7 / 88.0 %:
 floors raised 85/78/80/87 → **86/80/81/88**. E2E: lint and Prettier clean; the suite runs in CI
 (not locally on this machine, see the brief). The built app was opened in the browser: the login
 page draws its icons from the 169 kB subset.
@@ -189,6 +192,7 @@ page draws its icons from the 169 kB subset.
 - Export Excel readiness: `components/export/exportEvents.test.jsx` (+ page and layout tests above).
 - Tool 5 lock card: `MonitoringDataEntryPage.test.jsx`, `MonitoringOverviewPage.test.jsx`.
 - "Saved" on scoring: `AssessmentScoringPage.test.jsx`.
+- "Edit Assessment" only for editors: `AssessmentReviewPage.test.jsx`.
 - `dir="auto"`: `src/test/arabicDirection.test.jsx`.
 - Tools 3/4 mobile menu: `components/layout/SempFullWidthLayout.test.jsx`.
 - Icon font: `src/test/iconFont.test.js`.

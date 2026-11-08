@@ -37,7 +37,7 @@ do. Check `uname -r` on the server and pick the MongoDB version from the table i
 |---|---|---|---|
 | CPU | 2 cores | 4 cores | Node.js and MongoDB share the machine; Excel exports are built in the browser, not on the server |
 | RAM | 4 GB | 8 GB | MongoDB keeps its working set in memory (by default about half of the RAM minus 1 GB); Node uses ~200–300 MB; the OS and IIS / nginx the rest |
-| System + app disk | 40 GB | 60 GB | OS, Node.js, MongoDB, the app (~150 MB per release folder), logs (rotated at 10 MB on Windows, journald on Linux) |
+| System + app disk | 40 GB | 60 GB | OS, Node.js, MongoDB, the app (~25 MB per release folder), logs (rotated at 10 MB on Windows, journald on Linux) |
 | Data (MongoDB + uploads) | 10 GB | 50 GB, on its own disk if possible | Project records are small text; the uploads (PDF and Office files, at most 10 MB each, plus the library) are what grows. Example: 100 projects × 20 files × 2 MB ≈ 4 GB |
 | **Backup disk or share** | 30 × data | 40 × data | **Every** nightly backup is a full copy (database + all uploads), kept 30 days. With 4 GB of uploads that is about 120 GB, plus room to grow |
 

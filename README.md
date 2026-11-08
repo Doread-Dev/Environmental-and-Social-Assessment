@@ -20,7 +20,7 @@ exports to Excel. The app runs offline on one internal server.
 | [`e2e/`](e2e) | Playwright end-to-end tests of the golden flows |
 | [`deploy/`](deploy) | server install, backup and restore for Windows Server and Ubuntu |
 | [`docs/`](docs) | technical documentation |
-| [`plan/`](plan) | the rework plan: decisions (D1–D76) and phases |
+| [`plan/`](plan) | the rework plan: decisions (D1–D77) and phases |
 
 ## Quick start (development)
 
@@ -49,6 +49,8 @@ Tests: `npm test` in `backend/` and `frontend/`; the end-to-end flows with `npm 
 ## Documentation
 
 - [Technical docs](docs/README.md): architecture, API reference, data models, roles and
-  permissions, workflow rules, developer guide, style rules.
+  permissions, workflow rules, developer guide, style guide.
+- [User guide](docs/user-guide/README.md) for the people who use the app, in
+  [English](docs/user-guide/en/00-introduction.md) and [Arabic](docs/user-guide/ar/00-introduction.md).
 - [Server installation and backups](deploy/README.md) (for IT).
 - [Decisions](plan/DECISIONS.md) and [phase plan](plan/README.md).

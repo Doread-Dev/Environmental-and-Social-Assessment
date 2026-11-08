@@ -171,22 +171,4 @@ export function extractErrorMessage(error) {
   return 'An unexpected error occurred. Please try again.'
 }
 
-/**
- * Check if error is a network/connectivity error
- * @param {Error} error - Axios error object
- * @returns {boolean}
- */
-export function isNetworkError(error) {
-  return error.code === 'ERR_NETWORK' || error.code === 'ECONNABORTED' || !error.response
-}
-
-/**
- * Check if error is an authentication error
- * @param {Error} error - Axios error object
- * @returns {boolean}
- */
-export function isAuthError(error) {
-  return error.response?.status === 401 || error.response?.status === 403
-}
-
 export default api

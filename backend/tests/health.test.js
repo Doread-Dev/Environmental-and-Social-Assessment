@@ -1,14 +1,18 @@
+import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 import request from "supertest";
 import { app } from "./helpers/app.js";
 import { loginAs } from "./helpers/fixtures.js";
 
+const { version } = createRequire(import.meta.url)("../package.json");
+
 describe("GET /health", () => {
-  it("returns 200 with a success payload", async () => {
+  it("returns 200 with a success payload and the release version (D77)", async () => {
     const res = await request(app).get("/health");
 
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ success: true, message: "Server is running" });
+    expect(res.body).toEqual({ success: true, message: "Server is running", version });
+    expect(version).toBe("2.0.0");
   });
 });
 

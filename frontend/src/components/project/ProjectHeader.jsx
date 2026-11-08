@@ -184,7 +184,9 @@ function ProjectHeader({ project, status, showEditButton = true, onEdit, classNa
       <div className="flex flex-col gap-2">
         {/* Title with Badge */}
         <div className="flex items-center gap-3 flex-wrap">
-          <h1 className={PAGE_TITLE}>{project.title || project.name}</h1>
+          <h1 dir="auto" className={PAGE_TITLE}>
+            {project.title || project.name}
+          </h1>
           {project._id && (
             <span className="text-xs text-text-secondary dark:text-gray-400 font-mono bg-background dark:bg-white/10 px-2 py-1 rounded">
               ID: {project._id}
@@ -201,7 +203,7 @@ function ProjectHeader({ project, status, showEditButton = true, onEdit, classNa
               <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
                 location_on
               </span>
-              {location}
+              <span dir="auto">{location}</span>
             </span>
           )}
           {dateRange && (

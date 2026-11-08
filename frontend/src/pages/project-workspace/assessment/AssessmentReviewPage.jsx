@@ -4,7 +4,8 @@
  * مطابق للتصميم الأصلي حرفياً
  */
 
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useCallback } from 'react'
+import { useExportHandler } from '@/components/export'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment, useScreening, useProjectContext } from '@/hooks'
 import { useAuth } from '@/contexts'
@@ -86,19 +87,10 @@ export default function AssessmentReviewPage() {
     toast,
   ])
 
-  // Expose export handler to parent layout via custom event
-  useEffect(() => {
-    const status = assessment?.status || 'draft'
-    if (status === 'submitted' || status === 'approved' || status === 'rejected') {
-      const handleExportEvent = () => {
-        handleExport()
-      }
-      window.addEventListener('assessment-export', handleExportEvent)
-      return () => {
-        window.removeEventListener('assessment-export', handleExportEvent)
-      }
-    }
-  }, [assessment?.status, handleExport])
+  // The header's Export Excel: answered once the review is loaded and past draft (the button
+  // stays disabled until then, phase 12a)
+  const exportable = ['submitted', 'approved', 'rejected'].includes(assessment?.status)
+  useExportHandler('assessment-export', handleExport, !isLoading && !lookupsLoading && exportable)
 
   // Calculate total score from impactScores directly (real-time calculation)
   const totalScore = useMemo(() => {
@@ -788,7 +780,10 @@ export default function AssessmentReviewPage() {
                     <p className="text-sm font-semibold text-red-800 dark:text-red-300 mb-2">
                       Reason for Rejection:
                     </p>
-                    <p className="text-sm text-red-700 dark:text-red-400 whitespace-pre-wrap">
+                    <p
+                      dir="auto"
+                      className="text-sm text-red-700 dark:text-red-400 whitespace-pre-wrap"
+                    >
                       {assessment.reject_reason}
                     </p>
                   </div>
@@ -963,7 +958,7 @@ export default function AssessmentReviewPage() {
                     <p className="text-sm font-semibold text-text-main dark:text-white mb-2">
                       Recommendations:
                     </p>
-                    <p className="text-sm text-text-secondary whitespace-pre-wrap">
+                    <p dir="auto" className="text-sm text-text-secondary whitespace-pre-wrap">
                       {assessment.recommendations}
                     </p>
                   </div>

@@ -42,7 +42,7 @@ async function seedLookupData() {
     "Viewer",
   ];
 
-  // Minimal starter set of questions and indicators; can be extended later
+  // The impact questions (Tools 1 and 2) and the monitoring indicators (Tool 5), per category
   const questions = [
     {
       code: "A",

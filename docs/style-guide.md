@@ -1,10 +1,11 @@
-# Style rules (today)
+# Style guide
 
-> **Replaced by the design system of phase 13** ([D76 4](../plan/DECISIONS.md),
-> [phase 13](../plan/phases/13-page-by-page-ui-review.md)). Until then these rules are binding for
-> every frontend change. They merge the old `frontend/docs/STYLE_GUIDE.md` (Arabic, January 2026;
-> translated here, with what the code has since changed) and the style rules that were in
-> `CLAUDE.md`. Where the old guide and the code disagree, the code and this page win.
+The UI rules of ESMS v2, binding for every frontend change. A full design system comes with v3
+([D77 2](../plan/DECISIONS.md); its starting list is
+[phase 13](../plan/phases/13-page-by-page-ui-review.md)). These rules merge the old
+`frontend/docs/STYLE_GUIDE.md` (Arabic, January 2026; translated here, with what the code has
+since changed) and the style rules that were in `CLAUDE.md`. Where the old guide and the code
+disagree, the code and this page win.
 
 `frontend/src/test/styleGuard.test.js` enforces the hard rules below; a violation fails `npm test`.
 
@@ -96,6 +97,12 @@ Material Symbols only, self-hosted (phase 11: `material-symbols/outlined.css`, t
 so `FILL` and weights work). Write `<span className="material-symbols-outlined" aria-hidden="true">name</span>`
 or `<Icon name="…" />`. The ligature text is never an accessible name: an icon-only button needs
 `aria-label`. Sizes: `text-sm`, `text-base`, `text-lg`, `text-xl`, `text-2xl`.
+
+The production build ships a **subset** of the font with only the icons named in `src/` (phase 12a,
+`frontend/scripts/iconFont.js`: ~170 kB instead of ~4 MB, all axes kept). So write icon names as
+literals in the source — in the JSX, `<Icon name="…">`, or a config map (`icon: '…'`) — never build
+them from strings at run time or take them from the API, or the icon is missing from the build.
+`src/test/iconFont.test.js` fails when a used name is not in the subset or is not an icon.
 
 ## Dates
 

@@ -54,7 +54,7 @@ admin creates users in Settings → Users. Joi `email()` validates top-level dom
 | Command | What |
 |---|---|
 | `npm run dev` | `node --watch src/server.js` (port 3000). Health: `GET http://localhost:3000/health` |
-| `npm start` | production start (`NODE_ENV=production`; also serves `frontend/dist` when built) |
+| `npm start` | `node src/server.js` without watching (`NODE_ENV` comes from `.env`: `production` on the server); also serves `frontend/dist` when built |
 | `npm run seed` | upserts the 4 lookup collections (impact categories, questions, indicators, job titles) by a stable key; safe to re-run (rows keep their `_id`); deletes nothing; creates no users |
 | `node scripts/create-admin.js` | creates an admin (the only way to create the first user); asks, or reads `ADMIN_NAME` / `ADMIN_EMAIL` / `ADMIN_PASSWORD`; never prints the password; fails if the email exists; no forced change |
 | `node scripts/reset-password.js [--activate]` | break-glass reset straight in MongoDB (`RESET_EMAIL` / `RESET_PASSWORD`); `--activate` also reactivates; clears a pending forced change |
@@ -73,7 +73,7 @@ Server scripts (phase 11; shared code in `scripts/lib/`): `backup.js`, `restore.
 | Command | What |
 |---|---|
 | `npm run dev` | Vite on http://localhost:5173 |
-| `npm run build` / `npm run preview` | production build into `dist/` |
+| `npm run build` / `npm run preview` | production build into `dist/` (the icon font becomes a subset of the icons in `src/`, `scripts/iconFont.js`) |
 | `npm test` / `test:watch` / `test:coverage` | Vitest + React Testing Library + jsdom |
 | `npm run lint` / `lint:fix` | ESLint 9 flat config (Prettier as a lint rule) |
 | `npm run format` / `format:check` | Prettier on `src/`: no semicolons, single quotes, 2 spaces, width 100, trailing commas es5 |
@@ -186,7 +186,8 @@ frontend, and the E2E run (`cd e2e && npm test`) when a flow is affected. Lint s
 - Backend endpoint conventions: [architecture → conventions](architecture.md#conventions-for-endpoints).
 - Frontend data layer and guards: [architecture → frontend](architecture.md#frontend).
 - UI: [style rules](style-guide.md); UI or UX issues found while working go into
-  [phase 13](../plan/phases/13-page-by-page-ui-review.md), not fixed on the side (D72 c).
+  [the phase 13 file](../plan/phases/13-page-by-page-ui-review.md) (the v3 UI list, D77), not fixed
+  on the side (D72 c).
 - Language: UI and code in English; Arabic only as user data.
 - There is no `v3/` folder: the v3 modules are not ported (D70); their designs are in
   [`plan/V3_VISION.md`](../plan/V3_VISION.md).

@@ -4,10 +4,14 @@ For the IT person installing ESMS. No programming needed; every command is copie
 **administrator PowerShell** (Start → type "PowerShell" → right-click → *Run as administrator*).
 The server needs no internet. Overview and settings: [README.md](README.md).
 
-> Tested in phase 11 on a Windows 11 machine (Node 26, MongoDB 8.3, Database Tools 100.20.1):
-> release build, replica set, the app from the release, backup, restore and the restore check.
-> Registering the Windows service (NSSM) and the scheduled task was not run on the test machine;
-> the first real install should follow this guide step by step and report anything unclear.
+> Tested on Windows 11 (Node 26, MongoDB 8.3, Database Tools 100.20.1): in phase 11 the release
+> build, replica set, the app from the release, backup, restore and the restore check; then
+> (2026-11-05/06) the owner ran `install.ps1` for real with a service test kit, under test names:
+> the NSSM service and the backup task registered, crash restart, MongoDB restart and the backup
+> task checked (31 checks). The two problems that run found (PowerShell 5.1 quoting, the MongoDB
+> service dependency) are fixed (phase 11 file, "Found during phase"). Not yet done on a Windows
+> **Server** edition: the first real install should follow this guide step by step and report
+> anything unclear.
 
 ## 0. On a computer with internet: collect the files
 
@@ -15,7 +19,7 @@ Copy all of these to a USB stick or a share the server can read:
 
 | File | From | Note |
 |---|---|---|
-| `esms-<date>-<commit>.zip` | a developer runs `node deploy/build-release.mjs` | the app, ready to run |
+| `esms-<version>-<date>-<commit>.zip` | the owner runs `node deploy/build-release.mjs` | the app, ready to run |
 | Node.js 26 LTS, Windows x64 `.msi` | nodejs.org → Downloads | the version in `.nvmrc` |
 | MongoDB Community Server `.msi` (8.0.30+ / 8.3.9+) | mongodb.com → Community Server | Windows x64 |
 | MongoDB Database Tools `.msi` or `.zip` (100.x) | mongodb.com → Database Tools | mongodump / mongorestore |
@@ -58,10 +62,10 @@ Unpack `nssm-2.24.zip` to `C:\Tools\nssm`. The program is `C:\Tools\nssm\nssm-2.
 
 ## 5. Unpack the release and install
 
-Unpack the release `.zip` somewhere temporary, e.g. `C:\Install\esms-<date>-<commit>`, then:
+Unpack the release `.zip` somewhere temporary, e.g. `C:\Install\esms-<version>-<date>-<commit>`, then:
 
 ```powershell
-cd C:\Install\esms-<date>-<commit>
+cd C:\Install\esms-<version>-<date>-<commit>
 powershell -ExecutionPolicy Bypass -File .\deploy\windows\install.ps1 `
   -BackupDir E:\ESMS-backups `
   -NssmPath C:\Tools\nssm\nssm-2.24\win64\nssm.exe `

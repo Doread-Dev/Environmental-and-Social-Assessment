@@ -140,6 +140,8 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
     // Only expand when a child is active (manual navigation to child pages)
     const isExpanded = hasActive
     const isLocked = item.id !== 'documents' && isStepLocked(item.id)
+    // Done like the desktop sidebar: a check instead of the tool icon (phase 12a)
+    const isCompleted = isStepCompleted(item.id)
 
     return (
       <div key={item.id}>
@@ -172,8 +174,11 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                 : 'text-text-secondary hover:text-text-main hover:bg-background dark:hover:bg-background-dark'
             )}
           >
-            <span className="material-symbols-outlined" aria-hidden="true">
-              {item.icon}
+            <span
+              className={cn('material-symbols-outlined', isCompleted && 'text-primary')}
+              aria-hidden="true"
+            >
+              {isCompleted ? 'check_circle' : item.icon}
             </span>
             {item.label}
           </NavLink>
@@ -314,6 +319,7 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                   triggerClassName="flex w-full min-w-0"
                 >
                   <h2
+                    dir="auto"
                     className="text-sm font-bold text-text-main dark:text-white truncate"
                     title={projectTitle}
                   >
@@ -321,6 +327,7 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                   </h2>
                 </Tooltip>
                 <p
+                  dir="auto"
                   className="text-xs text-text-secondary dark:text-gray-400 mt-1 truncate"
                   title={projectLocation}
                 >

@@ -244,7 +244,10 @@ export function ProjectsManagementSection() {
                               </span>
                             </div>
                             <div className="flex flex-col gap-1 min-w-0">
-                              <span className="font-medium text-text-main dark:text-white break-words">
+                              <span
+                                dir="auto"
+                                className="font-medium text-text-main dark:text-white break-words"
+                              >
                                 {project.title}
                               </span>
                               {isArchivedView && (

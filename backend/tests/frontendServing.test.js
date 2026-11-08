@@ -55,7 +55,7 @@ describe("Express serves the built frontend (D38)", () => {
   it("/health is unchanged", async () => {
     const res = await request(app).get("/health");
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ success: true, message: "Server is running" });
+    expect(res.body).toMatchObject({ success: true, message: "Server is running" });
   });
 
   it("an unknown /api/v1 path is still 401 without a token and 404 with one, never index.html", async () => {

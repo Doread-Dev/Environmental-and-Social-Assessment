@@ -1,18 +1,19 @@
 # Dependencies
 node_modules/
 yarn.lock
-.cursor/
-Static UI/
-doc-decisions.md
-documentation-blueprint.md
-docs-architecture.json
+.pnp
+.pnp.js
 
 # Unreviewed v2 prototype (reference only, never committed)
 Environmental-and-Social-Assessment-main version 2/
 
-# Official AKF workbook (client's internal document; read locally, never committed)
+# Client documents: read locally, never committed (D68, D75 3)
+# The official AKF workbook and any export or copy of it
 AKF-S Environmental and Social Assessment Tooles 2025.xlsx
-
+AKF-S*.xlsx
+# The library's Annex 1 PDF (it reaches the server through the app and the backups)
+Annex*1*.pdf
+Annex-1*.pdf
 
 # Environment variables
 .env
@@ -30,30 +31,28 @@ yarn-error.log*
 # OS files
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# IDE
+# IDE and local tool state
 .vscode/
 .idea/
+.cursor/
 *.swp
 *.swo
 *~
+# Claude Code: worktrees and personal settings stay local (launch.json is shared)
+.claude/worktrees/
+.claude/settings.local.json
 
 # Build outputs
-# Server releases made by deploy/build-release.mjs
-release/
 dist/
 build/
 coverage/
+# Server releases made by deploy/build-release.mjs
+release/
 
-# Backend specific
-backend/node_modules/
-backend/.env
+# Backend: uploaded project files and library PDFs (default UPLOADS_DIR)
 backend/uploads/
-backend/exports/
 
-# Frontend specific (when added)
-frontend/node_modules/
-frontend/.env
+# Frontend
 frontend/dist/
-frontend/build/
-

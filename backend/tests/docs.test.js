@@ -95,6 +95,12 @@ describe("documentation (phase 12)", () => {
       "CLAUDE.md",
       "backend/README.md",
       "frontend/README.md",
+      // Phase 12a: the changelog and the deploy guides (IT checklist, owner runbook included)
+      "CHANGELOG.md",
+      ...fs
+        .readdirSync(path.join(repo, "deploy"))
+        .filter((name) => name.endsWith(".md"))
+        .map((name) => `deploy/${name}`),
       ...fs.readdirSync(docs).map((name) => `docs/${name}`),
     ];
     const broken = [];

@@ -13,18 +13,26 @@ every night.
                        daily 02:00: backup ──▶ second disk / network share (30 days)
 ```
 
+**Before install day:** the organisation's IT works through the [IT checklist](IT-CHECKLIST.md)
+(server, installers, certificate, ports, accounts, backups, the questions to answer). The owner's
+own tasks (building a release, updates, first users, restore, logs) are in the
+[owner runbook](OWNER-RUNBOOK.md).
+
 **Pick your guide:** [Windows Server](INSTALL-WINDOWS.md) · [Ubuntu Linux](INSTALL-LINUX.md).
 Both are written for an IT person who is not a developer, on a clean machine with Node.js and
-MongoDB, offline. The Windows path was run on a Windows 11 test machine in phase 11 (all steps
-except registering the Windows service and the scheduled task, see the phase 11 file); **the
-Linux path has not been run on a real server yet** (scripts checked with `bash -n` and
-shellcheck in CI).
+MongoDB, offline. The Windows path was run on a Windows 11 test machine: in phase 11 every step
+but the service registration, then the owner ran `install.ps1` for real with a service test kit
+(the NSSM service and the backup task registered, 31 checks; the phase 11 file, "Found during
+phase"). **The Linux path has not been run on a real server yet** (scripts checked with `bash -n`
+and shellcheck in CI).
 
 ## What is in this folder
 
 | Path | What |
 |---|---|
-| `build-release.mjs` | Builds the release on a machine **with** internet: `node deploy/build-release.mjs` → `release/esms-<date>-<commit>.zip` (or `.tar.gz`). Everything the server needs, nothing to download there. |
+| `IT-CHECKLIST.md` | For the organisation's IT: what to prepare and decide before install day. |
+| `OWNER-RUNBOOK.md` | For the owner: releases, updates, first users, restore, logs, when the app is down. |
+| `build-release.mjs` | Builds the release on a machine **with** internet: `node deploy/build-release.mjs` → `release/esms-<version>-<date>-<commit>.zip` (or `.tar.gz`), e.g. `esms-2.0.0-2026-11-08-0fbe114.zip`. Everything the server needs, nothing to download there. |
 | `config/esms.env.example` | The server settings (`backend/.env`), every line explained. |
 | `config/mongod-windows.cfg`, `config/mongod-linux.conf` | MongoDB config with the replica set block. |
 | `windows/install.ps1` | Install / update on Windows (NSSM service, daily backup task). |
@@ -146,7 +154,9 @@ service manager (NSSM / systemd) starts it again until MongoDB answers. Stopping
 
 ## Logs and health
 
-- Health: `http://127.0.0.1:3000/health` → `{"success":true,"message":"Server is running"}`.
+- Health: `http://127.0.0.1:3000/health` → `{"success":true,"message":"Server is running","version":"2.0.0"}`
+  (the version of the running release; the app also shows it at the bottom of the user menu, and
+  the release folder has it in `VERSION`).
 - App log: Windows `C:\ESMS\logs\esms-out.log` / `esms-err.log` (rotated at 10 MB); Linux
   `journalctl -u esms`.
 - Backup log: Windows `C:\ESMS\logs\backup.log`; Linux `journalctl -u esms-backup`.
@@ -170,4 +180,4 @@ starts it again. Take a backup first.
 The Vercel deployment and its PR previews keep working until the server runs (D75): there the
 frontend gets its API address from `VITE_API_URL` set in Vercel, and the API allows the Vercel
 address through `FRONTEND_URL`. Removing Vercel (`frontend/vercel.json`, the project) is a small
-follow-up once the server is live (noted in phase 13).
+follow-up once the server is live (noted in the phase 13 file, the v3 UI list).

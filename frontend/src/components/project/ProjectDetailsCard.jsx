@@ -72,6 +72,7 @@ function ProjectDetailsCard({
                 {row.label}
               </dt>
               <dd
+                dir="auto"
                 className={cn(
                   'text-sm break-words',
                   row.value === NOT_SPECIFIED

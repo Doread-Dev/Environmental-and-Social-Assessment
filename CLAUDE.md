@@ -26,7 +26,7 @@ reference library and Settings.
 ## Active rework plan (read first)
 
 The app is being reworked in phases. Before any change:
-- [plan/DECISIONS.md](plan/DECISIONS.md) — what we build (D1–D76). Source of truth; don't diverge
+- [plan/DECISIONS.md](plan/DECISIONS.md) — what we build (D1–D77). Source of truth; don't diverge
   silently.
 - [plan/README.md](plan/README.md) — phase order, rules for every phase, progress table. Each phase =
   one conversation, scoped by its file in `plan/phases/`.
@@ -46,7 +46,7 @@ The app is being reworked in phases. Before any change:
 | Roles, permission matrices, `allowed_actions`, accounts and passwords | [docs/roles-and-permissions.md](docs/roles-and-permissions.md) |
 | Gates, statuses, locks, bulk saves, stale saves, archive/delete/purge, audit log, transactions | [docs/workflow-rules.md](docs/workflow-rules.md) |
 | Setup, `.env` files, commands, tests (backend, frontend, E2E, docs), CI, coverage | [docs/developer-guide.md](docs/developer-guide.md) |
-| UI rules (until the phase 13 design system) | [docs/style-guide.md](docs/style-guide.md) |
+| UI rules (the v2 style guide; the design system comes with v3, D77) | [docs/style-guide.md](docs/style-guide.md) |
 | Server install, backups, restore, HTTPS, MongoDB/kernel matrix | [deploy/README.md](deploy/README.md) |
 
 ## Commands
@@ -97,7 +97,8 @@ The app is being reworked in phases. Before any change:
 - **UI:** shared components only, tokens only, light and dark mode, one `Select`, `ConfirmDialog`
   (never `window.confirm`), one date format, Material Symbols with `aria-hidden`; `styleGuard.test.js`
   enforces it. Details: [style rules](docs/style-guide.md). UI/UX issues found while working go into
-  [phase 13](plan/phases/13-page-by-page-ui-review.md), not fixed on the side (D72 c).
+  [the phase 13 file](plan/phases/13-page-by-page-ui-review.md) (the v3 UI list, D77), not fixed on
+  the side (D72 c).
 - **Docs:** `backend/tests/docs.test.js` fails when a mounted route is missing from the API
   reference, when the permission matrices differ from `config/permissions.js`, when a relative link
   breaks, or when `backend/docs/` / `frontend/docs/` come back. Update the docs in the same change.

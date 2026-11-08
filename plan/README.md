@@ -1,6 +1,6 @@
 # ESMS v2 — Phase plan
 
-What we build is decided in [DECISIONS.md](DECISIONS.md) (D1–D76). This file says **in which order**. Each phase is done in its own conversation: open the phase file, do exactly that scope, finish with its "Done when" list.
+What we build is decided in [DECISIONS.md](DECISIONS.md) (D1–D77). This file says **in which order**. Each phase is done in its own conversation: open the phase file, do exactly that scope, finish with its "Done when" list.
 
 The v2 prototype (`Environmental-and-Social-Assessment-main version 2/`, git-ignored) is a **reference only** — see [V2_INVENTORY.md](V2_INVENTORY.md). Port code from it only where a phase file names it; never edit it. Anything from v2 not covered by a decision: keep this repo's behavior and ask the owner.
 
@@ -24,10 +24,11 @@ The v2 prototype (`Environmental-and-Social-Assessment-main version 2/`, git-ign
 | 10a | [Unhappy paths & edge cases](phases/10a-unhappy-paths.md) | D61, D62, D73 | 10 |
 | 11 | [Offline & server deployment](phases/11-offline-deploy.md) | D6, D37, D38, D63 d | 10a |
 | 12 | [E2E tests & documentation](phases/12-e2e-docs.md) | D39, D44, D76 | 11 |
-| 13 | [Page-by-page UI/UX review & design system](phases/13-page-by-page-ui-review.md) | D71, D72, D76 4 | 12 |
-| 14 | [User guide](phases/14-user-guide.md) | D76 1 | 13 |
+| 12a | [Release readiness (v2.0.0)](phases/12a-release-readiness.md) | D77 | 12 |
+| 14 | [User guide](phases/14-user-guide.md) | D76 1, D77 3 | 12a |
+| 13 | [Page-by-page UI/UX review & design system](phases/13-page-by-page-ui-review.md) — **moved to v3 (D77)**: the file is the starting list for the v3 UI work | D71, D72, D76 4, D77 2 | v3 |
 
-Order matters: removals before new code (less to secure), backend rules before the frontend switches to them, data layer before the UI work that sits on it, deployment last because Vercel stays in use until then (D38).
+Order matters: removals before new code (less to secure), backend rules before the frontend switches to them, data layer before the UI work that sits on it, deployment last because Vercel stays in use until then (D38). v2.0.0 is released after 12a and 14 (D77); phase 13 is v3 work.
 
 ## Rules for every phase
 
@@ -38,7 +39,7 @@ Order matters: removals before new code (less to secure), backend rules before t
 - **Keep it running:** at the end of a phase the app starts, `npm run lint`, `npm run build` and all tests pass, and `backend/scripts/seed-demo-project.js` still creates the full demo project (update the script when the API changes).
 - **Data:** no real data exists (see DECISIONS context). Schema changes need no migration; wiping local data is fine — ask before running destructive scripts.
 - **Tests section:** every phase file has a `## Tests` section listing, item by item, what must be tested (each item concrete enough to check). A phase is **not done** until every item there has a test; its "Done when" list has the line "Every item under Tests has a test (file names listed in Result)", and the test file names are listed in its "Result" / "Found during phase" section so the reviewer can check item by item.
-- **UI/UX findings (D72):** a UI or UX issue found while working on a phase (look, wording, layout, a missing warning, an inconsistency between tools) is written into [phase 13](phases/13-page-by-page-ui-review.md) under its screen, not fixed on the side, unless the phase file lists it.
+- **UI/UX findings (D72):** a UI or UX issue found while working on a phase (look, wording, layout, a missing warning, an inconsistency between tools) is written into [the phase 13 file](phases/13-page-by-page-ui-review.md) (the v3 UI list since D77) under its screen, not fixed on the side, unless the phase file lists it.
 - **Scope:** do only what the phase file lists. Something found outside scope → write it under "Found during phase" at the bottom of that phase file and tell the owner; don't fix it silently.
 - **Docs:** the technical docs are in [`docs/`](../docs/README.md) (phase 12, D44, D76); the code wins when they disagree. A change updates the docs and `CLAUDE.md` it affects (routes, roles, permissions, responses, models, commands) in the same PR; `backend/tests/docs.test.js` checks the route list, the permission matrices and the links.
 - **Language:** UI and code in English (see DECISIONS context). Replies to the owner in Arabic.
@@ -67,5 +68,6 @@ Order matters: removals before new code (less to secure), backend rules before t
 | 10a | Done (owner answers built as D74; owner walks the PR) | `claude/phase-10a-unhappy-paths-48cb62` | Stale saves refused (D62, D73): `version` on every write of project data (`updatedAt`; a revision per table for Tools 3–5, checked and raised in one conditional update) → 409 `STALE_VERSION`, missing → 400; one stale-save dialog (Reload / Keep editing, no merge); sign-in dialog over the page on an expired session; one unsaved-changes guard (Save / Discard / Stay, `useBlocker`, `beforeunload` while dirty) on every edit page and sign-out, `window.confirm` allow-list empty; one request per double click; 11 plain bugs fixed (request loop on an unknown project / failed read, silent save failures, double creates, paste); demo seed sends versions and explains an empty DB; owner answers D74 (end date never before start, four assessment fields at submit, save-before-export dialog, 30,000-character limit, recommendations required to approve, one approve/reject confirmation); 842 backend / 401 frontend tests, lines backend 96% / frontend 78% (floors: backend branches 88 → 90, frontend 62/56/59/62 → 77/72/71/78) |
 | 11 | Done (owner reviews; Windows service/task registration and the Linux path still to run once on a real machine) | `claude/phase-11-offline-deploy-4c7f17` | Owner concept as D75: offline (Material Symbols bundled, Speed Insights gone, no inline script), Express serves `frontend/dist` (cache headers, SPA fallback; Vercel kept until the server is live, same-origin `/api/v1` when `VITE_API_URL` is unset), CORS only with `FRONTEND_URL`, CSP with `frame-src blob:`, `express-rate-limit` 8 + `ipKeyGenerator`; single-node replica set with `atomic()` transactions for every critical action + audit entry and the Tools 3–5 bulk saves; `deploy/` for Windows (NSSM, PowerShell) and Ubuntu (systemd, bash), IIS/nginx examples, release builder, guides; daily backup (mongodump + uploads, 30 days, second disk/share) with restore check run on Windows; CI jobs Backend (replica set) + Deploy scripts; 926 backend / 410 frontend tests, lines backend 96% / frontend 78% |
 | 12 | Done (owner reviews docs and the untested-modules list) | `claude/phase-12-e2e-docs-a8d581` | Owner concept as D76 (user guide → new phase 14, E2E flows 10 Excel + 11 Arabic, Chromium only, test gaps as a rule, phase 13 = design system); Playwright E2E in `e2e/` (flows 1–11 + 5a, 19 tests, production-style server on port 3100, own `esms_e2e_test`, CI job E2E on a MongoDB 7.0 replica set); tests for every module with logic that had none; old docs deleted, new `docs/` (architecture, API reference checked against the route table, data models, permission matrices checked against the code, workflow rules, developer guide, style rules), root README, CLAUDE.md shortened with links; 949 backend / 494 frontend tests, lines backend 97% / frontend 87% (floors 96/91/95/97 and 85/78/80/87) |
-| 13 | Not started | | |
-| 14 | Not started | | |
+| 12a | Done (owner reviews the PR) | `claude/phase-12a-release-v2-eb1eee` | D77: v2.0.0 (`/health`, user menu, CHANGELOG, release name), folder cleaned (unused files, dead exports, stale comments, `.gitignore`), docs checked against the code (service test kit recorded), 8 day-one UI fixes from the phase 13 list, icon font subset 4.0 MB → 169 kB at build time, `deploy/IT-CHECKLIST.md` + `deploy/OWNER-RUNBOOK.md`; 966 backend / 531 frontend tests, lines backend 97% / frontend 88% (frontend floors 86/80/81/88) |
+| 14 | In progress (parallel session) | | |
+| 13 | Moved to v3 (D77) | | the file stays as the v3 UI list |

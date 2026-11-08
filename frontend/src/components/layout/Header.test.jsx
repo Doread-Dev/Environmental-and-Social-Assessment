@@ -64,6 +64,16 @@ describe('Header', () => {
     await waitFor(() => expect(router.state.location.pathname).toBe('/app/profile'))
   })
 
+  it('shows the release version at the bottom of the user menu (D77)', async () => {
+    signIn()
+    mockGet(api, { '/auth/me': me() })
+    renderApp(routes, '/app/dashboard')
+
+    expect(screen.queryByText(/^ESMS v/)).toBeNull()
+    fireEvent.click(await screen.findByRole('button', { name: /Rana Haddad/ }))
+    expect(screen.getByText('ESMS v2.0.0')).toBeInTheDocument()
+  })
+
   it('shows Settings to users who may open it', async () => {
     signIn({ user: { _id: 'u1', name: 'Admin', role: 'admin' } })
     mockGet(api, { '/auth/me': me({ name: 'Admin', role: 'admin' }, ['manage_users']) })

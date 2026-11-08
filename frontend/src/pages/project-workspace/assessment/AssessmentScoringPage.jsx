@@ -166,6 +166,9 @@ export default function AssessmentScoringPage() {
   const readOnly = !can('assessment.edit')
   const isDirty =
     !readOnly && baseline !== null && snapshot(scores, negativeImpact, positiveImpact) !== baseline
+  // "Saved" after a successful draft save until the next change, as in Tools 3–5 (phase 12a)
+  const [justSaved, setJustSaved] = useState(false)
+  const showSaved = justSaved && !isDirty
 
   const handleSaveDraft = async () => {
     if (!assessment?._id) {
@@ -192,6 +195,7 @@ export default function AssessmentScoringPage() {
     const result = await saveImpactScoresDraft(finalScores, negativeImpact, positiveImpact)
     if (result.success) {
       setBaseline(snapshot(scores, negativeImpact, positiveImpact))
+      setJustSaved(true)
     } else if (!result.handled) {
       // A stale save or an expired session is shown by its own dialog (D73)
       toast.error(result.error || 'Failed to save draft. Please try again.')
@@ -333,11 +337,22 @@ export default function AssessmentScoringPage() {
           Back
         </Button>
         <div className="flex items-center gap-3">
-          <Button variant="secondary" onClick={handleSaveDraft} disabled={isSaving || readOnly}>
+          <Button
+            variant="secondary"
+            onClick={handleSaveDraft}
+            disabled={isSaving || readOnly || showSaved}
+          >
             {isSaving ? (
               <>
                 <LoadingSpinner size="sm" />
                 Saving...
+              </>
+            ) : showSaved ? (
+              <>
+                <span className="material-symbols-outlined text-sm" aria-hidden="true">
+                  check
+                </span>
+                Saved
               </>
             ) : (
               <>

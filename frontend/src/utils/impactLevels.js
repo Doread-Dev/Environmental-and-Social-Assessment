@@ -13,7 +13,6 @@ export const IMPACT_LEVELS = {
 export const IMPACT_LEVEL_CONFIG = {
   [IMPACT_LEVELS.NEGLIGIBLE]: {
     label: 'Negligible',
-    labelAr: 'مهمل',
     value: 0,
     color: 'gray',
     bgClass: 'bg-background dark:bg-white/5',
@@ -22,7 +21,6 @@ export const IMPACT_LEVEL_CONFIG = {
   },
   [IMPACT_LEVELS.LOW]: {
     label: 'Low',
-    labelAr: 'منخفض',
     value: 1,
     color: 'green',
     bgClass: 'bg-green-100 dark:bg-green-900/30',
@@ -31,7 +29,6 @@ export const IMPACT_LEVEL_CONFIG = {
   },
   [IMPACT_LEVELS.MEDIUM]: {
     label: 'Medium',
-    labelAr: 'متوسط',
     value: 2,
     color: 'amber',
     bgClass: 'bg-amber-100 dark:bg-amber-900/30',
@@ -40,7 +37,6 @@ export const IMPACT_LEVEL_CONFIG = {
   },
   [IMPACT_LEVELS.HIGH]: {
     label: 'High',
-    labelAr: 'عالي',
     value: 3,
     color: 'red',
     bgClass: 'bg-red-100 dark:bg-red-900/30',
@@ -49,7 +45,6 @@ export const IMPACT_LEVEL_CONFIG = {
   },
   [IMPACT_LEVELS.NOT_APPLICABLE]: {
     label: 'N/A',
-    labelAr: 'غير قابل للتطبيق',
     value: -1,
     color: 'gray',
     bgClass: 'bg-background dark:bg-white/5',

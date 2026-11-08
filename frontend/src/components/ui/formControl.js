@@ -21,10 +21,6 @@ export const ERROR_TEXT_CLASSES = 'text-sm text-error flex items-center gap-1'
 /** Helper line below a control. */
 export const HELPER_TEXT_CLASSES = 'text-sm text-text-secondary dark:text-gray-400'
 
-/** Visible keyboard focus for clickable elements that are not form controls. */
-export const FOCUS_RING =
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-background-dark'
-
 /**
  * Classes of a form control.
  *

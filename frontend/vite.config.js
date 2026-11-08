@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { materialSymbolsSubset } from './scripts/iconFont.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -25,7 +26,8 @@ function warnLargeChunks() {
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss(), warnLargeChunks()],
+  // materialSymbolsSubset: the icon font with only the icons the app uses (build only, phase 12a)
+  plugins: [react(), tailwindcss(), warnLargeChunks(), materialSymbolsSubset()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -76,9 +78,6 @@ export default defineConfig({
           }
           if (id.includes('/components/layout/')) {
             return 'layout'
-          }
-          if (id.includes('/data/')) {
-            return 'data'
           }
           if (id.includes('/hooks/')) {
             return 'hooks'

@@ -281,12 +281,15 @@ function ProjectListPage() {
                   >
                     <Table.Cell>
                       <div className="flex flex-col">
-                        <span className="font-semibold text-text-main dark:text-white text-sm">
+                        <span
+                          dir="auto"
+                          className="font-semibold text-text-main dark:text-white text-sm"
+                        >
                           {project.title}
                         </span>
                         <div className="flex items-center gap-1 mt-1 text-text-secondary text-xs">
                           <Icon name="location_on" className="text-[14px]" />
-                          {project.location}
+                          <span dir="auto">{project.location}</span>
                         </div>
                       </div>
                     </Table.Cell>

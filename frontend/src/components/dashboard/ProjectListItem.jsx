@@ -47,10 +47,12 @@ function ProjectListItem({ project, onClick, className, ...props }) {
             <Icon name={project.icon || 'folder'} className="text-lg" />
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-text-main dark:text-white">
+            <h4 dir="auto" className="text-sm font-semibold text-text-main dark:text-white">
               {project.title}
             </h4>
-            <p className="text-xs text-text-secondary">{project.location}</p>
+            <p dir="auto" className="text-xs text-text-secondary">
+              {project.location}
+            </p>
           </div>
         </div>
         <Icon

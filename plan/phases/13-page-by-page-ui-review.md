@@ -2,7 +2,9 @@
 
 **Goal:** every screen looks finished, consistent and behaves well, so the version ships clean — enterprise-grade QA/UX is release scope (D72). Phase 10 unified what is shared across the app (components, tokens, type scale, states); this phase walks **every element of every screen, one by one, UI and UX**, and cleans what is left.
 
-**Decisions:** D71, D72 (+ D43, D49, STYLE_GUIDE rules in `CLAUDE.md`).
+**Owner's aim (D76 4, 2026-11-06; to be refined in this phase's own concept talk):** this is the **design-system phase**. The owner wants a full design system and enterprise-grade UI/UX, down to hover states and the smallest details, plus front-end performance. The v3 restructure must be able to reuse that UI and design system as it is. Phase 12 wrote no design-system doc: today's style rules sit in `docs/` in a short section marked "replaced by the design system of phase 13"; this phase replaces that section.
+
+**Decisions:** D71, D72, D76 4 (+ D43, D49, the style rules in `docs/` — today's rules, replaced by this phase's design system).
 
 **Fed by every phase (D72):** each phase writes the UI/UX issues it finds below, under its screen, instead of fixing them on the side.
 
@@ -70,6 +72,11 @@ Items found during phase 10 that are page-specific (not shared) are listed here 
   - **Error boxes:** Tools 3/4 still draw their own red error box (raw red classes) instead of `Alert`.
 - **Arabic text direction (found in the D72 font check):** Arabic project titles and locations in the Projects list (and likely other lists, headers and cards) are aligned left-to-right. User-entered text needs `dir="auto"` wherever it is displayed, not only in the inputs; check every screen with an Arabic test project.
 - **Mobile and tablet navigation (owner, 2026-11-05):** on phone and tablet widths (below `lg`, so tablets are included) the project's tool list in the menu does not show whether a tool is locked or done. `MobileMenu` has lock/check logic, but the Tools 3/4 pages (`SempFullWidthLayout`) have no mobile menu at all. Check the menu on **every project page at 375 px and 768 px**: each tool's locked, done and current state must match the desktop sidebar, and the Tools 3/4 pages must offer a way to navigate (to the other tools, the overview and back). Fix it here with a test per layout.
+- **Phase 12 (D72 c; found while writing the E2E flows, not fixed there):**
+  - **Assessment metadata:** Arabic text "(في حال الحفظ)" is shown next to Officer Name and Officer Position — the UI is English only.
+  - **Assessment metadata:** the four text areas have no label (their accessible name is the placeholder, e.g. "Describe here..."); the visible question text is not tied to the field.
+  - **Monitoring data entry, read-only (viewer):** a "Cancel" button is shown although there is nothing to cancel.
+  - **Header "Export Excel" (screening, assessment, Tools 3–5):** the button is active before the tool page has loaded; a click in that moment is lost (the page listens for the export event only once mounted). Disable it until the page is ready, or move the export into the page.
 - **Phase 11 (D72 c):** no new UI/UX issue found in the production-build check (login, dashboard, library, PDF viewer, light and dark). The Material Symbols icon font is the full variable font (~4 MB, loaded once and cached for a year); subsetting it to the icons the app uses is a possible later optimisation, not a UI change.
 
 ## Follow-ups after the server is live

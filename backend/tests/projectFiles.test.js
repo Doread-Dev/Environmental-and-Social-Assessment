@@ -279,7 +279,9 @@ describe("GET /projects/:id/files", () => {
 });
 
 describe("GET /files/:fileId/download", () => {
-  it("sends the bytes with the stored type and a UTF-8 download name, to any role", async () => {
+  // No Content-Disposition (phase 12): download managers such as IDM hijack fetched responses that
+  // carry it; the app names the saved file from the record (an Arabic name here).
+  it("sends the bytes with the stored type, never cached and without Content-Disposition, to any role", async () => {
     const { token, project } = await setup();
     const { body } = await upload(project._id, token, { name: "تقرير.pdf" });
     const viewer = await loginAs("viewer");
@@ -296,10 +298,7 @@ describe("GET /files/:fileId/download", () => {
 
     expect(res.status).toBe(200);
     expect(res.headers["content-type"]).toBe("application/pdf");
-    expect(res.headers["content-disposition"]).toContain("attachment;");
-    expect(res.headers["content-disposition"]).toContain(
-      `filename*=UTF-8''${encodeURIComponent("تقرير.pdf")}`
-    );
+    expect(res.headers["content-disposition"]).toBeUndefined();
     expect(res.headers["cache-control"]).toBe("private, no-store");
     expect(res.headers["x-content-type-options"]).toBe("nosniff");
     expect(res.body).toEqual(PDF);

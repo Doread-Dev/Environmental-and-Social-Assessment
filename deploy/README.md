@@ -78,7 +78,10 @@ the install scripts write it). The ones IT chooses:
   a folder on the same disk as MongoDB's data, and also refuses when it cannot check (MongoDB
   does not report `storage.dbPath`, or its data folder is not on this machine): keep `dbPath`
   in MongoDB's config file, as the install scripts and `deploy/config` do. Windows: `E:\ESMS-backups` or
-  `\\backup-server\esms`; Linux: a mounted disk or share such as `/mnt/backup/esms`.
+  `\\backup-server\esms`; Linux: a mounted disk or share such as `/mnt/backup/esms`. It also refuses
+  a `BACKUP_DIR` inside `UPLOADS_DIR`. `check-server.js` reports the same disk and the disk it
+  cannot check as FAIL. The `--allow-same-disk` option overrides the disk check and prints why;
+  it is for tests and CI only (where MongoDB runs in a container), never for the server.
 - `BACKUP_KEEP_DAYS` — default 30.
 - `UPLOADS_DIR` — where project files and the library PDFs are kept.
 - `PORT` (3000), `HOST=127.0.0.1` (only the proxy can reach Node), `TRUST_PROXY=true` (one proxy
@@ -118,7 +121,9 @@ it the app still works (as before phase 11) and says so in its log at start.
   compares every count and every file (run once after installing, after a MongoDB upgrade, and
   now and then).
 - **Restore:** stop ESMS, run `restore` with the backup folder, start ESMS. The database is
-  replaced; the old uploads folder is kept next to it.
+  replaced (`mongorestore --drop`); the old uploads folder is kept next to it as
+  `….before-restore-<time>`; the restored counts are checked against `manifest.json`. The restore
+  refuses to run while the ESMS service is running.
 
 ## Moving to another server = restoring a backup
 

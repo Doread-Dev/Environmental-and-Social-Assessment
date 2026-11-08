@@ -36,15 +36,20 @@ const errorHandler = (err, req, res, next) => {
   const statusCode = error.statusCode || 500;
   // Auth failures never leak internals: no stack, and a generic message for server errors.
   const authError = res.locals.authenticationError;
-  let message = error.message || "Server Error";
-  if (authError && statusCode >= 500) message = "Server Error";
+  const development = process.env.NODE_ENV === "development";
+  // A server error never shows its message to the client when it comes from a failed
+  // authentication, or when it is unexpected (not an ApiError we wrote on purpose) outside
+  // development: it may name paths, queries or library internals. The full error is logged above.
+  const hideMessage =
+    statusCode >= 500 && (Boolean(authError) || (!(err instanceof ApiError) && !development));
+  const message = hideMessage ? "Server Error" : error.message || "Server Error";
 
   res.status(statusCode).json({
     success: false,
     error: message,
     // A machine-readable reason when the client must react, e.g. PASSWORD_CHANGE_REQUIRED.
     ...(err instanceof ApiError && typeof err.code === "string" && { code: err.code }),
-    ...(!authError && process.env.NODE_ENV === "development" && { stack: err.stack }),
+    ...(!authError && development && { stack: err.stack }),
   });
 };
 

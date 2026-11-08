@@ -14,7 +14,7 @@ exports.upload = asyncHandler(async (req, res) => {
 
 exports.download = asyncHandler(async (req, res, next) => {
   const { file, fullPath } = await fileService.getDownload(req.params.fileId);
-  storage.send(res, next, { name: file.original_name, mime: file.mime_type, fullPath });
+  storage.send(res, next, { mime: file.mime_type, fullPath });
 });
 
 exports.remove = asyncHandler(async (req, res) => {

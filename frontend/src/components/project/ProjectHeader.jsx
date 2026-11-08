@@ -1,13 +1,11 @@
 /**
  * ProjectHeader Component
- * رأس المشروع مع معلومات أساسية
- * مطابق للتصميم الأصلي حرفياً
+ * Project header with the main details
  *
  * Features:
- * - عنوان المشروع مع badge الحالة في نفس السطر
- * - الموقع والتاريخ مع bullet separator
- * - أعضاء الفريق (Avatars) مع ring-2
- * - زر Edit Project
+ * - project title with the status badge on the same line
+ * - location and dates with a bullet separator
+ * - Edit Project button
  */
 
 import { useState } from 'react'
@@ -38,10 +36,10 @@ const normalizeDateInput = (value) => {
 
 /**
  * @param {Object} props
- * @param {Object} props.project - بيانات المشروع
+ * @param {Object} props.project - The project
  * @param {string} [props.status] - Overall workflow status (workflow.status) shown as a badge
- * @param {boolean} props.showEditButton - عرض زر التعديل (default: true)
- * @param {Function} props.onEdit - callback عند النقر على التعديل
+ * @param {boolean} props.showEditButton - Show the edit button (default: true)
+ * @param {Function} props.onEdit - Called with the changes on save
  */
 const FORM_FIELDS = ['title', 'location', 'startDate', 'endDate', 'description']
 const EMPTY_FORM = { title: '', location: '', startDate: '', endDate: '', description: '' }
@@ -155,22 +153,6 @@ function ProjectHeader({ project, status, showEditButton = true, onEdit, classNa
     e.preventDefault()
     saveEdit()
   }
-
-  // Mock team members (في الإنتاج سيأتي من API)
-  const _teamMembers = [
-    {
-      name: 'Sarah Jenkins',
-      avatar: null,
-    },
-    {
-      name: 'Ahmed Hassan',
-      avatar: null,
-    },
-    {
-      name: 'Maria Santos',
-      avatar: null,
-    },
-  ]
 
   return (
     <div

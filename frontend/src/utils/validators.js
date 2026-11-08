@@ -1,5 +1,5 @@
 /**
- * التحقق من صحة البريد الإلكتروني
+ * Valid email address
  * @param {string} email
  * @returns {{ valid: boolean, error: string | null }}
  */
@@ -31,7 +31,7 @@ export function validatePassword(password) {
 }
 
 /**
- * التحقق من صحة عنوان المشروع
+ * Valid project title
  * @param {string} title
  * @returns {{ valid: boolean, error: string | null }}
  */
@@ -48,7 +48,7 @@ export function validateProjectTitle(title) {
 }
 
 /**
- * التحقق من صحة الموقع
+ * Valid location
  * @param {string} location
  * @returns {{ valid: boolean, error: string | null }}
  */
@@ -61,7 +61,7 @@ export function validateLocation(location) {
 }
 
 /**
- * التحقق من صحة وصف المشروع
+ * Valid project description
  * @param {string} description
  * @returns {{ valid: boolean, error: string | null }}
  */
@@ -74,7 +74,7 @@ export function validateProjectDescription(description) {
 }
 
 /**
- * التحقق من صحة التواريخ
+ * Valid dates
  * @param {string} startDate
  * @param {string} endDate
  * @returns {{ valid: boolean, errors: { startDate?: string, endDate?: string } }}
@@ -107,7 +107,7 @@ export function validateDates(startDate, endDate) {
 }
 
 /**
- * التحقق من نموذج إنشاء المشروع
+ * Validates the project create form
  * @param {Object} formData
  * @returns {{ valid: boolean, errors: Object }}
  */
@@ -141,7 +141,7 @@ export function validateProjectForm(formData) {
 }
 
 /**
- * التحقق من صحة النموذج
+ * Validates a form
  */
 export function validateScreeningForm(data) {
   const errors = {}

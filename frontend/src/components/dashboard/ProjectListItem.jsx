@@ -6,11 +6,11 @@ import { cn } from '@/utils'
 import { getProjectRoute } from '@/routes/routes.config'
 
 /**
- * ProjectListItem - عنصر قائمة المشروع في لوحة التحكم
+ * ProjectListItem - a project in the dashboard list
  *
  * @param {Object} props
- * @param {Object} props.project - بيانات المشروع
- * @param {Function} props.onClick - دالة النقر (اختياري)
+ * @param {Object} props.project - The project
+ * @param {Function} props.onClick - Click handler (optional)
  *
  * @example
  * <ProjectListItem project={project} />

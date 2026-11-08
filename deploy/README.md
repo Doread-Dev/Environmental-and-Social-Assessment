@@ -22,9 +22,11 @@ own tasks (building a release, updates, first users, restore, logs) are in the
 Both are written for an IT person who is not a developer, on a clean machine with Node.js and
 MongoDB, offline. The Windows path was run on a Windows 11 test machine: in phase 11 every step
 but the service registration, then the owner ran `install.ps1` for real with a service test kit
-(the NSSM service and the backup task registered, 31 checks; the phase 11 file, "Found during
-phase"). **The Linux path has not been run on a real server yet** (scripts checked with `bash -n`
-and shellcheck in CI).
+(the NSSM service and the backup task registered and checked, 31 checks) on the build before the
+"no MongoDB service dependency" fix (PR #25). That fix is covered by
+`backend/tests/deployScripts.test.js` and was not run again on a real machine (the phase 11 file,
+"Found during phase"). **The Linux path has not been run on a real server yet** (scripts checked
+with `bash -n` and shellcheck in CI).
 
 ## What is in this folder
 

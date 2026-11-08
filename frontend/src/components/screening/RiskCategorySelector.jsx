@@ -1,11 +1,10 @@
 /**
  * RiskCategorySelector Component
- * محدد فئة الخطر (القسم 2)
- * مطابق للتصميم الأصلي حرفياً
+ * Risk category picker (section 2)
  *
  * Features:
- * - Radio buttons للفئات (A-F) مع تصميم خاص
- * - Textarea للتبرير في box منفصل
+ * - radio cards for the categories (A–F)
+ * - justification text area in its own box
  * - Validation
  */
 
@@ -15,12 +14,12 @@ import { Textarea } from '@/components/ui'
 
 /**
  * @param {Object} props
- * @param {string} props.selectedCategory - الفئة المختارة
- * @param {Function} props.onCategoryChange - callback عند تغيير الفئة
- * @param {string} props.justification - تبرير الاختيار
- * @param {Function} props.onJustificationChange - callback عند تغيير التبرير
- * @param {boolean} props.readOnly - وضع القراءة فقط
- * @param {Object} props.error - رسائل الخطأ
+ * @param {string} props.selectedCategory - The selected category
+ * @param {Function} props.onCategoryChange - Called when the category changes
+ * @param {string} props.justification - Justification of the choice
+ * @param {Function} props.onJustificationChange - Called when the justification changes
+ * @param {boolean} props.readOnly - Read-only mode
+ * @param {Object} props.error - Error messages
  */
 function RiskCategorySelector({
   selectedCategory,
@@ -90,7 +89,7 @@ function RiskCategorySelector({
         )}
       </div>
 
-      {/* Justification Box - مطابق للتصميم الأصلي */}
+      {/* Justification Box */}
       {selectedCategory && (
         <div className="mt-6 p-4 bg-background dark:bg-white/5 rounded-lg border border-dashed border-border-default dark:border-border-dark">
           <label className="block text-sm font-medium text-text-main dark:text-gray-200 mb-2">

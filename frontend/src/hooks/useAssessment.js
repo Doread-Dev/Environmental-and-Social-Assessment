@@ -1,6 +1,6 @@
 /**
  * useAssessment Hook
- * إدارة حالة التقييم البيئي
+ * State of the environmental assessment (Tool 2)
  *
  * Tool 2 of a project: the assessment with its methods, consultations and impact scores in one
  * cached query, and its writes (mutations). Each write refreshes the project's workflow state.
@@ -59,8 +59,8 @@ export const assessmentQuery = (projectId) => ({
 })
 
 /**
- * Hook لإدارة حالة التقييم
- * @param {string} projectId - معرف المشروع
+ * The assessment of a project and its actions
+ * @param {string} projectId - Project id
  */
 export function useAssessment(projectId) {
   const query = useQuery({ ...assessmentQuery(projectId), enabled: !!projectId })
@@ -102,8 +102,8 @@ export function useAssessment(projectId) {
   )
 
   /**
-   * بدء تقييم جديد
-   * ينشئ assessment حقيقي في الباك إند
+   * Starts a new assessment
+   * Creates it in the backend
    */
   const startAssessment = useCallback(() => {
     if (assessment) return Promise.resolve({ success: true, data: assessment })
@@ -119,7 +119,7 @@ export function useAssessment(projectId) {
   }, [assessment, projectId, save, store])
 
   /**
-   * حفظ البيانات الوصفية (Metadata)
+   * Saves the metadata
    */
   const saveMetadata = useCallback(
     (data) => {
@@ -139,8 +139,8 @@ export function useAssessment(projectId) {
   )
 
   /**
-   * حفظ طرق التقييم (AssessmentMethod)
-   * @param {Array} newMethods - طرق التقييم البيئي
+   * Saves the assessment methods (AssessmentMethod)
+   * @param {Array} newMethods - The assessment methods
    * Structure: [{ method_type, details }]
    */
   const saveMethods = useCallback(
@@ -153,9 +153,9 @@ export function useAssessment(projectId) {
   )
 
   /**
-   * حفظ الاستشارات المجتمعية (CommunityConsultation)
-   * @param {Array} newConsultations - الاستشارات المجتمعية
-   * Structure متوافق مع communityConsultation.model.js:
+   * Saves the community consultations (CommunityConsultation)
+   * @param {Array} newConsultations - The community consultations
+   * Shape as in communityConsultation.model.js:
    * [{ type, participants, notes }]
    */
   const saveConsultations = useCallback(
@@ -168,7 +168,7 @@ export function useAssessment(projectId) {
   )
 
   /**
-   * حفظ نتائج التأثير (draft and before submit)
+   * Saves the impact scores (draft, and before submit)
    * The backend recalculates the totals on every score change, so the assessment returned by
    * the update below already carries them. The update sends the version the scores left (D62).
    */
@@ -191,7 +191,7 @@ export function useAssessment(projectId) {
   )
 
   /**
-   * إرسال التقييم للموافقة
+   * Submits the assessment for approval
    */
   const submitAssessment = useCallback(
     () => withAssessment((id, version) => assessmentService.submit(id, version), storeAssessment),
@@ -199,7 +199,7 @@ export function useAssessment(projectId) {
   )
 
   /**
-   * الموافقة على التقييم
+   * Approves the assessment
    */
   const approveAssessment = useCallback(
     (recommendations) =>
@@ -208,7 +208,7 @@ export function useAssessment(projectId) {
   )
 
   /**
-   * رفض التقييم
+   * Rejects the assessment
    */
   const rejectAssessment = useCallback(
     (rejectReason) =>

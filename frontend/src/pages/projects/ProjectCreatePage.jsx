@@ -20,7 +20,7 @@ import { ROUTES, getProjectRoute } from '@/routes/routes.config'
 import { useUnsavedChanges } from '@/contexts'
 
 /**
- * ProjectCreatePage - صفحة إنشاء مشروع جديد
+ * ProjectCreatePage - create a new project
  * Layout: MainLayout
  */
 function ProjectCreatePage() {

@@ -1,6 +1,6 @@
 /**
  * AssessmentScoringPage
- * صفحة تسجيل تأثيرات التقييم البيئي
+ * Assessment impact scoring page
  */
 
 import { useState, useMemo, useEffect } from 'react'

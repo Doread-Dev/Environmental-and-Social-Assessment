@@ -1,7 +1,6 @@
 /**
  * AssessmentReviewPage
- * صفحة مراجعة واعتماد التقييم
- * مطابق للتصميم الأصلي حرفياً
+ * Assessment review and approval page
  */
 
 import { useState, useMemo, useCallback } from 'react'

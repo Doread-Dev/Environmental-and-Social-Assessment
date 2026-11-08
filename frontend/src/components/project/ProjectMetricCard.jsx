@@ -1,24 +1,23 @@
 /**
  * ProjectMetricCard Component
- * بطاقة مقياس المشروع (Risk Level, Activities, Timeframe)
- * مطابق للتصميم الأصلي حرفياً
+ * Project metric card (Risk Level, Activities, Timeframe)
  *
  * Features:
- * - الأيقونة في الأعلى مع label صغير
- * - القيمة كبيرة (text-2xl)
- * - subtitle صغير
+ * - icon at the top with a small label
+ * - large value (text-2xl)
+ * - small subtitle
  */
 
 import { cn } from '@/utils/cn'
 
 /**
  * @param {Object} props
- * @param {string} props.title - عنوان المقياس
- * @param {string|number} props.value - القيمة
- * @param {string} props.subtitle - نص فرعي
- * @param {string} props.icon - اسم الأيقونة
- * @param {string} props.iconBgColor - لون خلفية الأيقونة
- * @param {string} props.iconColor - لون الأيقونة
+ * @param {string} props.title - Metric title
+ * @param {string|number} props.value - Value
+ * @param {string} props.subtitle - Subtitle
+ * @param {string} props.icon - Icon name
+ * @param {string} props.iconBgColor - Icon background
+ * @param {string} props.iconColor - Icon colour
  */
 function ProjectMetricCard({
   title,

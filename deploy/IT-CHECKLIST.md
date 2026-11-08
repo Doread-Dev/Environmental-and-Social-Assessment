@@ -18,7 +18,7 @@ second disk or a network share.
 
 | | Supported | Tested |
 |---|---|---|
-| **Windows Server** 2019, 2022 or 2025 (Windows 10/11 for a test machine) | yes | the full install, service and backup task on Windows 11 |
+| **Windows Server** 2019, 2022 or 2025 (Windows 10/11 for a test machine) | yes | on Windows 11: the full install; the service and the backup task by the owner's test kit, before the last service fix (PR #25, covered by tests only) |
 | **Ubuntu Server** 24.04 LTS or 26.04 LTS (systemd) | yes | scripts checked, **not yet run on a real server** |
 
 Both are supported equally (D75). Windows is the tested path. If you choose Ubuntu, plan a test

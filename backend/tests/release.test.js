@@ -37,6 +37,15 @@ describe("release version 2.0.0", () => {
     expect(changelog).toMatch(/uuid/);
   });
 
+  it("marks the code as the client's private code (UNLICENSED, owner 2026-11-08)", () => {
+    for (const app of ["backend", "frontend", "e2e"]) {
+      const pkg = JSON.parse(read(`${app}/package.json`));
+      expect([undefined, "UNLICENSED"], app).toContain(pkg.license);
+    }
+    expect(JSON.parse(read("backend/package.json")).license).toBe("UNLICENSED");
+    expect(JSON.parse(read("backend/package-lock.json")).packages[""].license).toBe("UNLICENSED");
+  });
+
   it("names the release archive esms-<version>-<date>-<commit>", () => {
     expect(releaseName({ version: "2.0.0", date: "2026-11-08", commit: "abc1234" })).toBe(
       "esms-2.0.0-2026-11-08-abc1234"

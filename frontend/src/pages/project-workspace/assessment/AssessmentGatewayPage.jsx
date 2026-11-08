@@ -1,6 +1,6 @@
 /**
  * AssessmentGatewayPage
- * صفحة بوابة التقييم البيئي
+ * Assessment gateway: start or continue the environmental assessment
  */
 
 import { useParams, useNavigate } from 'react-router-dom'
@@ -38,7 +38,7 @@ export default function AssessmentGatewayPage() {
 
   const status = getGatewayStatus(getStepStatus(workflow, 'assessment'))
 
-  // إذا كان التقييم مقفل (Screening غير معتمد)
+  // The assessment is locked (the screening is not approved)
   if (status === 'locked') {
     return (
       <div className="max-w-4xl mx-auto bg-surface dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark shadow-sm">
@@ -64,7 +64,7 @@ export default function AssessmentGatewayPage() {
   }
 
   const handleContinue = () => {
-    // دائماً الانتقال إلى صفحة Metadata بغض النظر عن المرحلة السابقة
+    // Always to the Metadata page, whatever step was last
     navigate(getProjectRoute(projectId, ROUTES.ASSESSMENT_METADATA))
   }
 

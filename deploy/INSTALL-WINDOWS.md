@@ -7,11 +7,13 @@ The server needs no internet. Overview and settings: [README.md](README.md).
 > Tested on Windows 11 (Node 26, MongoDB 8.3, Database Tools 100.20.1): in phase 11 the release
 > build, replica set, the app from the release, backup, restore and the restore check; then
 > (2026-11-05/06) the owner ran `install.ps1` for real with a service test kit, under test names:
-> the NSSM service and the backup task registered, crash restart, MongoDB restart and the backup
-> task checked (31 checks). The two problems that run found (PowerShell 5.1 quoting, the MongoDB
-> service dependency) are fixed (phase 11 file, "Found during phase"). Not yet done on a Windows
-> **Server** edition: the first real install should follow this guide step by step and report
-> anything unclear.
+> the NSSM service and the backup task registered and checked (31 checks: crash restart, MongoDB
+> restart, the backup task). That run was on the build **before** the fix that removed the
+> service's dependency on MongoDB (PR #25, after the kit found that a MongoDB restart left ESMS
+> stopped); the fix is covered by `backend/tests/deployScripts.test.js` but was **not run again
+> on a real machine**. Not yet done on a Windows **Server** edition either: the first real install
+> should follow this guide step by step, check that ESMS keeps running while MongoDB restarts
+> ("Daily operation" below), and report anything unclear.
 
 ## 0. On a computer with internet: collect the files
 

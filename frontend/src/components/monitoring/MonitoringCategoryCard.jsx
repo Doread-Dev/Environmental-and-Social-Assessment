@@ -1,16 +1,16 @@
 /**
  * MonitoringCategoryCard Component
- * بطاقة تلخيص فئة المراقبة
+ * Summary card of one monitoring category
  */
 
 import { cn } from '@/utils/cn'
 
 /**
  * @param {Object} props
- * @param {string} props.code - كود الفئة (A,B,C,...)
- * @param {string} props.name - اسم الفئة
- * @param {string} [props.rankingKey] - مستوى التصنيف (low/medium/high/etc.)
- * @param {string} [props.rankingLabel] - نص التصنيف المعروض
+ * @param {string} props.code - Category code (A, B, C, …)
+ * @param {string} props.name - Category name
+ * @param {string} [props.rankingKey] - Ranking level (low / medium / high / …)
+ * @param {string} [props.rankingLabel] - Ranking text shown
  */
 function MonitoringCategoryCard({
   code,

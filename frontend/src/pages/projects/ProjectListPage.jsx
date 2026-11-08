@@ -19,7 +19,7 @@ import { formatDateRange, formatDuration, calculateDurationMonths } from '@/util
 import { ROUTES, getProjectRoute } from '@/routes/routes.config'
 
 /**
- * ProjectListPage - صفحة قائمة المشاريع
+ * ProjectListPage - the project list
  * Layout: MainLayout
  */
 function ProjectListPage() {

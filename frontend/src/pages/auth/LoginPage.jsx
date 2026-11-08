@@ -9,7 +9,7 @@ import akfLogo from '@/assets/auth/akf-logo.png'
 import syriaMap from '@/assets/auth/syria-map.png'
 
 /**
- * LoginPage - صفحة تسجيل الدخول
+ * LoginPage - sign-in page
  * Layout: AuthLayout
  */
 function LoginPage() {

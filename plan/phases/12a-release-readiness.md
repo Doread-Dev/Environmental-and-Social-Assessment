@@ -116,8 +116,10 @@ Checked: env vars, `npm run` scripts and repo paths named in `CLAUDE.md`, `docs/
 `backend/README.md`, `frontend/README.md` (a script compared every name with the code; all exist).
 Fixed:
 - `deploy/README.md`, `INSTALL-WINDOWS.md`, `INSTALL-LINUX.md`, `install.sh`: the Windows service and
-  backup task **were** registered and checked by the owner's service test kit (31 checks); the
-  Linux path is still not run on a real server; Windows Server editions not yet.
+  backup task were registered and checked by the owner's service test kit (31 checks) on the build
+  before the PR #25 fix (no MongoDB service dependency), which is covered by
+  `deployScripts.test.js` and was not run again on a real machine (owner, 2026-11-08); the Linux
+  path is still not run on a real server; Windows Server editions not yet.
 - `install.sh` named the wrong guide steps for Node (2 → 3) and MongoDB (3 → 4); `install.ps1`'s
   header used another NSSM path than the guide.
 - `esms.env.example`: `\backup-server\esms` → `\\backup-server\esms`.
@@ -147,8 +149,8 @@ Fixed:
 `frontend/scripts/iconFont.js` + the Vite plugin `materialSymbolsSubset()` (build only): every
 word of `src/` (non-test) that the font draws as one icon is kept, through the icons' private-use
 code points with `noLayoutClosure` (HarfBuzz via `subset-font` 2.9.0 / `harfbuzzjs` 1.6.4 /
-`fontverter` 2.0.0, exact devDependencies, WebAssembly, no network). Result: **258 icons,
-4.0 MB → 169 kB**, all four axes kept (FILL is used, wght, opsz, GRAD), a new hashed file name
+`fontverter` 2.0.0, exact devDependencies, WebAssembly, no network). Result: **259 icons,
+4.0 MB → 171 kB** (258 icons, 169 kB before the comments were translated), all four axes kept (FILL is used, wght, opsz, GRAD), a new hashed file name
 whenever the icon set changes. Dev and tests keep the full font. No icon name comes from the API,
 so the subset is safe. Test: `src/test/iconFont.test.js` (names found where icons are written —
 JSX text, `<Icon name>`, `icon="…"`, `icon: '…'` in maps, ternaries — must be icons of the full
@@ -176,10 +178,15 @@ logs, when the app is down, where each doc lives), both linked from `deploy/READ
 by the link test in `backend/tests/docs.test.js` (which now also covers `CHANGELOG.md` and
 `deploy/*.md`).
 
+### Open item
+- **Run the service test kit once more on the v2.0.0 build, then update the deploy docs'
+  tested-on line** (`deploy/README.md`, `INSTALL-WINDOWS.md`, the IT checklist, `CHANGELOG.md`).
+  The owner runs it after PR #28 and the user-guide PR merge.
+
 ### Checks and coverage
 Backend: 966 tests (+ 15 replica-set only), lint 0, Prettier clean; coverage 96.8 / 91.2 / 95.9 / 97.4 %
 (statements / branches / functions / lines): the floors 96/91/95/97 already equal these rounded
-down. Frontend: 533 tests, lint 0, Prettier clean, build OK; coverage 86.6 / 80.4 / 81.7 / 88.0 %:
+down. Frontend: 536 tests, lint 0, Prettier clean, build OK; coverage 86.6 / 80.4 / 81.7 / 88.0 %:
 floors raised 85/78/80/87 → **86/80/81/88**. E2E: lint and Prettier clean; the suite runs in CI
 (not locally on this machine, see the brief). The built app was opened in the browser: the login
 page draws its icons from the 169 kB subset.
@@ -198,21 +205,29 @@ page draws its icons from the 169 kB subset.
 - Icon font: `src/test/iconFont.test.js`.
 - Version: `backend/tests/health.test.js`, `backend/tests/release.test.js`, `Header.test.jsx`.
 - Docs: `backend/tests/docs.test.js`.
+- Comments in English: `frontend/src/test/englishComments.test.js`.
+- License: `backend/tests/release.test.js`.
 
 ## Found during phase
-- **Arabic code comments:** about 50 frontend files still carry JSDoc / inline comments in Arabic
-  (~300 lines); the code language is English. Not translated here (large, no behaviour); a
-  follow-up for the owner to schedule.
-- **MongoDB version for the server:** the IT checklist recommends 8.0.x (≥ 8.0.30, the long-support
-  line); the Windows test used 8.3.3 and CI 7.0. Owner to confirm.
-- **`license: "ISC"` in `backend/package.json`** is the npm default, not a decision; kept as is
-  (the package is now `private`). Owner to say whether it should go.
+- **Arabic code comments — done in this PR (owner, 2026-11-08):** 259 comment lines in 45
+  frontend files translated to English, comments that only repeated the code ("matches the
+  original design exactly") dropped; no code, string or behaviour change. The unused
+  `_teamMembers` mock (three made-up names) in `ProjectHeader.jsx` went with its comment. Arabic in
+  string data stays (the seed's `name_ar`, the Arabic letter range in `exportMeta.js`, test
+  fixtures). Guard: `frontend/src/test/englishComments.test.js` parses every non-test source file of
+  `frontend/src` and `backend/src` with espree (exact devDependency 10.4.0, already ESLint's parser)
+  and fails on Arabic in a comment.
+- **MongoDB version for the server (owner, 2026-11-08):** 8.0.x, 8.0.30 or later, as the IT
+  checklist recommends.
+- **License (owner, 2026-11-08):** `"license": "UNLICENSED"` in `backend/package.json` and its
+  lockfile (the client's private code); frontend and e2e have no license field. Checked in
+  `backend/tests/release.test.js`.
 - **UI findings (D72 c)** written into the phase 13 file: the "GIS risk overlay later" hint on
   project create, no project navigation on the Tools 3/4 pages at desktop width, the Tools 3/4
   menu backdrop under the sticky header.
-- **Service test kit after PR #25:** the docs now say the owner's kit ran `install.ps1` for real (31
-  checks). Owner to confirm the kit was run again after the "no MongoDB dependency" fix (PR #25),
-  whose check 5c changed.
+- **Service test kit after PR #25 (owner, 2026-11-08):** the owner does not remember whether it
+  was run again; the docs say it conservatively (the kit ran on the build before the fix; the fix is
+  covered by tests only). See the open item under Result.
 - **Two sessions, one test database:** the backend tests of two worktrees running at the same time
   share `esms_test` and break each other (seen with the user-guide session). Run one at a time, or
   give one `MONGODB_URI_TEST=…/esms_<name>_test` (the setup accepts any name ending in `_test`).

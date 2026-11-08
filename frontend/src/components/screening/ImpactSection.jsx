@@ -1,11 +1,10 @@
 /**
  * ImpactSection Component
- * قسم التأثيرات المحتملة (القسم 3)
- * مطابق للتصميم الأصلي حرفياً
+ * Potential impacts (section 3)
  *
  * Features:
- * - Textarea للتأثيرات السلبية مع أيقونة warning
- * - Textarea للتأثيرات الإيجابية مع أيقونة check_circle
+ * - negative impacts text area with a warning icon
+ * - positive impacts text area with a check_circle icon
  */
 
 import { cn } from '@/utils/cn'
@@ -13,12 +12,12 @@ import { Textarea } from '@/components/ui'
 
 /**
  * @param {Object} props
- * @param {string} props.negativeImpacts - التأثيرات السلبية
- * @param {string} props.positiveImpacts - التأثيرات الإيجابية
- * @param {Function} props.onNegativeChange - callback للتأثيرات السلبية
- * @param {Function} props.onPositiveChange - callback للتأثيرات الإيجابية
- * @param {boolean} props.readOnly - وضع القراءة فقط
- * @param {Object} props.errors - رسائل الخطأ
+ * @param {string} props.negativeImpacts - Negative impacts
+ * @param {string} props.positiveImpacts - Positive impacts
+ * @param {Function} props.onNegativeChange - Called when the negative impacts change
+ * @param {Function} props.onPositiveChange - Called when the positive impacts change
+ * @param {boolean} props.readOnly - Read-only mode
+ * @param {Object} props.errors - Error messages
  */
 function ImpactSection({
   negativeImpacts,

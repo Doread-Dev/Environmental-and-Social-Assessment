@@ -1,7 +1,6 @@
 /**
  * ScreeningSummaryPage
- * صفحة ملخص الفرز والموافقة
- * مطابق للتصميم الأصلي حرفياً
+ * Screening summary and approval page
  *
  * Layout: ProjectLayout
  * Route: /app/projects/:projectId/screening/summary
@@ -203,7 +202,7 @@ function ScreeningSummaryPage() {
       .filter(Boolean)
       .map((line) => line.replace(/^[-*]\s*/, '')) || []
 
-  // Format screening date - لا يظهر في حالة submitted
+  // Format screening date - not shown while submitted
   const screeningDateFormatted =
     status !== 'submitted' && screening.screening_date ? formatDate(screening.screening_date) : ''
 
@@ -217,7 +216,7 @@ function ScreeningSummaryPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Main Container - مطابق للتصميم الأصلي */}
+      {/* Main Container */}
       <form className="flex flex-col gap-8 print-container">
         <div className="max-w-[960px] mx-auto bg-surface dark:bg-surface-dark shadow-sm rounded-xl overflow-hidden min-h-[800px] flex flex-col print-container">
           {/* Header Section */}

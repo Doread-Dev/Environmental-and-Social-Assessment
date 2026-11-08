@@ -2,14 +2,14 @@ import { cn } from '@/utils'
 import { getScreeningCategory } from '@/utils/screeningDisplay'
 
 /**
- * ScreeningCategoryBadge - شارة فئة الفرز (Tool 1)
- * متوافق مع backend/src/models/screening.model.js - حقل category_code
+ * ScreeningCategoryBadge - the screening category (Tool 1)
+ * Matches backend/src/models/screening.model.js, field category_code
  *
  * @param {Object} props
- * @param {string} props.category - فئة الفرز (A, B, C, D, E, F فقط - من Backend)
- * @param {'sm'|'md'|'lg'} props.size - الحجم (default: 'md')
- * @param {boolean} props.showBorder - عرض الحدود (default: true)
- * @param {boolean} props.showLabel - عرض التسمية بجانب الرمز (default: false)
+ * @param {string} props.category - Screening category (A–F, from the backend)
+ * @param {'sm'|'md'|'lg'} props.size - Size (default: 'md')
+ * @param {boolean} props.showBorder - Show the border (default: true)
+ * @param {boolean} props.showLabel - Show the label next to the code (default: false)
  *
  * @example
  * <ScreeningCategoryBadge category="A" />

@@ -58,14 +58,19 @@ for the organisation's internal, offline server.
   tablet menu, and the menu shows done tools like the desktop sidebar; a viewer no longer sees
   "Edit Assessment" on a rejected assessment.
 - The Material Symbols font in the build is a subset (~170 kB instead of ~4 MB).
-- Cleaned: unused files and exports, stale comments, `.gitignore`; docs checked against the code.
+- Cleaned: unused files and exports, stale comments, `.gitignore`; code comments in English (a test
+  guards it); docs checked against the code; the backend package marked `UNLICENSED`.
 
 ### Known limits
 
 - **Linux install path not run on a real server.** The Ubuntu scripts are checked (`bash -n`,
   shellcheck) and do the same work through the same Node scripts as the Windows ones, which were
-  run on a Windows 11 test machine (the service and backup task included). The first Linux install
-  should follow [INSTALL-LINUX.md](deploy/INSTALL-LINUX.md) step by step.
+  run on a Windows 11 test machine. The first Linux install should follow
+  [INSTALL-LINUX.md](deploy/INSTALL-LINUX.md) step by step.
+- **Windows service: the last fix was not run on a real machine.** The owner's service test kit
+  registered and checked the Windows service and the backup task (31 checks) on the build before
+  the fix that removed the service's dependency on MongoDB (PR #25). That fix is covered by
+  `backend/tests/deployScripts.test.js` but was not run again on a real machine.
 - **Not yet installed on a Windows Server edition.** Tested on Windows 11.
 - **HTTPS certificate and server OS** wait on the organisation's IT
   ([IT checklist](deploy/IT-CHECKLIST.md)).

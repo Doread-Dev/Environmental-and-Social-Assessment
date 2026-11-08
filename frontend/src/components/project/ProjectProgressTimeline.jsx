@@ -1,12 +1,11 @@
 /**
  * ProjectProgressTimeline Component
- * الجدول الزمني لتقدم المشروع (الخطوات الأربع)
- * مطابق للتصميم الأصلي حرفياً
+ * Project progress timeline (the four steps)
  *
  * Features:
- * - خط تقدم أفقي في الخلفية
- * - دوائر مع ring-4 ring-white
- * - أيقونات مختلفة حسب الحالة
+ * - horizontal progress line behind the steps
+ * - circles with ring-4 ring-white
+ * - an icon per state
  */
 
 import { cn } from '@/utils/cn'
@@ -14,8 +13,8 @@ import { cn } from '@/utils/cn'
 /**
  * @param {Object} props
  * @param {Object} props.workflow - workflow state from the backend (steps + percent_complete)
- * @param {boolean} props.showLabels - عرض التسميات (default: true)
- * @param {boolean} props.showPercentage - عرض النسبة المئوية (default: true)
+ * @param {boolean} props.showLabels - Show the labels (default: true)
+ * @param {boolean} props.showPercentage - Show the percentage (default: true)
  */
 function ProjectProgressTimeline({
   workflow,
@@ -26,7 +25,7 @@ function ProjectProgressTimeline({
 }) {
   if (!workflow) return null
 
-  // الخطوات الأربع
+  // The four steps
   const steps = [
     { id: 'screening', label: 'Screening', tool: 1 },
     { id: 'assessment', label: 'Assessment', tool: 2 },
@@ -109,7 +108,7 @@ function ProjectProgressTimeline({
       labelColor: 'text-text-main dark:text-white',
       subtitleColor: 'text-text-secondary',
       showNumber: true,
-      number: stepTool === '3 & 4' ? null : stepTool, // SEMP لا يظهر رقم
+      number: stepTool === '3 & 4' ? null : stepTool, // SEMP shows no number
       opacity: 'opacity-50',
     }
   }

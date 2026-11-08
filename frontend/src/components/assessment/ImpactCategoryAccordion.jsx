@@ -1,6 +1,6 @@
 /**
  * ImpactCategoryAccordion Component
- * Accordion قابل للطي لفئة التأثير
+ * Collapsible section of one impact category
  */
 
 import { useState, useMemo } from 'react'
@@ -10,7 +10,7 @@ import { IMPACT_LEVELS, IMPACT_LEVEL_CONFIG } from '@/utils/impactLevels'
 import ImpactScoreRow from './ImpactScoreRow'
 
 /**
- * حساب نتيجة الفئة
+ * The category's result
  */
 function calculateCategoryScore(scores, categoryQuestions) {
   const score = {
@@ -21,7 +21,7 @@ function calculateCategoryScore(scores, categoryQuestions) {
     not_applicable: 0,
   }
 
-  // التحقق من أن categoryQuestions موجود وأنه array
+  // categoryQuestions may be missing or not an array
   if (!categoryQuestions || !Array.isArray(categoryQuestions)) {
     return score
   }
@@ -38,12 +38,12 @@ function calculateCategoryScore(scores, categoryQuestions) {
 
 /**
  * @param {Object} props
- * @param {Object} props.category - بيانات الفئة
- * @param {Array} props.scores - نتائج الأسئلة
- * @param {Function} props.onScoreChange - callback للتغيير
- * @param {Function} props.onNoteChange - callback للملاحظة
- * @param {boolean} props.defaultOpen - مفتوح بشكل افتراضي
- * @param {boolean} props.readOnly - وضع القراءة فقط
+ * @param {Object} props.category - The category
+ * @param {Array} props.scores - The question scores
+ * @param {Function} props.onScoreChange - Called when a level changes
+ * @param {Function} props.onNoteChange - Called when a note changes
+ * @param {boolean} props.defaultOpen - Open at first
+ * @param {boolean} props.readOnly - Read-only mode
  */
 export default function ImpactCategoryAccordion({
   category,
@@ -55,7 +55,6 @@ export default function ImpactCategoryAccordion({
 }) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
 
-  // حساب نتيجة الفئة
   const categoryScore = useMemo(() => {
     if (!category || !category.questions || !Array.isArray(category.questions)) {
       return {
@@ -72,7 +71,7 @@ export default function ImpactCategoryAccordion({
   const highestLevel = calculateTotalImpact(categoryScore)
   const highestConfig = highestLevel ? IMPACT_LEVEL_CONFIG[highestLevel] : null
 
-  // حساب النص للـ Badge
+  // Badge text
   const scoreText = useMemo(() => {
     if (!highestLevel) return 'Score: Pending'
     const count = categoryScore[highestLevel]

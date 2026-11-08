@@ -5,8 +5,8 @@ in a terminal on the server as a user with `sudo`. The server needs no internet.
 settings: [README.md](README.md).
 
 > **Not yet run on a real Linux server.** The scripts were written alongside the Windows ones
-> (which were run on a Windows test machine, the service and the backup task included), checked with `bash -n` and shellcheck, and do
-> the same work through the same Node scripts. The first real install should follow this guide
+> (which were run on a Windows test machine), checked with `bash -n` and shellcheck, and do the
+> same work through the same Node scripts. The first real install should follow this guide
 > step by step and report anything that differs.
 
 ## 0. On a computer with internet: collect the files

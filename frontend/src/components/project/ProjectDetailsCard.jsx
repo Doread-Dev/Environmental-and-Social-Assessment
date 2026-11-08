@@ -1,6 +1,6 @@
 /**
  * ProjectDetailsCard Component
- * بطاقة تفاصيل المشروع
+ * Project details card
  * Real project data only: location, component, start and end date.
  * Empty values show "Not specified".
  */

@@ -140,19 +140,25 @@ lines): every rule kept or linked to the doc it moved to.
   function is used by every test).
 
 **Other findings:**
-- **Playwright's Chromium and `Content-Disposition: attachment`:** under Playwright 1.65 (Chromium
-  158) a `fetch` of the file download endpoints reaches the page as an empty **204**, although the
-  server sends 200 with the file (server log; Chrome 152 in the app's browser pane gets the bytes).
-  The E2E fixture (`e2e/support/test.js`) passes those two endpoints through Playwright unchanged.
-  *Owner: please download one project file and one library PDF in your current Chrome/Edge to make
-  sure real browsers are not affected.*
+- **Empty downloads on the owner's machine (local download managers such as IDM):** during the
+  local E2E runs, file fetches (`GET /files/:id/download`, `GET /library/:id/file`) reached the page
+  as an empty 204 although the server sent 200 with the file, and each was fetched once more without
+  `Sec-Fetch-*` headers. Cause: the owner's Internet Download Manager hooks into `chrome.exe`
+  (Chrome for Testing included), takes over any response with `Content-Disposition` and downloads it
+  itself. Not an app or Chromium bug: the CI E2E job (Linux, no download manager) passes every flow
+  through the real download path, the temporary routing workaround was removed, and server and
+  frontend are unchanged. The developer guide says to turn off the download manager's browser
+  integration (or exclude the Playwright browser) while running E2E.
 - **This machine:** Playwright's Chromium does not start from `%LOCALAPPDATA%\ms-playwright` ("side-by-side
   configuration is incorrect"); the same files start from another folder. Local runs use
   `PLAYWRIGHT_BROWSERS_PATH` (in the developer guide and CLAUDE.md). CI (Linux) is not affected.
 - **Header "Export Excel" race:** a click before the tool page has loaded is lost (UI issue, written
   into phase 13 with three other UI findings).
 - `components/ui/Accordion.jsx` is not used anywhere (tested now; phase 13 can remove or use it).
-- The error handler returns the message of an unexpected (non-`ApiError`) error to the client with
-  status 500 (e.g. a library message). Not changed (behaviour, not in scope); worth a look in a
-  security pass.
+- **Fixed (owner approved, 2026-11-08):** the error handler returned the message of an unexpected
+  (non-`ApiError`) error to the client with status 500 (e.g. a library message or a path). Now a
+  status ≥ 500 from a non-`ApiError` answers exactly "Server Error" outside `development`; the full
+  error is still logged; `ApiError` 5xx messages and every 4xx stay as they were. Tests:
+  `backend/tests/coverageGaps.test.js` (production / test / development, `ApiError` 503, a 4xx
+  library error, invalid JSON → 400 and a thrown error → 500 through the app).
 - `.claude/launch.json` gained an `e2e-server` entry (port 3100) for the preview pane.

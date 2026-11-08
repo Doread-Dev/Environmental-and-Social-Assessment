@@ -139,10 +139,12 @@ history entries) with a mocked `@/services/api` (`src/test/utils.jsx`: `mockGet`
   Web-first assertions, no fixed sleeps.
 - Helpers in `e2e/support/`: `api.js` (an API client: users per role, projects at a given step,
   saves, an expired token), `ui.js` (sign-in, request counting), `excel.js` (ExcelJS reading),
-  `files.js` (a generated PDF), `test.js` (the `test` every spec imports).
-- `support/test.js` routes the two file-download endpoints through Playwright unchanged: under
-  Playwright's Chromium a `fetch` of a response with `Content-Disposition: attachment` reaches the
-  page as an empty 204 (the server sends the file; Chrome outside Playwright gets it).
+  `files.js` (a generated PDF), `test.js` (the `test` every spec imports, with `newUserPage()`).
+  Nothing is routed or mocked: downloads and PDF previews use the real API.
+- **Download managers:** on a machine with Internet Download Manager (IDM) or a similar download
+  manager, turn off its browser integration, or exclude the Playwright browser, while running E2E.
+  Otherwise it takes over every response with `Content-Disposition` (project files, library PDFs),
+  the page gets an empty 204, and flows 5, 5a, 6 and 10 fail.
 - On Windows, if Playwright's Chromium fails to start from `%LOCALAPPDATA%\ms-playwright` with a
   "side-by-side configuration" error, install the browsers elsewhere with
   `PLAYWRIGHT_BROWSERS_PATH` (seen on one machine in phase 12).

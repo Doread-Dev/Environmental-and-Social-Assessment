@@ -93,6 +93,11 @@ One file per domain in each folder:
 - Controllers are wrapped in `asyncHandler` and respond `{ success: true, data }`; errors are thrown
   as `new ApiError(status, msg)` and become `{ success: false, error }` (an `ApiError` with a string
   `code` adds `code`). Mongoose CastError → 404, duplicate key → 409, Mongoose/Joi validation → 400.
+  **Unexpected server errors:** a final status ≥ 500 from an error that is not an `ApiError`
+  answers exactly `"Server Error"` in every environment except `development` (where the message
+  and the stack are shown); the full error is always logged with `console.error`. An `ApiError`
+  with a 5xx status keeps its own message (written on purpose); 4xx results keep theirs (incl.
+  library errors with their own 4xx status, e.g. invalid JSON → 400, too large → 413).
 - Auth errors: bad/expired/forged token, unknown or inactive user → 401; wrong role → 403
   `Forbidden`; pending forced password change → 403 `code: "PASSWORD_CHANGE_REQUIRED"`; unexpected
   verify error → 500 `Server Error` (no stack, no details).

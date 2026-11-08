@@ -18,7 +18,8 @@ fails when a mounted route is missing from this page.
   Server-owned fields (`status`, `officer`, `approved_by`, `reject_by`, `reject_reason`,
   `recommendations`, totals, `is_active`) are never accepted in create/update bodies.
 - **Responses:** `{ success: true, data }` (lists with `pagination` where noted);
-  errors `{ success: false, error, code? }`. Mongoose CastError → 404, duplicate key → 409. A
+  errors `{ success: false, error, code? }`. An unexpected server error answers 500
+  `"Server Error"` (its message only in `development`). Mongoose CastError → 404, duplicate key → 409. A
   broken workflow rule → 409 ([workflow rules](workflow-rules.md)). A stale `version` → 409
   `code: "STALE_VERSION"`; a missing one → 400.
 - **Free text** is at most 30,000 characters (D74 4).

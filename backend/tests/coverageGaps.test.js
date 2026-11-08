@@ -67,10 +67,68 @@ describe("errorHandler", () => {
     });
   });
 
-  it("answers 500 for an unexpected error and adds the stack only in development", () => {
-    const err = new Error("boom");
-    expect(handle(err)).toEqual({ status: 500, body: { success: false, error: "boom" } });
-    expect(handle(err, { env: "development" }).body.stack).toContain("boom");
+  it.each(["production", "test"])(
+    "hides the message of an unexpected error in %s (500 Server Error), and still logs it",
+    (env) => {
+      const err = new Error("db exploded: secret path C:\\data\\esms");
+      const result = handle(err, { env });
+      expect(result).toEqual({ status: 500, body: { success: false, error: "Server Error" } });
+      expect(JSON.stringify(result.body)).not.toMatch(/exploded|secret|C:/);
+      expect(console.error).toHaveBeenCalledWith(err);
+    }
+  );
+
+  it("hides an unexpected error that carries its own 5xx status", () => {
+    const err = Object.assign(new Error("upstream socket hang up"), { statusCode: 502 });
+    expect(handle(err, { env: "production" })).toEqual({
+      status: 502,
+      body: { success: false, error: "Server Error" },
+    });
+  });
+
+  it("answers Server Error when an error has no message, even in development", () => {
+    expect(handle(new Error(""), { env: "development" }).body.error).toBe("Server Error");
+    expect(handle(Object.assign(new Error(""), { statusCode: 418 })).body.error).toBe(
+      "Server Error"
+    );
+  });
+
+  it("keeps a 4xx message of a failed authentication, and hides even an ApiError 5xx there", () => {
+    expect(handle(new ApiError(401, "Token expired"), { authError: true })).toEqual({
+      status: 401,
+      body: { success: false, error: "Token expired" },
+    });
+    expect(
+      handle(new ApiError(500, "verify failed: key"), { authError: true, env: "production" })
+    ).toEqual({ status: 500, body: { success: false, error: "Server Error" } });
+  });
+
+  it("adds no stack outside development, and none for an auth error in development", () => {
+    expect(handle(new ApiError(400, "Bad"), { env: "production" }).body.stack).toBeUndefined();
+    expect(
+      handle(new ApiError(401, "Expired"), { authError: true, env: "development" }).body.stack
+    ).toBeUndefined();
+    expect(handle(new ApiError(400, "Bad"), { env: "development" }).body.stack).toContain("Bad");
+  });
+
+  it("keeps the message and stack of an unexpected error in development", () => {
+    const body = handle(new Error("boom"), { env: "development" }).body;
+    expect(body.error).toBe("boom");
+    expect(body.stack).toContain("boom");
+  });
+
+  it("keeps the message of an ApiError with a 5xx status (written on purpose)", () => {
+    expect(
+      handle(new ApiError(503, "Backups are running, try again"), { env: "production" })
+    ).toEqual({ status: 503, body: { success: false, error: "Backups are running, try again" } });
+  });
+
+  it("keeps a 4xx library error's own message", () => {
+    const err = Object.assign(new Error("request entity too large"), { statusCode: 413 });
+    expect(handle(err, { env: "production" })).toEqual({
+      status: 413,
+      body: { success: false, error: "request entity too large" },
+    });
   });
 
   it("hides internals of a failed authentication (no stack, generic 500 message)", () => {
@@ -92,6 +150,34 @@ describe("errorHandler", () => {
     });
     const numeric = Object.assign(new ApiError(409, "Busy"), { code: 7 });
     expect(handle(numeric).body).toEqual({ success: false, error: "Busy" });
+  });
+});
+
+describe("error responses through the app", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it("invalid JSON in a body answers 400 with a client-facing message", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const res = await request(app)
+      .post("/api/v1/auth/login")
+      .set("Content-Type", "application/json")
+      .send('{"email": ');
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.error).toBeTruthy();
+    expect(res.body.error).not.toBe("Server Error");
+  });
+
+  it("a thrown unexpected error answers 500 Server Error without its text", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { token } = await loginAs("viewer");
+    const Project = require("../../src/models/project.model");
+    vi.spyOn(Project, "find").mockImplementation(() => {
+      throw new Error("db exploded: secret path");
+    });
+    const res = await request(app).get("/api/v1/projects").set("Authorization", `Bearer ${token}`);
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ success: false, error: "Server Error" });
   });
 });
 

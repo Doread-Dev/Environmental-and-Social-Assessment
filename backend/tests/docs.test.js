@@ -95,7 +95,10 @@ describe("documentation (phase 12)", () => {
       "CLAUDE.md",
       "backend/README.md",
       "frontend/README.md",
-      ...fs.readdirSync(docs).map((name) => `docs/${name}`),
+      ...fs
+        .readdirSync(docs)
+        .filter((name) => name.endsWith(".md"))
+        .map((name) => `docs/${name}`),
     ];
     const broken = [];
     for (const file of files) {

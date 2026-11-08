@@ -1,6 +1,6 @@
 /**
  * AssessmentMethodsPage
- * صفحة طرق التقييم والاستشارات المجتمعية
+ * Assessment methods and community consultations page
  */
 
 import { useState, useEffect } from 'react'

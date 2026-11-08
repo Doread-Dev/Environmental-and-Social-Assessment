@@ -281,6 +281,7 @@ function ProjectSidebar({ project, className }) {
               triggerClassName="flex w-full min-w-0"
             >
               <h2
+                dir="auto"
                 className="text-sm font-bold text-text-main dark:text-white leading-tight truncate"
                 title={projectTitle}
               >
@@ -291,7 +292,7 @@ function ProjectSidebar({ project, className }) {
               <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
                 location_on
               </span>
-              <span className="truncate" title={projectLocation}>
+              <span dir="auto" className="truncate" title={projectLocation}>
                 {projectLocation}
               </span>
             </div>

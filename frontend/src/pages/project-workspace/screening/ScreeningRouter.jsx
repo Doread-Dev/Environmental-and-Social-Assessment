@@ -1,12 +1,12 @@
 /**
  * ScreeningRouter Component
- * يوجه المستخدم للصفحة المناسبة حسب حالة Screening
+ * Picks the screening page for the screening's state
  *
- * المنطق:
- * - لا يوجد screening أو draft → ScreeningFormPage
- * - submitted → ScreeningSummaryPage (مع Approve/Reject)
- * - rejected → ScreeningSummaryPage (مع Edit button)
- * - approved → ScreeningSummaryPage (مع Print button)
+ * Rules:
+ * - no screening, or draft → ScreeningFormPage
+ * - submitted → ScreeningSummaryPage (with Approve / Reject)
+ * - rejected → ScreeningSummaryPage (with Edit Screening)
+ * - approved → ScreeningSummaryPage (with Print)
  */
 
 import { useParams, useSearchParams } from 'react-router-dom'

@@ -1,9 +1,8 @@
 /**
  * ProjectOverviewPage
- * صفحة نظرة عامة على المشروع
- * مطابق للتصميم الأصلي حرفياً
+ * Project overview page
  *
- * Layout: ProjectLayout (موجود)
+ * Layout: ProjectLayout
  * Route: /app/projects/:projectId/overview
  */
 

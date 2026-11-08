@@ -64,10 +64,10 @@ export default function EditableCell({
       onPaste={handlePaste}
       suppressContentEditableWarning
       data-placeholder={placeholder}
-      dir="ltr"
+      dir="auto"
       className={cn(
         'excel-cell',
-        'w-full h-full min-h-[40px] flex items-center justify-start text-left',
+        'w-full h-full min-h-[40px] flex items-center justify-start text-start',
         'px-2 py-2 outline-none word-break-word whitespace-pre-wrap bg-transparent',
         'text-sm text-text-main dark:text-white',
         'focus:ring-2 focus:ring-inset focus:ring-primary focus:bg-primary/5 focus:z-10 focus:relative',

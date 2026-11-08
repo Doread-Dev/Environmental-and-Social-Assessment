@@ -1,13 +1,12 @@
 /**
  * MitigationPlanPage (Tool 4)
- * Matches design from: 18.Impact Mitigation and Enhancement Plan.html
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/services/queryKeys'
-import { UnsavedExportDialog } from '@/components/export'
+import { UnsavedExportDialog, useExportHandler } from '@/components/export'
 import { useMitigationPlans } from '@/hooks/useSemp'
 import { MitigationPlanTable } from '@/components/semp'
 import { useUsers } from '@/hooks'
@@ -73,19 +72,17 @@ export default function MitigationPlanPage() {
     }
   }, [project, projectId, queryClient, workflow, toast])
 
-  // Handle export event from SempFullWidthLayout: with unsaved edits, ask to save first
-  useEffect(() => {
-    const handleExportEvent = (event) => {
+  // The header's Export Excel (SempFullWidthLayout), once the rows are loaded: with unsaved edits,
+  // ask to save first
+  useExportHandler(
+    'semp-export',
+    (event) => {
       if (event.detail?.toolType !== 'tool4') return
       if (canEdit && hasUnsavedChanges) setConfirmUnsavedExport(true)
       else exportSaved()
-    }
-
-    window.addEventListener('semp-export', handleExportEvent)
-    return () => {
-      window.removeEventListener('semp-export', handleExportEvent)
-    }
-  }, [canEdit, hasUnsavedChanges, exportSaved])
+    },
+    !isLoading
+  )
 
   // Handlers
   const handleUpdate = (rowId, field, value) => {

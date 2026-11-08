@@ -5,6 +5,7 @@ import { useTheme, useAuth, useConfirmLeave, ROLE_LABELS } from '@/contexts'
 import { Avatar } from '@/components/ui'
 import { ROUTES } from '@/routes/routes.config'
 import BrandLogo from './BrandLogo'
+import { APP_VERSION } from '@/utils/appVersion'
 
 /**
  * Header Component
@@ -198,6 +199,10 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
                     </button>
                   )
                 })}
+                {/* Which build runs (D77), for IT */}
+                <p className="px-4 pt-2 pb-1 text-xs text-text-secondary dark:text-gray-400">
+                  ESMS v{APP_VERSION}
+                </p>
               </div>
             </>
           )}

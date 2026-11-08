@@ -27,7 +27,6 @@ export { useToast } from './useToast'
 // Navigation Components
 export { default as Breadcrumb } from './Breadcrumb'
 export { default as Pagination } from './Pagination'
-export { default as Accordion } from './Accordion'
 
 // Layout Components
 export { default as StickyFooter } from './StickyFooter'

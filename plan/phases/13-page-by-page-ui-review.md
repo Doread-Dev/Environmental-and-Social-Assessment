@@ -1,5 +1,7 @@
 # Phase 13 — Page-by-page UI/UX review
 
+> **Moved to v3 (D77 2, 2026-11-08).** v2.0.0 ships without this phase. This file stays as the starting list for the v3 UI work (linked from [V3_VISION.md](../V3_VISION.md)); UI/UX issues found from now on are still written here (D72 c). The small visible fixes a user meets on day one were done in [phase 12a](12a-release-readiness.md) and moved out of the list below.
+
 **Goal:** every screen looks finished, consistent and behaves well, so the version ships clean — enterprise-grade QA/UX is release scope (D72). Phase 10 unified what is shared across the app (components, tokens, type scale, states); this phase walks **every element of every screen, one by one, UI and UX**, and cleans what is left.
 
 **Owner's aim (D76 4, 2026-11-06; to be refined in this phase's own concept talk):** this is the **design-system phase**. The owner wants a full design system and enterprise-grade UI/UX, down to hover states and the smallest details, plus front-end performance. The v3 restructure must be able to reuse that UI and design system as it is. Phase 12 wrote no design-system doc: today's style rules sit in `docs/` in a short section marked "replaced by the design system of phase 13"; this phase replaces that section.
@@ -8,7 +10,7 @@
 
 **Fed by every phase (D72):** each phase writes the UI/UX issues it finds below, under its screen, instead of fixing them on the side.
 
-**Depends on:** 12.
+**Depends on:** 12 (now v3 work, D77).
 
 ## Method
 1. **Inventory:** list every screen (each route, plus its modals, side panels and empty/locked/archived/read-only variants) at the bottom of this file.
@@ -64,20 +66,16 @@ Items found during phase 10 that are page-specific (not shared) are listed here 
 - **Dashboard metric cards:** coloured icon tiles (blue/orange/red) — confirm with the owner against the AKF palette.
 - **Login / change password:** check the type scale after `PAGE_TITLE` in both themes.
 - **Phase 10a (D72 c, UI/UX only; behaviour was fixed there):**
-  - **Tools 3/4 grid (`components/semp/EditableCell.jsx`):** cells are `dir="ltr"`, so Arabic text in them is laid out left to right; a very long cell (3,000+ characters) makes its row hundreds of pixels tall (no clamp or expand); the editable cells have no accessible name.
-  - **Tool 5 data entry:** the lock card says "complete Tool 2" and links to the assessment, but the gate is Tools 3 and 4 (the route guard redirects first, so it is rarely seen).
+  - **Tools 3/4 grid (`components/semp/EditableCell.jsx`):** a very long cell (3,000+ characters) makes its row hundreds of pixels tall (no clamp or expand); the editable cells have no accessible name. (Arabic direction fixed in phase 12a.)
   - **Assessment metadata / methods for a viewer or a locked assessment:** "Save and Continue" is disabled and there is no other forward button (only the sidebar).
-  - **Assessment scoring:** "Save as Draft" gives no success feedback (Tools 3–5 show "Saved").
   - **New dialogs of phase 10a** (unsaved changes, stale save, session expired) use the shared `Modal`/`Button`/`Input`; check their wording, focus order and layout in both themes and at 375 px with the owner.
   - **Error boxes:** Tools 3/4 still draw their own red error box (raw red classes) instead of `Alert`.
-- **Arabic text direction (found in the D72 font check):** Arabic project titles and locations in the Projects list (and likely other lists, headers and cards) are aligned left-to-right. User-entered text needs `dir="auto"` wherever it is displayed, not only in the inputs; check every screen with an Arabic test project.
-- **Mobile and tablet navigation (owner, 2026-11-05):** on phone and tablet widths (below `lg`, so tablets are included) the project's tool list in the menu does not show whether a tool is locked or done. `MobileMenu` has lock/check logic, but the Tools 3/4 pages (`SempFullWidthLayout`) have no mobile menu at all. Check the menu on **every project page at 375 px and 768 px**: each tool's locked, done and current state must match the desktop sidebar, and the Tools 3/4 pages must offer a way to navigate (to the other tools, the overview and back). Fix it here with a test per layout.
-- **Phase 12 (D72 c; found while writing the E2E flows, not fixed there):**
-  - **Assessment metadata:** Arabic text "(في حال الحفظ)" is shown next to Officer Name and Officer Position — the UI is English only.
-  - **Assessment metadata:** the four text areas have no label (their accessible name is the placeholder, e.g. "Describe here..."); the visible question text is not tied to the field.
-  - **Monitoring data entry, read-only (viewer):** a "Cancel" button is shown although there is nothing to cancel.
-  - **Header "Export Excel" (screening, assessment, Tools 3–5):** the button is active before the tool page has loaded; a click in that moment is lost (the page listens for the export event only once mounted). Disable it until the page is ready, or move the export into the page.
-- **Phase 11 (D72 c):** no new UI/UX issue found in the production-build check (login, dashboard, library, PDF viewer, light and dark). The Material Symbols icon font is the full variable font (~4 MB, loaded once and cached for a year); subsetting it to the icons the app uses is a possible later optimisation, not a UI change.
+- **Mobile and tablet navigation:** the Tools 3/4 menu and the done state of the expandable tools were fixed in phase 12a (test per layout). Still to walk: the menu on **every project page at 375 px and 768 px** with the owner (current-page highlight, the assessment sub-steps).
+- **Phase 12a (D72 c; found while doing the release fixes, not fixed there):**
+  - **Project create:** the location hint says "Specific location allows for automated GIS risk overlay later." — no such feature exists; reword or drop it.
+  - **Tools 3/4 on desktop:** the full-width layout has no project navigation on wide screens either (only the page's Back button); the phone/tablet menu is hidden from `lg` up.
+  - **Tools 3/4 mobile menu:** its backdrop (`z-40`) sits below the sticky SEMP header (`z-50`), so tapping the header does not close the menu.
+- **Phase 11 (D72 c):** no new UI/UX issue found in the production-build check (login, dashboard, library, PDF viewer, light and dark). (The icon font subset was done in phase 12a.)
 
 ## Follow-ups after the server is live
 - **Remove Vercel (D75 2):** once the internal server runs, delete `frontend/vercel.json` and the Vercel project, and drop the Vercel notes in `CLAUDE.md` and `deploy/README.md`. Small change: the app already calls its own origin when `VITE_API_URL` is not set.

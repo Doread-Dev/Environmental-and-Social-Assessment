@@ -1,7 +1,6 @@
 /**
  * MonitoringDataEntryPage
  * Tool 5 - Monitoring Data Entry
- * صفحة إدخال بيانات المراقبة
  */
 
 import { useState, useEffect, useCallback } from 'react'
@@ -11,7 +10,7 @@ import { useMonitoring, useProjectContext, useLookups, useUsers } from '@/hooks'
 import { assessmentQuery } from '@/hooks/useAssessment'
 import { useUnsavedChanges } from '@/contexts'
 import { queryKeys } from '@/services/queryKeys'
-import { UnsavedExportDialog } from '@/components/export'
+import { UnsavedExportDialog, useExportHandler } from '@/components/export'
 import { isStepLocked } from '@/utils/workflowSteps'
 import { MonitoringDataTable } from '@/components/tables'
 import {
@@ -23,6 +22,8 @@ import {
   Button,
 } from '@/components/ui'
 import { cn } from '@/utils/cn'
+import { ROUTES, getProjectRoute } from '@/routes/routes.config'
+
 export default function MonitoringDataEntryPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
@@ -121,7 +122,7 @@ export default function MonitoringDataEntryPage() {
   // Stay in the shared in-app dialog (D61); window.confirm was suppressed by embedded browsers.
   useUnsavedChanges(canEdit && hasUnsavedChanges, handleSave)
 
-  const handleBack = () => navigate(`/app/projects/${projectId}/monitoring`)
+  const handleBack = () => navigate(getProjectRoute(projectId, ROUTES.MONITORING))
 
   // The file always holds what is saved (D74 3): the cached records and the current status
   const exportSaved = useCallback(async () => {
@@ -149,17 +150,15 @@ export default function MonitoringDataEntryPage() {
     }
   }, [project, projectId, queryClient, categoriesWithIndicators, workflow, toast])
 
-  // The header's Export: with unsaved values, ask to save first
-  useEffect(() => {
-    const handleExportEvent = () => {
+  // The header's Export, once the records are loaded: with unsaved values, ask to save first
+  useExportHandler(
+    'monitoring-export',
+    () => {
       if (canEdit && hasUnsavedChanges) setConfirmUnsavedExport(true)
       else exportSaved()
-    }
-    window.addEventListener('monitoring-export', handleExportEvent)
-    return () => {
-      window.removeEventListener('monitoring-export', handleExportEvent)
-    }
-  }, [canEdit, hasUnsavedChanges, exportSaved])
+    },
+    !isLoading && !lookupsLoading
+  )
 
   // "Save and export": a failed save (its error, or the stale dialog) exports nothing
   const saveAndExport = async () => {
@@ -198,12 +197,15 @@ export default function MonitoringDataEntryPage() {
             </p>
           </div>
           <div className="gap-2 flex items-center justify-center">
-            <Button variant="secondary" type="button" onClick={handleBack}>
-              <span className="material-symbols-outlined text-lg" aria-hidden="true">
-                arrow_back
-              </span>
-              <span>Cancel</span>
-            </Button>
+            {/* Read-only (viewer): nothing to cancel, so no Cancel button (phase 12a) */}
+            {canEdit && (
+              <Button variant="secondary" type="button" onClick={handleBack}>
+                <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                  arrow_back
+                </span>
+                <span>Cancel</span>
+              </Button>
+            )}
             {canEdit && (
               <Button
                 variant="primary"
@@ -244,15 +246,15 @@ export default function MonitoringDataEntryPage() {
                 Monitoring Locked
               </h3>
               <p className="text-text-secondary dark:text-gray-400 text-sm">
-                You must complete and get approval for the{' '}
-                <strong>Environmental Assessment (Tool 2)</strong> before entering monitoring data.
+                You must complete <strong>Management Activities (Tool 3)</strong> and the{' '}
+                <strong>Mitigation Plan (Tool 4)</strong> before entering monitoring data.
               </p>
             </div>
             <button
-              onClick={() => navigate(`/app/projects/${projectId}/assessment`)}
+              onClick={() => navigate(getProjectRoute(projectId, ROUTES.SEMP))}
               className="sm:ml-auto px-4 py-2 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700 transition-colors whitespace-nowrap"
             >
-              Go to Assessment
+              Go to SEMP
             </button>
           </div>
         )}

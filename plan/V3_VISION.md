@@ -44,6 +44,7 @@
 - **Client-requested features:** not disclosed yet; the owner brings them to the v3 review.
 - **Frontend test coverage:** about 34% after phase 7.
 - **Office file preview:** server-side conversion (D64 left it out).
+- **Design system and page-by-page UI/UX review (D77 2):** moved out of v2. [Phase 13](phases/13-page-by-page-ui-review.md) is the starting list: the owner's aim (D76 4: a full design system, enterprise-grade UI/UX down to hover states, front-end performance, reusable by v3), its method, and the issue list per screen collected in phases 10–12a.
 
 ## Prepared in v2 for v3
 - D65: one audit writer and a forward-compatible entry shape.

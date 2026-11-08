@@ -1,10 +1,8 @@
-// Phase 12 (D76 3): Pagination (page list with dots), Tooltip (delay, position, hide) and
-// Accordion (single / multiple open items).
+// Phase 12 (D76 3): Pagination (page list with dots) and Tooltip (delay, position, hide).
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import Pagination from './Pagination'
 import Tooltip from './Tooltip'
-import Accordion from './Accordion'
 
 const pageLabels = () =>
   screen
@@ -99,47 +97,5 @@ describe('Tooltip', () => {
     expect(screen.getByRole('tooltip')).toHaveTextContent('Tip')
     fireEvent.blur(trigger)
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
-  })
-})
-
-describe('Accordion', () => {
-  const renderAccordion = (props) =>
-    render(
-      <Accordion {...props}>
-        {['one', 'two'].map((value) => (
-          <Accordion.Item key={value} value={value} disabled={value === 'two' && props.disableTwo}>
-            <Accordion.Trigger>Section {value}</Accordion.Trigger>
-            <Accordion.Content>Body {value}</Accordion.Content>
-          </Accordion.Item>
-        ))}
-      </Accordion>
-    )
-  const trigger = (value) => screen.getByRole('button', { name: new RegExp(`Section ${value}`) })
-
-  it('opens one item at a time by default and reports the open items', () => {
-    const onChange = vi.fn()
-    renderAccordion({ defaultOpen: 'one', onChange })
-    expect(trigger('one')).toHaveAttribute('aria-expanded', 'true')
-    expect(trigger('two')).toHaveAttribute('aria-expanded', 'false')
-    fireEvent.click(trigger('two'))
-    expect(trigger('one')).toHaveAttribute('aria-expanded', 'false')
-    expect(trigger('two')).toHaveAttribute('aria-expanded', 'true')
-    fireEvent.click(trigger('two'))
-    expect(trigger('two')).toHaveAttribute('aria-expanded', 'false')
-    expect(onChange.mock.calls.map(([items]) => items)).toEqual([['two'], []])
-  })
-
-  it('keeps several items open with allowMultiple, and a disabled item does not toggle', () => {
-    renderAccordion({ allowMultiple: true, defaultOpen: ['one'] })
-    fireEvent.click(trigger('two'))
-    expect(trigger('one')).toHaveAttribute('aria-expanded', 'true')
-    expect(trigger('two')).toHaveAttribute('aria-expanded', 'true')
-  })
-
-  it('ignores clicks on a disabled item', () => {
-    renderAccordion({ disableTwo: true })
-    expect(trigger('two')).toBeDisabled()
-    fireEvent.click(trigger('two'))
-    expect(trigger('two')).toHaveAttribute('aria-expanded', 'false')
   })
 })

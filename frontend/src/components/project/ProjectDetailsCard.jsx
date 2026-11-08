@@ -1,6 +1,6 @@
 /**
  * ProjectDetailsCard Component
- * بطاقة تفاصيل المشروع
+ * Project details card
  * Real project data only: location, component, start and end date.
  * Empty values show "Not specified".
  */
@@ -72,6 +72,7 @@ function ProjectDetailsCard({
                 {row.label}
               </dt>
               <dd
+                dir="auto"
                 className={cn(
                   'text-sm break-words',
                   row.value === NOT_SPECIFIED

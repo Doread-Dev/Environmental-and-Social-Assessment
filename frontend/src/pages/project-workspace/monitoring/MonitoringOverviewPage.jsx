@@ -1,7 +1,6 @@
 /**
  * MonitoringOverviewPage
  * Tool 5 - Monitoring Overview
- * صفحة نظرة عامة للمراقبة
  */
 
 import { useNavigate, useParams } from 'react-router-dom'
@@ -12,6 +11,7 @@ import { assessmentQuery } from '@/hooks/useAssessment'
 import { isStepLocked } from '@/utils/workflowSteps'
 import { useLookups } from '@/hooks'
 import { useToast, LoadingState, PAGE_TITLE, PAGE_DESCRIPTION, Button } from '@/components/ui'
+import { ROUTES, getProjectRoute } from '@/routes/routes.config'
 
 export default function MonitoringOverviewPage() {
   const { projectId } = useParams()
@@ -55,7 +55,7 @@ export default function MonitoringOverviewPage() {
             <Button
               variant="primary"
               type="button"
-              onClick={() => navigate(`/app/projects/${projectId}/monitoring/data-entry`)}
+              onClick={() => navigate(getProjectRoute(projectId, ROUTES.MONITORING_DATA))}
               disabled={isLocked}
             >
               <span className="material-symbols-outlined text-base" aria-hidden="true">
@@ -115,15 +115,15 @@ export default function MonitoringOverviewPage() {
                 Monitoring Locked
               </h3>
               <p className="text-text-secondary dark:text-gray-400 text-sm">
-                You must complete and get approval for the{' '}
-                <strong>Environmental Assessment (Tool 2)</strong> before starting monitoring.
+                You must complete <strong>Management Activities (Tool 3)</strong> and the{' '}
+                <strong>Mitigation Plan (Tool 4)</strong> before starting monitoring.
               </p>
             </div>
             <button
-              onClick={() => navigate(`/app/projects/${projectId}/assessment`)}
+              onClick={() => navigate(getProjectRoute(projectId, ROUTES.SEMP))}
               className="sm:ml-auto px-4 py-2 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700 transition-colors whitespace-nowrap"
             >
-              Go to Assessment
+              Go to SEMP
             </button>
           </div>
         )}

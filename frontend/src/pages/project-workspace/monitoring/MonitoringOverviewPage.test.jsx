@@ -55,6 +55,7 @@ const routes = [
       { path: 'monitoring', element: <MonitoringOverviewPage /> },
       { path: 'monitoring/data-entry', element: <p>data entry page</p> },
       { path: 'assessment', element: <p>assessment page</p> },
+      { path: 'semp', element: <p>semp page</p> },
     ],
   },
 ]
@@ -118,5 +119,11 @@ describe('MonitoringOverviewPage', () => {
     renderApp(routes, '/app/projects/p1/monitoring')
     expect(await screen.findByText('Monitoring Locked')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Enter \/ Edit Data/ })).toBeDisabled()
+    // The gate is Tools 3 and 4 (phase 12a), not the assessment
+    expect(screen.getByText(/Management Activities \(Tool 3\)/)).toBeInTheDocument()
+    expect(screen.getByText(/Mitigation Plan \(Tool 4\)/)).toBeInTheDocument()
+    expect(screen.queryByText(/Environmental Assessment \(Tool 2\)/)).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Go to SEMP' }))
+    expect(await screen.findByText('semp page')).toBeInTheDocument()
   })
 })

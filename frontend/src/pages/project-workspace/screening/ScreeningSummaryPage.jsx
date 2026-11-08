@@ -1,13 +1,13 @@
 /**
  * ScreeningSummaryPage
- * صفحة ملخص الفرز والموافقة
- * مطابق للتصميم الأصلي حرفياً
+ * Screening summary and approval page
  *
  * Layout: ProjectLayout
  * Route: /app/projects/:projectId/screening/summary
  */
 
 import { useState, useEffect, useCallback } from 'react'
+import { useExportHandler } from '@/components/export'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   Button,
@@ -126,19 +126,10 @@ function ScreeningSummaryPage() {
     setRejectReasonInput('')
   }, [])
 
-  // Expose export handler to parent layout via custom event
-  useEffect(() => {
-    const status = screening?.status || 'draft'
-    if (status === 'submitted' || status === 'approved' || status === 'rejected') {
-      const handleExportEvent = () => {
-        handleExport()
-      }
-      window.addEventListener('screening-export', handleExportEvent)
-      return () => {
-        window.removeEventListener('screening-export', handleExportEvent)
-      }
-    }
-  }, [screening?.status, handleExport])
+  // The header's Export Excel: answered once the screening is loaded and past draft (the button
+  // stays disabled until then, phase 12a)
+  const exportable = ['submitted', 'approved', 'rejected'].includes(screening?.status)
+  useExportHandler('screening-export', handleExport, !screeningLoading && exportable)
 
   // Update recommendations when screening changes
   useEffect(() => {
@@ -211,7 +202,7 @@ function ScreeningSummaryPage() {
       .filter(Boolean)
       .map((line) => line.replace(/^[-*]\s*/, '')) || []
 
-  // Format screening date - لا يظهر في حالة submitted
+  // Format screening date - not shown while submitted
   const screeningDateFormatted =
     status !== 'submitted' && screening.screening_date ? formatDate(screening.screening_date) : ''
 
@@ -225,7 +216,7 @@ function ScreeningSummaryPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Main Container - مطابق للتصميم الأصلي */}
+      {/* Main Container */}
       <form className="flex flex-col gap-8 print-container">
         <div className="max-w-[960px] mx-auto bg-surface dark:bg-surface-dark shadow-sm rounded-xl overflow-hidden min-h-[800px] flex flex-col print-container">
           {/* Header Section */}
@@ -240,7 +231,7 @@ function ScreeningSummaryPage() {
                   />
                 </div>
                 <p className="text-text-secondary dark:text-gray-400 text-sm md:text-base">
-                  Project: {project?.title || 'N/A'}
+                  Project: <span dir="auto">{project?.title || 'N/A'}</span>
                 </p>
               </div>
               {screeningDateFormatted && (
@@ -442,7 +433,10 @@ function ScreeningSummaryPage() {
                       Reason for Rejection
                     </label>
                     <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                      <p className="text-sm text-red-700 dark:text-red-400 whitespace-pre-wrap">
+                      <p
+                        dir="auto"
+                        className="text-sm text-red-700 dark:text-red-400 whitespace-pre-wrap"
+                      >
                         {screening.reject_reason}
                       </p>
                     </div>

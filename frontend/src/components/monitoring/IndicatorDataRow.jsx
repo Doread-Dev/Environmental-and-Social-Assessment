@@ -1,6 +1,6 @@
 /**
  * IndicatorDataRow Component
- * صف واحد للمؤشر مع حقول قابلة للتعديل
+ * One indicator row with editable fields
  */
 
 import RankingSelect from './RankingSelect'
@@ -9,14 +9,14 @@ import { Input, Textarea } from '@/components/ui'
 
 /**
  * @param {Object} props
- * @param {Object} props.indicator - بيانات المؤشر
- * @param {Object} props.record - سجل المراقبة
- * @param {string} [props.categoryCode] - كود الفئة للمؤشر
- * @param {number} [props.questionNumber] - رقم السؤال داخل الفئة
- * @param {Function} props.onUpdateScore - تحديث قيمة ربع سنوية (quarter, value) => void
- * @param {Function} props.onUpdateField - تحديث حقل (field, value) => void
- * @param {boolean} [props.isEditable] - قابل للتعديل
- * @param {Array} [props.users] - قائمة المستخدمين للعمود Responsibility
+ * @param {Object} props.indicator - The indicator
+ * @param {Object} props.record - The monitoring record
+ * @param {string} [props.categoryCode] - The indicator's category code
+ * @param {number} [props.questionNumber] - Question number within the category
+ * @param {Function} props.onUpdateScore - Sets a quarter's value (quarter, value) => void
+ * @param {Function} props.onUpdateField - Sets a field (field, value) => void
+ * @param {boolean} [props.isEditable] - Editable
+ * @param {Array} [props.users] - Users for the Responsibility column
  */
 function IndicatorDataRow({
   indicator,

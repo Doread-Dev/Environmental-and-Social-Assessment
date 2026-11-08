@@ -318,7 +318,7 @@ a rule from it (D68).
 
 ### Style
 
-Today's rules: [style guide](style-guide.md) (replaced by the design system of phase 13).
+The rules: [style guide](style-guide.md) (a full design system comes with v3, D77).
 
 ## Known gaps
 

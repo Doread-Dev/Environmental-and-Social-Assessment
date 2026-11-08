@@ -1,6 +1,6 @@
 /**
  * ScreeningFormPage
- * صفحة نموذج الفرز البيئي
+ * Environmental screening form page
  *
  * Layout: ProjectLayout
  * Route: /app/projects/:projectId/screening
@@ -206,9 +206,9 @@ function ScreeningFormPage() {
 
   return (
     <div className="flex flex-col min-h-full relative">
-      {/* Container للمحتوى - مطابق للتصميم الأصلي */}
+      {/* Content container */}
       <div className="px-8 pb-20 max-w-5xl mx-auto w-full flex-1">
-        {/* Page Header - مطابق للتصميم الأصلي */}
+        {/* Page Header */}
         <div className="flex flex-col gap-2 py-6">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg text-primary">

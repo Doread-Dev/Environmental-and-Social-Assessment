@@ -1,18 +1,18 @@
 /**
  * ImpactSummarySection Component
- * قسم ملخص التأثيرات (Negative/Positive)
+ * Summary of the negative and positive impacts
  */
 
 import { Textarea } from '@/components/ui'
 
 /**
  * @param {Object} props
- * @param {string} props.negativeImpact - التأثيرات السلبية
- * @param {string} props.positiveImpact - التأثيرات الإيجابية
- * @param {Function} props.onNegativeChange - callback للسلبية
- * @param {Function} props.onPositiveChange - callback للإيجابية
- * @param {boolean} props.readOnly - وضع القراءة فقط
- * @param {Object} props.errors - رسائل الخطأ
+ * @param {string} props.negativeImpact - Negative impacts
+ * @param {string} props.positiveImpact - Positive impacts
+ * @param {Function} props.onNegativeChange - Called when the negative text changes
+ * @param {Function} props.onPositiveChange - Called when the positive text changes
+ * @param {boolean} props.readOnly - Read-only mode
+ * @param {Object} props.errors - Error messages
  */
 export default function ImpactSummarySection({
   negativeImpact = '',

@@ -141,10 +141,12 @@ history entries) with a mocked `@/services/api` (`src/test/utils.jsx`: `mockGet`
   saves, an expired token), `ui.js` (sign-in, request counting), `excel.js` (ExcelJS reading),
   `files.js` (a generated PDF), `test.js` (the `test` every spec imports, with `newUserPage()`).
   Nothing is routed or mocked: downloads and PDF previews use the real API.
-- **Download managers:** on a machine with Internet Download Manager (IDM) or a similar download
-  manager, turn off its browser integration, or exclude the Playwright browser, while running E2E.
-  Otherwise it takes over every response with `Content-Disposition` (project files, library PDFs),
-  the page gets an empty 204, and flows 5, 5a, 6 and 10 fail.
+- **Download managers (IDM):** download managers such as Internet Download Manager take over any
+  fetched response that carries `Content-Disposition`, and the page then gets an empty 204. The app
+  no longer sends that header on its file endpoints (phase 12), so IDM no longer breaks the PDF viewer
+  or downloads for users. When running E2E on a machine with IDM, its browser integration may still
+  pop up for the files the flows save (flows 5 and 10); turn it off, or exclude the Playwright
+  browser, if it does.
 - On Windows, if Playwright's Chromium fails to start from `%LOCALAPPDATA%\ms-playwright` with a
   "side-by-side configuration" error, install the browsers elsewhere with
   `PLAYWRIGHT_BROWSERS_PATH` (seen on one machine in phase 12).

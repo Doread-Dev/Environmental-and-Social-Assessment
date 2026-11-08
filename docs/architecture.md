@@ -113,8 +113,10 @@ One file per domain in each folder:
 `services/fileStorage.service.js` is the one helper for uploads: it checks every upload
 (`checkUpload(file, allowedExtensions)`: extension, first bytes, empty, cleaned display name),
 writes it under a server-generated name (`store(folder, …)`, folder = project id or `library`),
-resolves paths inside `UPLOADS_DIR` only, removes files without throwing, and sends downloads
-(`sendFile` relative to the uploads folder with `root`, so an `UPLOADS_DIR` under a dot folder still
+resolves paths inside `UPLOADS_DIR` only, removes files without throwing, and sends files to the
+app (`send`: the stored type, `Cache-Control: private, no-store`, **no `Content-Disposition`** —
+download managers such as IDM hijack fetched responses that carry it, which broke the in-app PDF
+viewer; the frontend names every saved file from the record's `original_name`; `sendFile` relative to the uploads folder with `root`, so an `UPLOADS_DIR` under a dot folder still
 works). Project documents (`ProjectFile`, D47, D64 d) and the reference library (`LibraryDocument`,
 D64 b) both use it; nothing else touches the uploads folder. Uploads are parsed in memory by
 `multer` 2 (`middlewares/upload.js`), one file per request: PDF + Office for project documents, PDF

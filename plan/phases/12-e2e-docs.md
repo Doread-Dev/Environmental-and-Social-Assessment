@@ -140,15 +140,20 @@ lines): every rule kept or linked to the doc it moved to.
   function is used by every test).
 
 **Other findings:**
-- **Empty downloads on the owner's machine (local download managers such as IDM):** during the
+- **Fixed — empty downloads with download managers such as IDM (real users too):** during the
   local E2E runs, file fetches (`GET /files/:id/download`, `GET /library/:id/file`) reached the page
   as an empty 204 although the server sent 200 with the file, and each was fetched once more without
   `Sec-Fetch-*` headers. Cause: the owner's Internet Download Manager hooks into `chrome.exe`
   (Chrome for Testing included), takes over any response with `Content-Disposition` and downloads it
-  itself. Not an app or Chromium bug: the CI E2E job (Linux, no download manager) passes every flow
-  through the real download path, the temporary routing workaround was removed, and server and
-  frontend are unchanged. The developer guide says to turn off the download manager's browser
-  integration (or exclude the Playwright browser) while running E2E.
+  itself. Not a Chromium bug: the CI E2E job (Linux, no download manager) passed every flow through
+  the real download path once the temporary routing workaround was removed. It is a product bug,
+  though: the owner saw the same in Brave with the IDM extension (the library PDF viewer showed
+  "Could not open the document — Network error"), and IDM is common among the staff. **Fixed:**
+  `GET /files/:id/download` and `GET /library/:id/file` no longer send `Content-Disposition` (type,
+  `no-store`, `nosniff` and auth unchanged); the frontend already named every saved file from the
+  record. Tests: `backend/tests/projectFiles.test.js`, `backend/tests/library.test.js` (no header,
+  same bytes), `frontend/src/test/downloadNames.test.jsx` (Arabic names from the record on all
+  three save paths).
 - **This machine:** Playwright's Chromium does not start from `%LOCALAPPDATA%\ms-playwright` ("side-by-side
   configuration is incorrect"); the same files start from another folder. Local runs use
   `PLAYWRIGHT_BROWSERS_PATH` (in the developer guide and CLAUDE.md). CI (Linux) is not affected.

@@ -29,5 +29,5 @@ exports.remove = asyncHandler(async (req, res) => {
 
 exports.file = asyncHandler(async (req, res, next) => {
   const { doc, fullPath } = await libraryService.getFile(req.params.id);
-  storage.send(res, next, { name: doc.original_name, mime: doc.mime_type, fullPath });
+  storage.send(res, next, { mime: doc.mime_type, fullPath });
 });

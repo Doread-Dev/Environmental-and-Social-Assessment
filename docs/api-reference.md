@@ -110,7 +110,7 @@ Reads only; the writes are the bulk saves under Projects.
 
 | Route | Permission | Access | Notes |
 |---|---|---|---|
-| `GET /files/:fileId/download` | — | record:ProjectFile | The file; `Content-Disposition` with the UTF-8 name, `Cache-Control: private, no-store`. |
+| `GET /files/:fileId/download` | — | record:ProjectFile | The bytes with the stored type, `Cache-Control: private, no-store`, `X-Content-Type-Options: nosniff`, and **no `Content-Disposition`** (download managers such as IDM hijack fetched responses that carry it; the app names the saved file from the record's `original_name`). |
 | `DELETE /files/:fileId` | `files.edit` | record:ProjectFile | 204. Archived → 409. Logged `file.delete` (name, area, category, size, uploader, date). |
 | `PATCH /files/:fileId` | `files.edit` | record:ProjectFile | `{ category }` — `semp_record` files only (404 until v3). |
 
@@ -129,7 +129,7 @@ Organisation guidance, not tied to a project (no access check).
 | Route | Permission | Notes |
 |---|---|---|
 | `GET /library` | — | `?place=`, `?search=` (title/description); sorted by `order`, then title. |
-| `GET /library/:id/file` | — | The PDF, same headers as project downloads. |
+| `GET /library/:id/file` | — | The PDF, same headers as project downloads (no `Content-Disposition`). |
 | `POST /library` | `manage_library` | Multipart: one PDF `file` + `title` (≤ 200), `description` (≤ 2,000), `places` (`a,b` or the field repeated; unknown place → 400; v3 places accepted), `order`. → 201. |
 | `PATCH /library/:id` | `manage_library` | `{ title?, description?, places?, order? }` (at least one). |
 | `PUT /library/:id/file` | `manage_library` | New PDF; links and title kept; the old file is removed after the row points to the new one. Logged `library.replace_file`. |

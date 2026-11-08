@@ -115,14 +115,17 @@ const remove = async (folder, storedName) => {
 const removeFolder = (folder) => fs.rm(folderPath(folder), { recursive: true, force: true });
 
 /**
- * Sends a stored file as a download: UTF-8 name (filename*=), stored type, never cached.
+ * Sends a stored file to the app: stored type, never cached, and NO Content-Disposition header.
+ * Download managers such as Internet Download Manager (IDM, common among the organisation's
+ * staff) hijack any fetched response that carries Content-Disposition (attachment or inline): they
+ * download the URL themselves and the page receives an empty response, so the in-app PDF viewer
+ * and downloads fail (phase 12). The app always fetches these files with the token and names the
+ * saved file itself from the record (`original_name`), so the header is not needed.
  * @param {import("express").Response} res
  * @param {Function} next
- * @param {{name: string, mime: string, fullPath: string}} file
+ * @param {{mime: string, fullPath: string}} file
  */
-const send = (res, next, { name, mime, fullPath }) => {
-  // attachment() writes both filename= (ASCII fallback) and filename*=UTF-8'' (Arabic names).
-  res.attachment(name);
+const send = (res, next, { mime, fullPath }) => {
   res.type(mime);
   res.set("Cache-Control", "private, no-store");
   // Relative to the uploads folder: the dot rule applies to the stored part only, so an

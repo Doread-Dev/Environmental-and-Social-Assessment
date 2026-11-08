@@ -259,7 +259,9 @@ describe("GET /library", () => {
 });
 
 describe("GET /library/:id/file", () => {
-  it("sends the PDF with a UTF-8 name, never cached, to any role", async () => {
+  // No Content-Disposition (phase 12): download managers such as IDM hijack fetched responses that
+  // carry it, which broke the in-app PDF viewer; the app names the saved file from the record.
+  it("sends the PDF bytes, never cached and without Content-Disposition, to any role", async () => {
     const admin = await loginAs("admin");
     const { body } = await create(admin.token, { name: "دليل.pdf" });
     const viewer = await loginAs("viewer");
@@ -270,9 +272,7 @@ describe("GET /library/:id/file", () => {
 
     expect(res.status).toBe(200);
     expect(res.headers["content-type"]).toBe("application/pdf");
-    expect(res.headers["content-disposition"]).toContain(
-      `filename*=UTF-8''${encodeURIComponent("دليل.pdf")}`
-    );
+    expect(res.headers["content-disposition"]).toBeUndefined();
     expect(res.headers["cache-control"]).toBe("private, no-store");
     expect(res.headers["x-content-type-options"]).toBe("nosniff");
     expect(res.body).toEqual(PDF);

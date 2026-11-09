@@ -36,6 +36,7 @@ function ProjectSidebar({ project, className }) {
     const items = []
 
     items.push({ id: 'profile', label: 'Profile', icon: 'person' })
+    items.push({ id: 'help', label: 'Help', icon: 'help' })
     // Settings: user management (admin) and project deletion (specialist / admin)
     if (canAccessSettings) {
       items.push({ id: 'settings', label: 'Settings', icon: 'settings' })
@@ -547,6 +548,7 @@ function ProjectSidebar({ project, className }) {
                         setIsUserMenuOpen(false)
                         // Handle action
                         if (item.id === 'profile') navigate(ROUTES.PROFILE)
+                        if (item.id === 'help') navigate(ROUTES.HELP)
                         if (item.id === 'settings') {
                           navigate(ROUTES.SETTINGS)
                         }

@@ -39,6 +39,8 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
     const items = []
 
     items.push({ id: 'profile', label: 'Profile', icon: 'person' })
+    // The main navigation (with Help) is not shown inside a project
+    if (variant === 'project') items.push({ id: 'help', label: 'Help', icon: 'help' })
     // Settings: user management (admin) and project deletion (specialist / admin)
     if (canAccessSettings) {
       items.push({ id: 'settings', label: 'Settings', icon: 'settings' })
@@ -50,7 +52,7 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
     items.push({ id: 'logout', label: 'Sign Out', icon: 'logout' })
 
     return items
-  }, [canAccessSettings])
+  }, [canAccessSettings, variant])
 
   // Close menu on route change
   useEffect(() => {
@@ -626,6 +628,10 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                                 // Handle action
                                 if (item.id === 'profile') {
                                   navigate(ROUTES.PROFILE)
+                                  onClose()
+                                }
+                                if (item.id === 'help') {
+                                  navigate(ROUTES.HELP)
                                   onClose()
                                 }
                                 if (item.id === 'settings') {

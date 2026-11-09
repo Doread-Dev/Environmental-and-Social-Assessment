@@ -22,7 +22,10 @@ function MainLayout() {
   }, [])
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background dark:bg-background-dark">
+    <div
+      data-print="flow"
+      className="flex h-screen w-full overflow-hidden bg-background dark:bg-background-dark"
+    >
       {/* Desktop Sidebar */}
       <MainSidebar />
 
@@ -30,12 +33,13 @@ function MainLayout() {
       <MobileMenu isOpen={isMobileMenuOpen} onClose={handleMenuClose} variant="main" />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <div data-print="flow" className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Header */}
         <Header onMenuClick={handleMenuToggle} showMobileMenu={true} />
 
         {/* Page Content */}
         <main
+          data-print="flow"
           className={cn(
             'flex-1 overflow-y-auto',
             'p-4 sm:p-6 lg:p-8',

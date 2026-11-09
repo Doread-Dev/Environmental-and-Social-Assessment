@@ -11,6 +11,7 @@ import { useWorkspace } from '@/hooks'
 import { useSaveConflict } from '@/contexts'
 import { isStepLocked } from '@/utils/workflowSteps'
 import { GuidanceButton, useCurrentPlace } from '@/components/library'
+import { HelpButton } from '@/components/help'
 import { requestExport, useExportReady } from '@/components/export'
 import BrandLogo from './BrandLogo'
 import MobileMenu from './MobileMenu'
@@ -130,6 +131,7 @@ export default function SempFullWidthLayout() {
         </div>
 
         <div className="flex flex-1 justify-end gap-3 sm:gap-6 items-center">
+          <HelpButton place={place} />
           <GuidanceButton place={place} />
           {can('export') && (
             <Button

@@ -475,3 +475,16 @@ html.dark .monitoring-table-container::-webkit-scrollbar-track {
 .monitoring-table-container::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary-hover);
 }
+
+/* Printing (the Help page, D78; any page): the layout chrome is left out and the page flows over
+   as many sheets as it needs instead of the one scrolling screen. */
+@media print {
+  [data-print='hide'] {
+    display: none !important;
+  }
+  [data-print='flow'] {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+}

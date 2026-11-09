@@ -32,6 +32,8 @@ const partFiles = (dir, lang) =>
 const parsePart = (dir, lang, file) => {
   const text = fs.readFileSync(path.join(dir, lang, file), "utf8").replace(/\r\n/g, "\n");
   const errors = [];
+  // Records `message` unless `ok`
+  const check = (ok, message) => (ok ? null : errors.push(`${lang}/${file}: ${message}`));
   const front = text.match(/^---\n([\s\S]*?)\n---\n/);
   const meta = {};
   if (!front) errors.push(`${lang}/${file}: no front matter`);
@@ -52,7 +54,7 @@ const parsePart = (dir, lang, file) => {
     sections: [],
     errors,
   };
-  if (!part.id) errors.push(`${lang}/${file}: no id`);
+  check(part.id, "no id");
 
   const lines = (front ? text.slice(front[0].length) : text).split("\n");
   let current = null;
@@ -66,9 +68,8 @@ const parsePart = (dir, lang, file) => {
         unless: words(attribute(anchor[2], "unless")),
       };
       continue;
-    }
-    if (line.startsWith("# ")) {
-      if (part.title) errors.push(`${lang}/${file}: more than one # title`);
+    } else if (line.startsWith("# ")) {
+      check(!part.title, "more than one # title");
       part.title = line.slice(2).trim();
     } else if (line.startsWith("## ")) {
       if (!pending) errors.push(`${lang}/${file}: "${line}" has no anchor on the line before`);
@@ -84,7 +85,7 @@ const parsePart = (dir, lang, file) => {
     else if (part.title) part.intro += `${line}\n`;
     pending = null;
   }
-  if (!part.title) errors.push(`${lang}/${file}: no # title`);
+  check(part.title, "no # title");
   return part;
 };
 
@@ -94,11 +95,8 @@ const readGuide = (lang, dir = defaultDir()) =>
 // Parsed once per language in production; read again on each request elsewhere, so an edit of the
 // Markdown shows without a restart while writing the guide.
 const cache = new Map();
-const guideOf = (lang) => {
-  if (process.env.NODE_ENV !== "production") return readGuide(lang);
-  if (!cache.has(lang)) cache.set(lang, readGuide(lang));
-  return cache.get(lang);
-};
+const cached = (lang) => cache.get(lang) ?? cache.set(lang, readGuide(lang)).get(lang);
+const guideOf = (lang) => (process.env.NODE_ENV === "production" ? cached(lang) : readGuide(lang));
 
 /** Whether the user sees an item tagged with `requires` / `unless` permissions. */
 const visibleTo = (user, { requires, unless }) =>
@@ -118,11 +116,11 @@ const filterGuide = (parts, user) =>
 // whole part). A link to a part or section this user does not see is left as its text.
 const rewriteLinks = (markdown, fileToPart, visibleIds) =>
   markdown.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (link, text, target) => {
-    if (/^(https?:|mailto:)/.test(target)) return link;
     const [file, fragment] = target.split("#");
-    const id = fragment || fileToPart.get(file);
-    if (!id) return link;
-    return visibleIds.has(id) ? `[${text}](#${id})` : text;
+    const id = /^(https?:|mailto:)/.test(target) ? null : fragment || fileToPart.get(file);
+    // shown: an in-page link; hidden: its text; not a guide link (outside, unknown file): as it is
+    const rendered = id ? text : link;
+    return visibleIds.has(id) ? `[${text}](#${id})` : rendered;
   });
 
 /**

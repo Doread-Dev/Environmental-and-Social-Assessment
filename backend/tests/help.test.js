@@ -148,6 +148,48 @@ describe("help service", () => {
     }
   });
 
+  it("names the other format errors: a bad front matter line, two titles, no title", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "esms-guide-"));
+    try {
+      write(dir, "01-a.md", "---\nid: a\nnot a field\n\n---\n\n# One\n\n# Two\n");
+      write(dir, "02-b.md", "---\nid: b\n---\n\nNo title here.\n");
+      const [a, b] = service.readGuide("en", dir);
+      expect(a.errors).toEqual([
+        'en/01-a.md: bad front matter line "not a field"',
+        "en/01-a.md: more than one # title",
+      ]);
+      expect(b.errors).toEqual(["en/02-b.md: no # title"]);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("applies part tags, keeps outside links and links it cannot place", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "esms-guide-"));
+    try {
+      write(
+        dir,
+        "01-a.md",
+        "---\nid: a\n---\n\n# A\n\nSee [the site](https://example.com), [mail](mailto:x@example.com)" +
+          " and [the readme](../README.md).\n"
+      );
+      write(dir, "02-admin.md", "---\nid: admin-only\nrequires: manage_users\n---\n\n# Admin\n");
+      write(dir, "03-read.md", "---\nid: read-only\nunless: edit\n---\n\n# Reading\n");
+      const parts = service.readGuide("en", dir);
+      expect(parts[1]).toMatchObject({ requires: ["manage_users"], unless: [] });
+      expect(parts[2]).toMatchObject({ requires: [], unless: ["edit"] });
+      const viewer = service.renderFor(parts, { role: "viewer" }, "en");
+      expect(viewer.parts.map((p) => p.id)).toEqual(["a", "read-only"]);
+      expect(viewer.parts[0].intro).toBe(
+        "See [the site](https://example.com), [mail](mailto:x@example.com) and [the readme](../README.md)."
+      );
+      const admin = service.renderFor(parts, { role: "admin" }, "en");
+      expect(admin.parts.map((p) => p.id)).toEqual(["a", "admin-only"]);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("caches the parsed guide in production only", () => {
     const spy = vi.spyOn(fs, "readdirSync");
     const before = process.env.NODE_ENV;

@@ -38,7 +38,7 @@ password; you will be asked again next time.
 
 Outside a project (Dashboard, Projects, Library):
 
-- Left menu: **Dashboard**, **Projects**, **Library**. Below them, under **Organization tools**,
+- Left menu: **Dashboard**, **Projects**, **Library** and **Help** (this guide). Below them, under **Organization tools**,
   grey buttons marked **Available in v3** (see
   [locked buttons](11-everyday-situations.md#v3-buttons)). At the bottom, **Settings**, if your
   role has it.
@@ -55,11 +55,12 @@ Inside a project, the left menu changes to the project's own menu:
   A tool that is not open yet is grey with a lock. A tool that is done shows a green tick.
 - **Documents**: the project's own files.
 - Under **Project support tools**, a grey **Available in v3** button.
-- At the bottom: your name and role. Click them for **Profile**, **Settings** (if your role has
-  it), the light/dark switch and **Sign Out**.
+- At the bottom: your name and role. Click them for **Profile**, **Help**, **Settings** (if your
+  role has it), the light/dark switch and **Sign Out**.
 
-The top bar inside a project shows, on the tool pages, the **Guidance** button when the
-organisation has guidance for that tool (see [Guidance](09-library-and-guidance.md#guidance)).
+The top bar inside a project shows, on the tool pages, a **Help** button that opens this guide at
+that tool, and the **Guidance** button when the organisation has guidance for that tool (see
+[Guidance](09-library-and-guidance.md#guidance)).
 
 On a phone or a small tablet, the left menu is hidden. Press the menu button (three lines) at the
 top left to open it.

@@ -5,6 +5,7 @@ import { ROUTES } from '@/routes/routes.config'
 import { useWorkspace } from '@/hooks'
 import { useSaveConflict } from '@/contexts'
 import { GuidanceButton, useCurrentPlace } from '@/components/library'
+import { HelpButton } from '@/components/help'
 import { requestExport, useExportReady } from '@/components/export'
 import ProjectSidebar from './ProjectSidebar'
 import MobileMenu from './MobileMenu'
@@ -163,6 +164,7 @@ function ProjectLayout() {
 
           {/* Right Actions */}
           <div className="flex items-center gap-3 sm:gap-6">
+            <HelpButton place={place} />
             <GuidanceButton place={place} />
             {/* Export Excel: screening / assessment once submitted, monitoring data entry */}
             {showExportButton && (

@@ -24,6 +24,8 @@ export const queryKeys = {
   // ['library'] (all of them).
   library: (place = null) => ['library', place ?? 'all'],
   auditLogs: (params) => ['audit-logs', params],
+  // The user guide for the signed-in user (D78), per language
+  help: (lang) => ['help', lang],
 }
 
 /**

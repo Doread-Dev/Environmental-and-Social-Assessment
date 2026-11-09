@@ -90,6 +90,9 @@ const ActivityLogPage = lazy(() => import('@/pages/settings/ActivityLogPage'))
 // Profile Page (own password, D23)
 const ProfilePage = lazy(() => import('@/pages/profile/ProfilePage'))
 
+// The user guide (phase 14, D78): its own chunk, with the Markdown renderer
+const HelpPage = lazy(() => import('@/pages/help/HelpPage'))
+
 /**
  * Application Router Configuration
  * All pages are lazy loaded for optimal performance.
@@ -170,6 +173,14 @@ export const appRoutes = [
         element: (
           <Suspense fallback={<LoadingState />}>
             <ProfilePage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'help',
+        element: (
+          <Suspense fallback={<LoadingState />}>
+            <HelpPage />
           </Suspense>
         ),
       },

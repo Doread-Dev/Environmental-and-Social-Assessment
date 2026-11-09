@@ -2,10 +2,10 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import api from '@/services/api'
 import HelpPage from './HelpPage'
-import { HelpButton } from '@/components/help'
+import { FloatingHelpButton } from '@/components/help'
 import { fail, ok, signIn } from '@/test/utils'
 import { renderApp } from '@/test/renderApp'
 
@@ -174,7 +174,119 @@ describe('Help page (phase 14, D78)', () => {
   })
 })
 
-describe('Help button (contextual help by place key)', () => {
+describe('Help contents follow the reading position (scroll-spy)', () => {
+  let observers
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorage.clear()
+    guide = structuredClone(GUIDE)
+    Element.prototype.scrollIntoView = vi.fn()
+    observers = []
+    window.IntersectionObserver = class {
+      constructor(callback, options) {
+        this.callback = callback
+        this.options = options
+        this.targets = []
+        observers.push(this)
+      }
+      observe(target) {
+        this.targets.push(target)
+      }
+      disconnect() {
+        this.targets = []
+      }
+    }
+  })
+
+  const heading = (id) => document.querySelector(`[data-help-id="${id}"]`)
+  // Where each heading is on screen (px from the top); the band reaches down to 240 px
+  const place = (positions) => {
+    Object.entries(positions).forEach(([id, top]) => {
+      heading(id).getBoundingClientRect = () => ({ top, bottom: top + 30 })
+    })
+  }
+  const report = (observer) =>
+    act(() => observer.callback([{ rootBounds: { top: 0, bottom: 240 } }]))
+  const current = () =>
+    within(screen.getByRole('navigation', { name: 'Contents' })).getByRole('link', {
+      current: 'location',
+    })
+
+  it('highlights the part or section in view, without a scroll listener', async () => {
+    const addListener = vi.spyOn(window, 'addEventListener')
+    renderPage()
+    await screen.findByRole('article', { name: 'User guide' })
+    const observer = observers.at(-1)
+    expect(observer.options.rootMargin).toBe('0px 0px -70% 0px')
+    expect(observer.targets.map((t) => t.dataset.helpId)).toEqual([
+      'quick-start',
+      'quick-start-everyone',
+      'screening',
+      'screening-submit',
+    ])
+    expect(current()).toHaveTextContent('Quick start')
+
+    // Scrolled down: Submit has reached the band
+    place({
+      'quick-start': -900,
+      'quick-start-everyone': -700,
+      screening: -100,
+      'screening-submit': 200,
+    })
+    report(observer)
+    expect(current()).toHaveTextContent('Submit')
+    expect(current()).toHaveAttribute('href', '#help-screening-submit')
+
+    // Back up: Submit is below the band again, the part above it is being read
+    place({
+      'quick-start': -600,
+      'quick-start-everyone': -400,
+      screening: 100,
+      'screening-submit': 500,
+    })
+    report(observer)
+    expect(current()).toHaveTextContent('Tool 1 – Screening')
+
+    // A jump to the end lands right too
+    place({
+      'quick-start': -3000,
+      'quick-start-everyone': -2800,
+      screening: -2000,
+      'screening-submit': -50,
+    })
+    report(observer)
+    expect(current()).toHaveTextContent('Submit')
+    expect(addListener.mock.calls.filter(([type]) => type === 'scroll')).toEqual([])
+  })
+
+  it('works the same in Arabic (right to left)', async () => {
+    renderPage()
+    await screen.findByRole('article', { name: 'User guide' })
+    fireEvent.click(screen.getByRole('button', { name: 'العربية' }))
+    await waitFor(() =>
+      expect(screen.getByRole('article', { name: 'User guide' })).toHaveAttribute('dir', 'rtl')
+    )
+    await waitFor(() => expect(heading('quick-start-everyone')).not.toBeNull())
+    place({ 'quick-start': -300, 'quick-start-everyone': 120 })
+    report(observers.at(-1))
+    expect(current()).toHaveTextContent('أولًا، للجميع')
+  })
+
+  it('clicking an item still jumps to it and highlights it', async () => {
+    renderPage()
+    await screen.findByRole('article', { name: 'User guide' })
+    const contents = screen.getByRole('navigation', { name: 'Contents' })
+    fireEvent.click(within(contents).getByRole('link', { name: 'Submit' }))
+    await waitFor(() =>
+      expect(Element.prototype.scrollIntoView.mock.contexts.at(-1)?.id).toBe(
+        'help-screening-submit'
+      )
+    )
+    expect(current()).toHaveTextContent('Submit')
+  })
+})
+
+describe('Floating Help button (contextual help, routes/helpSections.js)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     localStorage.clear()
@@ -182,30 +294,43 @@ describe('Help button (contextual help by place key)', () => {
     Element.prototype.scrollIntoView = vi.fn()
   })
 
-  it('opens the Help page at the section of its place', async () => {
-    renderPage('/tool', [{ path: '/tool', element: <HelpButton place="screening" /> }])
+  // A page of the app, under its real path, with the button as the layouts mount it
+  const page = (path) => ({
+    path,
+    element: (
+      <>
+        <p>a page</p>
+        <FloatingHelpButton />
+      </>
+    ),
+  })
+
+  it('opens the guide at the first section of the page the user has', async () => {
+    renderPage('/app/projects/p1/screening/summary', [page('/app/projects/:id/screening/summary')])
     fireEvent.click(await screen.findByRole('button', { name: 'Help for this page' }))
     await screen.findByRole('article', { name: 'User guide' })
+    // screening-review and screening-after-review are not in this user's guide: the part opens
     await waitFor(() =>
       expect(Element.prototype.scrollIntoView.mock.contexts.at(-1)?.id).toBe('help-screening')
     )
   })
 
-  it('renders nothing on a page without a place', () => {
-    renderPage('/tool', [{ path: '/tool', element: <HelpButton place={null} /> }])
-    expect(screen.queryByRole('button', { name: 'Help for this page' })).toBeNull()
+  it('opens the start of the guide when none of the page sections is in the user guide', async () => {
+    renderPage('/app/settings', [page('/app/settings')])
+    fireEvent.click(await screen.findByRole('button', { name: 'Help for this page' }))
+    await screen.findByRole('article', { name: 'User guide' })
+    await waitFor(() => expect(Element.prototype.scrollIntoView).toHaveBeenCalled())
+    const target = Element.prototype.scrollIntoView.mock.contexts.at(-1)
+    expect(target).toContainElement(screen.getByRole('heading', { level: 1, name: 'Help' }))
   })
 
-  it('every page with a place key shows it, next to its Guidance button', () => {
-    for (const file of [
-      'components/layout/ProjectLayout.jsx',
-      'components/layout/SempFullWidthLayout.jsx',
-    ]) {
-      const text = fs.readFileSync(path.join(SRC, file), 'utf8')
-      expect(text, file).toMatch(
-        /<HelpButton place=\{place\} \/>\s*<GuidanceButton place=\{place\} \/>/
-      )
-    }
+  it('is a labelled, focusable button with a focus ring', async () => {
+    renderPage('/app/dashboard', [page('/app/dashboard')])
+    const button = await screen.findByRole('button', { name: 'Help for this page' })
+    button.focus()
+    expect(button).toHaveFocus()
+    expect(button.className).toMatch(/focus-visible:ring/)
+    expect(button.className.split(' ')).toContain('fixed')
   })
 })
 

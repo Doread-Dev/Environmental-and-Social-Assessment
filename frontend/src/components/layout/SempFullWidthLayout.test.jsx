@@ -161,7 +161,7 @@ describe('SempFullWidthLayout', () => {
     expect(await screen.findByRole('button', { name: /Export Excel/ })).toBeEnabled()
   })
 
-  it('a tool page with a place key has a Help button that opens the guide at its section (D78)', async () => {
+  it('the floating Help button opens the guide at the page section, in both project layouts (D78)', async () => {
     mockApi()
     const first = renderApp(withPlace(), '/app/projects/p1/semp/activities')
     fireEvent.click(await screen.findByRole('button', { name: 'Help for this page' }))
@@ -173,11 +173,16 @@ describe('SempFullWidthLayout', () => {
     expect(await screen.findByText('help page ?section=screening')).toBeInTheDocument()
   })
 
-  it('a page without a place key has no Help button; the project user menu leads to Help', async () => {
+  it('the overview has the floating Help button too; the project user menu leads to Help', async () => {
     mockApi()
+    const first = renderApp(withPlace(), '/app/projects/p1/overview')
+    await screen.findByText('overview page')
+    fireEvent.click(screen.getByRole('button', { name: 'Help for this page' }))
+    expect(await screen.findByText('help page ?section=project-overview')).toBeInTheDocument()
+    first.unmount()
+
     renderApp(withPlace(), '/app/projects/p1/overview')
     await screen.findByText('overview page')
-    expect(screen.queryByRole('button', { name: 'Help for this page' })).toBeNull()
     const sidebar = document.querySelector('aside')
     fireEvent.click(within(sidebar).getByRole('button', { name: /Rana/ }))
     fireEvent.click(within(sidebar).getByRole('button', { name: /Help/ }))

@@ -1,4 +1,4 @@
-import { useEffect, useId } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -91,37 +91,66 @@ function GuideMarkdown({ children, onOpen }) {
   )
 }
 
-function Contents({ parts, onOpen }) {
+function ContentsLink({ id, title, active, onOpen, className }) {
+  return (
+    <a
+      href={`#${helpAnchor(id)}`}
+      aria-current={active ? 'location' : undefined}
+      onClick={(event) => {
+        event.preventDefault()
+        onOpen(id)
+      }}
+      className={cn(
+        'block rounded-md px-2 py-1 -mx-2 hover:text-primary',
+        active && 'bg-primary/10 text-primary dark:text-green-300 font-semibold',
+        className
+      )}
+    >
+      {title}
+    </a>
+  )
+}
+
+/**
+ * The parts and sections, with the one being read highlighted (scroll-spy). In a long list the
+ * highlighted item is kept in view by scrolling the list itself, never the page.
+ */
+function Contents({ parts, activeId, onOpen, containerRef }) {
+  useEffect(() => {
+    const container = containerRef.current
+    const item = container?.querySelector('[aria-current="location"]')
+    if (!item || container.scrollHeight <= container.clientHeight) return
+    const box = container.getBoundingClientRect()
+    const at = item.getBoundingClientRect()
+    if (at.top < box.top || at.bottom > box.bottom) {
+      container.scrollTop += at.top - box.top - container.clientHeight / 2
+    }
+  }, [activeId, containerRef])
+
   return (
     <nav aria-label="Contents" className="flex flex-col gap-3 text-sm">
       <p className="text-xs font-bold uppercase tracking-widest text-text-secondary">Contents</p>
       <ol className="flex flex-col gap-2">
         {parts.map((part) => (
           <li key={part.id} className="flex flex-col gap-1">
-            <a
-              href={`#${helpAnchor(part.id)}`}
-              onClick={(event) => {
-                event.preventDefault()
-                onOpen(part.id)
-              }}
-              className="font-semibold text-text-main dark:text-white hover:text-primary"
-            >
-              {part.title}
-            </a>
+            <ContentsLink
+              id={part.id}
+              title={part.title}
+              active={activeId === part.id}
+              onOpen={onOpen}
+              className="font-semibold text-text-main dark:text-white"
+            />
             {part.sections.length > 0 && (
               <ol className="flex flex-col gap-1 ps-3 border-s border-border-default dark:border-border-dark">
                 {part.sections.map((section) => (
                   <li key={section.id}>
-                    <a
-                      href={`#${helpAnchor(section.id)}`}
-                      onClick={(event) => {
-                        event.preventDefault()
-                        onOpen(section.id)
-                      }}
-                      className="text-text-secondary dark:text-gray-400 hover:text-primary"
-                    >
-                      {section.title}
-                    </a>
+                    <ContentsLink
+                      id={section.id}
+                      title={section.title}
+                      active={activeId === section.id}
+                      onOpen={onOpen}
+                      className="text-text-secondary dark:text-gray-400"
+                    />
                   </li>
                 ))}
               </ol>
@@ -134,25 +163,68 @@ function Contents({ parts, onOpen }) {
 }
 
 /**
+ * Scroll-spy: the id of the part or section being read, the last heading that has reached the band
+ * at the top of the screen (the top 30 %). One IntersectionObserver watches the headings and
+ * reports only when one crosses the band's edges, so scrolling itself causes no work; each report
+ * looks at where the headings are, so a fast jump lands right too. Vertical only, so Arabic (RTL)
+ * works the same.
+ * @param {string[]} ids - The guide's part and section ids, in reading order
+ */
+function useScrollSpy(ids) {
+  const [activeId, setActiveId] = useState(null)
+  useEffect(() => {
+    if (ids.length === 0 || typeof IntersectionObserver === 'undefined') return undefined
+    const headings = ids
+      .map((id) => document.getElementById(`${helpAnchor(id)}-title`))
+      .filter(Boolean)
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const bandBottom = entries[0]?.rootBounds?.bottom ?? window.innerHeight * 0.3
+        let current = headings[0]
+        for (const heading of headings) {
+          if (heading.getBoundingClientRect().top > bandBottom) break
+          current = heading
+        }
+        if (current) setActiveId(current.dataset.helpId)
+      },
+      { rootMargin: '0px 0px -70% 0px', threshold: 0 }
+    )
+    headings.forEach((heading) => observer.observe(heading))
+    return () => observer.disconnect()
+  }, [ids])
+  return [activeId, setActiveId]
+}
+
+/**
  * HelpPage - the in-app user guide (phase 14, D78)
  * Every role; the server sends only the parts and sections the user's permissions allow.
- * Route: /app/help, ?section=<id> opens it at a part or section (contextual Help buttons); a
- * section this user does not have opens the start of the guide.
+ * Route: /app/help, ?section=<id>[,<id>…] opens it at the first of these parts or sections the
+ * user's guide has (the floating Help button, routes/helpSections.js), else at the start.
  */
 function HelpPage() {
   const { user } = useAuth()
   const [lang, setLang] = useHelpLanguage(user?._id)
   const { guide, isLoading, error, retry } = useHelp(lang)
   const [searchParams, setSearchParams] = useSearchParams()
-  const section = searchParams.get('section')
+  const section = searchParams.get('section') ?? ''
   const topId = useId()
+  const contentsRef = useRef(null)
+  const ids = useMemo(
+    () => guide?.parts.flatMap((part) => [part.id, ...part.sections.map((item) => item.id)]) ?? [],
+    [guide]
+  )
+  const [activeId, setActiveId] = useScrollSpy(ids)
 
   useEffect(() => {
     if (!guide) return
-    const target = (section && document.getElementById(helpAnchor(section))) || null
+    const target = section
+      .split(',')
+      .map((id) => document.getElementById(helpAnchor(id)))
+      .find(Boolean)
     const element = target ?? document.getElementById(topId)
     element?.scrollIntoView?.({ block: 'start' })
-  }, [guide, section, topId])
+    setActiveId(target ? target.id.slice(helpAnchor('').length) : (ids[0] ?? null))
+  }, [guide, section, topId, ids, setActiveId])
 
   const open = (id) => setSearchParams({ section: id })
 
@@ -206,12 +278,18 @@ function HelpPage() {
           className="grid grid-cols-1 lg:grid-cols-[16rem_minmax(0,1fr)] gap-8 items-start"
         >
           <aside
+            ref={contentsRef}
             data-print="hide"
             className="lg:sticky lg:top-0 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto bg-surface dark:bg-surface-dark border border-border-default dark:border-border-dark rounded-xl p-4"
             dir={lang === 'ar' ? 'rtl' : 'ltr'}
             lang={lang}
           >
-            <Contents parts={guide.parts} onOpen={open} />
+            <Contents
+              parts={guide.parts}
+              activeId={activeId}
+              onOpen={open}
+              containerRef={contentsRef}
+            />
           </aside>
 
           <article
@@ -229,6 +307,7 @@ function HelpPage() {
               >
                 <h2
                   id={`${helpAnchor(part.id)}-title`}
+                  data-help-id={part.id}
                   className={cn(PAGE_TITLE, 'text-xl md:text-2xl')}
                 >
                   {part.title}
@@ -241,7 +320,11 @@ function HelpPage() {
                     aria-labelledby={`${helpAnchor(item.id)}-title`}
                     className="flex flex-col gap-3 scroll-mt-4"
                   >
-                    <h3 id={`${helpAnchor(item.id)}-title`} className={SECTION_TITLE}>
+                    <h3
+                      id={`${helpAnchor(item.id)}-title`}
+                      data-help-id={item.id}
+                      className={SECTION_TITLE}
+                    >
                       {item.title}
                     </h3>
                     <GuideMarkdown onOpen={open}>{item.body}</GuideMarkdown>

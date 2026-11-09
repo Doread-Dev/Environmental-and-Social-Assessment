@@ -4,6 +4,7 @@ import { cn } from '@/utils'
 import Header from './Header'
 import MainSidebar from './MainSidebar'
 import MobileMenu from './MobileMenu'
+import { FloatingHelpButton } from '@/components/help'
 
 /**
  * MainLayout Component
@@ -43,6 +44,8 @@ function MainLayout() {
           className={cn(
             'flex-1 overflow-y-auto',
             'p-4 sm:p-6 lg:p-8',
+            // Room under the content for the floating Help button
+            'pb-24 sm:pb-24 lg:pb-24',
             'bg-background dark:bg-background-dark',
             'scroll-smooth'
           )}
@@ -52,6 +55,7 @@ function MainLayout() {
           </div>
         </main>
       </div>
+      <FloatingHelpButton />
     </div>
   )
 }

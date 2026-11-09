@@ -5,10 +5,10 @@ import { ROUTES } from '@/routes/routes.config'
 import { useWorkspace } from '@/hooks'
 import { useSaveConflict } from '@/contexts'
 import { GuidanceButton, useCurrentPlace } from '@/components/library'
-import { HelpButton } from '@/components/help'
 import { requestExport, useExportReady } from '@/components/export'
 import ProjectSidebar from './ProjectSidebar'
 import MobileMenu from './MobileMenu'
+import { FloatingHelpButton } from '@/components/help'
 import BrandLogo from './BrandLogo'
 import { ArchivedNotice } from '@/components/project'
 import { Button, ErrorState, LoadingState } from '@/components/ui'
@@ -164,7 +164,6 @@ function ProjectLayout() {
 
           {/* Right Actions */}
           <div className="flex items-center gap-3 sm:gap-6">
-            <HelpButton place={place} />
             <GuidanceButton place={place} />
             {/* Export Excel: screening / assessment once submitted, monitoring data entry */}
             {showExportButton && (
@@ -190,6 +189,8 @@ function ProjectLayout() {
           className={cn(
             'flex-1 overflow-y-auto',
             'p-4 sm:p-6 lg:p-8',
+            // Room under the content for the floating Help button
+            'pb-24 sm:pb-24 lg:pb-24',
             'bg-background dark:bg-background-dark',
             'scroll-smooth'
           )}
@@ -201,6 +202,7 @@ function ProjectLayout() {
           </div>
         </main>
       </div>
+      <FloatingHelpButton />
     </div>
   )
 }

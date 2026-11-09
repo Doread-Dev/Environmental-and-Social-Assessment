@@ -58,9 +58,11 @@ Inside a project, the left menu changes to the project's own menu:
 - At the bottom: your name and role. Click them for **Profile**, **Help**, **Settings** (if your
   role has it), the light/dark switch and **Sign Out**.
 
-The top bar inside a project shows, on the tool pages, a **Help** button that opens this guide at
-that tool, and the **Guidance** button when the organisation has guidance for that tool (see
-[Guidance](09-library-and-guidance.md#guidance)).
+The top bar inside a project shows, on the tool pages, the **Guidance** button when the
+organisation has guidance for that tool (see [Guidance](09-library-and-guidance.md#guidance)).
+
+On almost every page, a round button with a question mark sits in the bottom-right corner. It
+opens this guide at the part about the page you are on.
 
 On a phone or a small tablet, the left menu is hidden. Press the menu button (three lines) at the
 top left to open it.

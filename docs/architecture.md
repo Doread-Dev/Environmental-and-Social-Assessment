@@ -280,10 +280,18 @@ Screening/assessment are submitted with `screeningService.submit` / `assessmentS
   `pages/help/HelpPage` chunk (with `react-markdown` + `remark-gfm`, rendered as elements:
   `skipHtml`, only in-page links) shows `useHelp(lang)` (`GET /help`), a contents list, the
   English/Arabic switch (`dir="rtl"` for Arabic, kept per user in localStorage,
-  `useHelpLanguage`) and Print (`window.print()`; `index.css` hides `[data-print=hide]` and lets
-  `[data-print=flow]` run over several sheets). Each route with a place key also gets
-  `components/help/HelpButton` in its layout header: `?section=<place>`; a section the user does
-  not have opens the start.
+  `useHelpLanguage`), a scroll-spy (one `IntersectionObserver` on the headings marks the item
+  being read with `aria-current` and keeps it in view in the list) and Print (`window.print()`;
+  `index.css` hides `[data-print=hide]` and lets `[data-print=flow]` run over several sheets).
+  It has its own route (`ProtectedRoute allowPasswordChange`), so it also opens during the
+  forced password change. **Floating Help button** (`components/help/FloatingHelpButton`): one
+  round button fixed bottom-right (`z-30`: below dialogs, side panels, the mobile menu and
+  toasts), mounted once in `MainLayout`, `ProjectLayout`, `SempFullWidthLayout` and `AuthLayout`;
+  the layouts leave room under the content for it, and `StickyFooter` lifts it above the save bar
+  (`--floating-help-bottom`). It opens `?section=<id>,<id>…` from `routes/helpSections.js`, a page
+  → guide-section map keyed by `ROUTES` (most specific first; navigation config, not a permission
+  rule); the page opens the first id the user's guide has, else the start. No button on sign-in
+  or Help. A new page adds its entry there (`userGuide.test.js` checks the ids).
 - **PdfViewer** (`components/files/PdfViewer.jsx`): mount it only while open; it fetches the PDF as a
   blob with the token, shows it in an `iframe` on a `blob:` URL, revokes the URL on close, has a
   Download button and shows "Download to view" where `navigator.pdfViewerEnabled === false`.

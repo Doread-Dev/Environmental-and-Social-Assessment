@@ -12,7 +12,23 @@
  * </StickyFooter>
  */
 
+import { useEffect } from 'react'
 import { cn } from '@/utils/cn'
+
+// Footers on screen: while there is one, the floating Help button (components/help) sits above it
+let shown = 0
+const FOOTER_HEIGHT = '5rem'
+
+function useLiftFloatingHelp() {
+  useEffect(() => {
+    shown += 1
+    document.documentElement.style.setProperty('--floating-help-bottom', FOOTER_HEIGHT)
+    return () => {
+      shown -= 1
+      if (shown === 0) document.documentElement.style.removeProperty('--floating-help-bottom')
+    }
+  }, [])
+}
 
 /**
  * @param {Object} props
@@ -20,6 +36,7 @@ import { cn } from '@/utils/cn'
  * @param {string} props.className - Extra classes
  */
 export default function StickyFooter({ children, className, ...props }) {
+  useLiftFloatingHelp()
   return (
     <div
       className={cn(

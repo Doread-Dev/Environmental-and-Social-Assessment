@@ -1,1 +1,1 @@
-export { HelpButton } from './HelpButton'
+export { FloatingHelpButton } from './FloatingHelpButton'

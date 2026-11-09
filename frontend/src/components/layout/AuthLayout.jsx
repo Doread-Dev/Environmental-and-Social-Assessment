@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import { cn } from '@/utils'
 import { Icon } from '@/components/ui'
+import { FloatingHelpButton } from '@/components/help'
 
 /**
  * AuthLayout - Layout for authentication pages (Login, etc.)
@@ -35,6 +36,8 @@ function AuthLayout({ className }) {
           Authorized users only
         </p>
       </div>
+      {/* Not on the sign-in page (routes/helpSections.js): on the forced password change */}
+      <FloatingHelpButton />
     </div>
   )
 }

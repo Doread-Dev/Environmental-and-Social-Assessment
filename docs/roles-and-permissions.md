@@ -96,7 +96,8 @@ project membership behind it. Details in [architecture](architecture.md#request-
 - No open registration. The first admin comes from `backend/scripts/create-admin.js`; then an admin
   creates users in Settings → Users (any role). A new account and an admin reset get a 12-character
   temporary password, shown once, with `must_change_password` (D22): until the user picks their own
-  password every endpoint except `GET /auth/me` and `PUT /auth/password` answers
+  password every endpoint except `GET /auth/me`, `PUT /auth/password` and `GET /help` (the
+  read-only user guide, D78, so the change-password page can open it) answers
   `403 { code: "PASSWORD_CHANGE_REQUIRED" }`.
 - Password policy: `PASSWORD_MIN_LENGTH` (6) in `validators/auth.validator.js` (security, so D57
   does not remove it); login only requires a value.

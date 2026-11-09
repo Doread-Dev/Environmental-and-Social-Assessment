@@ -8,6 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { require } from "./helpers/app.js";
 import { LANGUAGES, guideDir, guideFor, partFiles, readGuide, repo } from "./helpers/userGuide.js";
+import { HELP_SECTIONS } from "../../frontend/src/routes/helpSections.js";
 
 const { ROLES } = require("../../src/config/roles");
 const { isPermission } = require("../../src/config/permissions");
@@ -84,6 +85,18 @@ describe("user guide (phase 14)", () => {
       const ids = allIds(guides[lang]);
       expect(
         places.filter((place) => !ids.includes(place)),
+        lang
+      ).toEqual([]);
+    }
+  });
+
+  it("every guide id the floating Help button opens (frontend routes/helpSections.js) exists, in both languages", () => {
+    const wanted = [...new Set(HELP_SECTIONS.flatMap(([, ids]) => ids))];
+    expect(wanted.length).toBeGreaterThan(10);
+    for (const lang of LANGUAGES) {
+      const ids = allIds(guides[lang]);
+      expect(
+        wanted.filter((id) => !ids.includes(id)),
         lang
       ).toEqual([]);
     }

@@ -16,8 +16,8 @@ It shows the parts that match your role: you only read about what you can do in 
 - Then read the part you need, when you need it. Each part stands on its own.
 - Words in bold (like **Save**) are exactly what you see in the app: the name of a button, a menu,
   a field or a page. Look for them on the screen.
-- **Help** in the left menu opens this guide. On a tool page, the **Help** button in the top bar
-  opens it at that tool. **English** and **العربية** at the top switch the language; **Print**
+- **Help** in the left menu opens this guide. On almost every page, the round question-mark button in the
+  bottom-right corner opens it at the part about that page. **English** and **العربية** at the top switch the language; **Print**
   prints it (or saves it as a PDF).
 
 <a id="the-workflow"></a>

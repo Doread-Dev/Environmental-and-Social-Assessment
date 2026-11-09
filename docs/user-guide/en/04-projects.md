@@ -83,7 +83,8 @@ Files of an archived project can be opened and downloaded, not uploaded or delet
 Exports are in the official AKF layout.
 
 - One tool: the **Export Excel** button on that tool's page (top bar), see each tool's part.
-- The whole project: on the overview, **Project workbook** → **Export project workbook**. One
+- The whole project: on the overview, the **Project workbook** bar right under the project's title
+  → **Export project workbook**. One
   Excel file with a sheet for each tool that has data. It is available once Tool 1 has been
   started.
 

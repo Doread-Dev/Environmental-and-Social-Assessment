@@ -77,12 +77,16 @@ export function getProjectRoute(projectId, route) {
 }
 
 /**
- * The Help page, optionally at a part or section of the guide (a place key, D78)
- * @param {string|null} [section]
+ * The Help page, optionally at a part or section of the guide (D78): one id, or several, most
+ * specific first (the page opens the first one the user's guide has; routes/helpSections.js)
+ * @param {string|string[]|null} [sections]
  * @returns {string}
  */
-export function getHelpRoute(section = null) {
-  return section ? `${ROUTES.HELP}?section=${encodeURIComponent(section)}` : ROUTES.HELP
+export function getHelpRoute(sections = null) {
+  const ids = [sections ?? []].flat().filter(Boolean)
+  return ids.length
+    ? `${ROUTES.HELP}?section=${ids.map(encodeURIComponent).join(',')}`
+    : ROUTES.HELP
 }
 
 /**

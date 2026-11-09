@@ -5,10 +5,10 @@ All notable changes to ESMS. Versions follow `MAJOR.MINOR.PATCH`; the version is
 bottom of the user menu, and the release archive carries it in its name
 (`esms-<version>-<date>-<commit>.zip`).
 
-## 2.0.0 — 2026-11-08
+## 2.0.0 — 2026-11-09
 
-The finished v2 (D77): the rework of the first version in phases 0–12a
-([plan/README.md](plan/README.md), decisions D1–D77 in [plan/DECISIONS.md](plan/DECISIONS.md)),
+The finished v2 (D77): the rework of the first version in phases 0–12a and 14
+([plan/README.md](plan/README.md), decisions D1–D79 in [plan/DECISIONS.md](plan/DECISIONS.md)),
 for the organisation's internal, offline server.
 
 ### What v2 contains
@@ -40,6 +40,12 @@ for the organisation's internal, offline server.
   second disk or a share) and restore scripts for Windows Server and Ubuntu
   ([deploy/README.md](deploy/README.md), [IT checklist](deploy/IT-CHECKLIST.md),
   [owner runbook](deploy/OWNER-RUNBOOK.md)).
+- **User guide and in-app Help (D78):** a guide for every role in English and Arabic
+  ([docs/user-guide/](docs/user-guide/README.md)), read in the app on the Help page. Each user
+  sees only the parts their permissions allow, filtered by the server (`GET /api/v1/help`). The
+  page has a contents list that follows the reading position, an English / Arabic switch (Arabic
+  right to left) and a print layout. A Help button in the corner of every page opens that page's
+  section.
 - **Tests:** backend and frontend unit / integration tests with coverage floors, Playwright
   end-to-end tests of the golden flows in Chromium, CI on every pull request
   ([developer guide](docs/developer-guide.md)).
@@ -61,6 +67,14 @@ for the organisation's internal, offline server.
 - Cleaned: unused files and exports, stale comments, `.gitignore`; code comments in English (a test
   guards it); docs checked against the code; the backend package marked `UNLICENSED`.
 
+### Phase 14 (user guide)
+
+- The guide (13 parts per language, tagged by permission), the Help endpoint and page, the
+  floating Help button, and the guide files in the release and in both install scripts.
+- The Project workbook export is a bar at the top of the project overview.
+- Fixed: the screening submit confirmation named a single role as the one who can reject; it now
+  says "a reviewer".
+
 ### Known limits
 
 - **Linux install path not run on a real server.** The Ubuntu scripts are checked (`bash -n`,
@@ -79,8 +93,9 @@ for the organisation's internal, offline server.
   which ExcelJS does not do; the only offered fix is a downgrade of ExcelJS, so it is left as is.
 - **v3 modules are locked buttons only:** SEMP Plan, Stakeholder Awareness, GHG Emissions and
   Environmental Data Collection show "Available in v3" and do nothing (D48, D70).
-- **The design system and the page-by-page UI/UX review (phase 13) moved to v3** (D77); its list
-  of open UI items is kept in
+- **The UI/UX design (phase 13) moved to v3** (D77): a redesign from scratch of the information
+  architecture, navigation, page layouts and design system (D79). The current layout is v2's;
+  its list of open UI items is kept in
   [plan/phases/13-page-by-page-ui-review.md](plan/phases/13-page-by-page-ui-review.md).
 - **Office files** (Word, Excel, PowerPoint) are downloaded, not previewed in the app.
 - Sessions: a JWT in the browser, 12 hours, no server-side revocation (a v3 topic,

@@ -77,7 +77,6 @@ Items found during phase 10 that are page-specific (not shared) are listed here 
   - **Tools 3/4 mobile menu:** its backdrop (`z-40`) sits below the sticky SEMP header (`z-50`), so tapping the header does not close the menu.
 - **Phase 14 (D72 c; found while checking the floating Help button, not fixed there):**
   - **Save bar at 375 px (`components/ui/StickyFooter.jsx`):** on the assessment metadata page the right button is cut off ("Save and Co…"); the bar does not wrap or shorten its labels on a phone.
-  - **Screening "Confirm Submission":** says "unless the screening is rejected by an administrator"; a reviewer can also be an environmental specialist.
 - **Phase 11 (D72 c):** no new UI/UX issue found in the production-build check (login, dashboard, library, PDF viewer, light and dark). (The icon font subset was done in phase 12a.)
 
 ## Follow-ups after the server is live

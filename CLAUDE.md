@@ -26,7 +26,7 @@ reference library and Settings.
 ## Active rework plan (read first)
 
 The app is being reworked in phases. Before any change:
-- [plan/DECISIONS.md](plan/DECISIONS.md) — what we build (D1–D78). Source of truth; don't diverge
+- [plan/DECISIONS.md](plan/DECISIONS.md) — what we build (D1–D79). Source of truth; don't diverge
   silently.
 - [plan/README.md](plan/README.md) — phase order, rules for every phase, progress table. Each phase =
   one conversation, scoped by its file in `plan/phases/`.
@@ -98,7 +98,8 @@ The app is being reworked in phases. Before any change:
   (never `window.confirm`), one date format, Material Symbols with `aria-hidden`; `styleGuard.test.js`
   enforces it. Details: [style rules](docs/style-guide.md). UI/UX issues found while working go into
   [the phase 13 file](plan/phases/13-page-by-page-ui-review.md) (the v3 UI list, D77), not fixed on
-  the side (D72 c).
+  the side (D72 c). Phase 13 redesigns the UI/UX from scratch (D79): don't rearrange v2 layouts on
+  the side.
 - **Docs:** `backend/tests/docs.test.js` fails when a mounted route is missing from the API
   reference, when the permission matrices differ from `config/permissions.js`, when a relative link
   breaks, or when `backend/docs/` / `frontend/docs/` come back. Update the docs in the same change.

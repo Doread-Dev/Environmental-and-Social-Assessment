@@ -15,10 +15,8 @@ import { LoadingState } from '@/components/ui'
  *
  * @param {Object} props
  * @param {React.ReactNode} props.children - Child components to render if authenticated
- * @param {boolean} [props.allowPasswordChange] - Also open while the user must still change their
- *   password (the Help page, D78)
  */
-function ProtectedRoute({ children, allowPasswordChange = false }) {
+function ProtectedRoute({ children }) {
   const location = useLocation()
   const { isAuthenticated, isLoading, mustChangePassword } = useAuth()
 
@@ -34,8 +32,7 @@ function ProtectedRoute({ children, allowPasswordChange = false }) {
   }
 
   // The backend answers 403 everywhere until the password is changed
-  // The Help page stays open before the forced change (D78); everything else waits for it (D22)
-  if (mustChangePassword && !allowPasswordChange) {
+  if (mustChangePassword) {
     return <Navigate to={ROUTES.CHANGE_PASSWORD} replace />
   }
 

@@ -8,8 +8,8 @@ import { cn } from '@/utils/cn'
  * FloatingHelpButton - opens the user guide at the current page's section (phase 14, D78)
  *
  * One round button, fixed in the bottom-right corner of every page that has guide sections
- * (routes/helpSections.js): mounted once in each layout, never per page. Not on sign-in or the
- * Help page itself. It sits below dialogs, side panels, the mobile menu and toasts (z-30), and
+ * (routes/helpSections.js): mounted once in each layout, never per page. Not on sign-in, the
+ * forced password change (owner, D22: Help waits for the new password) or the Help page itself. It sits below dialogs, side panels, the mobile menu and toasts (z-30), and
  * above a page's save bar: StickyFooter raises `--floating-help-bottom` while it is shown. Leaving
  * goes through the unsaved-changes guard like any other navigation.
  */

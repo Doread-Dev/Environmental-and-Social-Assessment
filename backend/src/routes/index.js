@@ -25,9 +25,6 @@ router.use("/auth", authRoutes);
 // password change (D22, 403 PASSWORD_CHANGE_REQUIRED). Routers add requirePermission() (D66b)
 // and the project-access check (middlewares/projectAccess.js, D66a).
 router.use(auth);
-// The user guide (D78) reads also before a forced password change: the change-password page
-// links to its section. Read only, filtered by the user's permissions like every other request.
-router.use("/help", helpRoutes);
 router.use(requirePasswordChanged);
 
 router.use("/users", usersRoutes);
@@ -42,5 +39,6 @@ router.use("/audit-logs", auditLogsRoutes);
 router.use("/dashboard", dashboardRoutes);
 router.use("/files", filesRoutes);
 router.use("/library", libraryRoutes);
+router.use("/help", helpRoutes);
 
 module.exports = router;

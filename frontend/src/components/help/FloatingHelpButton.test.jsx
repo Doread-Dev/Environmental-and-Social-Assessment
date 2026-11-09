@@ -39,13 +39,14 @@ const PAGES = [
   ROUTES.SETTINGS,
   ROUTES.SETTINGS_ACTIVITY_LOG,
   ROUTES.PROFILE,
-  ROUTES.CHANGE_PASSWORD,
 ]
 
 describe('page → guide section map (routes/helpSections.js)', () => {
-  it('has guide sections for every listed page, and none for sign-in and Help', () => {
+  it('has guide sections for every listed page; none for sign-in, the forced password change and Help', () => {
     for (const route of PAGES) expect(helpSectionsFor(at(route)), route).not.toBeNull()
     expect(helpSectionsFor(ROUTES.LOGIN)).toBeNull()
+    // Owner (D22): Help waits until the user has chosen their own password
+    expect(helpSectionsFor(ROUTES.CHANGE_PASSWORD)).toBeNull()
     expect(helpSectionsFor(ROUTES.HELP)).toBeNull()
     expect(helpSectionsFor('/app/unknown')).toBeNull()
   })
@@ -103,7 +104,7 @@ describe('floating Help button in the layouts', () => {
     expect(screen.queryByRole('button', { name: 'Help for this page' })).toBeNull()
   })
 
-  it('is on the forced password change, not on sign-in', async () => {
+  it('is not on sign-in or the forced password change (owner, D22)', async () => {
     const authPage = (path) =>
       renderApp(
         [{ element: <AuthLayout />, children: [{ path, element: <p>auth page</p> }] }],
@@ -111,7 +112,7 @@ describe('floating Help button in the layouts', () => {
       )
     const first = authPage(ROUTES.CHANGE_PASSWORD)
     await screen.findByText('auth page')
-    expect(screen.getByRole('button', { name: 'Help for this page' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Help for this page' })).toBeNull()
     first.unmount()
 
     authPage(ROUTES.LOGIN)

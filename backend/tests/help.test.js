@@ -81,11 +81,11 @@ describe("GET /help", () => {
     expect(ar.body.data.parts[0].title).toMatch(/[؀-ۿ]/);
   });
 
-  it("answers before a forced password change too (its page links to the guide); others stay 403", async () => {
+  it("answers 403 PASSWORD_CHANGE_REQUIRED before a forced password change, like every route (owner, D22)", async () => {
     const { token } = await loginAs("viewer", { must_change_password: true });
     const help = await request(app).get("/api/v1/help").set(auth(token));
-    expect(help.status).toBe(200);
-    expect(ids(help.body.data.parts)).toContain("first-password");
+    expect(help.status).toBe(403);
+    expect(help.body.code).toBe("PASSWORD_CHANGE_REQUIRED");
     const lookups = await request(app).get("/api/v1/lookups").set(auth(token));
     expect(lookups.status).toBe(403);
     expect(lookups.body.code).toBe("PASSWORD_CHANGE_REQUIRED");

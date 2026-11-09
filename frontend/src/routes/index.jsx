@@ -121,29 +121,6 @@ export const appRoutes = [
   },
 
   // ==========================================
-  // Help (D78): its own route so it also opens during the forced password change, where the
-  // floating Help button of the change-password page leads (GET /help answers then too)
-  // ==========================================
-  {
-    path: ROUTES.HELP,
-    element: (
-      <ProtectedRoute allowPasswordChange>
-        <MainLayout />
-      </ProtectedRoute>
-    ),
-    children: [
-      {
-        index: true,
-        element: (
-          <Suspense fallback={<LoadingState />}>
-            <HelpPage />
-          </Suspense>
-        ),
-      },
-    ],
-  },
-
-  // ==========================================
   // Main App Routes (Protected)
   // ==========================================
   {
@@ -196,6 +173,14 @@ export const appRoutes = [
         element: (
           <Suspense fallback={<LoadingState />}>
             <ProfilePage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'help',
+        element: (
+          <Suspense fallback={<LoadingState />}>
+            <HelpPage />
           </Suspense>
         ),
       },

@@ -10,7 +10,6 @@ import { ROUTES } from './routes.config.js'
  * against both languages). A page missing here shows no Help button.
  */
 export const HELP_SECTIONS = Object.freeze([
-  [ROUTES.CHANGE_PASSWORD, ['first-password']],
   [ROUTES.DASHBOARD, ['dashboard']],
   [ROUTES.PROJECTS, ['project-list']],
   [ROUTES.PROJECT_NEW, ['project-create', 'project-list']],
@@ -45,7 +44,8 @@ const matches = (pattern, path) => {
 }
 
 /**
- * The guide ids for a page, or null on a page without the Help button (sign-in, the Help page)
+ * The guide ids for a page, or null on a page without the Help button (sign-in, the forced
+ * password change, the Help page)
  * @param {string} pathname
  * @returns {string[]|null}
  */

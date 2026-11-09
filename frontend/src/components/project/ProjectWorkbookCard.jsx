@@ -31,29 +31,40 @@ function ProjectWorkbookCard({ projectId, className }) {
     else toast.error(result.error || 'Failed to export the project workbook')
   }
 
+  // A full-width bar under the project header (owner, phase 14): the export is found without
+  // scrolling, as an action with its button, on every screen size
   return (
-    <div
+    <section
+      aria-labelledby="project-workbook-title"
       className={cn(
-        'bg-surface dark:bg-surface-dark p-5 rounded-xl border border-border-default dark:border-border-dark shadow-sm flex flex-col gap-4',
+        'bg-surface dark:bg-surface-dark p-5 rounded-xl border border-primary/30 shadow-sm',
+        'flex flex-col sm:flex-row sm:items-center gap-4',
         className
       )}
     >
-      <div className="flex items-center gap-2">
-        <div className="p-2 rounded-lg bg-primary/10">
+      <div className="flex items-start gap-3 flex-1 min-w-0">
+        <div className="p-2 rounded-lg bg-primary/10 shrink-0">
           <span className="material-symbols-outlined text-primary" aria-hidden="true">
             table_view
           </span>
         </div>
-        <h4 className="text-sm font-bold text-text-main dark:text-white">Project workbook</h4>
+        <div className="flex flex-col gap-1 min-w-0">
+          <h2
+            id="project-workbook-title"
+            className="text-base font-bold text-text-main dark:text-white"
+          >
+            Project workbook
+          </h2>
+          <p className="text-sm text-text-secondary dark:text-gray-400">
+            {hasData
+              ? `One Excel file in the official AKF layout: ${included.map((t) => TOOL_LABELS[t]).join(', ')}. Each sheet's printed footer shows that tool's status and the export date.`
+              : 'Available once Tool 1 has been started.'}
+          </p>
+        </div>
       </div>
-      <p className="text-sm text-text-secondary dark:text-gray-400">
-        {hasData
-          ? `One Excel file in the official AKF layout: ${included.map((t) => TOOL_LABELS[t]).join(', ')}. Each sheet's printed footer shows that tool's status and the export date.`
-          : 'Available once Tool 1 has been started.'}
-      </p>
       <Button
-        variant="outline"
-        fullWidth
+        variant="primary"
+        className="shrink-0 w-full sm:w-auto"
         onClick={handleExport}
         disabled={!hasData}
         isLoading={isExporting}
@@ -65,7 +76,7 @@ function ProjectWorkbookCard({ projectId, className }) {
       >
         Export project workbook
       </Button>
-    </div>
+    </section>
   )
 }
 

@@ -78,6 +78,23 @@ describe("release version 2.0.0", () => {
     expect(script).toMatch(/`ESMS \$\{version\}\\n/);
   });
 
+  it("the release carries docs/user-guide where the Help service reads it (phase 14, D78)", () => {
+    const script = read("deploy/build-release.mjs");
+    expect(script).toMatch(
+      /cpSync\(path\.join\(root, 'docs', 'user-guide'\), path\.join\(out, 'docs', 'user-guide'\)/
+    );
+    // The service finds the guide by a path relative to backend/src/services, the same in the
+    // repository and in the release folder (backend/ and docs/ side by side).
+    const fromService = path.relative(
+      path.join(repo, "backend/src/services"),
+      path.join(repo, "docs/user-guide")
+    );
+    expect(fromService.split(path.sep).join("/")).toBe("../../../docs/user-guide");
+    expect(read("backend/src/services/help.service.js")).toContain('"../../../docs/user-guide"');
+    expect(read("deploy/windows/install.ps1")).toMatch(/foreach \(\$part in @\([^)]*'docs'/);
+    expect(read("deploy/linux/install.sh")).toMatch(/for part in [^;]* docs [^;]*; do/);
+  });
+
   it("both install scripts copy the changelog and VERSION to the server", () => {
     expect(read("deploy/windows/install.ps1")).toMatch(
       /foreach \(\$part in @\([^)]*'VERSION', 'CHANGELOG\.md'\)\)/

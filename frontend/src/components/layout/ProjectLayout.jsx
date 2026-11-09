@@ -8,6 +8,7 @@ import { GuidanceButton, useCurrentPlace } from '@/components/library'
 import { requestExport, useExportReady } from '@/components/export'
 import ProjectSidebar from './ProjectSidebar'
 import MobileMenu from './MobileMenu'
+import { FloatingHelpButton } from '@/components/help'
 import BrandLogo from './BrandLogo'
 import { ArchivedNotice } from '@/components/project'
 import { Button, ErrorState, LoadingState } from '@/components/ui'
@@ -188,6 +189,8 @@ function ProjectLayout() {
           className={cn(
             'flex-1 overflow-y-auto',
             'p-4 sm:p-6 lg:p-8',
+            // Room under the content for the floating Help button
+            'pb-24 sm:pb-24 lg:pb-24',
             'bg-background dark:bg-background-dark',
             'scroll-smooth'
           )}
@@ -199,6 +202,7 @@ function ProjectLayout() {
           </div>
         </main>
       </div>
+      <FloatingHelpButton />
     </div>
   )
 }

@@ -28,8 +28,9 @@ const PROJECT_SCOPED = [
   "/dashboard",
 ];
 // Not about a project: own account, users, lookups, the admin-wide audit log.
-// The reference library is organisation guidance, not tied to a project (D64 b).
-const NOT_PROJECT_SCOPED = ["/auth", "/users", "/lookups", "/audit-logs", "/library"];
+// The reference library is organisation guidance, not tied to a project (D64 b); so is the user
+// guide (D78).
+const NOT_PROJECT_SCOPED = ["/auth", "/users", "/lookups", "/audit-logs", "/library", "/help"];
 // Creating a project is a permission, there is no project to check yet.
 const NO_PROJECT_YET = new Set(["post /projects"]);
 const LISTS = new Set(["get /projects", "get /dashboard"]);

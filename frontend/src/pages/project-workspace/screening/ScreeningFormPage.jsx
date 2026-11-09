@@ -343,7 +343,7 @@ function ScreeningFormPage() {
         onClose={() => setShowSubmitModal(false)}
         title="Confirm Submission"
         description="Are you sure you want to submit the screening?"
-        sub_description="*Editing will not be possible after submission unless the screening is rejected by an administrator."
+        sub_description="*Editing will not be possible after submission unless the screening is rejected by a reviewer."
       >
         <Modal.Footer>
           <Button

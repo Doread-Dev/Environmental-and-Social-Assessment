@@ -2,11 +2,20 @@
 
 > **Moved to v3 (D77 2, 2026-11-08).** v2.0.0 ships without this phase. This file stays as the starting list for the v3 UI work (linked from [V3_VISION.md](../V3_VISION.md)); UI/UX issues found from now on are still written here (D72 c). The small visible fixes a user meets on day one were done in [phase 12a](12a-release-readiness.md) and moved out of the list below.
 
-**Goal:** every screen looks finished, consistent and behaves well, so the version ships clean — enterprise-grade QA/UX is release scope (D72). Phase 10 unified what is shared across the app (components, tokens, type scale, states); this phase walks **every element of every screen, one by one, UI and UX**, and cleans what is left.
+**D79 (owner, 2026-11-09): a UI/UX design from scratch, not a polish.** In v3 this phase designs the whole interface as if it were rebuilt, in full detail:
+- **information architecture:** how the app is divided into areas and pages, and what lives where;
+- **navigation:** sidebar, header, project navigation, where Help lives;
+- **the layout of every page:** the order and priority of its elements;
+- **actions:** where buttons go and how they are grouped;
+- **the design system itself:** tokens, components, states, motion, down to hover.
+
+The current layout is **not** a base to keep: every placement comes from a deliberate study (user priorities per role and per task), not from where things happen to be today. The phase may be split into several phases; its exact scope and order are discussed in detail with the owner **before** it starts. The goal below (from D72) and the issue list are inputs to that study.
+
+**Goal (before D79):** every screen looks finished, consistent and behaves well, so the version ships clean — enterprise-grade QA/UX is release scope (D72). Phase 10 unified what is shared across the app (components, tokens, type scale, states); this phase walks **every element of every screen, one by one, UI and UX**, and cleans what is left.
 
 **Owner's aim (D76 4, 2026-11-06; to be refined in this phase's own concept talk):** this is the **design-system phase**. The owner wants a full design system and enterprise-grade UI/UX, down to hover states and the smallest details, plus front-end performance. The v3 restructure must be able to reuse that UI and design system as it is. Phase 12 wrote no design-system doc: today's style rules sit in `docs/` in a short section marked "replaced by the design system of phase 13"; this phase replaces that section.
 
-**Decisions:** D71, D72, D76 4 (+ D43, D49, the style rules in `docs/` — today's rules, replaced by this phase's design system).
+**Decisions:** D79, D71, D72, D76 4 (+ D43, D49, the style rules in `docs/` — today's rules, replaced by this phase's design system).
 
 **Fed by every phase (D72):** each phase writes the UI/UX issues it finds below, under its screen, instead of fixing them on the side.
 
@@ -75,6 +84,13 @@ Items found during phase 10 that are page-specific (not shared) are listed here 
   - **Project create:** the location hint says "Specific location allows for automated GIS risk overlay later." — no such feature exists; reword or drop it.
   - **Tools 3/4 on desktop:** the full-width layout has no project navigation on wide screens either (only the page's Back button); the phone/tablet menu is hidden from `lg` up.
   - **Tools 3/4 mobile menu:** its backdrop (`z-40`) sits below the sticky SEMP header (`z-50`), so tapping the header does not close the menu.
+- **Owner's review of PR #29 (phase 14, 2026-11-09; examples of the problem D79 answers):**
+  - **Project overview:** the full-width Project workbook bar pushes every other overview card down; the overview has no thought-out order of priorities.
+  - **Main sidebar:** a Help item (first seen on the dashboard) feels out of place.
+  - **Floating Help button (bottom-right):** acceptable for now, probably not the best solution.
+  - **In general:** buttons and pages feel scattered, with no study behind their placement.
+- **Phase 14 (D72 c; found while checking the floating Help button, not fixed there):**
+  - **Save bar at 375 px (`components/ui/StickyFooter.jsx`):** on the assessment metadata page the right button is cut off ("Save and Co…"); the bar does not wrap or shorten its labels on a phone.
 - **Phase 11 (D72 c):** no new UI/UX issue found in the production-build check (login, dashboard, library, PDF viewer, light and dark). (The icon font subset was done in phase 12a.)
 
 ## Follow-ups after the server is live

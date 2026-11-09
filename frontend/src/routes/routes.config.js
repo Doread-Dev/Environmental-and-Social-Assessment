@@ -57,6 +57,9 @@ export const ROUTES = {
 
   // Own profile and password (D23)
   PROFILE: '/app/profile',
+
+  // The in-app user guide (phase 14, D78); ?section=<id> opens it at a part or section
+  HELP: '/app/help',
 }
 
 /**
@@ -71,6 +74,19 @@ export const ROUTES = {
  */
 export function getProjectRoute(projectId, route) {
   return route.replace(':projectId', projectId)
+}
+
+/**
+ * The Help page, optionally at a part or section of the guide (D78): one id, or several, most
+ * specific first (the page opens the first one the user's guide has; routes/helpSections.js)
+ * @param {string|string[]|null} [sections]
+ * @returns {string}
+ */
+export function getHelpRoute(sections = null) {
+  const ids = [sections ?? []].flat().filter(Boolean)
+  return ids.length
+    ? `${ROUTES.HELP}?section=${ids.map(encodeURIComponent).join(',')}`
+    : ROUTES.HELP
 }
 
 /**
@@ -94,6 +110,12 @@ export const MAIN_NAV_ITEMS = [
     label: 'Library',
     icon: 'menu_book',
     path: ROUTES.LIBRARY,
+  },
+  {
+    id: 'help',
+    label: 'Help',
+    icon: 'help',
+    path: ROUTES.HELP,
   },
 ]
 

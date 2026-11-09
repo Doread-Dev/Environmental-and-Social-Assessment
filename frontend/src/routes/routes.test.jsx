@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { router } from './index'
-import { MAIN_NAV_ITEMS, PROJECT_SECONDARY_NAV, ROUTES } from './routes.config'
+import { MAIN_NAV_ITEMS, PROJECT_SECONDARY_NAV, ROUTES, getHelpRoute } from './routes.config'
 
 // Every route of the app with its full path and handle
 function flatten(routes, parent = '') {
@@ -44,7 +44,12 @@ describe('app routes (D64)', () => {
   })
 
   it('has the Library in the main navigation and Documents instead of Annex', () => {
-    expect(MAIN_NAV_ITEMS.map((item) => item.id)).toEqual(['dashboard', 'projects', 'library'])
+    expect(MAIN_NAV_ITEMS.map((item) => item.id)).toEqual([
+      'dashboard',
+      'projects',
+      'library',
+      'help',
+    ])
     expect(MAIN_NAV_ITEMS.find((item) => item.id === 'library').path).toBe(ROUTES.LIBRARY)
     expect(PROJECT_SECONDARY_NAV.map((item) => [item.id, item.label])).toEqual([
       ['documents', 'Documents'],
@@ -53,5 +58,12 @@ describe('app routes (D64)', () => {
     expect(paths).toContain(ROUTES.LIBRARY)
     expect(paths).toContain(ROUTES.PROJECT_DOCUMENTS)
     expect(paths.some((path) => path.endsWith('/annex'))).toBe(false)
+  })
+
+  it('has the Help page for every role in the main navigation (D78)', () => {
+    expect(MAIN_NAV_ITEMS.find((item) => item.id === 'help').path).toBe(ROUTES.HELP)
+    expect(all.map((r) => r.path)).toContain(ROUTES.HELP)
+    expect(getHelpRoute()).toBe('/app/help')
+    expect(getHelpRoute('screening')).toBe('/app/help?section=screening')
   })
 })

@@ -14,6 +14,7 @@ import { GuidanceButton, useCurrentPlace } from '@/components/library'
 import { requestExport, useExportReady } from '@/components/export'
 import BrandLogo from './BrandLogo'
 import MobileMenu from './MobileMenu'
+import { FloatingHelpButton } from '@/components/help'
 import { ArchivedNotice } from '@/components/project'
 import { Button, EmptyState, LoadingState } from '@/components/ui'
 import { ROUTES, getProjectRoute } from '@/routes/routes.config'
@@ -150,13 +151,15 @@ export default function SempFullWidthLayout() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col w-full overflow-hidden">
+      {/* pb-20: the floating Help button sits below the grid, never on it */}
+      <main className="flex-1 flex flex-col w-full overflow-hidden pb-20">
         <ArchivedNotice project={project} className="m-4 mb-0 sm:mx-6 md:mx-10" />
         {/* After a stale-save Reload (D62) the page mounts again from the fresh data */}
         <Outlet key={reloadKey} context={{ project, workflow, can }} />
       </main>
       {/* After the header: the menu panel (z-50) must lie above the sticky header (z-50) */}
       {menu}
+      <FloatingHelpButton />
     </div>
   )
 }

@@ -84,6 +84,10 @@ function ProjectOverviewPage() {
         <ProjectProgressTimeline workflow={workflow} />
       </section>
 
+      {/* One file with every tool that has data (D67 b), right under the header so it is found
+          without scrolling; never for viewers (D28a) */}
+      {can('export') && <ProjectWorkbookCard projectId={projectId} />}
+
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column (2/3) */}
@@ -135,8 +139,6 @@ function ProjectOverviewPage() {
             startDate={project.start_date}
             endDate={project.end_date}
           />
-          {/* One file with every tool that has data (D67 b); never for viewers (D28a) */}
-          {can('export') && <ProjectWorkbookCard projectId={projectId} />}
         </div>
       </div>
     </div>

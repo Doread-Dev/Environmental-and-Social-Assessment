@@ -26,7 +26,7 @@ reference library and Settings.
 ## Active rework plan (read first)
 
 The app is being reworked in phases. Before any change:
-- [plan/DECISIONS.md](plan/DECISIONS.md) — what we build (D1–D77). Source of truth; don't diverge
+- [plan/DECISIONS.md](plan/DECISIONS.md) — what we build (D1–D78). Source of truth; don't diverge
   silently.
 - [plan/README.md](plan/README.md) — phase order, rules for every phase, progress table. Each phase =
   one conversation, scoped by its file in `plan/phases/`.

@@ -158,6 +158,17 @@ the route table is missing from the [API reference](api-reference.md), when the 
 [roles and permissions](roles-and-permissions.md) differ from `config/permissions.js`, or when a
 relative link in `docs/`, the READMEs or `CLAUDE.md` points at a missing file.
 
+`backend/tests/userGuide.test.js` keeps the [user guide](user-guide/README.md) in step (phase 14,
+D78): every UI label it quotes in bold exists in `frontend/src`, every role has its own sections,
+every place key has a part or section, English and Arabic have the same files, ids and tags, every
+tag is a real permission, and its links and section ids resolve. A renamed label or a new place
+key therefore needs a guide change in the same PR. `backend/tests/help.test.js` checks what
+`GET /help` gives each role.
+
+Several checkouts on one machine share the `esms_test` database: two test runs at the same time
+wipe each other's data (spurious 401s). Give one of them its own database with
+`MONGODB_URI_TEST=mongodb://127.0.0.1:27017/esms_<name>_test`.
+
 ## CI and coverage
 
 `.github/workflows/ci.yml` runs on every PR and on pushes to `main` / `Development`:

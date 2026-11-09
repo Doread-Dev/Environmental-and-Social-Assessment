@@ -53,6 +53,7 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
 
   return (
     <header
+      data-print="hide"
       className={cn(
         'h-16 shrink-0',
         'bg-surface dark:bg-surface-dark',

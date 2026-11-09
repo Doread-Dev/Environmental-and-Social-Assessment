@@ -3,6 +3,7 @@
 // ProjectLayout. The header's Export Excel waits for the tool page (export events).
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, screen, within } from '@testing-library/react'
+import { useLocation } from 'react-router-dom'
 import api from '@/services/api'
 import ProjectLayout from './ProjectLayout'
 import SempFullWidthLayout from './SempFullWidthLayout'
@@ -63,6 +64,29 @@ const routes = (page = <ToolPage />) => [
     element: <ProjectLayout />,
     children: [{ path: 'overview', element: <p>overview page</p> }],
   },
+]
+
+function HelpTarget() {
+  const location = useLocation()
+  return <p>help page {location.search}</p>
+}
+
+// Tool 3 and Tool 1 with their place keys (as routes/index.jsx), and the Help page
+const withPlace = () => [
+  {
+    path: '/app/projects/:projectId/semp',
+    element: <SempFullWidthLayout />,
+    children: [{ path: 'activities', handle: { place: 'management' }, element: <ToolPage /> }],
+  },
+  {
+    path: '/app/projects/:projectId',
+    element: <ProjectLayout />,
+    children: [
+      { path: 'overview', element: <p>overview page</p> },
+      { path: 'screening', handle: { place: 'screening' }, element: <p>screening page</p> },
+    ],
+  },
+  { path: '/app/help', element: <HelpTarget /> },
 ]
 
 // The icon next to each tool: "lock", "check_circle" or the tool's own icon
@@ -135,5 +159,43 @@ describe('SempFullWidthLayout', () => {
 
     renderApp(routes(<ToolPage />), '/app/projects/p1/semp/activities')
     expect(await screen.findByRole('button', { name: /Export Excel/ })).toBeEnabled()
+  })
+
+  it('the floating Help button opens the guide at the page section, in both project layouts (D78)', async () => {
+    mockApi()
+    const first = renderApp(withPlace(), '/app/projects/p1/semp/activities')
+    fireEvent.click(await screen.findByRole('button', { name: 'Help for this page' }))
+    expect(await screen.findByText('help page ?section=management')).toBeInTheDocument()
+    first.unmount()
+
+    renderApp(withPlace(), '/app/projects/p1/screening')
+    fireEvent.click(await screen.findByRole('button', { name: 'Help for this page' }))
+    expect(await screen.findByText('help page ?section=screening')).toBeInTheDocument()
+  })
+
+  it('the overview has the floating Help button too; the project user menu leads to Help', async () => {
+    mockApi()
+    const first = renderApp(withPlace(), '/app/projects/p1/overview')
+    await screen.findByText('overview page')
+    fireEvent.click(screen.getByRole('button', { name: 'Help for this page' }))
+    expect(await screen.findByText('help page ?section=project-overview')).toBeInTheDocument()
+    first.unmount()
+
+    renderApp(withPlace(), '/app/projects/p1/overview')
+    await screen.findByText('overview page')
+    const sidebar = document.querySelector('aside')
+    fireEvent.click(within(sidebar).getByRole('button', { name: /Rana/ }))
+    fireEvent.click(within(sidebar).getByRole('button', { name: /Help/ }))
+    expect(await screen.findByText('help page')).toBeInTheDocument()
+  })
+
+  it('the mobile project menu has Help in its user menu', async () => {
+    mockApi()
+    renderApp(withPlace(), '/app/projects/p1/overview')
+    await screen.findByText('overview page')
+    const menu = await openMenu()
+    fireEvent.click(within(menu).getByRole('button', { name: /Rana/ }))
+    fireEvent.click(within(menu).getByRole('button', { name: /Help/ }))
+    expect(await screen.findByText('help page')).toBeInTheDocument()
   })
 })

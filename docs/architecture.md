@@ -132,7 +132,18 @@ demo reset) removes the project's file rows and folder last.
 `management` = Tool 3, `mitigation` = Tool 4, `monitoring`), `project_support` (`semp_plan`,
 `stakeholder_awareness`, locked = v3), `organization` (`ghg_emissions`, `environmental_data`,
 locked). Keys are stable and never tool numbers. The frontend keeps no copy (it reads `/lookups`).
-A new tool = one entry here + `handle: { place }` on its frontend route.
+A new tool = one entry here + `handle: { place }` on its frontend route + a part or section with
+that id in the user guide (below).
+
+### User guide and Help (phase 14, D78)
+
+`services/help.service.js` reads `docs/user-guide/<lang>/*.md` (`en`, `ar`; the format is in
+[docs/user-guide/README.md](user-guide/README.md)): front matter `id`, one `#` title, an anchor
+`<a id="…" data-requires="…" data-unless="…"></a>` before each `##` section. Tags are permission
+names, never roles: `GET /help?lang=` keeps the parts and sections whose `requires` the user all has
+(`can()`) and none of whose `unless`, turns links between parts into `#<id>` and links to hidden
+sections into plain text, and caches the parsed guide in production. The release folder and the
+install scripts carry `docs/user-guide/` next to `backend/`.
 
 ### v3 modules (D48, D70)
 
@@ -177,7 +188,7 @@ for reads, `useMutation` for writes) → `pages/` and feature `components/<domai
 the query cache is the shared state, plus the Auth and Theme contexts. Every query key comes from
 `services/queryKeys.js` (`['me']`, `['lookups']`, `['users']`, `['dashboard']`, `['projects']`,
 `['projects', 'archived']`, `['workspace', id]`, `['screening'|'assessment'|'management'|'mitigation'|'monitoring', id]`,
-`['files', id, area]`, `['library', place|'all']`, `['audit-logs', params]`). Defaults: `staleTime`
+`['files', id, area]`, `['library', place|'all']`, `['audit-logs', params]`, `['help', lang]`). Defaults: `staleTime`
 30 s, no refetch on focus, no retry on 4xx.
 
 - **Reads:** `useDashboard`, `useProjects` (`{ archived: true }` for the archive; + delete /
@@ -265,6 +276,21 @@ Screening/assessment are submitted with `screeningService.submit` / `assessmentS
   replace the PDF and delete. A route with `handle: { place }` (screening, assessment, Tool 3,
   Tool 4, monitoring) gets `components/library/GuidanceButton` in its layout header: "Guidance (n)"
   from `useLibrary({ place })` (5 min stale), hidden at n = 0, opening a side panel and the viewer.
+- **Help** (`ROUTES.HELP`, D78, every role; main navigation and the project user menus): the lazy
+  `pages/help/HelpPage` chunk (with `react-markdown` + `remark-gfm`, rendered as elements:
+  `skipHtml`, only in-page links) shows `useHelp(lang)` (`GET /help`), a contents list, the
+  English/Arabic switch (`dir="rtl"` for Arabic, kept per user in localStorage,
+  `useHelpLanguage`), a scroll-spy (one `IntersectionObserver` on the headings marks the item
+  being read with `aria-current` and keeps it in view in the list) and Print (`window.print()`;
+  `index.css` hides `[data-print=hide]` and lets `[data-print=flow]` run over several sheets).
+  **Floating Help button** (`components/help/FloatingHelpButton`): one
+  round button fixed bottom-right (`z-30`: below dialogs, side panels, the mobile menu and
+  toasts), mounted once in `MainLayout`, `ProjectLayout` and `SempFullWidthLayout`;
+  the layouts leave room under the content for it, and `StickyFooter` lifts it above the save bar
+  (`--floating-help-bottom`). It opens `?section=<id>,<id>…` from `routes/helpSections.js`, a page
+  → guide-section map keyed by `ROUTES` (most specific first; navigation config, not a permission
+  rule); the page opens the first id the user's guide has, else the start. No button on sign-in,
+  the forced password change (Help waits for the new password, D78 6) or Help. A new page adds its entry there (`userGuide.test.js` checks the ids).
 - **PdfViewer** (`components/files/PdfViewer.jsx`): mount it only while open; it fetches the PDF as a
   blob with the token, shows it in an `iframe` on a `blob:` URL, revokes the URL on close, has a
   Download button and shows "Download to view" where `navigator.pdfViewerEnabled === false`.

@@ -114,7 +114,7 @@ if ($sourceDir -ne $installFull) {
   $envFile = Join-Path $installFull 'backend\.env'
   $keptEnv = $null
   if (Test-Path $envFile) { $keptEnv = Get-Content $envFile -Raw }
-  foreach ($part in @('backend', 'frontend', 'deploy', '.nvmrc', 'VERSION', 'CHANGELOG.md')) {
+  foreach ($part in @('backend', 'frontend', 'deploy', 'docs', '.nvmrc', 'VERSION', 'CHANGELOG.md')) {
     $from = Join-Path $sourceDir $part
     if (-not (Test-Path $from)) { continue }
     $to = Join-Path $installFull $part

@@ -97,7 +97,8 @@ project membership behind it. Details in [architecture](architecture.md#request-
   creates users in Settings → Users (any role). A new account and an admin reset get a 12-character
   temporary password, shown once, with `must_change_password` (D22): until the user picks their own
   password every endpoint except `GET /auth/me` and `PUT /auth/password` answers
-  `403 { code: "PASSWORD_CHANGE_REQUIRED" }`.
+  `403 { code: "PASSWORD_CHANGE_REQUIRED" }` (`GET /help` included: the owner keeps the user guide
+  for after the new password, D78 6).
 - Password policy: `PASSWORD_MIN_LENGTH` (6) in `validators/auth.validator.js` (security, so D57
   does not remove it); login only requires a value.
 - Users are never deleted, only deactivated (D4). A deactivated user cannot sign in (403 "Account is

@@ -1,7 +1,8 @@
 # ESMS technical documentation
 
 For developers and IT. Written from the code in phase 12 (D44, D76); when a page and the code
-disagree, the code wins and the page is fixed. The user guide for every role is phase 14 (D76 1).
+disagree, the code wins and the page is fixed. The guide for the people who use the app is in
+[user-guide/](user-guide/README.md), in English and Arabic (phase 14, D76 1, D77 3).
 
 | Page | What |
 |---|---|
@@ -11,7 +12,7 @@ disagree, the code wins and the page is fixed. The user guide for every role is 
 | [Roles and permissions](roles-and-permissions.md) | the six roles, the permission matrices (checked against the code), `allowed_actions`, accounts |
 | [Workflow rules](workflow-rules.md) | the tool order and gates, statuses and transitions, locks, bulk saves, stale saves, archive / delete / purge, the critical-actions log, transactions |
 | [Developer guide](developer-guide.md) | setup, environment, commands, tests (backend, frontend, E2E, docs), CI and coverage, conventions |
-| [Style rules](style-guide.md) | today's UI rules — replaced by the design system of phase 13 |
+| [Style guide](style-guide.md) | the UI rules of v2 (a full design system comes with v3, D77 2) |
 
 Server installation, backups and restore (runbooks for IT):
 
@@ -22,4 +23,4 @@ Server installation, backups and restore (runbooks for IT):
 | [deploy/INSTALL-LINUX.md](../deploy/INSTALL-LINUX.md) | Ubuntu install, step by step, offline (not yet run on a real server) |
 
 Planning and decisions: [plan/README.md](../plan/README.md) (phases and progress),
-[plan/DECISIONS.md](../plan/DECISIONS.md) (D1–D76), [plan/V3_VISION.md](../plan/V3_VISION.md).
+[plan/DECISIONS.md](../plan/DECISIONS.md) (D1–D79), [plan/V3_VISION.md](../plan/V3_VISION.md).

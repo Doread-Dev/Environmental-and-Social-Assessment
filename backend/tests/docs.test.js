@@ -101,7 +101,10 @@ describe("documentation (phase 12)", () => {
         .readdirSync(path.join(repo, "deploy"))
         .filter((name) => name.endsWith(".md"))
         .map((name) => `deploy/${name}`),
-      ...fs.readdirSync(docs).map((name) => `docs/${name}`),
+      ...fs
+        .readdirSync(docs)
+        .filter((name) => name.endsWith(".md"))
+        .map((name) => `docs/${name}`),
     ];
     const broken = [];
     for (const file of files) {

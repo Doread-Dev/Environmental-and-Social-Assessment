@@ -18,6 +18,7 @@ function MainSidebar({ className }) {
 
   return (
     <aside
+      data-print="hide"
       className={cn(
         'w-[280px] lg:w-[300px]',
         'hidden lg:flex flex-col',

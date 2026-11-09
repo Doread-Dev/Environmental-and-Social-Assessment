@@ -23,4 +23,4 @@ Server installation, backups and restore (runbooks for IT):
 | [deploy/INSTALL-LINUX.md](../deploy/INSTALL-LINUX.md) | Ubuntu install, step by step, offline (not yet run on a real server) |
 
 Planning and decisions: [plan/README.md](../plan/README.md) (phases and progress),
-[plan/DECISIONS.md](../plan/DECISIONS.md) (D1–D78), [plan/V3_VISION.md](../plan/V3_VISION.md).
+[plan/DECISIONS.md](../plan/DECISIONS.md) (D1–D79), [plan/V3_VISION.md](../plan/V3_VISION.md).

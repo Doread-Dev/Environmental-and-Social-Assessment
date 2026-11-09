@@ -20,7 +20,7 @@ exports to Excel. The app runs offline on one internal server.
 | [`e2e/`](e2e) | Playwright end-to-end tests of the golden flows |
 | [`deploy/`](deploy) | server install, backup and restore for Windows Server and Ubuntu |
 | [`docs/`](docs) | technical documentation |
-| [`plan/`](plan) | the rework plan: decisions (D1–D78) and phases |
+| [`plan/`](plan) | the rework plan: decisions (D1–D79) and phases |
 
 ## Quick start (development)
 

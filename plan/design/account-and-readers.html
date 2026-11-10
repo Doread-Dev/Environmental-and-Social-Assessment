@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ESMS v2.5 — Account, sign-in and readers</title>
+<style>
+:root{--bg:#14161a;--panel:#1b1e23;--panel2:#23272d;--line:#30353d;--ink:#e8eaed;--muted:#9ba2ac;--accent:#86b6ec;--good:#7fd1a0;--bad:#f0a093}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.65 system-ui,"Segoe UI",Tahoma,sans-serif}
+button{font:inherit;color:inherit}
+.app{display:grid;grid-template-columns:350px minmax(0,1fr);min-height:100vh}
+.controls{background:var(--panel);border-inline-end:1px solid var(--line);padding:18px 18px 40px;height:100vh;overflow:auto;position:sticky;top:0}
+.controls h1{font-size:17px;margin:0 0 4px}
+.intro{color:var(--muted);font-size:12.5px;margin:0 0 6px}
+.grp{margin-top:15px}
+.gl{font-size:12px;color:var(--muted);margin-bottom:6px;display:block}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.presets button{background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:4px 11px;font-size:12px;cursor:pointer}
+.presets button:hover{border-color:var(--accent)}
+.seg{display:flex;flex-wrap:wrap;gap:4px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:3px}
+.seg button{flex:1 1 auto;border:0;background:transparent;border-radius:6px;padding:5px 8px;font-size:12.5px;cursor:pointer;white-space:nowrap}
+.seg button.on{background:var(--accent);color:#0d1b2a;font-weight:600}
+.seg button:disabled{opacity:.35;cursor:default}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;padding:3px 0;cursor:pointer}
+.chk input{accent-color:var(--accent)}
+.chk.dis{opacity:.4;cursor:default}
+.hide{display:none!important}
+.stage{padding:18px 22px 40px;min-width:0}
+.stage-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;font-size:13px;color:var(--muted)}
+.stage-bar b{color:var(--ink)}
+.viewport{position:relative;background:#0e1013;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+#frame{position:absolute;top:12px;transform-origin:top left;box-shadow:0 10px 40px rgba(0,0,0,.5);border-radius:8px}
+.boxes{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.box h2{font-size:15px;margin:0 0 8px}
+.box ul{margin:0;padding-inline-start:20px}
+.box li{margin-bottom:6px;font-size:13.5px}
+.box.q{border-color:#6b5a1e;background:#1f1c12}
+.box.q li{margin-bottom:10px}
+.box.q,.box.q:first-of-type,.box.q:last-child{display:block;padding:16px 18px;border:1px solid #6b5a1e;border-radius:12px;background:#1f1c12}
+.output{margin-top:16px}
+.output textarea{width:100%;min-height:70px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:8px 10px;font:inherit;font-size:13px;resize:vertical}
+.prompt{white-space:pre-wrap;background:#0e1013;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:13px;margin-top:8px}
+.copy{margin-top:8px;background:var(--accent);color:#0d1b2a;border:0;border-radius:8px;padding:7px 16px;font-weight:600;cursor:pointer}
+@media (max-width:1100px){.boxes{grid-template-columns:1fr}}
+@media (max-width:860px){.app{grid-template-columns:1fr}.controls{position:static;height:auto}}
+
+/* ---------- wireframe ---------- */
+.f-shell{--w-bg:#f2f3f5;--w-sf:#fff;--w-ln:#d7dbe1;--w-ink:#262a30;--w-mu:#868d98;--w-ac:#2f6db5;--w-acbg:#e5eef9;--w-ok:#3b7a55;--w-okbg:#e7f3ec;--w-bad:#b0473a;--w-badbg:#f9e8e5;--w-warnbg:#fbf3dc;--w-warn:#8a6a10;
+  position:relative;width:100%;height:100%;background:var(--w-bg);color:var(--w-ink);font:13px/1.45 system-ui,"Segoe UI",Tahoma,sans-serif;display:flex;flex-direction:column;overflow:hidden;border-radius:8px}
+.f-shell .ic{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.f-header{height:48px;flex:none;display:flex;align-items:center;gap:8px;padding-inline:12px;background:var(--w-sf);border-bottom:1px solid var(--w-ln);z-index:9}
+.logo{font-weight:700;padding:2px 8px;border:1.5px solid var(--w-ink);border-radius:4px;font-size:12px}
+.ctx{font-size:11.5px;color:var(--w-mu);border:1px dashed #b9bfc8;padding:1px 9px;border-radius:99px}
+.hsp{flex:1}
+.search{display:flex;align-items:center;gap:6px;width:250px;height:30px;border:1px solid var(--w-ln);border-radius:6px;padding-inline:8px;color:var(--w-mu);font-size:12px;background:var(--w-bg)}
+.ib{width:32px;height:32px;display:grid;place-items:center;border-radius:6px;position:relative;flex:none}
+.badge{position:absolute;top:2px;inset-inline-end:2px;min-width:15px;height:15px;border-radius:99px;background:var(--w-bad);color:#fff;font-size:9px;font-weight:700;display:grid;place-items:center}
+.avatar{width:28px;height:28px;border-radius:50%;background:#dfe2e7;display:grid;place-items:center;font-size:11px;font-weight:700}
+.f-body{flex:1;display:flex;min-height:0;position:relative}
+.side{flex:none;width:250px;background:var(--w-sf);border-inline-end:1px solid var(--w-ln);display:flex;flex-direction:column;overflow:auto;padding:10px 8px}
+.ni{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;font-size:13px;white-space:nowrap}
+.ni.on{background:var(--w-acbg);color:var(--w-ac);font-weight:600}
+.ni.muted{color:var(--w-mu);font-size:12.5px}
+.sec{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--w-mu);padding:12px 10px 4px}
+.unit{padding:6px 10px 10px;margin-bottom:4px;border-bottom:1px solid var(--w-ln)}
+.unit-kind{font-size:10.5px;color:var(--w-mu);text-transform:uppercase;letter-spacing:.5px}
+.unit-name{font-weight:650;font-size:13.5px;line-height:1.3}
+.unit-meta{font-size:11px;color:var(--w-mu);display:flex;gap:6px;align-items:center;margin-top:4px}
+.chip{font-size:10.5px;padding:1px 8px;border-radius:99px;background:var(--w-bg);border:1px solid var(--w-ln);white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.chip.ac{background:var(--w-acbg);border-color:transparent;color:var(--w-ac)}
+.chip.ok{background:var(--w-okbg);border-color:transparent;color:var(--w-ok)}
+.chip.bad{background:var(--w-badbg);border-color:transparent;color:var(--w-bad)}
+.chip.warn{background:var(--w-warnbg);border-color:transparent;color:var(--w-warn)}
+.step{display:flex;align-items:center;gap:9px;padding:6px 10px;border-radius:6px;font-size:13px;white-space:nowrap}
+.dot{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:700;border:1.5px solid var(--w-ink)}
+.st-ok .dot{background:var(--w-ok);border-color:var(--w-ok);color:#fff}
+.st-cur .dot{border-color:var(--w-ac);color:var(--w-ac)}
+.st-bad .dot{border-color:var(--w-bad);color:var(--w-bad)}
+.st-lock{color:var(--w-mu)} .st-lock .dot{border-style:dashed;border-color:#a9b0ba}
+.step.on{background:var(--w-acbg)}
+.step .sl{margin-inline-start:auto;font-size:10.5px;color:var(--w-mu)}
+.subs{margin-inline-start:29px;border-inline-start:1.5px solid var(--w-ln);padding-inline-start:6px;margin-block:2px 4px}
+.subs a{display:block;padding:3px 8px;font-size:12px;border-radius:5px;color:var(--w-mu)}
+.subs a.on{color:var(--w-ac);font-weight:600;background:var(--w-acbg)}
+.f-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.f-page{flex:1;overflow:auto;padding:18px 22px}
+.crumbs{font-size:11.5px;color:var(--w-mu);margin-bottom:4px}
+.eyebrow{font-size:11px;color:var(--w-mu);text-transform:uppercase;letter-spacing:.5px}
+.ph{display:flex;align-items:flex-start;gap:10px 12px;margin-bottom:12px;flex-wrap:wrap}
+.ph h1{font-size:19px;margin:0;font-weight:650;line-height:1.3}
+.ph .tt{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.meta{font-size:11.5px;color:var(--w-mu);margin-top:3px}
+.acts{margin-inline-start:auto;display:flex;gap:8px;flex-wrap:wrap}
+.btn{height:30px;padding:0 12px;border-radius:6px;border:1px solid var(--w-ln);background:var(--w-sf);display:inline-flex;align-items:center;gap:6px;font-size:12.5px;white-space:nowrap}
+.btn .ic{width:15px;height:15px}
+.btn.pr{background:var(--w-ink);color:#fff;border-color:var(--w-ink)}
+.btn.icon{padding:0 8px}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--w-ac)}
+.btn.danger{color:var(--w-bad)}
+.strip{display:flex;gap:12px;align-items:flex-start;border-radius:8px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;border:1px solid transparent}
+.strip .ic{margin-top:1px}
+.strip b{display:block;font-size:13px}
+.strip .grow{flex:1}
+.strip.bad{background:var(--w-badbg);color:#6d2a22}
+.strip.ok{background:var(--w-okbg);color:#24503a}
+.strip.info{background:var(--w-acbg);color:#1f4675}
+.strip.neutral{background:var(--w-sf);border-color:var(--w-ln)}
+.strip.warn{background:var(--w-warnbg);color:#5c470a}
+.card{background:var(--w-sf);border:1px solid var(--w-ln);border-radius:8px;padding:14px}
+.card h3{margin:0 0 8px;font-size:13.5px;display:flex;align-items:center;gap:8px}
+.card h3 .grow{flex:1}
+.row{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--w-ln);font-size:12.5px}
+.card .row:first-of-type{border-top:0}
+.row .grow{flex:1;min-width:0}
+.sub{color:var(--w-mu);font-size:11.5px}
+.bar{height:8px;border-radius:4px;background:#e3e6ea}
+.bar.dk{background:#cdd3db}
+.grid2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px;align-items:start}
+.stack{display:flex;flex-direction:column;gap:14px}
+.fsec{margin-bottom:16px}
+.fsec>label{display:block;font-size:12px;font-weight:600;margin-bottom:6px}
+.fsec>label .sub{font-weight:400}
+.inp{border:1px solid var(--w-ln);background:var(--w-sf);border-radius:6px;padding:9px 10px;min-height:34px}
+.inp.ta{min-height:74px}
+.ro{padding:2px 0}
+.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cat{border:1px solid var(--w-ln);border-radius:8px;padding:9px 10px;background:var(--w-sf);display:flex;gap:10px;align-items:flex-start}
+.cat b{font-size:15px;width:24px;height:24px;border-radius:6px;background:var(--w-bg);display:grid;place-items:center;flex:none}
+.cat.on{border-color:var(--w-ac);box-shadow:0 0 0 1px var(--w-ac) inset}
+.cat.on b{background:var(--w-ac);color:#fff}
+.cat.off{opacity:.45}
+.qgrp{margin-bottom:14px}
+.qhead{display:flex;align-items:center;gap:8px;font-weight:650;font-size:12.5px;padding:6px 2px}
+.q{display:flex;align-items:center;gap:12px;padding:9px 12px;background:var(--w-sf);border:1px solid var(--w-ln);border-top:0}
+.q:first-of-type{border-top:1px solid var(--w-ln);border-radius:8px 8px 0 0}
+.q:last-child{border-radius:0 0 8px 8px}
+.q .grow{flex:1;min-width:0}
+.lv{display:inline-flex;border:1px solid var(--w-ln);border-radius:6px;overflow:hidden;flex:none}
+.lv span{padding:3px 8px;font-size:11px;border-inline-start:1px solid var(--w-ln);color:var(--w-mu)}
+.lv span:first-child{border-inline-start:0}
+.lv span.on{background:var(--w-ink);color:#fff}
+.sumbar{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:7px}
+.sumbar .lbl{width:74px}
+.sumbar .track{flex:1;height:8px;border-radius:4px;background:#eceef1;overflow:hidden}
+.sumbar .track i{display:block;height:100%;background:#9aa4b1}
+.tbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.tbar .grow{flex:1}
+.mini-search{display:flex;align-items:center;gap:6px;height:30px;width:200px;border:1px solid var(--w-ln);border-radius:6px;padding-inline:8px;color:var(--w-mu);font-size:12px;background:var(--w-sf)}
+.tbl{background:var(--w-sf);border:1px solid var(--w-ln);border-radius:8px;overflow:hidden}
+.tr{display:grid;gap:12px;padding:10px 12px;border-bottom:1px solid var(--w-ln);align-items:start}
+.tr:last-child{border-bottom:0}
+.tr.th{background:#f7f8fa;font-size:11px;color:var(--w-mu);font-weight:600;align-items:center}
+.tr.sel{background:var(--w-acbg);box-shadow:inset 3px 0 0 var(--w-ac)}
+.tr.grp{background:#fafbfc;font-weight:650;font-size:12px;padding:7px 12px}
+.lines{display:flex;flex-direction:column;gap:6px}
+.cell-in{border:1px solid var(--w-ac);background:#fff;border-radius:5px;height:26px}
+.cell-ro{height:8px;border-radius:4px;background:#e3e6ea;margin-top:9px}
+.col-focus{background:#f4f8fd}
+.flag{width:7px;height:7px;border-radius:50%;background:var(--w-bad);display:inline-block}
+.panel{flex:none;width:340px;background:var(--w-sf);border-inline-start:1px solid var(--w-ln);display:flex;flex-direction:column;z-index:5}
+.panel .phd{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--w-ln);font-weight:650}
+.panel .pbd{padding:14px;flex:1;overflow:auto}
+.panel .pft{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--w-ln)}
+.panel .pft .grow{flex:1}
+.tabs2{display:flex;border:1px solid var(--w-ln);border-radius:7px;overflow:hidden;margin-bottom:12px}
+.tabs2 span{flex:1;text-align:center;padding:6px;font-size:12px}
+.tabs2 span.on{background:var(--w-ink);color:#fff}
+.savebar{flex:none;display:flex;align-items:center;gap:8px;padding:9px 22px;background:var(--w-sf);border-top:1px solid var(--w-ln);font-size:12.5px}
+.savebar .grow{flex:1;color:var(--w-mu)}
+.wf{display:flex;gap:0;margin-bottom:14px;background:var(--w-sf);border:1px solid var(--w-ln);border-radius:8px;padding:12px 8px}
+.wf .w{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;font-size:11.5px;position:relative}
+.wf .w::after{content:"";position:absolute;top:10px;inset-inline-start:calc(50% + 14px);inset-inline-end:calc(-50% + 14px);height:1.5px;background:var(--w-ln)}
+.wf .w:last-child::after{display:none}
+.next{display:flex;align-items:center;gap:14px;background:var(--w-ink);color:#fff;border-radius:8px;padding:14px 16px;margin-bottom:14px}
+.next .grow{flex:1}
+.next .sub{color:#c3c8cf}
+.next .btn{background:#fff;color:var(--w-ink);border-color:#fff}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;font-size:12px}
+.facts span{display:block;color:var(--w-mu);font-size:11px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stat{background:var(--w-sf);border:1px solid var(--w-ln);border-radius:8px;padding:10px 12px}
+.stat b{display:block;font-size:20px}
+.stat span{font-size:11.5px;color:var(--w-mu)}
+.stepbar{flex:none;display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--w-sf);border-bottom:1px solid var(--w-ln);font-size:12.5px}
+.stepbar .grow{flex:1}
+.pills{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px}
+.pill{padding:3px 11px;border-radius:99px;font-size:12px;border:1px solid var(--w-ln);background:var(--w-sf);white-space:nowrap}
+.pill.on{background:var(--w-acbg);color:var(--w-ac);border-color:transparent;font-weight:600}
+.dev-phone .f-page{padding:14px}
+.dev-phone .ph h1{font-size:16px}
+.dev-phone .acts{margin-inline-start:0;width:100%}
+.dev-phone .acts .btn.pr{flex:1;justify-content:center}
+.dev-phone .grid2,.dev-phone .cats{grid-template-columns:1fr}
+.dev-phone .facts,.dev-phone .stats{grid-template-columns:1fr 1fr}
+.dev-phone .panel{position:absolute;inset:0;width:auto;border:0;z-index:13}
+.dev-phone .savebar{padding:9px 14px}
+.dev-phone .wf{flex-direction:column;gap:8px;align-items:stretch;padding:10px 12px}
+.dev-phone .wf .w{flex-direction:row;text-align:start}
+.dev-phone .wf .w::after{display:none}
+.dev-phone .q{flex-wrap:wrap}
+.dev-phone .q .lv{width:100%}
+.dev-phone .q .lv span{flex:1;text-align:center}
+.kv{display:grid;grid-template-columns:96px 1fr;gap:7px 10px;font-size:12px;margin-bottom:14px}
+.kv span{color:var(--w-mu)}
+.inp.err{border-color:var(--w-bad);box-shadow:0 0 0 1px var(--w-bad) inset}
+/* ---------- account, sign-in, readers, system pages ---------- */
+.auth{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px;background:var(--w-bg);position:relative}
+.auth-top{position:absolute;top:14px;inset-inline-end:16px}
+.auth-card{width:400px;max-width:100%;background:var(--w-sf);border:1px solid var(--w-ln);border-radius:12px;padding:26px 28px}
+.auth-card h1{font-size:19px;margin:0 0 6px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.brand .sub{line-height:1.3}
+.auth-foot{margin-top:16px;font-size:11.5px;color:var(--w-mu)}
+.errbox{background:var(--w-badbg);color:#6d2a22;border-radius:8px;padding:9px 12px;font-size:12.5px;margin-bottom:12px;display:flex;gap:8px;align-items:flex-start}
+.rule{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--w-mu);padding:2px 0}
+.rule i{width:16px;height:16px;border-radius:50%;border:1.5px solid #b9bfc8;display:grid;place-items:center;font-style:normal;font-size:10px;flex:none}
+.rule.ok{color:var(--w-ok)} .rule.ok i{background:var(--w-ok);border-color:var(--w-ok);color:#fff}
+.pw{display:flex;align-items:center;justify-content:space-between;letter-spacing:3px}
+.pw .ic{color:var(--w-mu)}
+.wide{width:100%;justify-content:center;height:36px}
+.overlay{position:absolute;inset:0;background:rgba(20,24,30,.45);display:grid;place-items:center;z-index:20}
+.dialog{width:420px;max-width:calc(100% - 32px);background:var(--w-sf);border-radius:12px;padding:22px 24px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.dialog h2{font-size:16px;margin:0 0 6px}
+.segw{display:inline-flex;border:1px solid var(--w-ln);border-radius:7px;overflow:hidden;background:var(--w-sf)}
+.segw span{padding:5px 12px;font-size:12px;border-inline-start:1px solid var(--w-ln);white-space:nowrap}
+.segw span:first-child{border-inline-start:0}
+.segw span.on{background:var(--w-ink);color:#fff}
+.two{display:grid;grid-template-columns:200px minmax(0,1fr);gap:20px;align-items:start}
+.secnav{position:sticky;top:0}
+.secnav a{display:block;padding:6px 10px;font-size:12.5px;border-radius:6px;color:var(--w-mu)}
+.secnav a.on{background:var(--w-acbg);color:var(--w-ac);font-weight:600}
+.secnav .part{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--w-mu);padding:10px 10px 3px}
+.article{max-width:680px}
+.article h2{font-size:18px;margin:4px 0 10px}
+.article p{margin:0 0 12px}
+.callout{border-inline-start:3px solid var(--w-ac);background:var(--w-acbg);padding:9px 12px;border-radius:0 6px 6px 0;font-size:12.5px;margin:12px 0}
+.steps{counter-reset:s;margin:10px 0 14px;padding:0}
+.steps div{display:flex;gap:10px;align-items:flex-start;margin-bottom:9px}
+.steps div::before{counter-increment:s;content:counter(s);flex:none;width:20px;height:20px;border-radius:50%;background:var(--w-ink);color:#fff;font-size:11px;display:grid;place-items:center}
+.pdfbar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--w-sf);border-bottom:1px solid var(--w-ln);flex-wrap:wrap}
+.pdfbar .grow{flex:1;min-width:0}
+.pdfarea{flex:1;overflow:auto;background:#d9dde2;padding:24px}
+.sheet{background:#fff;width:540px;max-width:100%;min-height:660px;box-shadow:0 2px 14px rgba(0,0,0,.18);margin:0 auto;padding:44px 48px}
+.offline{flex:none;background:#3a3f47;color:#fff;font-size:12.5px;padding:8px 16px;display:flex;gap:8px;align-items:center}
+.btn.off{opacity:.45}
+.dev-tablet .f-page{padding:16px 18px}
+.dev-phone .two{grid-template-columns:1fr}
+.dev-phone .auth-card{padding:22px 18px;border:0;background:transparent}
+.dev-phone .auth{justify-content:flex-start;padding-top:56px;background:var(--w-sf)}
+.dev-phone .pdfarea{padding:12px}
+.dev-tablet .two.guide{grid-template-columns:1fr}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="controls">
+    <h1>الحساب والدخول والقراءة — ESMS v2.5</h1>
+    <p class="intro">آخر مجموعة صفحات: <b>الدخول</b> (وتغيير كلمة السر الإجباري وانتهاء الجلسة)، <b>حسابي</b>، صفحات <b>القراءة</b> (دليل المستخدم وعارض PDF)، وصفحات <b>النظام</b> (مش موجودة، خطأ، ما في اتصال). وفي <b>تابلت</b> لأول مرة. مربعات بس، المحتوى وهمي.</p>
+
+    <div class="grp"><span class="gl">جاهزين</span><div class="presets" id="presets"></div></div>
+    <div class="grp"><span class="gl">الصفحة</span><div class="seg" data-key="page"></div></div>
+    <div class="grp" id="g-variant"><span class="gl">الحالة</span><div class="seg" data-key="variant"></div></div>
+    <div class="grp" id="g-person"><span class="gl">صلاحيات الشخص (بتغيّر "وصولي" وفهرس الدليل)</span><div class="seg" data-key="person"></div></div>
+    <div class="grp"><span class="gl">لغة الواجهة</span><div class="seg" data-key="lang"></div></div>
+    <div class="grp"><span class="gl">الجهاز</span><div class="seg" data-key="device"></div></div>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-bar" id="stagebar"></div>
+    <div class="viewport" id="viewport"><div id="frame"></div></div>
+    <section class="boxes">
+      <div class="box" id="why"></div>
+      <div class="box q" id="questions"></div>
+    </section>
+    <section class="box output">
+      <h2>رأيك</h2>
+      <textarea id="notes" placeholder="ملاحظاتك، وجوابك عالأسئلة الصفرا إذا بتعرفه…"></textarea>
+      <div class="prompt" id="prompt"></div>
+      <button class="copy" id="copy">انسخ وابعتلي ياه</button>
+    </section>
+  </main>
+</div>
+
+<script>
+const DEFAULTS = {page:'signin', variant:'normal', person:'edit', lang:'en', device:'laptop'};
+const S = {...DEFAULTS};
+const VARIANTS = {
+  signin:[['normal','عادي'],['wrong','كلمة سر غلط'],['deactivated','حساب موقوف'],['locked','محاولات كتير']],
+  system:[['notfound','صفحة مش موجودة'],['error','خطأ بالسيرفر'],['offline','ما في اتصال']],
+};
+const SEGS = {
+  page:[['signin','تسجيل الدخول'],['changepw','تغيير كلمة السر الإجباري'],['session','انتهت الجلسة'],['account','حسابي'],['guide','دليل المستخدم'],['pdf','عارض PDF'],['system','صفحات النظام']],
+  variant:[],
+  person:[['edit','بيعدّل'],['both','بيعدّل وبيعتمد'],['read','قارئ من طرف ثالث'],['admin','مدير النظام']],
+  lang:[['en','English'],['ar','العربية']],
+  device:[['laptop','لابتوب'],['tablet','تابلت'],['phone','موبايل']],
+};
+const PRESETS = [
+  ['تسجيل الدخول', {}],
+  ['الدخول بالعربي', {lang:'ar'}],
+  ['كلمة سر غلط', {variant:'wrong'}],
+  ['تغيير كلمة السر الإجباري', {page:'changepw'}],
+  ['انتهت الجلسة', {page:'session'}],
+  ['حسابي', {page:'account'}],
+  ['حسابي بالعربي عالموبايل', {page:'account', lang:'ar', device:'phone'}],
+  ['حسابي عالتابلت', {page:'account', device:'tablet'}],
+  ['دليل المستخدم', {page:'guide'}],
+  ['دليل القارئ الخارجي', {page:'guide', person:'read'}],
+  ['عارض PDF', {page:'pdf'}],
+  ['PDF عالموبايل', {page:'pdf', device:'phone'}],
+  ['صفحة مش موجودة', {page:'system', variant:'notfound'}],
+  ['ما في اتصال', {page:'system', variant:'offline'}],
+];
+const DIM = {laptop:[1366,800], tablet:[834,1112], phone:[390,820]};
+const P = {
+ home:'M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z', proj:'M3 7a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z',
+ lib:'M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2zM5 18a2 2 0 0 1 2-2h11', org:'M4 21V4h10v17M14 9h6v12M3 21h18', admin:'M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6zM12 3v3M12 18v3M3 12h3M18 12h3',
+ bell:'M6 16v-5a6 6 0 0 1 12 0v5l2 2H4zM10 21a2 2 0 0 0 4 0', search:'M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM20 20l-4-4',
+ help:'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.5V14M12 17.2v.1', menu:'M4 6h16M4 12h16M4 18h16',
+ back:'M15 6l-6 6 6 6', fwd:'M9 6l6 6-6 6', doc:'M7 3h7l5 5v13H7zM14 3v5h5', chev:'M6 9l6 6 6-6', layers:'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5',
+ dl:'M12 4v11M7 10l5 5 5-5M5 20h14', close:'M6 6l12 12M18 6L6 18', alert:'M12 4l9 16H3zM12 10v4M12 17v.1', check:'M5 12l5 5 9-10',
+ lock:'M6 11h12v9H6zM9 11V8a3 3 0 0 1 6 0v3', eye:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6z',
+ print:'M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z', ext:'M14 4h6v6M20 4l-9 9M18 14v6H4V6h6', wifi:'M2 9a15 15 0 0 1 20 0M5 13a10 10 0 0 1 14 0M8.5 16.5a5 5 0 0 1 7 0M12 20h.01M3 3l18 18',
+ user:'M12 12a4 4 0 1 0 0-8a4 4 0 1 0 0 8zM4 21a8 8 0 0 1 16 0', list:'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01'
+};
+const ic = n => `<svg class="ic" viewBox="0 0 24 24"><path d="${P[n]}"/></svg>`;
+const lines = (ws, cls='') => `<div class="lines">${ws.map(w=>`<div class="bar ${cls}" style="width:${w}%"></div>`).join('')}</div>`;
+const t = (en, ar) => S.lang==='ar' ? ar : en;
+const small = () => S.device!=='laptop';
+const can = () => { const p = S.person; return { edit:p!=='read', approve:p==='both'||p==='admin', manageLib:p==='both'||p==='admin', manageAccess:p==='both'||p==='admin', admin:p==='admin' }; };
+
+/* ---------- shell ---------- */
+function header(){
+  const phone = S.device==='phone';
+  return `<header class="f-header">${small()?`<span class="ib">${ic('menu')}</span>`:''}<span class="logo">ESMS</span>${phone?'':`<span class="ctx">${t('AKF Syria','الآغا خان سوريا')}</span>`}<span class="hsp"></span>
+   ${phone?`<span class="ib">${ic('search')}</span>`:`<span class="search" style="${S.device==='tablet'?'width:190px':''}">${ic('search')}<span>${t('Search projects…','ابحث في المشاريع…')}</span></span>`}<span class="ib">${ic('help')}</span><span class="ib">${ic('bell')}<span class="badge">3</span></span><span class="avatar">R</span></header>`;
+}
+const ni = (i, en, ar, on) => `<a class="ni ${on?'on':''}">${ic(i)}<span>${t(en,ar)}</span></a>`;
+function sidebar(active){
+  if (S.device==='phone') return '';
+  if (S.device==='tablet') { // icon rail; ☰ in the header opens the full menu as a drawer
+    const r = (i, on) => `<a class="ni ${on?'on':''}" style="justify-content:center;padding:9px">${ic(i)}</a>`;
+    return `<nav class="side" style="width:58px;padding:10px 6px">${r('home')}${r('proj')}${S.person!=='read'?r('lib',active==='lib'):''}${S.person!=='read'?r('org')+r('layers'):''}${can().manageAccess?`<div style="margin-top:auto;border-top:1px solid var(--w-ln);padding-top:8px">${r('admin')}</div>`:''}</nav>`;
+  }
+  let h = ni('home','Home','الرئيسية') + ni('proj','Projects','المشاريع') + (S.person!=='read' ? ni('lib','Library','المكتبة',active==='lib') : '');
+  if (S.person!=='read') h += `<div class="sec">${t('Organisation','المؤسسة')}</div>${ni('org','GHG emissions','انبعاثات الغازات')}${ni('layers','Environmental data','البيانات البيئية')}`;
+  if (can().manageAccess) h += `<div style="margin-top:auto;border-top:1px solid var(--w-ln);padding-top:8px">${ni('admin','Administration','الإدارة')}</div>`;
+  return `<nav class="side">${h}</nav>`;
+}
+function shell(inner, {active, after='', banner='', overlay='', page=true}={}){
+  return `${header()}${banner}<div class="f-body">${sidebar(active)}<div class="f-main">${page?`<div class="f-page">${inner}</div>`:inner}${after}</div></div>${overlay}`;
+}
+const field = (label, body, extra='') => `<div class="fsec"><label>${label}</label>${body}${extra}</div>`;
+const pwInp = (dots=10) => `<div class="inp pw"><span>${'•'.repeat(dots)}</span>${ic('eye')}</div>`;
+const langSwitch = () => `<span class="segw"><span class="${S.lang==='en'?'on':''}">English</span><span class="${S.lang==='ar'?'on':''}">العربية</span></span>`;
+
+/* ---------- auth ---------- */
+function authFrame(card){
+  const form = `<div class="auth"><div class="auth-top">${langSwitch()}</div>${card}<div class="auth-foot">ESMS 2.5 · ${t('AKF Syria','الآغا خان سوريا')}</div></div>`;
+  if (S.device!=='laptop') return form;
+  // Brand panel (D51: AKF logo + map of Syria). Final drawing and colours come with the design-system foundations; in v3 the map follows the office.
+  const panel = `<div style="flex:0 0 46%;background:#1f3b5c;color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:34px 40px">
+    <div style="display:flex;align-items:center;gap:10px"><span style="border:1.5px dashed #9fb6cf;border-radius:6px;padding:8px 14px;font-weight:700">AKF logo</span><span style="color:#c9d6e4;font-size:12px">Aga Khan Foundation</span></div>
+    <div style="align-self:center;width:300px;height:250px;border:1.5px dashed #9fb6cf;border-radius:40% 55% 45% 50%;display:grid;place-items:center;color:#c9d6e4;font-size:12px;text-align:center">${t('Map of Syria','خريطة سوريا')}<br>${t('(the office’s country)','(بلد المكتب)')}</div>
+    <div><div style="font-size:18px;font-weight:650">${t('Environmental and Social Management System','نظام الإدارة البيئية والاجتماعية')}</div><div style="color:#c9d6e4;font-size:12.5px;margin-top:4px">${t('AKF Syria','الآغا خان سوريا')}</div></div></div>`;
+  return `<div style="flex:1;display:flex;min-height:0">${panel}${form}</div>`;
+}
+const brand = () => S.device==='laptop' ? '' : `<div class="brand"><span class="logo" style="font-size:14px;padding:4px 10px">AKF</span><div class="sub">${t('Environmental and Social Management System','نظام الإدارة البيئية والاجتماعية')}<br>${t('AKF Syria','الآغا خان سوريا')}</div></div>`;
+function signinPage(){
+  const v = S.variant;
+  const msg = {
+    wrong: t('Email or password is not correct.','البريد الإلكتروني أو كلمة المرور غير صحيحة.'),
+    deactivated: t('This account is deactivated. Ask your administrator if you need access again.','هذا الحساب موقوف. تواصل مع مسؤول النظام إذا كنت تحتاج إلى الوصول مجدداً.'),
+    locked: t('Too many attempts. Wait 15 minutes, then try again.','محاولات كثيرة. انتظر ١٥ دقيقة ثم حاول مجدداً.'),
+  }[v];
+  return authFrame(`<div class="auth-card">${brand()}<h1>${t('Sign in','تسجيل الدخول')}</h1><div class="sub" style="margin-bottom:16px">${t('Use the email and password your administrator gave you.','استخدم البريد الإلكتروني وكلمة المرور من مسؤول النظام.')}</div>
+    ${msg?`<div class="errbox">${ic('alert')}<span>${msg}</span></div>`:''}
+    ${field(t('Email','البريد الإلكتروني'), `<div class="inp" dir="ltr" style="text-align:start">rana.h@akf.org</div>`)}
+    ${field(t('Password','كلمة المرور'), `<div class="inp pw ${v==='wrong'?'err':''}"><span>${v==='normal'?'':'••••••••••'}</span>${ic('eye')}</div>`)}
+    <span class="btn pr wide ${v==='locked'?'off':''}">${t('Sign in','دخول')}</span>
+    <div class="sub" style="margin-top:14px">${t('Forgot your password? Your administrator can give you a temporary one.','نسيت كلمة المرور؟ يستطيع مسؤول النظام إعطاءك كلمة مؤقتة.')}</div></div>`);
+}
+function changePwPage(){
+  const rule = (ok, en, ar) => `<div class="rule ${ok?'ok':''}"><i>${ok?'✓':''}</i>${t(en,ar)}</div>`;
+  return authFrame(`<div class="auth-card">${brand()}<h1>${t('Choose your own password','اختر كلمة مرور خاصة بك')}</h1><div class="sub" style="margin-bottom:16px">${t('You signed in with a temporary password from your administrator. Choose a new one to continue.','دخلت بكلمة مرور مؤقتة من مسؤول النظام. اختر كلمة جديدة للمتابعة.')}</div>
+    ${field(t('New password','كلمة المرور الجديدة'), pwInp(13))}
+    <div style="margin:-6px 0 12px">${rule(1,'At least 12 characters','١٢ حرفاً على الأقل')}${rule(1,'Not a common or leaked password','ليست كلمة مرور شائعة أو مسرّبة')}${rule(1,'Not the temporary password','ليست كلمة المرور المؤقتة')}${rule(0,'Both entries match','الإدخالان متطابقان')}</div>
+    ${field(t('Repeat the new password','أعد كتابة كلمة المرور'), pwInp(6))}
+    <span class="btn pr wide">${t('Save and continue','حفظ ومتابعة')}</span>
+    <div style="text-align:center;margin-top:10px"><span class="btn ghost">${t('Sign out','تسجيل الخروج')}</span></div></div>`);
+}
+function toolBackground(){
+  return `<div class="crumbs">Projects / Water network – Hama / Monitoring</div><div class="ph"><div><div class="eyebrow">Tool 5</div><div class="tt"><h1>Monitoring</h1><span class="chip ac">In progress</span></div><div class="meta">18 indicators</div></div><div class="acts"><span class="btn">${ic('dl')}Export</span></div></div>
+   <div class="tbl">${Array.from({length:8},(_,i)=>`<div class="tr" style="grid-template-columns:1.8fr repeat(5,.8fr)">${'<div>'+lines([70])+'</div>'}${[1,2,3,4,5].map(()=>'<div><div class="cell-in" style="border-color:var(--w-ln)"></div></div>').join('')}</div>`).join('')}</div>`;
+}
+function sessionPage(){
+  const dlg = `<div class="overlay"><div class="dialog"><div class="ib" style="background:var(--w-bg);margin-bottom:10px">${ic('lock')}</div><h2>${t('Your session has ended','انتهت جلستك')}</h2>
+    <div class="sub" style="margin-bottom:14px">${t('For your security you were signed out after 8 hours without activity. Sign in again to carry on: your 3 unsaved changes are still on this page.','لحمايتك تم تسجيل خروجك بعد ٨ ساعات دون نشاط. سجّل الدخول مجدداً للمتابعة: تغييراتك الثلاثة غير المحفوظة ما زالت في الصفحة.')}</div>
+    ${field(t('Email','البريد الإلكتروني'), `<div class="inp" dir="ltr" style="color:var(--w-mu);background:var(--w-bg)">rana.h@akf.org</div>`)}${field(t('Password','كلمة المرور'), pwInp(0))}
+    <span class="btn pr wide">${t('Sign in and continue','دخول ومتابعة')}</span><div style="text-align:center;margin-top:8px"><span class="btn ghost">${t('Sign out instead','تسجيل الخروج بدلاً من ذلك')}</span></div></div></div>`;
+  return shell(toolBackground(), {after:`<div class="savebar"><span class="grow">● 3 unsaved changes</span><span class="btn">Discard</span><span class="btn pr">Save</span></div>`, overlay:dlg});
+}
+
+/* ---------- account ---------- */
+const MY_ACCESS = {
+  edit:[['Focal Point','','School rehabilitation – Aleppo, Water network – Hama, Health centre – Idlib, Road repair – Latakia']],
+  both:[['Environmental Specialist','','Whole organisation']],
+  read:[['Reader','','Water network – Hama, Clinic solar panels – Hama']],
+  admin:[['Administrator','','Whole organisation']],
+};
+function accountPage(){
+  const sec = (id, en, ar, body) => `<div class="card" id="s-${id}" style="margin-bottom:14px;padding:16px 18px"><h3 style="font-size:14px">${t(en,ar)}</h3>${body}</div>`;
+  const kv = `<div class="kv" style="grid-template-columns:120px 1fr;margin:0"><span>${t('Name','الاسم')}</span><div>Rana H.</div><span>${t('Email','البريد الإلكتروني')}</span><div dir="ltr" style="text-align:start">rana.h@akf.org</div><span>${t('Job title','المسمّى الوظيفي')}</span><div>Environmental Focal Point</div></div><div class="sub" style="margin-top:10px">${t('Your administrator keeps these up to date.','يحدّث مسؤول النظام هذه المعلومات.')}</div>`;
+  const prefs = `<div class="fsec"><label>${t('Language','اللغة')}</label>${langSwitch()}</div><div class="fsec"><label>${t('Theme','المظهر')}</label><span class="segw"><span class="on">${t('Light','فاتح')}</span><span>${t('Dark','داكن')}</span><span>${t('Match my device','مثل جهازي')}</span></span></div>
+    <div class="sub">${t('Dates show as 10 Nov 2026. Saved to your account at once, so they follow you on any device.','تظهر التواريخ هكذا: ١٠ تشرين الثاني ٢٠٢٦. تُحفظ في حسابك فوراً وتتبعك على أي جهاز.')}</div>`;
+  const pw = `<div class="fgrid" style="display:grid;grid-template-columns:${S.device==='phone'?'1fr':'1fr 1fr'};gap:0 14px">${field(t('Current password','كلمة المرور الحالية'), pwInp(9))}<div></div>${field(t('New password','كلمة المرور الجديدة'), pwInp(0), `<div class="hint" style="font-size:11.5px;color:var(--w-mu);margin-top:4px">${t('At least 12 characters; not a common password.','١٢ حرفاً على الأقل، وليست كلمة شائعة.')}</div>`)}${field(t('Repeat the new password','أعد كتابة كلمة المرور'), pwInp(0))}</div><span class="btn">${t('Change password','تغيير كلمة المرور')}</span>`;
+  const acc = MY_ACCESS[S.person].map(([r,,w])=>`<div class="row"><span class="ib soft" style="width:28px;height:28px;background:var(--w-bg);border-radius:6px">${ic('lock')}</span><div class="grow"><div style="font-weight:600">${r}</div><div class="sub">${w}</div></div></div>`).join('') + `<div class="sub" style="margin-top:8px">${t('To change your access, ask an administrator or the Environmental Specialist.','لتغيير صلاحياتك، تواصل مع مسؤول النظام أو الأخصائي البيئي.')}</div>`;
+  const body = sec('profile','Profile','الملف الشخصي',kv) + sec('prefs','Preferences','التفضيلات',prefs) + sec('pw','Password','كلمة المرور',pw) + sec('access','My access','صلاحياتي',acc);
+  const nav = `<nav class="secnav">${[['Profile','الملف الشخصي'],['Preferences','التفضيلات'],['Password','كلمة المرور'],['My access','صلاحياتي']].map(([e,a],i)=>`<a class="${i===1?'on':''}">${t(e,a)}</a>`).join('')}</nav>`;
+  const head = `<div class="ph"><div><div class="tt"><span class="avatar" style="width:40px;height:40px;font-size:15px">R</span><div><h1>${t('My account','حسابي')}</h1><div class="meta">Rana H. · rana.h@akf.org</div></div></div></div></div>`;
+  return shell(head + (S.device==='laptop' ? `<div class="two"><div>${nav}</div><div style="max-width:720px">${body}</div></div>` : body));
+}
+
+/* ---------- guide ---------- */
+function guideParts(){
+  const c = can(), parts = [[t('Getting started','البداية'),[t('Signing in','تسجيل الدخول'),t('Your home','الصفحة الرئيسية'),t('Finding a project','الوصول إلى مشروع')]]];
+  if (c.edit) parts.push([t('Working on a project','العمل على مشروع'),[t('Screening','الفرز'),t('Assessment','التقييم'),t('Management activities','أنشطة الإدارة'),t('Mitigation plan','خطة التخفيف'),t('Monitoring','الرصد'),t('Documents','الوثائق')]]);
+  else parts.push([t('Reading a project','قراءة مشروع'),[t('What each tool shows','ماذا تعرض كل أداة'),t('Exporting','التصدير')]]);
+  if (c.approve) parts.push([t('Reviewing','المراجعة'),[t('Approving and returning','الاعتماد والإرجاع')]]);
+  if (c.manageLib) parts.push([t('Library','المكتبة'),[t('Managing the library','إدارة المكتبة')]]);
+  if (c.manageAccess) parts.push([t('Access','الصلاحيات'),[t('Giving access','منح الصلاحيات')]]);
+  if (c.admin) parts.push([t('Administration','الإدارة'),[t('Users','المستخدمون'),t('Roles and permissions','الأدوار والصلاحيات'),t('Activity log','سجل النشاط'),t('Deleted items','العناصر المحذوفة')]]);
+  return parts;
+}
+function guidePage(){
+  const parts = guideParts(), cur = can().edit ? t('Monitoring','الرصد') : t('Exporting','التصدير');
+  const toc = `<nav class="secnav">${parts.map(([p,ss])=>`<div class="part">${p}</div>${ss.map(s=>`<a class="${s===cur?'on':''}">${s}</a>`).join('')}`).join('')}</nav>`;
+  const art = `<article class="article"><div class="eyebrow">${parts[1][0]}</div><h2>${cur}</h2><p>${lines([96,92,88,60],'dk')}</p>
+    <div class="steps"><div>${lines([80])}</div><div>${lines([70,40])}</div><div>${lines([85])}</div></div>
+    <div class="callout"><b>${t('Good to know','معلومة مفيدة')}</b><br>${lines([90,55],'dk')}</div><p>${lines([94,90,70],'dk')}</p>
+    <div style="display:flex;justify-content:space-between;border-top:1px solid var(--w-ln);padding-top:12px;margin-top:18px"><span class="btn ghost">${ic('back')}${t('Previous','السابق')}</span><span class="btn ghost">${t('Next','التالي')}${ic('fwd')}</span></div></article>`;
+  const head = `<div class="ph"><div><h1>${t('User guide','دليل المستخدم')}</h1><div class="meta">${t('Only the parts that match your access.','الأجزاء الخاصة بصلاحياتك فقط.')}</div></div><div class="acts"><span class="mini-search">${ic('search')}${t('Search the guide','ابحث في الدليل')}</span>${langSwitch()}<span class="btn icon">${ic('print')}</span></div></div>`;
+  const body = S.device==='laptop' ? `<div class="two guide" style="grid-template-columns:220px minmax(0,1fr)"><div>${toc}</div>${art}</div>` : `<span class="btn" style="margin-bottom:12px">${ic('list')}${t('Contents','المحتويات')} · ${cur}</span>${art}`;
+  return shell(head + body);
+}
+
+/* ---------- PDF ---------- */
+function pdfPage(){
+  const phone = S.device==='phone';
+  const bar = `<div class="pdfbar"><span class="btn icon">${ic('back')}</span><div class="grow"><div style="font-weight:650">Impact scoring guidance</div><div class="sub">PDF · 1.1 MB · ${t('Shows on','يظهر في')}: Tool 2 · Scoring</div></div>${phone?'':`<span class="btn">${ic('ext')}${t('Open in new tab','فتح في تبويب جديد')}</span>`}<span class="btn pr">${ic('dl')}${t('Download','تنزيل')}</span></div>`;
+  if (phone) return shell(bar + `<div class="f-page"><div class="card"><div class="empty" style="padding:30px 10px"><div class="ill">${ic('doc')}</div><b>Impact scoring guidance</b>${t('Phones show PDFs best in their own viewer.','تعرض الهواتف ملفات PDF بشكل أفضل في عارضها الخاص.')}<br><span class="btn pr">${ic('ext')}${t('Open','فتح')}</span></div></div></div>`, {active:'lib', page:false});
+  return shell(bar + `<div class="pdfarea"><div class="sheet">${lines([60],'dk')}<div style="height:18px"></div>${lines([95,92,96,88,90,70],'')}<div style="height:16px"></div>${lines([94,90,93,60],'')}<div style="height:16px"></div>${lines([96,91,85,92,50],'')}</div></div>`, {active:'lib', page:false});
+}
+
+/* ---------- system ---------- */
+function systemPage(){
+  const v = S.variant;
+  const box = (icon, title, text, btns) => `<div class="card" style="max-width:540px;margin:40px auto"><div class="empty"><div class="ill">${ic(icon)}</div><b>${title}</b>${text}<br>${btns}</div></div>`;
+  if (v==='notfound') return shell(box('search', t('We can’t find this page','لم نجد هذه الصفحة'), t('The link may be old, or the item was archived or deleted.','ربما الرابط قديم، أو تمت أرشفة العنصر أو حذفه.'), `<span class="btn pr">${t('Go to Home','الذهاب إلى الرئيسية')}</span> <span class="btn">${t('All projects','كل المشاريع')}</span>`));
+  if (v==='error') return shell(box('alert', t('Something went wrong on our side','حدث خطأ من جهتنا'), t('Try again. If it keeps happening, send this code to IT: ','حاول مجدداً. إذا تكرر الخطأ، أرسل هذا الرمز إلى قسم تقنية المعلومات: ') + '<b style="display:inline;color:var(--w-ink)" dir="ltr">ESMS-7F3K29</b>', `<span class="btn pr">${t('Try again','حاول مجدداً')}</span> <span class="btn">${t('Go to Home','الذهاب إلى الرئيسية')}</span>`));
+  const banner = `<div class="offline">${ic('wifi')}<span>${t('No connection. You can keep reading; saving is paused until the connection is back, and nothing is lost.','لا يوجد اتصال. يمكنك متابعة القراءة؛ الحفظ متوقف حتى يعود الاتصال، ولن يضيع شيء.')}</span></div>`;
+  return shell(toolBackground(), {banner, after:`<div class="savebar"><span class="grow">${t('Saving paused · 2 unsaved changes','الحفظ متوقف · تغييران غير محفوظين')}</span><span class="btn">Discard</span><span class="btn pr off">Save</span></div>`});
+}
+
+/* ---------- render ---------- */
+const PAGES = {signin:signinPage, changepw:changePwPage, session:sessionPage, account:accountPage, guide:guidePage, pdf:pdfPage, system:systemPage};
+function renderFrame(){
+  const [w,hgt] = DIM[S.device];
+  const fr = document.getElementById('frame');
+  fr.innerHTML = `<div class="f-shell dev-${S.device}" dir="${S.lang==='ar'?'rtl':'ltr'}">${PAGES[S.page]()}</div>`;
+  fr.style.width = w+'px'; fr.style.height = hgt+'px'; fit();
+}
+function fit(){
+  const vp = document.getElementById('viewport'), fr = document.getElementById('frame'), [w,h] = DIM[S.device];
+  const s = Math.min(1, (vp.clientWidth-24)/w, S.device==='tablet' ? 860/h : 1);
+  fr.style.transform = `scale(${s})`; fr.style.left = ((vp.clientWidth - w*s)/2)+'px'; vp.style.height = (h*s+24)+'px';
+}
+
+/* ---------- reasons + questions ---------- */
+const WHY = {
+ signin:['<b>عاللابتوب صفحتين جنب بعض:</b> لوحة الهوية (شعار AKF وخريطة سوريا، متل اليوم، D51) وجنبها الفورم. عالتابلت والموبايل الشعار فوق الفورم بس، لأنو العرض ما بيكفّي.',
+  '<b>الفورم نفسو بسيط:</b> الإيميل، كلمة السر، زر واحد. المستخدمين بيفوتوا كل يوم.',
+  '<b>شكل الهوية النهائي</b> (الألوان، رسمة الخريطة، شعار AKF/AKDN، و"روح" التصميم كلها) منتفق عليه بخطوة أساسيات الـ design system، مش هلق. هون بس حجزنا مكانها. وبـ v3 الخريطة بتتبع بلد المكتب.',
+  '<b>مبدّل اللغة بالزاوية قبل الدخول.</b> الإنجليزي افتراضي، وبعد الدخول بتمشي لغة حسابك. جرّب "العربية": كل الصفحة بتنقلب.',
+  '<b>رسائل الخطأ واضحة وما بتكشف شي:</b> "الإيميل أو كلمة السر غلط" (ما منقول أيّا وحدة)، "الحساب موقوف" بتبيّن بس بعد كلمة سر صحيحة (متل اليوم)، و"محاولات كتير" بتقول قديش لازم يستنى. جرّبهن من "الحالة".',
+  '<b>"نسيت كلمة السر؟" بتقول الحقيقة:</b> المدير بيعطيك وحدة مؤقتة، لأنو ما في إيميل. إذا السيرفر صار يبعت إيميل، منضيف رابط استرجاع بنفس المكان.',
+  '<b>بـ v3:</b> زر "الدخول بحساب المؤسسة" (من المنصة العالمية) بينحط فوق الفورم بنفس البطاقة، بلا إعادة تصميم.'],
+ changepw:['<b>نفس بطاقة الدخول، بلا مساعدة وبلا قوائم</b> (D22، D78): لازم يخلص هالخطوة أول.',
+  'جملة بتشرح ليش هو هون: "دخلت بكلمة سر مؤقتة من المدير".',
+  '<b>الشروط بتبيّن وهو عم يكتب</b> وبتتعلّم ✓ وحدة وحدة، بدل ما يكبس ويطلعلو خطأ.',
+  '<b>كلمة السر (قرارك):</b> حد أدنى ١٢ حرف بدل ٦ اليوم، بلا شروط رموز وأرقام (بتخلّي الناس تكتبها عورقة)، ومنع كلمات السر المشهورة. هاد اللي بتنصح فيه معايير الأمان الحالية.',
+  'زر "اطلع" إذا مو هو الشخص الصح.'],
+ session:['<b>إذا انتهت الجلسة وهو عم يشتغل، ما منرميه على صفحة الدخول ومنضيّع شغلو.</b> بتطلع نافذة صغيرة فوق نفس الصفحة: كلمة السر بس، وبيكمّل من مكانو، والتغييرات اللي ما انحفظت بتضل.',
+  'الإيميل معبّى ومقفول، لأنو لازم يكون نفس الشخص. إذا بدو يطلع، في زر.',
+  'هاد بيشتغل مع طريقة الدخول الحالية، ما بدو تغيير كبير بالباكند.',
+  '<b>مدة الجلسة (قرارك):</b> بتنتهي إذا ما عمل شي ٨ ساعات (اليوم ١٢ ساعة من الدخول).'],
+ account:['<b>"حسابي" بأربع أقسام:</b> الملف، التفضيلات، كلمة السر، صلاحياتي. عاللابتوب قائمة صغيرة عالجنب بتنقلك بينهن؛ عالتابلت والموبايل تحت بعض.',
+  'الاسم والإيميل والمسمّى للقراءة: المدير بيحدّثهن (متل اليوم).',
+  '<b>اللغة والمظهر بيتحفظوا عالحساب، مش عالمتصفح،</b> فبيلحقوك عأي جهاز، وبيتطبّقوا فوراً بلا زر حفظ. تغيير صغير بالباكند.',
+  '<b>"صلاحياتي":</b> المستخدم بيشوف شو عندو ووين، ولمين يحكي إذا بدو تغيير. هيك ما بيضطر يسأل "ليش ما عم شوف المشروع". جرّب تغيير الشخص.',
+  'كلمة السر بفورم إلها وزر إلها، لأنها شغلة منفصلة عن الباقي.',
+  '"اطلع من كل الأجهزة" بدها جلسات عالسيرفر؛ موضوع v3.'],
+ guide:['<b>صفحة قراءة:</b> فهرس عالجنب بيلحق مكان القراءة (D78)، والنص بعرض مريح للقراءة، مش بعرض الشاشة كلها.',
+  '<b>كل شخص بيشوف الأجزاء اللي بتخص صلاحياتو بس</b> (D78). جرّب تغيير الشخص وشوف الفهرس كيف بيتغيّر.',
+  '<b>جديد: بحث جوّا الدليل.</b>',
+  'الدليل بيفتح بلغة حسابك، ومعو مبدّل إذا بدك التانية، وزر طباعة (للورق أو PDF).',
+  'زر "؟" بالترويسة بيفتح القسم الخاص بالصفحة اللي انت فيها بلوحة جانبية، ومنها "افتح الدليل كامل" بيوصلك لهون. الزر العائم تبع D78 بيروح (اتفقنا عليه بالهيكل).',
+  'عالتابلت والموبايل الفهرس ورا زر "المحتويات".'],
+ pdf:['<b>العارض جوّا التطبيق:</b> الترويسة بتضل، وفوق شريط فيه رجوع، الاسم والحجم ووين بيطلع، تنزيل، وفتح بتاب جديدة.',
+  'المستند نفسو بيعرضو عارض المتصفح، فالبحث والتكبير والطباعة شغالين متل ما الناس متعودين، بلا ما نعيد اختراعهن.',
+  '<b>عالموبايل</b> المتصفحات ما بتعرض PDF منيح جوّا صفحة، فمنعطي "افتح" و"نزّل" بدل العارض.'],
+ system:['<b>"ما لقينا الصفحة":</b> مع السبب المحتمل (رابط قديم، أو العنصر انأرشف أو انحذف) وزرين للرجوع، بدل صفحة فاضية.',
+  '<b>خطأ بالسيرفر:</b> رسالة هادية مع "حاول مرة تانية" و<b>رمز مرجعي</b> المستخدم بيبعتو لـ IT. السيرفر بيسجّل نفس الرمز بالـ log، فبيلاقوا المشكلة بسرعة. تغيير صغير بالباكند.',
+  '<b>ما في اتصال:</b> شريط تحت الترويسة: فيك تكمّل قراءة، والحفظ موقّف لحتى يرجع الاتصال، وما في شي بيضيع. زر الحفظ بيتعطّل بوضوح بدل ما يفشل.'],
+};
+const TABLET = '<b>التابلت:</b> الشريط الجانبي بيصغر لأيقونات (متل ما شفت بأول playground تبع الهيكل)، و☰ بالترويسة بيفتح القائمة كاملة. جوّا المشروع الأيقونات بتصير أرقام الأدوات مع حالة كل وحدة، فبتضل شايف وين واقف. والصفحات بتاخد باقي العرض، والأعمدة الجانبية (فهرس، قوائم الأقسام) بتنزل تحت أو ورا زر. الجداول الطويلة بتضل جداول عالتابلت، ما بتصير كروت.';
+const QUESTIONS = [
+ '<b>١. كلمة السر (جاوبت):</b> ١٢ حرف على الأقل، بلا شروط رموز وأرقام، ومنع كلمات السر المشهورة.',
+ '<b>٢. مدة الجلسة (جاوبت):</b> بتنتهي بعد ٨ ساعات بلا أي حركة. القرار إلنا، مش لاجتماع IT.',
+];
+function renderBoxes(){
+  const w = WHY[S.page].concat(S.device==='tablet'?[TABLET]:[]);
+  document.getElementById('why').innerHTML = `<h2>قراراتي بهالصفحة وليش</h2><ul>${w.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+  document.getElementById('questions').innerHTML = `<h2>أجوبتك</h2><ul>${QUESTIONS.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+}
+function updatePrompt(){
+  const notes = document.getElementById('notes').value.trim();
+  let s = `رأيي بالحساب والدخول والقراءة (playground account-and-readers):`;
+  s += notes ? `\n${notes}` : `\n(ما كتبت ملاحظات)`;
+  const seen = [];
+  for (const k of ['page','person','lang','device']) if (S[k]!==DEFAULTS[k]) seen.push(SEGS[k].find(x=>x[0]===S[k])[1]);
+  if (VARIANTS[S.page] && S.variant!==VARIANTS[S.page][0][0]) seen.push(VARIANTS[S.page].find(x=>x[0]===S.variant)[1]);
+  if (seen.length) s += `\n(كنت عم شوف: ${seen.join('، ')})`;
+  document.getElementById('prompt').textContent = s;
+}
+function buildVariantSeg(){
+  const seg = document.querySelector('.seg[data-key=variant]'), vs = VARIANTS[S.page] || [];
+  seg.innerHTML = vs.map(([v,l])=>`<button data-v="${v}">${l}</button>`).join('');
+  document.getElementById('g-variant').classList.toggle('hide', !vs.length);
+}
+function syncControls(){
+  buildVariantSeg();
+  document.querySelectorAll('.seg').forEach(seg=>seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on', S[seg.dataset.key]===b.dataset.v)));
+  document.getElementById('g-person').classList.toggle('hide', !['account','guide'].includes(S.page));
+}
+function stageBar(){
+  const p = [SEGS.page.find(x=>x[0]===S.page)[1]];
+  if (VARIANTS[S.page]) p.push(VARIANTS[S.page].find(x=>x[0]===S.variant)[1]);
+  if (['account','guide'].includes(S.page)) p.push('شخص '+SEGS.person.find(x=>x[0]===S.person)[1]);
+  p.push(SEGS.lang.find(x=>x[0]===S.lang)[1], SEGS.device.find(x=>x[0]===S.device)[1]);
+  document.getElementById('stagebar').innerHTML = '<b>'+p[0]+'</b> · '+p.slice(1).join(' · ');
+}
+function normState(){ const vs = VARIANTS[S.page]; if (vs && !vs.some(x=>x[0]===S.variant)) S.variant = vs[0][0]; }
+function updateAll(){ normState(); renderFrame(); renderBoxes(); updatePrompt(); stageBar(); syncControls(); }
+
+document.getElementById('presets').innerHTML = PRESETS.map((p,i)=>`<button data-i="${i}">${p[0]}</button>`).join('');
+document.getElementById('presets').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; Object.assign(S, DEFAULTS, PRESETS[+b.dataset.i][1]); updateAll(); });
+document.querySelectorAll('.seg').forEach(seg=>{
+  if (seg.dataset.key!=='variant') seg.innerHTML = SEGS[seg.dataset.key].map(([v,l])=>`<button data-v="${v}">${l}</button>`).join('');
+  seg.addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b||b.disabled) return; S[seg.dataset.key]=b.dataset.v; updateAll(); });
+});
+document.getElementById('notes').addEventListener('input', updatePrompt);
+document.getElementById('copy').addEventListener('click', async e=>{
+  const txt = document.getElementById('prompt').textContent;
+  try { await navigator.clipboard.writeText(txt); } catch { const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  e.target.textContent='انتسخ ✓'; setTimeout(()=>e.target.textContent='انسخ وابعتلي ياه',1400);
+});
+new ResizeObserver(fit).observe(document.getElementById('viewport'));
+updateAll();
+</script>
+</body>
+</html>

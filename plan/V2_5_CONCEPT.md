@@ -75,7 +75,7 @@ Applies to any option:
 - **Administration:** an item at the bottom of the sidebar, shown only to people with an admin permission and listing only the sections they may use.
 - **Access-aware:** a restricted reader sees only their projects and no section they lack permission for.
 - **Page header:** breadcrumb, title, state; one primary action; Export always visible; the rest under "⋯". The save bar is part of the page under the content, never floating over it.
-- **Phone and tablet:** the sidebar becomes a drawer (☰); inside a project on a phone a "Step n of 5" bar switches tools.
+- **Tablet:** the sidebar shrinks to an icon rail (inside a project: tool numbers with their states), and ☰ in the header opens the full menu as a drawer. **Phone:** the sidebar is a drawer (☰); inside a project a "Step n of 5" bar switches tools. The rule goes by screen width, not by device name.
 - **RTL:** the whole shell mirrors from logical CSS properties; no separate design.
 
 ## Screens follow permissions, not role names (owner clarification, 2026-11-10)
@@ -197,12 +197,51 @@ The person who creates a project does not choose its team (they may be a Focal P
 - **Deleted items:** the client has no retention rule; 30 days, as proposed.
 - **Location and component stay free text.** There is no grouping by sector. Grouping by place may come later; the owner's idea is to pick the place on a map (coordinates). That is kept for v3, where the global shape is decided (see [V3_VISION.md](V3_VISION.md), "Global use").
 
+## Account, sign-in, readers and system pages (proposal, 2026-11-10 — playground [design/account-and-readers.html](design/account-and-readers.html))
+- **Sign in:**
+  - on a laptop, two halves: a brand panel (AKF logo and map of Syria, as today, D51) and the form; on tablet and phone the logo sits above the form. The final look of the brand panel (colours, map drawing, AKF/AKDN marks, the overall feel) is settled in the design-system foundations; in v3 the map follows the office. The form is plain (email, password, one button), with the language switch in the corner (English by default; after sign-in the account's language applies);
+  - errors say only what is safe: "Email or password is not correct"; "deactivated" only after a correct password (as today); "too many attempts" says how long to wait (the login limiter exists);
+  - "Forgot your password?" says the truth: the administrator gives a temporary one (no email). A reset link comes only if the server can send mail;
+  - v3: "Sign in with your organisation account" goes into the same card.
+- **Forced password change (D22):**
+  - the same card, with no Help and no menus (D78);
+  - one sentence on why the user is here;
+  - the rules are ticked live while typing;
+  - "Sign out" is there in case it is the wrong person.
+- **Password rule (owner, 2026-11-10):** at least 12 characters instead of 6; no forced symbols or digits; block common and leaked passwords.
+- **Session ended:**
+  - when the token expires during work, a small dialog over the same page asks only for the password (email fixed);
+  - the user carries on in place and unsaved changes are kept;
+  - it works with today's tokens.
+  - Session length (owner, 2026-11-10): the session ends after 8 hours without activity (today: 12 hours from sign-in).
+- **My account:**
+  - sections Profile (read only, kept by the administrator), Preferences, Password, My access (read only, with whom to ask);
+  - on a laptop, a small section menu at the side;
+  - **new:** language and theme (light / dark / match my device) are saved on the account, not in the browser, so they follow the user to any device; they apply at once;
+  - "sign out of all devices" needs server sessions (v3).
+- **User guide (Reader pattern):**
+  - a contents list that follows the reading position (D78) and text at a reading width;
+  - each person sees only the parts their permissions allow (D78);
+  - **new:** search inside the guide;
+  - it opens in the account's language with a switch, and can be printed;
+  - the header "?" opens this page's section in a side panel, with "Open the full guide". It replaces D78 (6)'s floating button (agreed in the shell step);
+  - on tablet and phone the contents sit behind a "Contents" button.
+- **PDF viewer:** inside the app, with a bar (back, name, size, where it shows, Download, Open in new tab), and the document shown by the browser's own viewer. On a phone: "Open" and "Download" instead, because phones show PDFs badly inside a page.
+- **System pages:**
+  - Not found, with the likely reason and two ways back;
+  - Server error, with "Try again" and a **reference code** that the server also writes to its log (new, small backend change), for IT;
+  - Offline: a bar under the header ("keep reading; saving is paused; nothing is lost") and a disabled Save.
+- **Tablet (all pages):**
+  - the sidebar becomes an icon rail, with ☰ for the full menu (see "App shell");
+  - pages use the full width; side columns (contents, section menus) move above the content or behind a button;
+  - long tables stay tables (not cards).
+
 ## Open questions
-- None open right now. (Closed on 2026-11-10: Programme Manager also edits; monitoring has gaps, not dates; the project team is set by admin / specialist; deleted items kept 30 days; location and component stay free text.)
+- None open right now. (Closed on 2026-11-10: Programme Manager also edits; monitoring has gaps, not dates; the project team is set by admin / specialist; deleted items kept 30 days; location and component stay free text; passwords at least 12 characters; sessions end after 8 idle hours.)
 
 ## Next steps
 1. Close the open questions above.
 2. App shell: sidebar, header, project navigation, context slot, Help — options compared with the owner on screen (playground), decision with reasons. **Done: option 1 agreed (see "App shell" above).**
-3. Page by page: priorities and layout. **In progress:** page map, core pages (Home, Project overview, workflow step page), collection lists, Administration and New project proposed; next the personal page, sign-in pages, the Help reader and the phone/tablet pass over all pages.
+3. Page by page: priorities and layout. **Proposed for every page group** (core pages, lists and Administration, account / sign-in / readers / system pages), each in a playground under [design/](design/), with phone views and the tablet rule; waiting for the owner's review of the last group.
 4. Design system: foundations → components → patterns.
 5. Record the outcome as decisions (DECISIONS.md), write the v2.5 phase files, and rename the "phase 13" references in CLAUDE.md and plan/ in the same change.

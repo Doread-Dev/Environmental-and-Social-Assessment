@@ -48,7 +48,7 @@ button{font:inherit;color:inherit}
 @media (max-width:860px){.app{grid-template-columns:1fr}.controls{position:static;height:auto}}
 
 /* ---------- wireframe ---------- */
-.f-shell{--w-bg:#f2f3f5;--w-sf:#fff;--w-ln:#d7dbe1;--w-ink:#262a30;--w-mu:#868d98;--w-ac:#2f6db5;--w-acbg:#e5eef9;--w-ok:#3b7a55;--w-okbg:#e7f3ec;--w-bad:#b0473a;--w-badbg:#f9e8e5;--w-warnbg:#fbf3dc;--w-warn:#8a6a10;
+.f-shell{--w-bg:#f2f3f5;--w-sf:#fff;--w-ln:#d7dbe1;--w-ink:#262a30;--w-mu:#5c636d;--w-ac:#2f6db5;--w-acbg:#e5eef9;--w-ok:#336a49;--w-okbg:#e7f3ec;--w-bad:#b0473a;--w-badbg:#f9e8e5;--w-warnbg:#fbf3dc;--w-warn:#8a6a10;
   position:relative;width:100%;height:100%;background:var(--w-bg);color:var(--w-ink);font:13px/1.45 system-ui,"Segoe UI",Tahoma,sans-serif;display:flex;flex-direction:column;overflow:hidden;border-radius:8px}
 .f-shell .ic{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .f-header{height:48px;flex:none;display:flex;align-items:center;gap:8px;padding-inline:12px;background:var(--w-sf);border-bottom:1px solid var(--w-ln);z-index:9}
@@ -255,13 +255,21 @@ button{font:inherit;color:inherit}
 .tr .chip{white-space:normal;line-height:1.35;padding:2px 8px;max-width:100%}
 .dev-phone .fgrid{grid-template-columns:1fr}
 .dev-phone .tbar .mini-search{width:auto;flex:1}
+
+/* audit fixes (2026-11-10): an icon sits on the first line of the text next to it; search hints and codes never wrap */
+.row:has(> div .sub) > .ic:first-child,.row:has(> div .sub) > .av:first-child{align-self:flex-start;margin-top:1px}
+.mini-search{white-space:nowrap;width:240px}
+.offline{align-items:flex-start}
+.offline .ic{margin-top:1px}
+.hp-link{display:flex;align-items:center;gap:6px}
+.overlay>.dialog{min-width:0;overflow-wrap:anywhere}
 </style>
 </head>
 <body>
 <div class="app">
   <aside class="controls">
     <h1>القوائم والإدارة — ESMS v2.5</h1>
-    <p class="intro">نفس الهيكل (الخيار ١). هون <b>نمط القائمة</b> اللي بيتكرّر بكل التطبيق (المشاريع، المكتبة، الوثائق، الإشعارات، المستخدمين، السجل…)، وصفحات <b>الإدارة</b> اللي بتشغّل نموذج الصلاحيات الجديد، وصفحة <b>مشروع جديد</b>. مربعات بس، المحتوى وهمي.</p>
+    <p class="intro">نفس الهيكل (الخيار 1). هون <b>نمط القائمة</b> اللي بيتكرّر بكل التطبيق (المشاريع، المكتبة، الوثائق، الإشعارات، المستخدمين، السجل…)، وصفحات <b>الإدارة</b> اللي بتشغّل نموذج الصلاحيات الجديد، وصفحة <b>مشروع جديد</b>. مربعات بس، المحتوى وهمي.</p>
 
     <div class="grp"><span class="gl">جاهزين</span><div class="presets" id="presets"></div></div>
     <div class="grp"><span class="gl">الصفحة</span><div class="seg" data-key="page"></div></div>
@@ -320,7 +328,7 @@ const P = {
  bell:'M6 16v-5a6 6 0 0 1 12 0v5l2 2H4zM10 21a2 2 0 0 0 4 0', search:'M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM20 20l-4-4',
  help:'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.5V14M12 17.2v.1', menu:'M4 6h16M4 12h16M4 18h16',
  back:'M15 6l-6 6 6 6', fwd:'M9 6l6 6-6 6', doc:'M7 3h7l5 5v13H7zM14 3v5h5', chev:'M6 9l6 6 6-6', grid:'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
- layers:'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5', dl:'M12 4v11M7 10l5 5 5-5M5 20h14', more:'M5 12h.01M12 12h.01M19 12h.01', close:'M6 6l12 12M18 6L6 18',
+ layers:'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5', dl:'M12 4v11M7 10l5 5 5-5M5 20h14', more:'M5 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0M11 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0M17 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0', close:'M6 6l12 12M18 6L6 18',
  alert:'M12 4l9 16H3zM12 10v4M12 17v.1', check:'M5 12l5 5 9-10', clock:'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 7v5l3 2', lock:'M6 11h12v9H6zM9 11V8a3 3 0 0 1 6 0v3',
  plus:'M12 5v14M5 12h14', filter:'M4 5h16l-6 7v6l-4 2v-8z', people:'M9 11a3 3 0 1 0 0-6a3 3 0 1 0 0 6zM3 20a6 6 0 0 1 12 0M16 11a3 3 0 1 0 0-6M21 20a6 6 0 0 0-4-5.6', arrow:'M5 12h14M13 6l6 6-6 6',
  trash:'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13', eye:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6z', upload:'M12 20V9M7 14l5-5 5 5M5 4h14',
@@ -614,7 +622,7 @@ function accessPanel(){
     <div class="fsec"><label>Role *</label><div class="inp" style="display:flex;justify-content:space-between;align-items:center">Focal Point ${ic('chev')}</div><div class="hint">Can fill in and submit the tools, upload documents and export.</div></div>
     <div class="fsec"><label>Where *</label>
       <div class="opt"><span class="radio"></span><div><b>Whole organisation</b><div class="sub">Every project, now and future</div></div></div>
-      <div class="opt on"><span class="radio"></span><div style="flex:1"><b>Chosen projects</b><div style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0">${chip('ac','Road repair – Latakia ✕')}</div><div class="inp" style="min-height:28px;padding:4px 8px;color:var(--w-mu);font-size:12px">${ic('search')} Add a project…</div></div></div></div>
+      <div class="opt on"><span class="radio"></span><div style="flex:1"><b>Chosen projects</b><div style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0">${chip('ac','Road repair – Latakia ✕')}</div><div class="inp" style="min-height:28px;padding:4px 8px;color:var(--w-mu);font-size:12px;display:flex;align-items:center;gap:6px">${ic('search')}Add a project…</div></div></div></div>
     <div class="result"><b>Lina S. will be able to</b> read, fill in and submit the tools, upload documents and export, on <b>1 project</b>: Road repair – Latakia.</div>
     <div class="sub" style="margin-top:10px">Lina gets a notification. The change is kept in the activity log.</div></div>
     <div class="pft"><span class="btn">Cancel</span><span class="grow"></span><span class="btn pr">Give access</span></div></aside>`;
@@ -716,7 +724,7 @@ const WHY = {
   '<b>منطقة سحب وإفلات فوق</b> للي بيقدر يرفع، والأنواع والحجم المسموح مكتوبين قبل ما يغلط، مش بعد.',
   'PDF بينفتح بالعارض، والباقي بينزل (معاينة ملفات أوفيس مش موجودة، D64).',
   '"تنزيل الكل" بملف مضغوط، لأنو الملفات بتطلع لبرّا مع التقارير.',
-  'الحذف بيروح عالمحذوفات ٣٠ يوم.'],
+  'الحذف بيروح عالمحذوفات 30 يوم.'],
  notifications:['<b>الجرس بالترويسة</b> بيعرض آخر شي بقائمة صغيرة؛ هالصفحة للكل، مع "غير مقروء" و"تعليم الكل كمقروء".',
   '<b>كل إشعار جملة واضحة:</b> مين، شو عمل، على أي مشروع، وإيمتى. الكبسة بتفتح المكان بالضبط (الأداة، مش المشروع بس).',
   '<b>الإشعارات بتنبني من صلاحياتك:</b> اللي بيعتمد بيوصلو "أُرسل لمراجعتك"، واللي بيدير الوصول "مشروع جديد بدو فريق"، واللي بيعدّل "انرجع بملاحظات" و"انعتمد".',
@@ -730,7 +738,7 @@ const WHY = {
  users:['<b>كل مستخدم بسطر:</b> الاسم والإيميل، المسمّى الوظيفي، <b>الوصول بجملة قصيرة</b> ("Focal Point · 4 projects")، الحالة، وآخر دخول.',
   '<b>"آخر دخول" جديد</b> (حقل صغير بالباكند): بيساعد المدير يلاقي الحسابات اللي ما حدا عم يستعملها.',
   '<b>"بلا وصول بعد"</b> بلون تنبيه: حساب انعمل بس ما انعطى ولا مشروع، فما رح يشوف شي.',
-  '<b>كبسة عالمستخدم بتفتح لوحة</b> فيها ٣ تبويبات: التفاصيل، الوصول، الأمان (كلمة سر مؤقتة، إيقاف). الحسابات ما بتنحذف، بتنوقف (D4).',
+  '<b>كبسة عالمستخدم بتفتح لوحة</b> فيها 3 تبويبات: التفاصيل، الوصول، الأمان (كلمة سر مؤقتة، إيقاف). الحسابات ما بتنحذف، بتنوقف (D4).',
   'حسابك انت: ما فيك تغيّر وصولك أو توقّف حالك (قاعدة v2.0.1 بتضل).'],
  roles:['<b>جدول واحد:</b> الصلاحيات بالأسطر والأدوار بالأعمدة، فبتقارن الأدوار ببعض بلمحة وبتعدّل بكبسة، ومع شريط حفظ.',
   '<b>كل صلاحية جملة مفهومة</b> ("اعتماد أو إرجاع الفرز والتقييم")، مش اسم تقني، ومجموعة: المشاريع، أدوات المسار، المكتبة، الإدارة.',
@@ -742,22 +750,22 @@ const WHY = {
  access:['<b>صفحة وحدة بتجاوب "مين بيشتغل على شو":</b> كل سطر = شخص + دور + وين (كل المؤسسة أو مشاريع محددة).',
   '<b>فوق شريط "مشاريع جديدة بدها فريق"</b> مع زر مباشر، من قرار فريق المشروع.',
   '<b>"إعطاء وصول" بلوحة:</b> الشخص، الدور (وتحتو شو بيقدر يعمل)، وين، و<b>بالآخر جملة بتلخّص النتيجة</b> قبل الحفظ، فما حدا بيعطي وصول غلط بلا ما ينتبه.',
-  'نفس اللوحة بتنفتح من ٣ أماكن: من هون، من تبويب "الوصول" بصفحة المستخدم، ومن كرت "الأشخاص عالمشروع".',
+  'نفس اللوحة بتنفتح من 3 أماكن: من هون، من تبويب "الوصول" بصفحة المستخدم، ومن كرت "الأشخاص عالمشروع".',
   'السبيشالست بيشوف تحت "الإدارة" بند "الوصول" بس، لأنو هو الوحيد اللي إلو صلاحية فيه (جرّب تغيير الشخص).'],
  log:['<b>السجل للإجراءات المهمة</b> (D65): حذف، أرشفة، ملفات، مستخدمين. ومع نموذج الصلاحيات، <b>كل تغيير وصول أو دور</b> كمان بينسجّل.',
   '<b>كل حركة جملة مفهومة</b> ("شال سطرين من أنشطة الإدارة")، مع اسم الشخص ودورو وقتها.',
   '<b>كبسة بتفتح التفاصيل جنب،</b> وفيها "كيف كان قبل" (اللي انحذف). ما في تعديل ولا حذف للسجل.',
   'فلاتر: نوع الحركة، الشخص، المشروع، التاريخ؛ وتصدير.',
   'قرارات الإرسال والاعتماد والإرجاع محفوظة بتاريخ كل أداة وبتطلع بالنظرة العامة. السجل الكامل لكل حقل موضوعو v3.'],
- trash:['<b>اقتراح جديد: الحذف ما بيكون نهائي فوراً.</b> المشاريع والملفات ووثائق المكتبة المحذوفة بتروح عالمحذوفات ٣٠ يوم، وفيك ترجّعها، وبعدها بتنمسح لحالها.',
+ trash:['<b>اقتراح جديد: الحذف ما بيكون نهائي فوراً.</b> المشاريع والملفات ووثائق المكتبة المحذوفة بتروح عالمحذوفات 30 يوم، وفيك ترجّعها، وبعدها بتنمسح لحالها.',
   'هاد بيحمي من الحذف بالغلط، وهو الطبيعي بأنظمة الشركات. بدو تغيير بالباكند (حذف ناعم بدل الحذف الفوري).',
   '<b>المؤرشف شي تاني:</b> مشروع خلص بس لازم ينحفظ. صار تبويب بقائمة المشاريع، و"الحذف النهائي" للمؤرشف بيضل للمدير.',
   'تحديد كذا عنصر سوا: "رجّع" أو "احذف هلق"، مع تأكيد قبل الحذف النهائي.'],
 };
 const NOACCESS = '<b>الصفحة اللي ما إلك صلاحية فيها ما بتطلع بالقائمة أصلاً.</b> وإذا حدا فتح رابطها مباشرة، بتطلعلو صفحة "ما عندك وصول" واضحة، بدل صفحة فاضية أو رسالة خطأ.';
 const QUESTIONS = [
- '<b>١. المحذوفات (جاوبت):</b> ما في قاعدة عند الزبون، فمنمشي بالـ٣٠ يوم.',
- '<b>٢. المكان والمكوّن (جاوبت):</b> بيضلّوا نص حر. ما في تقسيم حسب القطاع. التقسيم حسب المكان ممكن لاحقاً، والفكرة تحديد المكان عخريطة (إحداثيات)، محفوظة لـ v3 لأنها بتتعلّق بشكل النسخة العالمية.',
+ '<b>1. المحذوفات (جاوبت):</b> ما في قاعدة عند الزبون، فمنمشي بالـ30 يوم.',
+ '<b>2. المكان والمكوّن (جاوبت):</b> بيضلّوا نص حر. ما في تقسيم حسب القطاع. التقسيم حسب المكان ممكن لاحقاً، والفكرة تحديد المكان عخريطة (إحداثيات)، محفوظة لـ v3 لأنها بتتعلّق بشكل النسخة العالمية.',
 ];
 function renderBoxes(){
   let w = `<h2>قراراتي بهالصفحة وليش</h2><ul>${(allowed()?[]:[NOACCESS]).concat(WHY[S.page]).map(x=>`<li>${x}</li>`).join('')}</ul>`;

@@ -187,6 +187,7 @@ button{font:inherit;color:inherit}
 .ds .menu{width:240px;background:var(--color-raised);border:1px solid var(--color-line);border-radius:var(--radius-md);box-shadow:var(--shadow-2);padding:var(--space-1)}
 .ds .mi{display:flex;align-items:center;gap:var(--space-3);min-height:var(--control-md);padding-inline:var(--space-3);border-radius:var(--radius-sm)}
 .ds .mi.is-hover{background:var(--color-hover)}
+.ds .mi.two{align-items:flex-start;padding-block:var(--space-2)}
 .ds .mi .k{margin-inline-start:auto;font-size:var(--text-xs);color:var(--color-text-muted);direction:ltr}
 .ds .mi.danger{color:var(--danger-fg)}
 .ds .mi[aria-disabled=true]{color:var(--color-text-disabled)}
@@ -260,7 +261,7 @@ button{font:inherit;color:inherit}
 .ds .cal th{font-size:var(--text-xs);color:var(--color-text-muted);font-weight:500;padding:4px 0}
 .ds .cal td{padding:1px}
 .ds .cal td span{display:grid;place-items:center;height:34px;border-radius:var(--radius-sm)}
-.ds .cal td span.out{color:var(--color-text-disabled)}
+.ds .cal td span.out{color:var(--color-text-muted)}
 .ds .cal td span.today{box-shadow:inset 0 0 0 1px var(--color-line-strong)}
 .ds .cal td span.on{background:var(--color-action);color:var(--color-on-action);font-weight:600}
 .ds .cal .foot{display:flex;justify-content:space-between;margin-top:var(--space-2)}
@@ -290,7 +291,7 @@ button{font:inherit;color:inherit}
 <body>
 <div class="app">
   <aside class="controls">
-    <h1>المكوّنات ١: الأزرار والحقول</h1>
+    <h1>المكوّنات 1: الأزرار والحقول</h1>
     <p class="intro">الطبقة التانية من نظام التصميم، أول مجموعة: كل شي الشخص بيضغطو أو بيعبّيه. كل مكوّن معروض بكل حالاتو (عادي، مرور، تركيز، معطّل، تحميل، خطأ)، ومبني بس من أساسيات <b>foundations.html</b>.</p>
     <div class="grp"><span class="gl">جاهزات</span><div class="presets" id="presets"></div></div>
     <div class="grp"><span class="gl">المكوّن</span><div class="seg" id="seg-sec"></div></div>
@@ -323,7 +324,7 @@ const SEGS = {
 const PRESETS = [['البداية',{}],['الحقول بالعربي',{sec:'fields',lang:'ar'}],['الاختيارات غامق',{sec:'choice',theme:'dark'}],['لمس',{sec:'buttons',input:'touch'}],['رفع الملفات',{sec:'upload'}]];
 const t = (en, ar) => S.lang === 'ar' ? ar : en;
 const P = {
- dl:'M12 4v11M7 10l5 5 5-5M5 20h14', plus:'M12 5v14M5 12h14', more:'M5 12h.01M12 12h.01M19 12h.01', close:'M6 6l12 12M18 6L6 18', check:'M5 12l5 5 9-10',
+ dl:'M12 4v11M7 10l5 5 5-5M5 20h14', plus:'M12 5v14M5 12h14', more:'M5 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0M11 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0M17 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0', close:'M6 6l12 12M18 6L6 18', check:'M5 12l5 5 9-10',
  back:'M15 6l-6 6 6 6', chev:'M6 9l6 6 6-6', search:'M11 18a7 7 0 1 0 0-14a7 7 0 0 0 0 14zM20 20l-4-4', alert:'M12 9v4M12 17h.01M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z',
  info:'M12 21a9 9 0 1 0 0-18a9 9 0 0 0 0 18zM12 11v5M12 8h.01', edit:'M4 20h4L19 9l-4-4L4 16zM14 6l4 4', copy:'M9 9h11v11H9zM5 15H4V4h11v1', trash:'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
  archive:'M3 5h18v4H3zM5 9v10h14V9M10 13h4', upload:'M12 16V4M7 9l5-5 5 5M5 20h14', cal:'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', minus:'M6 12h12', send:'M4 12l16-8-6 16-3-7z', doc:'M6 3h8l4 4v14H6zM14 3v4h4', fwd:'M9 6l6 6-6 6', help:'M12 21a9 9 0 1 0 0-18a9 9 0 0 0 0 18zM9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7M12 17h.01', print:'M7 8V3h10v5M7 17H4v-7h16v7h-3M7 14h10v7H7z'
@@ -378,7 +379,7 @@ function menus(){
      <div class="mi" role="menuitem">${ic('copy')}${t('Duplicate project','نسخ المشروع')}</div>
      <div class="mi" role="menuitem">${ic('print')}${t('Print','طباعة')}<span class="k">Ctrl P</span></div>
      <div class="msep"></div>
-     <div class="mi" role="menuitem" aria-disabled="true">${ic('archive')}<span>${t('Archive','أرشفة')}<div class="xs">${t('Only approved projects','للمشاريع المعتمدة فقط')}</div></span></div>
+     <div class="mi two" role="menuitem" aria-disabled="true">${ic('archive')}<span>${t('Archive','أرشفة')}<div class="xs">${t('Only approved projects','للمشاريع المعتمدة فقط')}</div></span></div>
      <div class="msep"></div>
      <div class="mi danger" role="menuitem">${ic('trash')}${t('Delete project…','حذف المشروع…')}</div>
     </div></div></div>
@@ -399,7 +400,7 @@ function fields(){
    <div class="grid2">
     <div class="sect"><h3>${t('Optional, not required','الاختياري، مش الإجباري')}</h3><p class="muted">${t('In short forms (new project, users, account) the few optional fields say "(optional)"; the rest are needed. In the tool pages nothing blocks a save: what is missing is checked on "Submit for review".','بالنماذج القصيرة (مشروع جديد، المستخدمين، الحساب) الحقول الاختيارية القليلة مكتوب جنبها "(اختياري)"، والباقي مطلوب. بصفحات الأدوات ما في شي بيمنع الحفظ: الناقص بينفحص عند "إرسال للمراجعة".')}</p></div>
     <div class="sect"><h3>${t('On submit: a summary that links to each field','عند الإرسال: ملخص بيوصل لكل حقل')}</h3>
-     <div class="summary" role="alert"><b>${ic('alert')}${t('2 things to fix before submitting','أمران يجب إصلاحهما قبل الإرسال')}</b><ul><li><a href="#">${t('Row 2: add a responsible person','السطر 2: أضف شخصاً مسؤولاً')}</a></li><li><a href="#">${t('Row 3: choose a frequency','السطر 3: اختر التكرار')}</a></li></ul></div></div>
+     <div class="summary" role="alert"><b>${ic('alert')}${t('2 things are needed before you can submit','يلزم إكمال أمرين قبل الإرسال')}</b><ul><li><a href="#">${t('Environmental setting is empty','الوضع البيئي فارغ')}</a></li><li><a href="#">${t('2 questions are not scored','سؤالان بلا تقييم')}</a></li></ul></div></div>
    </div>
    <div class="sect"><h3>${t('How errors are written','كيف تُكتب الأخطاء')}</h3>
     <table class="spec"><thead><tr><th>${t('Instead of','بدل')}</th><th>${t('Write','اكتب')}</th></tr></thead><tbody>
@@ -442,7 +443,7 @@ function choice(){
   <div class="grid3">
    <div class="sect"><h3>${t('Checkbox','مربع اختيار')}</h3><p class="muted">${t('Several independent choices; also the permission grid.','لعدة خيارات مستقلة، ولشبكة الصلاحيات.')}</p>
     <fieldset><legend>${t('Methods used','الطرق المستعملة')}</legend>
-    ${[['on',t('Site visit','زيارة ميدانية')],['on',t('Community consultation','استشارة المجتمع')],['',t('Laboratory test','فحص مخبري')],['dis',t('Satellite imagery (not in v2.5)','صور فضائية (ليست في v2.5)')]].map(([s,l])=>`<label class="cb" ${s==='dis'?'style="color:var(--color-text-disabled)"':''}><span class="box1 ${s==='on'?'on':''} ${s==='dis'?'dis':''}">${s==='on'?ic('check'):''}</span>${l}</label><br>`).join('')}
+    ${[['on',t('Site visit','زيارة ميدانية')],['on',t('Community consultation','استشارة المجتمع')],['',t('Laboratory test','فحص مخبري')],['dis',t('Satellite imagery (not in v2.5)','صور فضائية (ليست في v2.5)')]].map(([s,l])=>`<label class="cb" ${s==='dis'?'aria-disabled="true" style="color:var(--color-text-disabled)"':''}><span class="box1 ${s==='on'?'on':''} ${s==='dis'?'dis':''}">${s==='on'?ic('check'):''}</span>${l}</label><br>`).join('')}
     <label class="cb"><span class="box1 mixed">${ic('minus')}</span>${t('Select all (some selected)','تحديد الكل (بعضها محدد)')}</label></fieldset></div>
    <div class="sect"><h3>${t('Radio','خيار واحد')}</h3><p class="muted">${t('One choice from 2–5 options that should all be seen at once.','خيار واحد من 2 لـ 5 لازم ينشافوا كلهن مع بعض.')}</p>
     <fieldset><legend>${t('Who can see this document','مين بيشوف هالوثيقة')}</legend>
@@ -489,7 +490,7 @@ function upload(){
 function search(){
   return `<div class="pad"><div class="grid2">
    <div class="sect"><h3>${t('Search in a list','البحث بقائمة')}</h3><p class="muted">${t('Filters the list as you type (after a short pause); the clear button appears once there is text; the text stays in the page address so a link keeps the search.','بيفلتر القائمة وانت عم تكتب (بعد وقفة قصيرة)؛ زر المسح بيطلع لما يكون في نص؛ والنص بيضل بعنوان الصفحة فالرابط بيحفظ البحث.')}</p>
-    <div class="field" style="max-width:360px"><label class="lab" style="position:absolute;width:1px;height:1px;overflow:hidden">${t('Search projects','بحث في المشاريع')}</label><div class="ctl has-btn">${ic('search')}<input dir="auto" value="hama"><button class="btn ghost icon sm" aria-label="${t('Clear search','مسح البحث')}">${ic('close')}</button></div><span class="hint num">${t('4 of 23 projects','4 من 23 مشروعاً')}</span></div></div>
+    <div class="field" style="max-width:360px"><label class="lab sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">${t('Search projects','بحث في المشاريع')}</label><div class="ctl has-btn">${ic('search')}<input dir="auto" value="hama"><button class="btn ghost icon sm" aria-label="${t('Clear search','مسح البحث')}">${ic('close')}</button></div><span class="hint num">${t('4 of 23 projects','4 من 23 مشروعاً')}</span></div></div>
    <div class="sect"><h3>${t('Header search (Ctrl K)','بحث الترويسة (Ctrl K)')}</h3><p class="muted">${t('Opens a search box over the page from anywhere. Its full design (results, recent items) comes with the overlays group.','بيفتح خانة بحث فوق الصفحة من أي مكان. تصميمها الكامل (النتائج، الأخيرة) بيجي مع مجموعة النوافذ.')}</p>
     <div class="ctl" style="width:300px;background:var(--color-sunken);border-color:var(--color-line);height:var(--control-sm)"><span class="ph sm" style="display:flex;gap:8px;align-items:center">${ic('search')}${t('Search projects','بحث في المشاريع')}</span><span class="kbd" style="margin-inline-start:auto">Ctrl K</span></div></div>
   </div></div>`;

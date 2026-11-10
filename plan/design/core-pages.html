@@ -48,7 +48,7 @@ button{font:inherit;color:inherit}
 @media (max-width:860px){.app{grid-template-columns:1fr}.controls{position:static;height:auto}}
 
 /* ---------- wireframe ---------- */
-.f-shell{--w-bg:#f2f3f5;--w-sf:#fff;--w-ln:#d7dbe1;--w-ink:#262a30;--w-mu:#868d98;--w-ac:#2f6db5;--w-acbg:#e5eef9;--w-ok:#3b7a55;--w-okbg:#e7f3ec;--w-bad:#b0473a;--w-badbg:#f9e8e5;--w-warnbg:#fbf3dc;--w-warn:#8a6a10;
+.f-shell{--w-bg:#f2f3f5;--w-sf:#fff;--w-ln:#d7dbe1;--w-ink:#262a30;--w-mu:#5c636d;--w-ac:#2f6db5;--w-acbg:#e5eef9;--w-ok:#336a49;--w-okbg:#e7f3ec;--w-bad:#b0473a;--w-badbg:#f9e8e5;--w-warnbg:#fbf3dc;--w-warn:#8a6a10;
   position:relative;width:100%;height:100%;background:var(--w-bg);color:var(--w-ink);font:13px/1.45 system-ui,"Segoe UI",Tahoma,sans-serif;display:flex;flex-direction:column;overflow:hidden;border-radius:8px}
 .f-shell .ic{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .f-header{height:48px;flex:none;display:flex;align-items:center;gap:8px;padding-inline:12px;background:var(--w-sf);border-bottom:1px solid var(--w-ln);z-index:9}
@@ -203,13 +203,21 @@ button{font:inherit;color:inherit}
 .dev-phone .q{flex-wrap:wrap}
 .dev-phone .q .lv{width:100%}
 .dev-phone .q .lv span{flex:1;text-align:center}
+
+/* audit fixes (2026-11-10): an icon sits on the first line of the text next to it; search hints and codes never wrap */
+.row:has(> div .sub) > .ic:first-child,.row:has(> div .sub) > .av:first-child{align-self:flex-start;margin-top:1px}
+.mini-search{white-space:nowrap;width:240px}
+.offline{align-items:flex-start}
+.offline .ic{margin-top:1px}
+.hp-link{display:flex;align-items:center;gap:6px}
+.overlay>.dialog{min-width:0;overflow-wrap:anywhere}
 </style>
 </head>
 <body>
 <div class="app">
   <aside class="controls">
     <h1>الصفحات الأساسية — ESMS v2.5</h1>
-    <p class="intro">نفس هيكل الخيار ١ اللي اتفقنا عليه. هون التركيز على <b>جوّا الصفحة</b>: شو الأهم، وين الأزرار، وشو بيتغيّر حسب حالة الأداة وصلاحيات الشخص. مربعات بس، المحتوى وهمي.</p>
+    <p class="intro">نفس هيكل الخيار 1 اللي اتفقنا عليه. هون التركيز على <b>جوّا الصفحة</b>: شو الأهم، وين الأزرار، وشو بيتغيّر حسب حالة الأداة وصلاحيات الشخص. مربعات بس، المحتوى وهمي.</p>
 
     <div class="grp"><span class="gl">جاهزين</span><div class="presets" id="presets"></div></div>
     <div class="grp"><span class="gl">الصفحة</span><div class="seg" data-key="page"></div></div>
@@ -219,7 +227,7 @@ button{font:inherit;color:inherit}
     <div class="grp"><span class="gl">الجهاز</span><div class="seg" data-key="device"></div></div>
     <div class="grp"><span class="gl">افتح</span>
       <label class="chk" id="c-review"><input type="checkbox" data-flag="review"> لوحة المراجعة (اعتماد / إرجاع)</label>
-      <label class="chk" id="c-row"><input type="checkbox" data-flag="row"> محرّر الصف (الأداة ٣)</label>
+      <label class="chk" id="c-row"><input type="checkbox" data-flag="row"> محرّر الصف (الأداة 3)</label>
     </div>
   </aside>
 
@@ -244,7 +252,7 @@ const DEFAULTS = {page:'tool', tool:'2', state:'draft', person:'edit', device:'l
 const S = {...DEFAULTS};
 const SEGS = {
   page:[['home','الرئيسية'],['overview','نظرة عامة عالمشروع'],['tool','صفحة أداة']],
-  tool:[['1','١ الفرز'],['2','٢ التقييم (التقدير)'],['3','٣ أنشطة الإدارة'],['5','٥ الرصد']],
+  tool:[['1','1 الفرز'],['2','2 التقييم (التقدير)'],['3','3 أنشطة الإدارة'],['5','5 الرصد']],
   state:[['draft','مسودة'],['returned','مُرجعة بملاحظات'],['submitted','مُرسلة للمراجعة'],['approved','معتمدة'],['progress','قيد العمل'],['complete','مكتملة']],
   person:[['edit','بيعدّل'],['both','بيعدّل وبيعتمد'],['read','بيقرأ بس']],
   device:[['laptop','لابتوب'],['phone','موبايل']],
@@ -252,7 +260,7 @@ const SEGS = {
 const PRESETS = [
   ['المُعِدّ: أداة مُرجعة', {state:'returned'}],
   ['المراجِع: بدو يعتمد', {state:'submitted', person:'both', review:true}],
-  ['الأداة ٣ مع محرّر الصف', {tool:'3', state:'progress', row:true}],
+  ['الأداة 3 مع محرّر الصف', {tool:'3', state:'progress', row:true}],
   ['الرصد مع فجوات', {tool:'5', state:'progress'}],
   ['الرئيسية للمراجِع', {page:'home', person:'both'}],
   ['نظرة عامة عالمشروع', {page:'overview'}],
@@ -265,7 +273,7 @@ const P = {
  bell:'M6 16v-5a6 6 0 0 1 12 0v5l2 2H4zM10 21a2 2 0 0 0 4 0', search:'M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM20 20l-4-4',
  help:'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.5V14M12 17.2v.1', menu:'M4 6h16M4 12h16M4 18h16',
  back:'M15 6l-6 6 6 6', doc:'M7 3h7l5 5v13H7zM14 3v5h5', chev:'M6 9l6 6 6-6', grid:'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
- layers:'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5', dl:'M12 4v11M7 10l5 5 5-5M5 20h14', more:'M5 12h.01M12 12h.01M19 12h.01', close:'M6 6l12 12M18 6L6 18',
+ layers:'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5', dl:'M12 4v11M7 10l5 5 5-5M5 20h14', more:'M5 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0M11 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0M17 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0', close:'M6 6l12 12M18 6L6 18',
  alert:'M12 4l9 16H3zM12 10v4M12 17v.1', check:'M5 12l5 5 9-10', clock:'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 7v5l3 2', lock:'M6 11h12v9H6zM9 11V8a3 3 0 0 1 6 0v3',
  plus:'M12 5v14M5 12h14', filter:'M4 5h16l-6 7v6l-4 2v-8z', note:'M5 4h14v12l-4 4H5zM15 16v4M15 16h4', people:'M9 11a3 3 0 1 0 0-6a3 3 0 1 0 0 6zM3 20a6 6 0 0 1 12 0', arrow:'M5 12h14M13 6l6 6-6 6'
 };
@@ -514,7 +522,7 @@ const WHY = {
   '<b>صفحة القراءة هي نفس صفحة التعديل</b> بس بلا حقول. منلغي صفحات "الملخّص" و"المراجعة" المنفصلة: المراجِع بيقرأ نفس الشي اللي كتبو المُعِدّ.',
   '<b>الاعتماد والإرجاع بلوحة جانبية، مش نافذة:</b> المراجِع بيكتب التوصيات وهو شايف المحتوى جنبها.',
   '<b>التقييم:</b> الأسئلة مجموعة حسب الفئة، والمستوى بأزرار ظاهرة (مش قائمة منسدلة)، وملخّص ثابت عاليمين بيتحدّث وانت عم تعبّي.',
-  '<b>الأداة ٣ و٤:</b> الجدول للنظرة العامة (النص الطويل بيبيّن ٣ أسطر)، وكبسة عالصف بتفتح محرّر جانبي فيه كل الحقول براحة، مع "السابق / التالي". هيك منحل مشكلة الخلايا اللي بتطول مية سطر، وبيشتغل عالموبايل.',
+  '<b>الأداة 3 و4:</b> الجدول للنظرة العامة (النص الطويل بيبيّن 3 أسطر)، وكبسة عالصف بتفتح محرّر جانبي فيه كل الحقول براحة، مع "السابق / التالي". هيك منحل مشكلة الخلايا اللي بتطول مية سطر، وبيشتغل عالموبايل.',
   '<b>الرصد:</b> كل الفصول ظاهرة ومفتوحة، فيك تعبّي بأي ترتيب وبأي وقت، حتى كلها دفعة وحدة بآخر السنة. <b>الفجوة</b> (خانة فاضية قبل وحدة معبّاية) بتتعلّم بالأحمر، ومعها شريط بيقول وين بالضبط، وفلتر "الفجوات بس". عالموبايل كل مؤشر بيصير كرت فيه الخمس خانات.']
 };
 const QUESTIONS = [

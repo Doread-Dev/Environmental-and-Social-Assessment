@@ -287,12 +287,16 @@ button{font:inherit;color:inherit}
 .ds .avt{width:32px;height:32px;border-radius:var(--radius-full);background:var(--color-action-soft);color:var(--color-action);display:grid;place-items:center;font-weight:600;font-size:var(--text-sm)}
 .ds .side{width:var(--sidebar-w);background:var(--color-surface);border-inline-end:1px solid var(--color-line);padding:var(--space-3) var(--space-2);display:flex;flex-direction:column;gap:2px;flex:none}
 .ds .side.rail{width:var(--rail-w);align-items:center}
-.ds .nav{display:flex;align-items:center;gap:var(--space-3);min-height:var(--control-md);padding-inline:var(--space-3);border-radius:var(--radius-sm);color:var(--color-text);position:relative;width:100%}
+.ds .nav{display:flex;align-items:flex-start;gap:var(--space-3);min-height:var(--control-md);padding-inline:var(--space-3);padding-block:calc((var(--control-md) - var(--lh-md)) / 2);border-radius:var(--radius-sm);color:var(--color-text);position:relative;width:100%}
 .ds .nav:hover,.ds .nav.is-hover{background:var(--color-hover)}
 .ds .nav.on{background:var(--color-action-soft);font-weight:600}
 .ds .nav.on::before{content:"";position:absolute;inset-inline-start:0;top:8px;bottom:8px;width:3px;border-radius:2px;background:var(--color-action)}
 .ds .nav .st{margin-inline-start:auto;font-size:var(--text-xs);color:var(--color-text-muted);font-weight:400}
 .ds .nav.sub{min-height:var(--control-sm);padding-inline-start:47px;font-size:var(--text-sm);color:var(--color-text-muted);font-weight:400}
+/* the marker or icon sits on the first line of the label, also when a label wraps */
+.ds .nav.sub{padding-block:calc((var(--control-sm) - var(--lh-md)) / 2)}
+.ds .nav>.dia{margin-block:-1px}
+.ds .rail .nav{align-items:center;padding-block:0}
 .ds .nav.sub.on{color:var(--color-text);font-weight:600;background:transparent}
 .ds .nav.sub.on::before{top:6px;bottom:6px}
 .ds .rail .nav{justify-content:center;padding-inline:0;width:44px}
@@ -320,7 +324,9 @@ button{font:inherit;color:inherit}
 /* phone */
 .ds .phone{width:390px;border:1px solid var(--color-line);border-radius:var(--radius-lg);overflow:hidden;background:var(--color-canvas);position:relative}
 .ds .stepbar{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3);background:var(--color-surface);border-bottom:1px solid var(--color-line)}
-.ds .stepbar .mid{flex:1;display:flex;align-items:center;gap:var(--space-2);justify-content:center;font-weight:600}
+.ds .stepbar .mid{flex:1;display:flex;align-items:flex-start;gap:var(--space-2);justify-content:center;font-weight:600}
+.ds .stepbar .mid>.dia{margin-top:-1px}
+.ds .stepbar .mid>.ic{align-self:center}
 .ds .stepbar small{display:block;font-weight:400;color:var(--color-text-muted);font-size:var(--text-xs);text-align:center}
 .ds .scrim{position:absolute;inset:0;background:var(--color-scrim)}
 .ds .drawer{position:absolute;top:0;bottom:0;inset-inline-start:0;width:300px;background:var(--color-surface);box-shadow:var(--shadow-3);padding:var(--space-3) var(--space-2);display:flex;flex-direction:column;gap:2px}
@@ -388,13 +394,13 @@ button{font:inherit;color:inherit}
 .ds .cmd mark{background:var(--warn-bg);color:inherit;border-radius:2px}
 .ds .keys td:first-child{white-space:nowrap}
 .ds .tipdemo{position:relative;display:inline-block}
-.ds .tipdemo .tip{position:absolute;bottom:calc(100% + 6px);inset-inline-start:0;background:var(--color-text);color:var(--color-surface);font-size:var(--text-xs);line-height:var(--lh-xs);padding:6px 8px;border-radius:var(--radius-sm);width:240px;font-weight:400}
+.ds .tipdemo .tip{transform:none;position:absolute;bottom:calc(100% + 6px);inset-inline-start:0;background:var(--color-text);color:var(--color-surface);font-size:var(--text-xs);line-height:var(--lh-xs);padding:6px 8px;border-radius:var(--radius-sm);width:240px;font-weight:400}
 </style>
 </head>
 <body>
 <div class="app">
   <aside class="controls">
-    <h1>المكوّنات ٣: التنقل والنوافذ</h1>
+    <h1>المكوّنات 3: التنقل والنوافذ</h1>
     <p class="intro">آخر مجموعة بالطبقة التانية: القائمة الجانبية وعمود المشروع، الترويسة، التبويبات، التنبيهات والرسائل، النوافذ واللوحات الجانبية، الإشعارات والبحث السريع. مبنية من <b>foundations.html</b> والمجموعتين 1 و2.</p>
     <div class="grp"><span class="gl">جاهزات</span><div class="presets" id="presets"></div></div>
     <div class="grp"><span class="gl">المكوّن</span><div class="seg" id="seg-sec"></div></div>
@@ -420,7 +426,7 @@ const SEGS = {
 const PRESETS = [['البداية',{}],['شريط التابلت',{device:'tablet'}],['الموبايل',{device:'phone'}],['نافذة الحذف',{sec:'dialogs'}],['البحث السريع غامق',{sec:'quick',theme:'dark'}],['الرسائل بالعربي',{sec:'feedback',lang:'ar'}]];
 const t = (en, ar) => S.lang === 'ar' ? ar : en;
 const P = {
- dl:'M12 4v11M7 10l5 5 5-5M5 20h14', plus:'M12 5v14M5 12h14', more:'M5 12h.01M12 12h.01M19 12h.01', close:'M6 6l12 12M18 6L6 18', check:'M5 12l5 5 9-10',
+ dl:'M12 4v11M7 10l5 5 5-5M5 20h14', plus:'M12 5v14M5 12h14', more:'M5 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0M11 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0M17 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0', close:'M6 6l12 12M18 6L6 18', check:'M5 12l5 5 9-10',
  chev:'M6 9l6 6 6-6', search:'M11 18a7 7 0 1 0 0-14a7 7 0 0 0 0 14zM20 20l-4-4', alert:'M12 9v4M12 17h.01M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z',
  info:'M12 21a9 9 0 1 0 0-18a9 9 0 0 0 0 18zM12 11v5M12 8h.01', edit:'M4 20h4L19 9l-4-4L4 16zM14 6l4 4', archive:'M3 5h18v4H3zM5 9v10h14V9M10 13h4', undo:'M9 14L4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3',
  clock:'M12 21a9 9 0 1 0 0-18a9 9 0 0 0 0 18zM12 7v5l3 2', proj:'M3 7a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z', back:'M15 6l-6 6 6 6', fwd:'M9 6l6 6-6 6',
@@ -431,28 +437,28 @@ const P = {
 };
 const ic = (n, cls='') => `<svg class="ic ${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${P[n]}"/></svg>`;
 const badge = (c,i,l) => `<span class="badge ${c}">${ic(i)}${l}</span>`;
-const TOOLS = () => [[t('Screening','الفحص'),'approved','check',t('Approved','معتمد')],[t('Assessment','التقييم'),'approved','check',t('Approved','معتمد')],[t('Management activities','أنشطة الإدارة'),'review','clock',t('In review','قيد المراجعة')],[t('Mitigation plan','خطة التخفيف'),'returned','alert',t('Returned','مُعاد')],[t('Monitoring','الرصد'),'locked','lock',t('Locked','مقفل')]];
+const TOOLS = () => [[t('Screening','الفحص'),'approved','check',t('Approved','معتمد')],[t('Assessment','التقييم'),'returned','undo',t('Returned','مُعاد')],[t('Management activities','أنشطة الإدارة'),'locked','lock',t('Locked','مقفل')],[t('Mitigation plan','خطة التخفيف'),'locked','lock',t('Locked','مقفل')],[t('Monitoring','الرصد'),'locked','lock',t('Locked','مقفل')]];
 const dia = (c,i,n) => `<span class="dia ${c}" aria-hidden="true">${n!==undefined?`<span class="n">${n}</span>`:i?ic(i):''}</span>`;
 const header = (compact) => `<header class="hdr">${compact?`<button class="btn ghost icon" aria-label="${t('Menu','القائمة')}">${ic('menu')}</button>`:''}<span class="brand"><span class="mk"></span>ESMS</span>${compact?'':'<span class="ctxs">AKF Syria</span>'}<span class="grow"></span>
   ${compact?`<button class="btn ghost icon" aria-label="${t('Search','بحث')}">${ic('search')}</button>`:`<span class="hsearch">${ic('search')}${t('Search projects','بحث في المشاريع')}<span class="kbd">Ctrl K</span></span>`}
   <button class="btn ghost icon" aria-label="${t('Help with this page','مساعدة بهذه الصفحة')}">${ic('help')}</button>
   <span class="hb"><button class="btn ghost icon" aria-label="${t('Notifications, 3 unread','الإشعارات، 3 غير مقروءة')}">${ic('bell')}</button><span class="count num" aria-hidden="true">3</span></span>
   <span class="avt" aria-label="${t('Account','الحساب')}">LH</span></header>`;
-const pageStub = (h) => `<div style="padding:var(--space-6) var(--space-8);flex:1;min-width:0"><div class="crumb"><a href="#">${t('Projects','المشاريع')}</a>${ic('fwd','flip')}<span>${t('Rural water network','شبكة مياه ريفية')}</span></div><div class="ph"><div><h2>${t('Mitigation plan','خطة التخفيف')}</h2><div class="meta">${badge('b-warn','undo',t('Returned','مُعاد للتعديل'))}</div></div></div><div style="margin-top:24px">${[90,75,82,60,88,70].map(w=>`<div class="ln" style="height:10px;border-radius:4px;background:var(--color-sunken);margin-bottom:12px;width:${w}%"></div>`).join('')}</div></div>`;
+const pageStub = (h) => `<div style="padding:var(--space-6) var(--space-8);flex:1;min-width:0"><div class="crumb"><a href="#">${t('Projects','المشاريع')}</a>${ic('fwd','flip')}<span>${t('Rural water network','شبكة مياه ريفية')}</span></div><div class="ph"><div><h2>${t('Assessment — Context','التقييم — السياق')}</h2><div class="meta">${badge('b-warn','undo',t('Returned','مُعاد للتعديل'))}</div></div></div><div style="margin-top:24px">${[90,75,82,60,88,70].map(w=>`<div class="ln" style="height:10px;border-radius:4px;background:var(--color-sunken);margin-bottom:12px;width:${w}%"></div>`).join('')}</div></div>`;
 
 function spine(rail){
   const T = TOOLS();
   if (rail) return `<nav class="side rail" aria-label="${t('Project','المشروع')}">
     <a class="nav" href="#" aria-label="${t('All projects','كل المشاريع')}">${ic('back','flip')}</a><div class="navsep" style="width:40px"></div>
     <a class="nav" href="#" aria-label="${t('Overview','نظرة عامة')}">${ic('grid')}</a>
-    ${T.map(([n,c,i],k)=>`<a class="nav ${k===3?'on':''}" href="#" aria-label="${k+1} ${n}: ${T[k][3]}" style="position:relative">${dia(c,'',k+1)}${k===3?`<span class="tipx">${k+1} · ${n} · ${T[k][3]}</span>`:''}</a>`).join('')}
+    ${T.map(([n,c,i],k)=>`<a class="nav ${k===1?'on':''}" href="#" aria-label="${k+1} ${n}: ${T[k][3]}" style="position:relative">${dia(c,'',k+1)}${k===1?`<span class="tipx">${k+1} · ${n} · ${T[k][3]}</span>`:''}</a>`).join('')}
     <a class="nav" href="#" aria-label="${t('Documents','الوثائق')}">${ic('doc')}</a><span class="grow"></span>
     <a class="nav" href="#" aria-label="${t('Expand menu','توسيع القائمة')}">${ic('collapse',S.lang==='ar'?'':'flip')}</a></nav>`;
   return `<nav class="side" aria-label="${t('Project','المشروع')}">
     <a class="back" href="#">${ic('back','flip')}${t('All projects','كل المشاريع')}</a>
     <div class="pname"><b>${t('Rural water network — Hama','شبكة مياه ريفية — حماة')}</b><span class="xs muted num">ESMS-024 · ${t('Category B','الفئة B')}</span></div>
     <a class="nav" href="#">${ic('grid')}${t('Overview','نظرة عامة')}</a>
-    ${T.map(([n,c,i,s],k)=>`<a class="nav ${k===3?'on':''}" href="#" ${k===3?'aria-current="page"':''}>${dia(c,i)}<span><span class="num">${k+1}</span> · ${n}</span>${c==='locked'?`<span class="st">${s}</span>`:''}</a>${k===1?`<a class="nav sub" href="#">${t('Methods and consultations','الطرق والاستشارات')}</a><a class="nav sub" href="#">${t('Scoring','التقييم بالدرجات')}</a>`:''}`).join('')}
+    ${T.map(([n,c,i,s],k)=>`<a class="nav" href="#">${dia(c,i)}<span><span class="num">${k+1}</span> · ${n}</span>${c==='locked'?`<span class="st">${s}</span>`:''}</a>${k===1?`<a class="nav sub on" href="#" aria-current="page">${t('Context','السياق')}</a><a class="nav sub" href="#">${t('Methods and consultation','الطرق والاستشارات')}</a><a class="nav sub" href="#">${t('Scoring','التقييم بالدرجات')}</a><a class="nav sub" href="#">${t('Summary and submit','الملخص والإرسال')}</a>`:''}`).join('')}
     <a class="nav" href="#">${ic('doc')}${t('Documents','الوثائق')}<span class="st num">12</span></a>
     <div class="slot">${t('Activities (v3)','الأنشطة (v3)')}</div>
     <span class="grow"></span>
@@ -466,14 +472,14 @@ function globalSide(){
 function sidebar(){
   if (S.device==='phone'){
     return `<div class="pad" style="display:flex;gap:32px;justify-content:center">
-     <div class="phone" style="height:640px">${header(true)}<div class="stepbar"><button class="btn ghost icon" aria-label="${t('Previous step','الخطوة السابقة')}">${ic('back','flip')}</button><div class="mid">${dia('returned','alert')}<div>${t('Mitigation plan','خطة التخفيف')}<small>${t('Step 4 of 5 · Returned','الخطوة 4 من 5 · مُعادة')}</small></div>${ic('chev')}</div><button class="btn ghost icon" aria-label="${t('Next step','الخطوة التالية')}">${ic('fwd','flip')}</button></div>${pageStub()}</div>
-     <div class="phone" style="height:640px">${header(true)}<div class="scrim"></div><div class="drawer" role="dialog" aria-label="${t('Menu','القائمة')}"><div style="display:flex;align-items:center;padding:0 8px 8px"><b class="grow">ESMS · AKF Syria</b><button class="btn ghost icon" aria-label="${t('Close menu','إغلاق القائمة')}">${ic('close')}</button></div>${spine(false).replace(/^<nav class="side"[^>]*>/,'').replace(/<\/nav>$/,'')}</div></div></div>`;
+     <div class="phone" style="height:720px">${header(true)}<div class="stepbar"><button class="btn ghost icon" aria-label="${t('Previous step','الخطوة السابقة')}">${ic('back','flip')}</button><div class="mid">${dia('returned','undo')}<div>${t('Assessment','التقييم')}<small>${t('Step 2 of 5 · Returned','الخطوة 2 من 5 · مُعادة')}</small></div>${ic('chev')}</div><button class="btn ghost icon" aria-label="${t('Next step','الخطوة التالية')}">${ic('fwd','flip')}</button></div>${pageStub()}</div>
+     <div class="phone" style="height:720px">${header(true)}<div class="scrim"></div><div class="drawer" role="dialog" aria-label="${t('Menu','القائمة')}"><div style="display:flex;align-items:center;padding:0 8px 8px"><b class="grow">ESMS · AKF Syria</b><button class="btn ghost icon" aria-label="${t('Close menu','إغلاق القائمة')}">${ic('close')}</button></div>${spine(false).replace(/^<nav class="side"[^>]*>/,'').replace(/<\/nav>$/,'')}</div></div></div>`;
   }
   const rail = S.device!=='laptop';
   return `<div class="pad"><div style="display:grid;grid-template-columns:1fr;gap:24px">
    <div><h3>${rail?(S.device==='tablet'?t('Tablet: icon rail, ☰ opens the full menu','التابلت: شريط أيقونات، و☰ بيفتح القائمة كاملة'):t('Laptop, collapsed by the user','لابتوب، مصغّر من المستخدم')):t('Inside a project: the spine','جوّا المشروع: العمود')}</h3>
-    <div class="scene" style="height:600px;display:flex;flex-direction:column">${header(S.device==='tablet')}<div style="display:flex;flex:1;min-height:0">${spine(rail)}${pageStub()}</div></div></div>
-   ${rail?'':`<div><h3>${t('Outside a project: the main menu','برّا المشروع: القائمة الرئيسية')}</h3><div class="scene" style="height:600px;display:flex;flex-direction:column">${header(false)}<div style="display:flex;flex:1;min-height:0">${globalSide()}<div style="flex:1"></div></div></div></div>`}
+    <div class="scene" style="height:720px;display:flex;flex-direction:column">${header(S.device==='tablet')}<div style="display:flex;flex:1;min-height:0">${spine(rail)}${pageStub()}</div></div></div>
+   ${rail?'':`<div><h3>${t('Outside a project: the main menu','برّا المشروع: القائمة الرئيسية')}</h3><div class="scene" style="height:720px;display:flex;flex-direction:column">${header(false)}<div style="display:flex;flex:1;min-height:0">${globalSide()}<div style="flex:1"></div></div></div></div>`}
   </div></div>`;
 }
 
@@ -487,14 +493,14 @@ function headerSec(){
      <div class="mi" role="menuitem">${t('Theme','المظهر')}<span class="k">${t('Match my device','حسب جهازي')}</span></div>
      <div class="msep"></div><div class="mi" role="menuitem">${ic('out','flip')}${t('Sign out','تسجيل الخروج')}</div></div></div></div>
    <div class="sect"><h3>${t('Page header','ترويسة الصفحة')}</h3><p class="muted">${t('Breadcrumb (links, the current page as text), title, state and who/when, then the actions: Export always visible, one primary, the rest under "⋯".','مسار الصفحة (روابط، والصفحة الحالية نص)، العنوان، الحالة ومين وإيمتى، بعدين الإجراءات: التصدير دايماً ظاهر، رئيسي واحد، والباقي تحت "⋯".')}</p>
-    <div class="card"><nav class="crumb" aria-label="${t('Breadcrumb','مسار الصفحة')}"><a href="#">${t('Projects','المشاريع')}</a>${ic('fwd','flip')}<a href="#">${t('Rural water network','شبكة مياه ريفية')}</a>${ic('fwd','flip')}<span aria-current="page">${t('Mitigation plan','خطة التخفيف')}</span></nav>
-     <div class="ph"><div><h2>${t('4 · Mitigation plan','4 · خطة التخفيف')}</h2><div class="meta">${badge('b-warn','undo',t('Returned','مُعاد للتعديل'))}<span>${t('by Lama Aziz · 2 h ago','من لمى عزيز · قبل ساعتين')}</span></div></div>
+    <div class="card"><nav class="crumb" aria-label="${t('Breadcrumb','مسار الصفحة')}"><a href="#">${t('Projects','المشاريع')}</a>${ic('fwd','flip')}<a href="#">${t('Rural water network','شبكة مياه ريفية')}</a>${ic('fwd','flip')}<span aria-current="page">${t('Assessment','التقييم')}</span></nav>
+     <div class="ph"><div><h2>${t('2 · Assessment — Context','2 · التقييم — السياق')}</h2><div class="meta">${badge('b-warn','undo',t('Returned','مُعاد للتعديل'))}<span>${t('by Lama Aziz · 2 h ago','من لمى عزيز · قبل ساعتين')}</span></div></div>
      <div class="acts"><button class="btn secondary">${ic('dl')}${t('Export','تصدير')}</button><button class="btn primary">${t('Resubmit for review','إعادة الإرسال للمراجعة')}</button><button class="btn ghost icon" aria-label="${t('More actions','إجراءات أخرى')}">${ic('more')}</button></div></div></div></div>
    <div class="grid2">
     <div class="sect"><h3>${t('Tabs','التبويبات')}</h3><p class="muted">${t('For sibling views of one thing (Details / Access / Security). A count when it helps. Arrow keys move between tabs.','لعروض متجاورة لشي واحد (التفاصيل / الصلاحيات / الأمان). مع عدد إذا بيفيد. الأسهم بتتنقل بين التبويبات.')}</p>
      <div class="tabs" role="tablist"><span class="on" role="tab" aria-selected="true">${t('Details','التفاصيل')}</span><span role="tab" class="is-focus">${t('Access','الصلاحيات')} <span class="pill num">4</span></span><span role="tab">${t('Security','الأمان')}</span></div></div>
     <div class="sect"><h3>${t('Status strip (top of a workflow step)','شريط الحالة (أعلى خطوة سير العمل)')}</h3><p class="muted">${t('Always in the same place under the header; one per state.','دايماً بنفس المكان تحت الترويسة؛ واحد لكل حالة.')}</p>
-     <div class="strip b-warn">${ic('undo')}<div class="body"><b>${t('Returned by Lama Aziz','أعادتها لمى عزيز')}</b><div>${t('Add a responsible person for each measure.','أضف شخصاً مسؤولاً لكل إجراء.')}</div></div></div></div>
+     <div class="strip b-warn">${ic('undo')}<div class="body"><b>${t('Returned by Lama Aziz','أعادتها لمى عزيز')}</b><div>${t('Describe the groundwater use near the two wells, and add the water law to the legal requirements.','صِف استخدام المياه الجوفية قرب البئرين، وأضف قانون المياه إلى المتطلبات القانونية.')}</div></div></div></div>
    </div></div>`;
 }
 
@@ -502,7 +508,7 @@ function feedback(){
   return `<div class="pad"><div class="grid2">
    <div>
     <div class="sect"><h3>${t('Notices on the page','التنبيهات بالصفحة')}</h3><p class="muted">${t('Stay until the situation changes. Only the information one can be closed.','بتضل لحتى يتغيّر الوضع. بس التنبيه المعلوماتي بيتسكّر.')}</p>
-     ${[['b-info','info',t('Submitted on 8 Nov 2026. Waiting for review.','أُرسلت بتاريخ 8 تشرين الثاني 2026. بانتظار المراجعة.'),true],['b-ok','check',t('Approved on 9 Nov 2026. Tool 4 is now open.','اعتُمدت بتاريخ 9 تشرين الثاني 2026. الأداة 4 صارت مفتوحة.'),false],['b-warn','alert',t('2 rows have no responsible person. They are needed to submit.','سطران بلا شخص مسؤول. مطلوبان للإرسال.'),false],['b-danger','alert',t('This page could not be saved. Your changes are still here; try again.','تعذّر حفظ الصفحة. تعديلاتك ما زالت هنا؛ أعد المحاولة.'),false]].map(([c,i,m,x])=>`<div class="strip ${c}" style="margin-bottom:8px" role="${c==='b-danger'?'alert':'status'}">${ic(i)}<div class="body">${m}</div>${x?`<button class="btn ghost icon sm" aria-label="${t('Dismiss','إغلاق')}">${ic('close')}</button>`:''}</div>`).join('')}</div>
+     ${[['b-info','info',t('Submitted on 8 Nov 2026. Waiting for review.','أُرسلت بتاريخ 8 تشرين الثاني 2026. بانتظار المراجعة.'),true],['b-ok','check',t('Assessment approved on 9 Nov 2026. Tools 3 and 4 are now open.','اعتُمد التقييم بتاريخ 9 تشرين الثاني 2026. الأداتان 3 و4 مفتوحتان الآن.'),false],['b-warn','alert',t('2 rows have no description. Tool 5 opens when every row has one.','سطران بلا وصف. تُفتح الأداة 5 عندما يكون لكل سطر وصف.'),false],['b-danger','alert',t('This page could not be saved. Your changes are still here; try again.','تعذّر حفظ الصفحة. تعديلاتك ما زالت هنا؛ أعد المحاولة.'),false]].map(([c,i,m,x])=>`<div class="strip ${c}" style="margin-bottom:8px" role="${c==='b-danger'?'alert':'status'}">${ic(i)}<div class="body">${m}</div>${x?`<button class="btn ghost icon sm" aria-label="${t('Dismiss','إغلاق')}">${ic('close')}</button>`:''}</div>`).join('')}</div>
     <div class="sect"><h3>${t('Offline bar','شريط انقطاع الاتصال')}</h3>
      <div class="scene">${header(false)}<div class="offline" role="status">${ic('wifi')}<span>${t('You are offline. Keep reading; saving is paused and nothing is lost.','أنت غير متصل. تابع القراءة؛ الحفظ متوقف ولن يضيع شيء.')}</span></div><div style="height:40px"></div></div></div>
    </div>
@@ -526,9 +532,9 @@ function dialogs(){
       <div class="df"><button class="btn ghost is-focus">${t('Cancel','إلغاء')}</button><button class="btn danger">${t('Delete project','حذف المشروع')}</button></div></div></div></div>
    <div class="sect"><h3>${t('Side panel (approve or return)','اللوحة الجانبية (اعتماد أو إعادة)')}</h3><p class="muted">${t('For work done next to the page: approve or return, edit a row, Help, upload, details. The page stays visible and readable. 400 px; full screen on a phone.','للشغل اللي بينعمل جنب الصفحة: الاعتماد أو الإعادة، تعديل سطر، المساعدة، الرفع، التفاصيل. الصفحة بتضل ظاهرة ومقروءة. عرضها 400؛ عالموبايل شاشة كاملة.')}</p>
     <div class="scene" style="height:420px">${under}
-     <aside class="panel" role="dialog" aria-label="${t('Review the mitigation plan','مراجعة خطة التخفيف')}"><div class="phd"><h3>${t('Review','المراجعة')}</h3><button class="btn ghost icon sm" aria-label="${t('Close','إغلاق')}">${ic('close')}</button></div>
+     <aside class="panel" role="dialog" aria-label="${t('Review the assessment','مراجعة التقييم')}"><div class="phd"><h3>${t('Review','المراجعة')}</h3><button class="btn ghost icon sm" aria-label="${t('Close','إغلاق')}">${ic('close')}</button></div>
       <div class="pbd"><fieldset><legend>${t('Decision','القرار')}</legend><label class="cb"><span class="rad"></span>${t('Approve','اعتماد')}</label><br><label class="cb"><span class="rad on"></span>${t('Return for changes','إعادة للتعديل')}</label></fieldset>
-       <div class="field" style="margin-top:12px;max-width:none"><label class="lab">${t('What needs to change','ما الذي يجب تعديله')}</label><span class="hint">${t('The preparer sees this on the page and in the notification.','سيراه المُعِدّ على الصفحة وفي الإشعار.')}</span><div class="ctl area"><textarea dir="auto" rows="4">${t('Add a responsible person for each measure and a frequency for the water spraying.','أضف شخصاً مسؤولاً لكل إجراء وتكراراً لرش المياه.')}</textarea></div></div></div>
+       <div class="field" style="margin-top:12px;max-width:none"><label class="lab">${t('What needs to change','ما الذي يجب تعديله')}</label><span class="hint">${t('The preparer sees this on the page and in the notification.','سيراه المُعِدّ على الصفحة وفي الإشعار.')}</span><div class="ctl area"><textarea dir="auto" rows="4">${t('Describe the groundwater use near the two wells, and add the water law to the legal requirements.','صِف استخدام المياه الجوفية قرب البئرين، وأضف قانون المياه إلى المتطلبات القانونية.')}</textarea></div></div></div>
       <div class="pft"><button class="btn ghost">${t('Cancel','إلغاء')}</button><button class="btn primary">${t('Return for changes','إعادة للتعديل')}</button></div></aside></div></div>
    <div class="sect"><h3>${t('Tooltip','التلميح')}</h3><p class="muted">${t('Short text on hover and keyboard focus, for names of icon buttons and for short definitions. Never the only place for information someone needs to act.','نص قصير عند المرور والتركيز، لأسماء أزرار الأيقونات وللتعريفات القصيرة. مش المكان الوحيد لمعلومة لازمة للعمل.')}</p>
     <div style="padding-top:64px"><span class="tipdemo"><span class="cat b-violet" style="display:inline-grid;place-items:center;width:28px;height:28px;border:1px solid;border-radius:var(--radius-sm);font-weight:600">D</span><span class="tip" role="tooltip">${t('Category D: emergency response project with an expedited process','الفئة D: مشروع استجابة طارئة بإجراءات مسرّعة')}</span></span></div></div>
@@ -542,7 +548,7 @@ function quick(){
    <div class="sect"><h3>${t('Notifications panel (the bell)','لوحة الإشعارات (الجرس)')}</h3><p class="muted">${t('The latest items, unread first in time order; each opens its place and becomes read. "Mark all as read" and a link to the full page.','آخر الإشعارات؛ كل واحد بيفتح مكانو وبيصير مقروء. "تعليم الكل كمقروء" ورابط للصفحة الكاملة.')}</p>
     <div class="scene" style="height:470px">${header(false)}<div class="pop" style="top:60px;inset-inline-end:56px;width:380px" role="dialog" aria-label="${t('Notifications','الإشعارات')}">
      <div style="display:flex;align-items:center;padding:8px 12px"><b class="grow">${t('Notifications','الإشعارات')}</b><button class="btn ghost sm">${t('Mark all as read','تعليم الكل كمقروء')}</button></div>
-     ${[['unread',t('<b>Mitigation plan</b> was returned to you','أُعيدت إليك <b>خطة التخفيف</b>'),t('Rural water network · 2 h ago','شبكة مياه ريفية · قبل ساعتين')],['unread',t('<b>Assessment</b> waits for your review','<b>التقييم</b> بانتظار مراجعتك'),t('School rehabilitation · yesterday','إعادة تأهيل مدرسة · أمس')],['unread',t('You were given access to <b>Solar pumping station</b>','حصلت على صلاحية <b>محطة ضخ بالطاقة الشمسية</b>'),t('By Lama Aziz · yesterday','من لمى عزيز · أمس')],['read',t('<b>Screening</b> was approved','اعتُمد <b>الفحص</b>'),t('Irrigation canal lining · 3 Nov 2026','تبطين قناة ري · 3 تشرين الثاني 2026')]].map(([c,w,m])=>`<div class="notif ${c}"><span class="dot" aria-hidden="true"></span><span>${w}<small>${m}</small></span></div>`).join('')}
+     ${[['unread',t('<b>Assessment</b> was returned to you','أُعيد إليك <b>التقييم</b>'),t('Rural water network · 2 h ago','شبكة مياه ريفية · قبل ساعتين')],['unread',t('<b>Assessment</b> waits for your review','<b>التقييم</b> بانتظار مراجعتك'),t('School rehabilitation · yesterday','إعادة تأهيل مدرسة · أمس')],['unread',t('You were given access to <b>Solar pumping station</b>','حصلت على صلاحية <b>محطة ضخ بالطاقة الشمسية</b>'),t('By Lama Aziz · yesterday','من لمى عزيز · أمس')],['read',t('<b>Screening</b> was approved','اعتُمد <b>الفحص</b>'),t('Irrigation canal lining · 3 Nov 2026','تبطين قناة ري · 3 تشرين الثاني 2026')]].map(([c,w,m])=>`<div class="notif ${c}"><span class="dot" aria-hidden="true"></span><span>${w}<small>${m}</small></span></div>`).join('')}
      <div class="msep"></div><a class="mi" href="#" style="color:var(--color-action);font-weight:500">${t('See all notifications','عرض كل الإشعارات')}</a></div></div></div>
    <div class="sect"><h3>${t('Quick search (Ctrl K)','البحث السريع (Ctrl K)')}</h3><p class="muted">${t('From anywhere: projects first (by name, code or place), then pages the person may open. Empty box shows recent projects. Only what the person can access.','من أي مكان: المشاريع أول (بالاسم أو الرمز أو المكان)، بعدين الصفحات المسموحة. الخانة الفاضية بتعرض المشاريع الأخيرة. بس اللي مسموحلو.')}</p>
     <div class="scene" style="height:470px">${header(false)}<div class="scrim" style="top:0"></div>

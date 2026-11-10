@@ -48,7 +48,7 @@ button{font:inherit;color:inherit}
 @media (max-width:860px){.app{grid-template-columns:1fr}.controls{position:static;height:auto}}
 
 /* ---------- wireframe ---------- */
-.f-shell{--w-bg:#f2f3f5;--w-sf:#fff;--w-ln:#d7dbe1;--w-ink:#262a30;--w-mu:#868d98;--w-ac:#2f6db5;--w-acbg:#e5eef9;--w-ok:#3b7a55;--w-okbg:#e7f3ec;--w-bad:#b0473a;--w-badbg:#f9e8e5;--w-warnbg:#fbf3dc;--w-warn:#8a6a10;
+.f-shell{--w-bg:#f2f3f5;--w-sf:#fff;--w-ln:#d7dbe1;--w-ink:#262a30;--w-mu:#5c636d;--w-ac:#2f6db5;--w-acbg:#e5eef9;--w-ok:#336a49;--w-okbg:#e7f3ec;--w-bad:#b0473a;--w-badbg:#f9e8e5;--w-warnbg:#fbf3dc;--w-warn:#8a6a10;
   position:relative;width:100%;height:100%;background:var(--w-bg);color:var(--w-ink);font:13px/1.45 system-ui,"Segoe UI",Tahoma,sans-serif;display:flex;flex-direction:column;overflow:hidden;border-radius:8px}
 .f-shell .ic{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .f-header{height:48px;flex:none;display:flex;align-items:center;gap:8px;padding-inline:12px;background:var(--w-sf);border-bottom:1px solid var(--w-ln);z-index:9}
@@ -252,6 +252,20 @@ button{font:inherit;color:inherit}
 .dev-phone .auth{justify-content:flex-start;padding-top:56px;background:var(--w-sf)}
 .dev-phone .pdfarea{padding:12px}
 .dev-tablet .two.guide{grid-template-columns:1fr}
+
+/* audit fixes (2026-11-10): an icon sits on the first line of the text next to it; search hints and codes never wrap */
+.row:has(> div .sub) > .ic:first-child,.row:has(> div .sub) > .av:first-child{align-self:flex-start;margin-top:1px}
+.mini-search{white-space:nowrap;width:240px}
+.offline{align-items:flex-start}
+.offline .ic{margin-top:1px}
+.hp-link{display:flex;align-items:center;gap:6px}
+.overlay>.dialog{min-width:0;overflow-wrap:anywhere}
+.overlay{grid-template-columns:minmax(0,1fr)}
+.empty{text-align:center;padding:44px 20px;color:var(--w-mu);font-size:12.5px}
+.empty .ill{width:54px;height:54px;border-radius:14px;background:var(--w-bg);border:1px solid var(--w-ln);display:grid;place-items:center;margin:0 auto 12px;color:var(--w-mu)}
+.empty .ill .ic{width:24px;height:24px}
+.empty>b{display:block;color:var(--w-ink);font-size:14px;margin-bottom:4px}
+.empty .btn{margin-top:14px}
 </style>
 </head>
 <body>
@@ -375,7 +389,7 @@ function signinPage(){
   const msg = {
     wrong: t('Email or password is not correct.','البريد الإلكتروني أو كلمة المرور غير صحيحة.'),
     deactivated: t('This account is deactivated. Ask your administrator if you need access again.','هذا الحساب موقوف. تواصل مع مسؤول النظام إذا كنت تحتاج إلى الوصول مجدداً.'),
-    locked: t('Too many attempts. Wait 15 minutes, then try again.','محاولات كثيرة. انتظر ١٥ دقيقة ثم حاول مجدداً.'),
+    locked: t('Too many attempts. Wait 15 minutes, then try again.','محاولات كثيرة. انتظر 15 دقيقة ثم حاول مجدداً.'),
   }[v];
   return authFrame(`<div class="auth-card">${brand()}<h1>${t('Sign in','تسجيل الدخول')}</h1><div class="sub" style="margin-bottom:16px">${t('Use the email and password your administrator gave you.','استخدم البريد الإلكتروني وكلمة المرور من مسؤول النظام.')}</div>
     ${msg?`<div class="errbox">${ic('alert')}<span>${msg}</span></div>`:''}
@@ -388,7 +402,7 @@ function changePwPage(){
   const rule = (ok, en, ar) => `<div class="rule ${ok?'ok':''}"><i>${ok?'✓':''}</i>${t(en,ar)}</div>`;
   return authFrame(`<div class="auth-card">${brand()}<h1>${t('Choose your own password','اختر كلمة مرور خاصة بك')}</h1><div class="sub" style="margin-bottom:16px">${t('You signed in with a temporary password from your administrator. Choose a new one to continue.','دخلت بكلمة مرور مؤقتة من مسؤول النظام. اختر كلمة جديدة للمتابعة.')}</div>
     ${field(t('New password','كلمة المرور الجديدة'), pwInp(13))}
-    <div style="margin:-6px 0 12px">${rule(1,'At least 12 characters','١٢ حرفاً على الأقل')}${rule(1,'Not a common or leaked password','ليست كلمة مرور شائعة أو مسرّبة')}${rule(1,'Not the temporary password','ليست كلمة المرور المؤقتة')}${rule(0,'Both entries match','الإدخالان متطابقان')}</div>
+    <div style="margin:-6px 0 12px">${rule(1,'At least 12 characters','12 حرفاً على الأقل')}${rule(1,'Not a common or leaked password','ليست كلمة مرور شائعة أو مسرّبة')}${rule(1,'Not the temporary password','ليست كلمة المرور المؤقتة')}${rule(0,'Both entries match','الإدخالان متطابقان')}</div>
     ${field(t('Repeat the new password','أعد كتابة كلمة المرور'), pwInp(6))}
     <span class="btn pr wide">${t('Save and continue','حفظ ومتابعة')}</span>
     <div style="text-align:center;margin-top:10px"><span class="btn ghost">${t('Sign out','تسجيل الخروج')}</span></div></div>`);
@@ -399,7 +413,7 @@ function toolBackground(){
 }
 function sessionPage(){
   const dlg = `<div class="overlay"><div class="dialog"><div class="ib" style="background:var(--w-bg);margin-bottom:10px">${ic('lock')}</div><h2>${t('Your session has ended','انتهت جلستك')}</h2>
-    <div class="sub" style="margin-bottom:14px">${t('For your security you were signed out after 8 hours without activity. Sign in again to carry on: your 3 unsaved changes are still on this page.','لحمايتك تم تسجيل خروجك بعد ٨ ساعات دون نشاط. سجّل الدخول مجدداً للمتابعة: تغييراتك الثلاثة غير المحفوظة ما زالت في الصفحة.')}</div>
+    <div class="sub" style="margin-bottom:14px">${t('For your security you were signed out after 8 hours without activity. Sign in again to carry on: your 3 unsaved changes are still on this page.','لحمايتك تم تسجيل خروجك بعد 8 ساعات دون نشاط. سجّل الدخول مجدداً للمتابعة: تغييراتك الثلاثة غير المحفوظة ما زالت في الصفحة.')}</div>
     ${field(t('Email','البريد الإلكتروني'), `<div class="inp" dir="ltr" style="color:var(--w-mu);background:var(--w-bg)">rana.h@akdn.org</div>`)}${field(t('Password','كلمة المرور'), pwInp(0))}
     <span class="btn pr wide">${t('Sign in and continue','دخول ومتابعة')}</span><div style="text-align:center;margin-top:8px"><span class="btn ghost">${t('Sign out instead','تسجيل الخروج بدلاً من ذلك')}</span></div></div></div>`;
   return shell(toolBackground(), {after:`<div class="savebar"><span class="grow">● 3 unsaved changes</span><span class="btn">Discard</span><span class="btn pr">Save</span></div>`, overlay:dlg});
@@ -416,8 +430,8 @@ function accountPage(){
   const sec = (id, en, ar, body) => `<div class="card" id="s-${id}" style="margin-bottom:14px;padding:16px 18px"><h3 style="font-size:14px">${t(en,ar)}</h3>${body}</div>`;
   const kv = `<div class="kv" style="grid-template-columns:120px 1fr;margin:0"><span>${t('Name','الاسم')}</span><div>Rana H.</div><span>${t('Email','البريد الإلكتروني')}</span><div dir="ltr" style="text-align:start">rana.h@akdn.org</div><span>${t('Job title','المسمّى الوظيفي')}</span><div>Environmental Focal Point</div></div><div class="sub" style="margin-top:10px">${t('Your administrator keeps these up to date.','يحدّث مسؤول النظام هذه المعلومات.')}</div>`;
   const prefs = `<div class="fsec"><label>${t('Language','اللغة')}</label>${langSwitch()}</div><div class="fsec"><label>${t('Theme','المظهر')}</label><span class="segw"><span class="on">${t('Light','فاتح')}</span><span>${t('Dark','داكن')}</span><span>${t('Match my device','مثل جهازي')}</span></span></div>
-    <div class="sub">${t('Dates show as 10 Nov 2026. Saved to your account at once, so they follow you on any device.','تظهر التواريخ هكذا: ١٠ تشرين الثاني ٢٠٢٦. تُحفظ في حسابك فوراً وتتبعك على أي جهاز.')}</div>`;
-  const pw = `<div class="fgrid" style="display:grid;grid-template-columns:${S.device==='phone'?'1fr':'1fr 1fr'};gap:0 14px">${field(t('Current password','كلمة المرور الحالية'), pwInp(9))}<div></div>${field(t('New password','كلمة المرور الجديدة'), pwInp(0), `<div class="hint" style="font-size:11.5px;color:var(--w-mu);margin-top:4px">${t('At least 12 characters; not a common password.','١٢ حرفاً على الأقل، وليست كلمة شائعة.')}</div>`)}${field(t('Repeat the new password','أعد كتابة كلمة المرور'), pwInp(0))}</div><span class="btn">${t('Change password','تغيير كلمة المرور')}</span>`;
+    <div class="sub">${t('Dates show as 10 Nov 2026. Saved to your account at once, so they follow you on any device.','تظهر التواريخ هكذا: 10 تشرين الثاني 2026. تُحفظ في حسابك فوراً وتتبعك على أي جهاز.')}</div>`;
+  const pw = `<div class="fgrid" style="display:grid;grid-template-columns:${S.device==='phone'?'1fr':'1fr 1fr'};gap:0 14px">${field(t('Current password','كلمة المرور الحالية'), pwInp(9))}<div></div>${field(t('New password','كلمة المرور الجديدة'), pwInp(0), `<div class="hint" style="font-size:11.5px;color:var(--w-mu);margin-top:4px">${t('At least 12 characters; not a common password.','12 حرفاً على الأقل، وليست كلمة شائعة.')}</div>`)}${field(t('Repeat the new password','أعد كتابة كلمة المرور'), pwInp(0))}</div><span class="btn">${t('Change password','تغيير كلمة المرور')}</span>`;
   const acc = MY_ACCESS[S.person].map(([r,,w])=>`<div class="row"><span class="ib soft" style="width:28px;height:28px;background:var(--w-bg);border-radius:6px">${ic('lock')}</span><div class="grow"><div style="font-weight:600">${r}</div><div class="sub">${w}</div></div></div>`).join('') + `<div class="sub" style="margin-top:8px">${t('To change your access, ask an administrator or the Environmental Specialist.','لتغيير صلاحياتك، تواصل مع مسؤول النظام أو الأخصائي البيئي.')}</div>`;
   const body = sec('profile','Profile','الملف الشخصي',kv) + sec('prefs','Preferences','التفضيلات',prefs) + sec('pw','Password','كلمة المرور',pw) + sec('access','My access','صلاحياتي',acc);
   const nav = `<nav class="secnav">${[['Profile','الملف الشخصي'],['Preferences','التفضيلات'],['Password','كلمة المرور'],['My access','صلاحياتي']].map(([e,a],i)=>`<a class="${i===1?'on':''}">${t(e,a)}</a>`).join('')}</nav>`;
@@ -461,9 +475,9 @@ function systemPage(){
   const v = S.variant;
   const box = (icon, title, text, btns) => `<div class="card" style="max-width:540px;margin:40px auto"><div class="empty"><div class="ill">${ic(icon)}</div><b>${title}</b>${text}<br>${btns}</div></div>`;
   if (v==='notfound') return shell(box('search', t('We can’t find this page','لم نجد هذه الصفحة'), t('The link may be old, or the item was archived or deleted.','ربما الرابط قديم، أو تمت أرشفة العنصر أو حذفه.'), `<span class="btn pr">${t('Go to Home','الذهاب إلى الرئيسية')}</span> <span class="btn">${t('All projects','كل المشاريع')}</span>`));
-  if (v==='error') return shell(box('alert', t('Something went wrong on our side','حدث خطأ من جهتنا'), t('Try again. If it keeps happening, send this code to IT: ','حاول مجدداً. إذا تكرر الخطأ، أرسل هذا الرمز إلى قسم تقنية المعلومات: ') + '<b style="display:inline;color:var(--w-ink)" dir="ltr">ESMS-7F3K29</b>', `<span class="btn pr">${t('Try again','حاول مجدداً')}</span> <span class="btn">${t('Go to Home','الذهاب إلى الرئيسية')}</span>`));
+  if (v==='error') return shell(box('alert', t('Something went wrong on our side','حدث خطأ من جهتنا'), t('Try again. If it keeps happening, send this code to IT: ','حاول مجدداً. إذا تكرر الخطأ، أرسل هذا الرمز إلى قسم تقنية المعلومات: ') + '<b style="display:inline;color:var(--w-ink);white-space:nowrap" dir="ltr">ESMS-7F3K29</b>', `<span class="btn pr">${t('Try again','حاول مجدداً')}</span> <span class="btn">${t('Go to Home','الذهاب إلى الرئيسية')}</span>`));
   const banner = `<div class="offline">${ic('wifi')}<span>${t('No connection. You can keep reading; saving is paused until the connection is back, and nothing is lost.','لا يوجد اتصال. يمكنك متابعة القراءة؛ الحفظ متوقف حتى يعود الاتصال، ولن يضيع شيء.')}</span></div>`;
-  return shell(toolBackground(), {banner, after:`<div class="savebar"><span class="grow">${t('Saving paused · 2 unsaved changes','الحفظ متوقف · تغييران غير محفوظين')}</span><span class="btn">Discard</span><span class="btn pr off">Save</span></div>`});
+  return shell(toolBackground(), {banner, after:`<div class="savebar"><span class="grow">${t('Saving paused · 2 unsaved changes','الحفظ متوقف · تغييران غير محفوظين')}</span><span class="btn">${t('Discard','تجاهل')}</span><span class="btn pr off">${t('Save','حفظ')}</span></div>`});
 }
 
 /* ---------- render ---------- */
@@ -492,12 +506,12 @@ const WHY = {
  changepw:['<b>نفس بطاقة الدخول، بلا مساعدة وبلا قوائم</b> (D22، D78): لازم يخلص هالخطوة أول.',
   'جملة بتشرح ليش هو هون: "دخلت بكلمة سر مؤقتة من المدير".',
   '<b>الشروط بتبيّن وهو عم يكتب</b> وبتتعلّم ✓ وحدة وحدة، بدل ما يكبس ويطلعلو خطأ.',
-  '<b>كلمة السر (قرارك):</b> حد أدنى ١٢ حرف بدل ٦ اليوم، بلا شروط رموز وأرقام (بتخلّي الناس تكتبها عورقة)، ومنع كلمات السر المشهورة. هاد اللي بتنصح فيه معايير الأمان الحالية.',
+  '<b>كلمة السر (قرارك):</b> حد أدنى 12 حرف بدل 6 اليوم، بلا شروط رموز وأرقام (بتخلّي الناس تكتبها عورقة)، ومنع كلمات السر المشهورة. هاد اللي بتنصح فيه معايير الأمان الحالية.',
   'زر "اطلع" إذا مو هو الشخص الصح.'],
  session:['<b>إذا انتهت الجلسة وهو عم يشتغل، ما منرميه على صفحة الدخول ومنضيّع شغلو.</b> بتطلع نافذة صغيرة فوق نفس الصفحة: كلمة السر بس، وبيكمّل من مكانو، والتغييرات اللي ما انحفظت بتضل.',
   'الإيميل معبّى ومقفول، لأنو لازم يكون نفس الشخص. إذا بدو يطلع، في زر.',
   'هاد بيشتغل مع طريقة الدخول الحالية، ما بدو تغيير كبير بالباكند.',
-  '<b>مدة الجلسة (قرارك):</b> بتنتهي إذا ما عمل شي ٨ ساعات (اليوم ١٢ ساعة من الدخول).'],
+  '<b>مدة الجلسة (قرارك):</b> بتنتهي إذا ما عمل شي 8 ساعات (اليوم 12 ساعة من الدخول).'],
  account:['<b>"حسابي" بأربع أقسام:</b> الملف، التفضيلات، كلمة السر، صلاحياتي. عاللابتوب قائمة صغيرة عالجنب بتنقلك بينهن؛ عالتابلت والموبايل تحت بعض.',
   'الاسم والإيميل والمسمّى للقراءة: المدير بيحدّثهن (متل اليوم).',
   '<b>اللغة والمظهر بيتحفظوا عالحساب، مش عالمتصفح،</b> فبيلحقوك عأي جهاز، وبيتطبّقوا فوراً بلا زر حفظ. تغيير صغير بالباكند.',
@@ -519,8 +533,8 @@ const WHY = {
 };
 const TABLET = '<b>التابلت:</b> الشريط الجانبي بيصغر لأيقونات (متل ما شفت بأول playground تبع الهيكل)، و☰ بالترويسة بيفتح القائمة كاملة. جوّا المشروع الأيقونات بتصير أرقام الأدوات مع حالة كل وحدة، فبتضل شايف وين واقف. والصفحات بتاخد باقي العرض، والأعمدة الجانبية (فهرس، قوائم الأقسام) بتنزل تحت أو ورا زر. الجداول الطويلة بتضل جداول عالتابلت، ما بتصير كروت.';
 const QUESTIONS = [
- '<b>١. كلمة السر (جاوبت):</b> ١٢ حرف على الأقل، بلا شروط رموز وأرقام، ومنع كلمات السر المشهورة.',
- '<b>٢. مدة الجلسة (جاوبت):</b> بتنتهي بعد ٨ ساعات بلا أي حركة. القرار إلنا، مش لاجتماع IT.',
+ '<b>1. كلمة السر (جاوبت):</b> 12 حرف على الأقل، بلا شروط رموز وأرقام، ومنع كلمات السر المشهورة.',
+ '<b>2. مدة الجلسة (جاوبت):</b> بتنتهي بعد 8 ساعات بلا أي حركة. القرار إلنا، مش لاجتماع IT.',
 ];
 function renderBoxes(){
   const w = WHY[S.page].concat(S.device==='tablet'?[TABLET]:[]);

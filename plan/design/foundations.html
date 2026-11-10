@@ -105,6 +105,9 @@ button{font:inherit;color:inherit}
   --shadow-1:0 1px 2px rgba(16,24,20,.06);
   --shadow-2:0 4px 12px rgba(16,24,20,.10),0 1px 3px rgba(16,24,20,.08);
   --shadow-3:0 16px 40px rgba(16,24,20,.18),0 2px 6px rgba(16,24,20,.08);
+  /* charts (dataviz method, checked with its colour-blindness validator): sequential = one hue, light to dark; categorical = at most 4, in this order */
+  --seq-1:#72C294; --seq-2:#45A978; --seq-3:#279063; --seq-4:#1C7C54; --seq-5:#0F5A3C;
+  --cat-1:#0F86A8; --cat-2:#CE0058; --cat-3:#C49000; --cat-4:#6250D6; --chart-grid:#E6EAE7;
 }
 .ds[data-theme=dark]{
   --color-canvas:#101412; --color-surface:#171C19; --color-raised:#1F2522; --color-sunken:#0C0F0D;
@@ -123,6 +126,8 @@ button{font:inherit;color:inherit}
   --shadow-1:0 1px 2px rgba(0,0,0,.4);
   --shadow-2:0 6px 16px rgba(0,0,0,.45);
   --shadow-3:0 18px 48px rgba(0,0,0,.6);
+  --seq-1:#0F5A3C; --seq-2:#1C7C54; --seq-3:#2C9A69; --seq-4:#4FB883; --seq-5:#8AD4A9;
+  --cat-1:#1E9BB0; --cat-2:#E0457E; --cat-3:#B07F00; --cat-4:#A07BEA; --chart-grid:#252C28;
 }
 /* Arabic: same sizes, more line height, smallest step one pixel up, never letter-spacing */
 .ds:lang(ar){--lh-sm:22px;--lh-md:24px;--lh-lg:28px;--lh-title-sm:30px;--lh-title-md:38px;--text-xs:13px;--lh-xs:18px}

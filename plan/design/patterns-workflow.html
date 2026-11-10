@@ -443,7 +443,7 @@ button{font:inherit;color:inherit}
 .ds .tline li{position:relative;padding-inline-start:34px;padding-bottom:var(--space-5)}
 .ds .tline li::before{content:"";position:absolute;inset-inline-start:10px;top:24px;bottom:0;width:1px;background:var(--color-line)}
 .ds .tline li:last-child::before{display:none}
-.ds .tline li>.dia{position:absolute;inset-inline-start:0;top:0}
+.ds .tline li>.dia{position:absolute;inset-inline-start:0;top:calc((1lh - 22px) / 2)}
 .ds .quote{margin-top:var(--space-2);padding:var(--space-2) var(--space-3);background:var(--color-sunken);border-radius:var(--radius-sm);border-inline-start:3px solid var(--warn-line)}
 .ds .quote.okq{border-inline-start-color:var(--ok-line)}
 .ds .next{display:flex;align-items:flex-start;gap:var(--space-4);border:1px solid var(--color-line);border-radius:var(--radius-md);background:var(--color-surface);padding:var(--space-4) var(--space-5)}
@@ -464,6 +464,14 @@ button{font:inherit;color:inherit}
 .ds .phone .wbody{padding:var(--space-4)}
 .ds .phone .ph h2{font-size:var(--title-sm);line-height:var(--lh-title-sm)}
 .ds .flabel{font-size:var(--text-xs);color:var(--color-text-muted)}
+
+/* icons sit on the text line (2026-11-10): an icon box is one text line tall, so its glyph is centred on the line in
+   any language (Arabic lines are taller); markers use the same line. No per-icon margin nudges. */
+.ds svg.ic{height:1lh!important;margin-block:0!important}
+.ds .nav{padding-block:calc((var(--control-md) - 1lh) / 2)}
+.ds .nav.sub{padding-block:calc((var(--control-sm) - 1lh) / 2)}
+.ds .nav>.dia,.ds .stepbar .mid>.dia,.ds .next>.dia{margin-block:calc((1lh - 22px) / 2)}
+.ds .rail .nav{padding-block:0}
 </style>
 </head>
 <body>

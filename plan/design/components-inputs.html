@@ -286,6 +286,14 @@ button{font:inherit;color:inherit}
 
 /* ---------- Search ---------- */
 .ds .kbd{font-size:var(--text-xs);border:1px solid var(--color-line);border-radius:var(--radius-sm);padding:0 5px;color:var(--color-text-muted);direction:ltr}
+
+/* icons sit on the text line (2026-11-10): an icon box is one text line tall, so its glyph is centred on the line in
+   any language (Arabic lines are taller); markers use the same line. No per-icon margin nudges. */
+.ds svg.ic{height:1lh!important;margin-block:0!important}
+.ds .nav{padding-block:calc((var(--control-md) - 1lh) / 2)}
+.ds .nav.sub{padding-block:calc((var(--control-sm) - 1lh) / 2)}
+.ds .nav>.dia,.ds .stepbar .mid>.dia,.ds .next>.dia{margin-block:calc((1lh - 22px) / 2)}
+.ds .rail .nav{padding-block:0}
 </style>
 </head>
 <body>

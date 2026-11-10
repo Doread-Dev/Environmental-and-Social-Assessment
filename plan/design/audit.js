@@ -3,6 +3,8 @@
 // text, text contrast under WCAG AA, and broken values (undefined, NaN, empty icon paths).
 // Run it in the browser pane on http://127.0.0.1:5510/<playground>.html (the design-playgrounds server), from the console:
 //   await fetch('audit.js').then(r => r.text()).then(t => new Function(t)()); window.__audit({ limit: 600 })
+// or, for all playgrounds at once, then: await window.__auditAll()
+// Icons are checked to 1 px (opts.tol): an icon box must be one text line tall and sit in a flex row.
 // Known non-issues: the bell count badge, numbers inside coloured step diamonds (the colour is a pseudo-element),
 // and the closed Help drawer in the foundations motion demo.
 window.__audit = function (opts = {}) {
@@ -52,7 +54,7 @@ window.__audit = function (opts = {}) {
             const ir = el.getBoundingClientRect();
             if (lr && ir.bottom > lr.top - 6 && ir.top < lr.bottom + 6) {
               const dy = (ir.top + ir.height / 2) - (lr.top + lr.height / 2);
-              if (Math.abs(dy) > 2.5) add('icon-misaligned', `${desc(p)} icon ${dy > 0 ? 'low' : 'high'} by ${Math.abs(dy).toFixed(1)}px`, where);
+              if (Math.abs(dy) > (opts.tol ?? 1)) add('icon-misaligned', `${desc(p)} icon ${dy > 0 ? 'low' : 'high'} by ${Math.abs(dy).toFixed(1)}px`, where);
             }
           }
         }
@@ -83,4 +85,24 @@ window.__audit = function (opts = {}) {
   }
   Object.assign(S, DEFAULTS); updateAll();
   return { combos: combos.length, issues: [...out.values()].sort((a, b) => a.kind.localeCompare(b.kind)).map(x => `${x.kind}: ${x.key}  [${x.n}× e.g. ${x.where}]`) };
+};
+
+// Every playground at once, from any playground page: await window.__auditAll()
+window.__auditAll = async function (pages = ['foundations', 'components-inputs', 'components-data', 'components-nav', 'patterns-workflow', 'core-pages', 'lists-and-admin', 'account-and-readers', 'app-shell-options'], opts = { limit: 500 }) {
+  const src = await fetch('audit.js?' + Date.now()).then(r => r.text());
+  const out = {};
+  for (const p of pages) {
+    const f = document.createElement('iframe');
+    f.style.cssText = 'position:fixed;left:0;top:0;width:1820px;height:1000px;opacity:0;pointer-events:none';
+    f.src = `${p}.html?audit=${Date.now()}`;
+    document.body.appendChild(f);
+    await new Promise(r => { f.onload = r; });
+    await f.contentWindow.document.fonts.ready;
+    await new Promise(r => setTimeout(r, 300));
+    f.contentWindow.eval(src);
+    const res = f.contentWindow.__audit(opts);
+    out[p] = { combos: res.combos, issues: res.issues.filter(x => !/span\.ib "3"|span\.n |stagebox/.test(x)) };
+    f.remove();
+  }
+  return out;
 };

@@ -386,9 +386,17 @@ button{font:inherit;color:inherit}
 .ds .stack{display:flex;height:36px;gap:2px;border-radius:4px;overflow:hidden}
 .ds .stack div{display:flex;align-items:center;justify-content:center;font-size:var(--text-sm);font-weight:600;color:#fff}
 .ds .vtip{position:absolute;pointer-events:none;background:var(--color-text);color:var(--color-surface);font-size:var(--text-sm);padding:6px 10px;border-radius:var(--radius-sm);box-shadow:var(--shadow-2);white-space:nowrap;z-index:5;display:none}
-.ds .linkbtn{background:none;border:0;padding:0;color:var(--color-action);font-weight:500;cursor:pointer;font-size:var(--text-sm)}
+.ds .linkbtn{display:inline-flex;align-items:center;gap:var(--space-1);background:none;border:0;padding:0;color:var(--color-action);font-weight:500;cursor:pointer;font-size:var(--text-sm)}
 .ds .swatch{display:flex;gap:2px;margin:var(--space-2) 0}
 .ds .swatch i{flex:1;height:28px;border-radius:3px}
+
+/* icons sit on the text line (2026-11-10): an icon box is one text line tall, so its glyph is centred on the line in
+   any language (Arabic lines are taller); markers use the same line. No per-icon margin nudges. */
+.ds svg.ic{height:1lh!important;margin-block:0!important}
+.ds .nav{padding-block:calc((var(--control-md) - 1lh) / 2)}
+.ds .nav.sub{padding-block:calc((var(--control-sm) - 1lh) / 2)}
+.ds .nav>.dia,.ds .stepbar .mid>.dia,.ds .next>.dia{margin-block:calc((1lh - 22px) / 2)}
+.ds .rail .nav{padding-block:0}
 </style>
 </head>
 <body>

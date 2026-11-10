@@ -300,6 +300,14 @@ button{font:inherit;color:inherit}
 
 /* locale table */
 .ds .loc td,.ds .loc th{padding:var(--space-2) var(--space-3)}
+
+/* icons sit on the text line (2026-11-10): an icon box is one text line tall, so its glyph is centred on the line in
+   any language (Arabic lines are taller); markers use the same line. No per-icon margin nudges. */
+.ds svg.ic{height:1lh!important;margin-block:0!important}
+.ds .nav{padding-block:calc((var(--control-md) - 1lh) / 2)}
+.ds .nav.sub{padding-block:calc((var(--control-sm) - 1lh) / 2)}
+.ds .nav>.dia,.ds .stepbar .mid>.dia,.ds .next>.dia{margin-block:calc((1lh - 22px) / 2)}
+.ds .rail .nav{padding-block:0}
 </style>
 </head>
 <body>
@@ -417,7 +425,7 @@ function together(){
       <div class="notice b-warn" style="margin-bottom:var(--space-5)">${ic('warning')}<div><b>${t('1 row has no description','سطر واحد بلا وصف')}</b><div>${t('Tool 5 opens when every row of Tools 3 and 4 has a description.','تُفتح الأداة 5 عندما يكون لكل سطر في الأداتين 3 و4 وصف.')}</div></div></div>
       <table class="tbl"><thead><tr><th style="width:28%">${t('Impact','الأثر')}</th><th style="width:14%">${t('Level','المستوى')}</th><th>${t('Mitigation measure','إجراء التخفيف')}</th><th style="width:16%">${t('Responsible','المسؤول')}</th></tr></thead>
       <tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td>${level(r[1])}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('')}</tbody></table>
-      <div class="savebar"><span class="muted sm">${ic('edit')} ${t('2 unsaved changes','تعديلان غير محفوظين')}</span><span style="flex:1"></span><button class="btn ghost">${t('Discard','تجاهل')}</button><button class="btn primary">${t('Save changes','حفظ التعديلات')}</button></div>
+      <div class="savebar"><span class="muted sm" style="display:inline-flex;align-items:center;gap:var(--space-2)">${ic('edit')}${t('2 unsaved changes','تعديلان غير محفوظين')}</span><span style="flex:1"></span><button class="btn ghost">${t('Discard','تجاهل')}</button><button class="btn primary">${t('Save changes','حفظ التعديلات')}</button></div>
     </section>
   </div>`;
 }

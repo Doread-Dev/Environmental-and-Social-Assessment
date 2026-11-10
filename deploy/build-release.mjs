@@ -1,4 +1,4 @@
-// Builds the release folder that goes to the server (phase 11, D38). Run it on a machine WITH
+// Builds the release folder that goes to the server. Run it on a machine WITH
 // internet (npm downloads the packages), from the repository root:
 //   node deploy/build-release.mjs [--out <folder>]
 // Result: <out>/esms-<version>-<date>-<commit>/ and an archive next to it (.zip on Windows,
@@ -8,7 +8,7 @@
 //   deploy/    install, backup and restore scripts, configs, guides
 //   docs/user-guide/   the user guide the in-app Help page reads (backend services/help.service.js)
 //   .nvmrc, VERSION, CHANGELOG.md
-// <version> is the version of the three package.json files (2.0.0 for v2, D77); when they differ,
+// <version> is the version of the three package.json files; when they differ,
 // the build stops. The backend packages are plain JavaScript (no native modules), so one release
 // runs on Windows and Linux alike. Copy the archive to the server (USB stick, file share) and
 // follow deploy/README.md.
@@ -89,9 +89,10 @@ function build() {
 
   // 3. Deploy scripts and guides, the user guide, the Node version, the changelog, and what this
   //    release is.
+  // The owner's runbook stays in the repository: the release goes to the organisation's IT.
   fs.cpSync(path.join(root, 'deploy'), path.join(out, 'deploy'), {
     recursive: true,
-    filter: (src) => !src.startsWith(outRoot),
+    filter: (src) => !src.startsWith(outRoot) && path.basename(src) !== 'OWNER-RUNBOOK.md',
   })
   // The user guide: the Help endpoint reads it from <release>/docs/user-guide, next to backend/.
   fs.cpSync(path.join(root, 'docs', 'user-guide'), path.join(out, 'docs', 'user-guide'), {

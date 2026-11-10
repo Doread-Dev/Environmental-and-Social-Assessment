@@ -29,6 +29,19 @@ node deploy/build-release.mjs
 - The zip holds `VERSION` (version, commit, build time), `CHANGELOG.md` and `docs/user-guide/`
   (the user guide the in-app Help page reads).
 
+### A clean source package (only if the client asks for the code)
+
+The release zip above is what IT installs. If the client also wants the source code, build it
+from `main` with Git. `.gitattributes` leaves out the internal working files (`plan/`, `.claude/`,
+`CLAUDE.md`); the repository keeps them:
+
+```
+git archive --format=zip --prefix=esms-source-2.0.1/ -o release/esms-source-2.0.1.zip main
+```
+
+Use the version of that release in both places. The developer docs in `docs/` still mention the
+decision numbers (D1, D2 …) of the plan, which is not in this package.
+
 ## 2. Bring an update to the server
 
 1. Copy the zip to the server (USB stick or a file share). The server needs no internet.

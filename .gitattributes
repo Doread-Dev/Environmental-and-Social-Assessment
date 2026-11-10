@@ -1,0 +1,7 @@
+# Clean source package (owner, 2026-11-10): `git archive` leaves out the internal working files —
+# the rework plan, the Claude Code settings and CLAUDE.md. The repository and its branches keep
+# them. Command in deploy/OWNER-RUNBOOK.md ("A clean source package").
+plan/ export-ignore
+.claude/ export-ignore
+CLAUDE.md export-ignore
+.gitattributes export-ignore

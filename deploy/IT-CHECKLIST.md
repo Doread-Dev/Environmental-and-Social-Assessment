@@ -18,10 +18,10 @@ second disk or a network share.
 
 | | Supported | Tested |
 |---|---|---|
-| **Windows Server** 2019, 2022 or 2025 (Windows 10/11 for a test machine) | yes | on Windows 11: the full install; the service and the backup task by the owner's test kit, before the last service fix (PR #25, covered by tests only) |
+| **Windows Server** 2019, 2022 or 2025 (Windows 10/11 for a test machine) | yes | on Windows 11: the full install, the service and the backup task (one later service change covered by automated tests only) |
 | **Ubuntu Server** 24.04 LTS or 26.04 LTS (systemd) | yes | scripts checked, **not yet run on a real server** |
 
-Both are supported equally (D75). Windows is the tested path. If you choose Ubuntu, plan a test
+Both are supported equally. Windows is the tested path. If you choose Ubuntu, plan a test
 install on a spare machine first and tell the owner what differs from the guide.
 
 ### MongoDB 8 and the Linux kernel (Ubuntu only)
@@ -60,7 +60,7 @@ file share). Use the newest patch release of the line shown.
 
 | What | Version | Download page | Note |
 |---|---|---|---|
-| ESMS release `esms-2.0.0-<date>-<commit>.zip` | 2.0.0 | from the owner (built with `deploy/build-release.mjs`) | the app with all its packages; nothing to download on the server |
+| ESMS release `esms-<version>-<date>-<commit>.zip` | the latest (see `VERSION`) | from the owner (built with `deploy/build-release.mjs`) | the app with all its packages; nothing to download on the server |
 | Node.js, LTS | **26.x** (tested 26.13.0) — Windows x64 `.msi` / Linux x64 `.tar.xz` | https://nodejs.org/en/download | the install scripts refuse another major version |
 | MongoDB Community Server | **8.0.x (8.0.30 or later)** recommended; 8.3.x (tested 8.3.3 on Windows) or 7.0.x also work | https://www.mongodb.com/try/download/community | Windows `.msi`; Ubuntu `.deb` (`mongodb-org-server`), check the kernel first |
 | MongoDB Database Tools | **100.x** (tested 100.20.1) | https://www.mongodb.com/try/download/database-tools | `mongodump` / `mongorestore` for the backups |
@@ -146,8 +146,8 @@ in Windows or Linux. There is no link to Active Directory in v2.
   install, after every MongoDB upgrade, and every few months. It restores the latest data into a
   separate, empty database and compares every count and every file; it must end with
   `RESTORE CHECK PASSED`. Keep its output with your install notes.
-- **A real restore** (lost data, new server) is in [README.md](README.md#backups) and the owner
-  runbook; it replaces the database, so it is done only with the owner.
+- **A real restore** (lost data, new server) is in [README.md](README.md#backups); it replaces the
+  database, so it is done only with the owner.
 
 ---
 

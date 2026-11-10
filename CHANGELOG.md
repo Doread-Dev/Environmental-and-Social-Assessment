@@ -1,8 +1,7 @@
 # Changelog
 
-All notable changes to ESMS. Versions follow `MAJOR.MINOR.PATCH`; the version is the same in
-`backend/`, `frontend/` and `e2e/package.json`, `GET /health` reports it, the app shows it at the
-bottom of the user menu, and the release archive carries it in its name
+All notable changes to ESMS. Versions follow `MAJOR.MINOR.PATCH`. The running version is shown at
+the bottom of the user menu and in `GET /health`, and the release archive carries it in its name
 (`esms-<version>-<date>-<commit>.zip`).
 
 ## 2.0.1 — 2026-11-10
@@ -11,111 +10,80 @@ A fix release on top of 2.0.0.
 
 ### Fixed
 
-- **An admin could lock themselves out.** Settings → Users let an admin reset their own password.
-  The account was then marked "must change password", so the app moved to the change-password
-  page before the one-time password could be shown, and the only admin could no longer sign in.
-  Now an admin can't reset their own password, deactivate their own account or change their own
-  role from Settings → Users. The backend answers 409, the buttons are not shown on the admin's
-  own row, and the role is read-only in their own form. Their own password changes in the profile
-  (**Change password**). Another admin's account works as before. Tests:
-  `backend/tests/users.test.js`, `frontend/src/components/settings/UsersManagementSection.test.jsx`.
+- **An administrator could lock themselves out.** In Settings → Users, an administrator could
+  reset their own password. The app then asked for the new one-time password before it could be
+  shown, and the only administrator could no longer sign in. Now an administrator can't reset their
+  own password, deactivate their own account or change their own role from Settings → Users. These
+  buttons are not shown on their own row, and the server refuses them. Administrators change their
+  own password in their profile (**Change password**). Other accounts work as before.
 
 ### Known limits
 
-Those of 2.0.0 below.
+The same as 2.0.0, below.
 
 ## 2.0.0 — 2026-11-09
 
-The finished v2 (D77): the rework of the first version in phases 0–12a and 14
-([plan/README.md](plan/README.md), decisions D1–D79 in [plan/DECISIONS.md](plan/DECISIONS.md)),
-for the organisation's internal, offline server.
+The second version of ESMS, for the organisation's internal, offline server.
 
-### What v2 contains
+### What 2.0.0 contains
 
-- **The workflow, ruled by the backend:** Screening (Tool 1) → Assessment (Tool 2) → SEMP:
-  Management Activities (Tool 3) + Mitigation Plan (Tool 4) → Monitoring (Tool 5). Gates, locks,
-  submit / approve / reject with recommendations and reasons, status history, archive / restore,
-  guarded delete and the admin's permanent delete of archived projects
-  ([workflow rules](docs/workflow-rules.md)).
-- **Roles and permissions:** admin, environmental specialist, program manager, project manager,
-  environmental focal point, viewer; every route checks a named permission and the project access
-  ([roles and permissions](docs/roles-and-permissions.md)).
-- **Users and passwords without e-mail:** the first admin from a script, then users created in
-  Settings → Users with a one-time temporary password, a forced change at first sign-in, password
-  reset, deactivate / reactivate.
-- **Project documents and the reference library:** PDF and Office files (10 MB), an in-app PDF
-  viewer, library documents linked to the tools and opened from each tool's Guidance panel.
-- **Critical-actions log:** deletes, archive / restore, permanent delete, user and access changes,
-  with who and a snapshot (Settings → Activity log, admin).
-- **Safe editing:** stale saves refused ("Someone else changed this"), sign-in again on the page
-  when the session expires, an unsaved-changes guard on every edit page, one request per click.
-- **Excel export** of each tool and of the whole project (complete, status and date in the
-  file name, Arabic cells right to left).
-- **One English UI** in light and dark mode, IBM Plex Sans / Plex Sans Arabic and the Material
-  Symbols icons self-hosted (the icon font is a subset of the icons the app uses), nothing loaded
-  from the internet.
-- **Server install:** one Node.js process serves the app and the API; MongoDB as a single-node
-  replica set (transactions); IIS or nginx in front for HTTPS; install, backup (daily, 30 days, a
-  second disk or a share) and restore scripts for Windows Server and Ubuntu
-  ([deploy/README.md](deploy/README.md), [IT checklist](deploy/IT-CHECKLIST.md),
-  [owner runbook](deploy/OWNER-RUNBOOK.md)).
-- **User guide and in-app Help (D78):** a guide for every role in English and Arabic
-  ([docs/user-guide/](docs/user-guide/README.md)), read in the app on the Help page. Each user
-  sees only the parts their permissions allow, filtered by the server (`GET /api/v1/help`). The
-  page has a contents list that follows the reading position, an English / Arabic switch (Arabic
-  right to left) and a print layout. A Help button in the corner of every page opens that page's
-  section.
-- **Tests:** backend and frontend unit / integration tests with coverage floors, Playwright
-  end-to-end tests of the golden flows in Chromium, CI on every pull request
-  ([developer guide](docs/developer-guide.md)).
-
-### Phase 12a (release readiness)
-
-- Version 2.0.0; `GET /health` returns `version`; the version in the user menu; this changelog;
-  the version in the release archive name; `deploy/IT-CHECKLIST.md` and
-  `deploy/OWNER-RUNBOOK.md`.
-- Fixed: the assessment metadata showed Arabic text next to Officer Name / Position (now "(on
-  submit)"), and its four text areas had no label; the monitoring data entry showed "Cancel" to a
-  viewer; the header "Export Excel" could be clicked before the tool page was ready (now disabled
-  until then); the Tool 5 lock cards named Tool 2 instead of Tools 3 and 4; "Save as Draft" on the
-  assessment scoring gave no "Saved" feedback; Arabic project titles, locations and texts are shown
-  right to left (`dir="auto"`), also in the Tools 3/4 cells; the Tools 3/4 pages have the phone /
-  tablet menu, and the menu shows done tools like the desktop sidebar; a viewer no longer sees
-  "Edit Assessment" on a rejected assessment.
-- The Material Symbols font in the build is a subset (~170 kB instead of ~4 MB).
-- Cleaned: unused files and exports, stale comments, `.gitignore`; code comments in English (a test
-  guards it); docs checked against the code; the backend package marked `UNLICENSED`.
-
-### Phase 14 (user guide)
-
-- The guide (13 parts per language, tagged by permission), the Help endpoint and page, the
-  floating Help button, and the guide files in the release and in both install scripts.
-- The Project workbook export is a bar at the top of the project overview.
-- Fixed: the screening submit confirmation named a single role as the one who can reject; it now
-  says "a reviewer".
+- **The workflow, enforced by the server:** Screening (Tool 1) → Assessment (Tool 2) → SEMP:
+  Management Activities (Tool 3) + Mitigation Plan (Tool 4) → Monitoring (Tool 5). It covers:
+  - steps that open in order and lock after approval;
+  - submit, approve and reject, with recommendations and reasons;
+  - status history;
+  - archive and restore, a guarded delete, and the administrator's permanent delete of archived
+    projects.
+- **Roles and permissions:** administrator, environmental specialist, program manager, project
+  manager, environmental focal point and viewer. Every action checks the user's permissions and
+  their access to the project.
+- **Users and passwords without e-mail:**
+  - the first administrator is created by a script;
+  - administrators create the other users in Settings → Users, each with a one-time temporary
+    password that must be changed at the first sign-in;
+  - administrators can reset passwords and deactivate or reactivate accounts.
+- **Project documents and the reference library:** PDF and Office files (up to 10 MB) and an in-app
+  PDF viewer. Library documents are linked to the tools and opened from each tool's Guidance panel.
+- **Activity log:** deletes, archive and restore, permanent deletes, and user and access changes,
+  with who did it and when (Settings → Activity log, administrators).
+- **Safe editing:**
+  - a save is refused when someone else changed the same data meanwhile;
+  - an expired session signs in again on the same page;
+  - a warning appears before leaving unsaved changes;
+  - a double click sends only one request.
+- **Excel export** of each tool and of the whole project, with the status and date in the file
+  name. Arabic text is right to left.
+- **User guide and in-app Help** in English and Arabic ([user guide](docs/user-guide/README.md)).
+  Each user sees only the parts for their role. A Help button on every page opens that page's
+  section, and the guide can be printed.
+- **Works fully offline:** the fonts and icons are served by the server, and nothing is loaded from
+  the internet. The interface is in English, in light and dark mode.
+- **Server installation** for Windows Server and Ubuntu ([server guide](deploy/README.md),
+  [IT checklist](deploy/IT-CHECKLIST.md)):
+  - one Node.js service serves the app;
+  - MongoDB runs as a single-node replica set;
+  - IIS or nginx in front provides HTTPS;
+  - a backup runs daily, keeps 30 days and goes to a second disk or a network share, with restore
+    scripts.
+- **Quality:** automated unit, integration and end-to-end tests run on every change.
 
 ### Known limits
 
-- **Linux install path not run on a real server.** The Ubuntu scripts are checked (`bash -n`,
-  shellcheck) and do the same work through the same Node scripts as the Windows ones, which were
-  run on a Windows 11 test machine. The first Linux install should follow
+- **Linux install path not run on a real server.** The Ubuntu scripts are checked automatically and
+  do the same work, through the same Node.js scripts, as the Windows ones. The Windows ones were run
+  on a Windows 11 test machine. The first Linux install should follow
   [INSTALL-LINUX.md](deploy/INSTALL-LINUX.md) step by step.
-- **Windows service: the last fix was not run on a real machine.** The owner's service test kit
-  registered and checked the Windows service and the backup task (31 checks) on the build before
-  the fix that removed the service's dependency on MongoDB (PR #25). That fix is covered by
-  `backend/tests/deployScripts.test.js` but was not run again on a real machine.
+- **Windows service:** the install script registered and checked the Windows service and the backup
+  task on a test machine (31 checks). One later change to the service settings (no dependency on
+  the MongoDB service) is covered by automated tests but was not run again on a real machine.
 - **Not yet installed on a Windows Server edition.** Tested on Windows 11.
-- **HTTPS certificate and server OS** wait on the organisation's IT
-  ([IT checklist](deploy/IT-CHECKLIST.md)).
-- **`npm audit`:** the backend's production packages are clean. The frontend reports 2 moderate
-  findings through `exceljs` → `uuid`: they concern `uuid` v3 / v5 / v6 called with a buffer,
-  which ExcelJS does not do; the only offered fix is a downgrade of ExcelJS, so it is left as is.
-- **v3 modules are locked buttons only:** SEMP Plan, Stakeholder Awareness, GHG Emissions and
-  Environmental Data Collection show "Available in v3" and do nothing (D48, D70).
-- **The UI/UX design (phase 13) moved to v3** (D77): a redesign from scratch of the information
-  architecture, navigation, page layouts and design system (D79). The current layout is v2's;
-  its list of open UI items is kept in
-  [plan/phases/13-page-by-page-ui-review.md](plan/phases/13-page-by-page-ui-review.md).
+- **The HTTPS certificate and the server operating system** are decided with the organisation's
+  IT ([IT checklist](deploy/IT-CHECKLIST.md)).
+- **Package audit:** the server's packages have no known vulnerabilities. The browser app has 2
+  moderate findings in `exceljs` → `uuid`. They concern `uuid` v3 / v5 / v6 called with a buffer,
+  which ExcelJS does not do. The only offered fix is an older ExcelJS, so it is left as is.
+- **Modules planned for version 3** (SEMP Plan, Stakeholder Awareness, GHG Emissions,
+  Environmental Data Collection) show "Available in v3" and can't be opened yet.
+- **A redesigned interface** is planned for version 3.
 - **Office files** (Word, Excel, PowerPoint) are downloaded, not previewed in the app.
-- Sessions: a JWT in the browser, 12 hours, no server-side revocation (a v3 topic,
-  [V3_VISION.md](plan/V3_VISION.md)).
+- **Sign-in sessions** last 12 hours and can't be ended from the server before then.

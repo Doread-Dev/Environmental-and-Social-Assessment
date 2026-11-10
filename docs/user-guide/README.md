@@ -6,8 +6,8 @@ The guide for the people who use ESMS 2.0.0, in two languages with the same stru
 - [العربية](ar/00-introduction.md) (`ar/`): the same parts and sections, in Modern Standard Arabic.
 
 Users read it in the app: the Help page shows each user only the sections their role may use.
-These Markdown files are its single source. Developers and IT have the
-[technical docs](../README.md) and the [server guides](../../deploy/README.md).
+These Markdown files are its single source. IT has the [server guides](../../deploy/README.md);
+developers have the technical docs in the repository (`docs/`).
 
 ## Parts
 

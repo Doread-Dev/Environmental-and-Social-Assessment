@@ -52,5 +52,8 @@ Tests: `npm test` in `backend/` and `frontend/`; the end-to-end flows with `npm 
   permissions, workflow rules, developer guide, style guide.
 - [User guide](docs/user-guide/README.md) for the people who use the app, in
   [English](docs/user-guide/en/00-introduction.md) and [Arabic](docs/user-guide/ar/00-introduction.md).
-- [Server installation and backups](deploy/README.md) (for IT).
+- [Server installation and backups](deploy/README.md), for IT; the release package carries
+  `deploy/` without the owner runbook.
+- [Owner runbook](deploy/OWNER-RUNBOOK.md): building a release, updates, first users, restore and
+  logs. It stays in the repository.
 - [Decisions](plan/DECISIONS.md) and [phase plan](plan/README.md).

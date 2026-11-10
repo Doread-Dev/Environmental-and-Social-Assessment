@@ -88,7 +88,7 @@ window.__audit = function (opts = {}) {
 };
 
 // Every playground at once, from any playground page: await window.__auditAll()
-window.__auditAll = async function (pages = ['foundations', 'components-inputs', 'components-data', 'components-nav', 'patterns-workflow', 'core-pages', 'lists-and-admin', 'account-and-readers', 'app-shell-options'], opts = { limit: 500 }) {
+window.__auditAll = async function (pages = ['foundations', 'components-inputs', 'components-data', 'components-nav', 'patterns-workflow', 'patterns-tasks', 'core-pages', 'lists-and-admin', 'account-and-readers', 'app-shell-options'], opts = { limit: 500 }) {
   const src = await fetch('audit.js?' + Date.now()).then(r => r.text());
   const out = {};
   for (const p of pages) {

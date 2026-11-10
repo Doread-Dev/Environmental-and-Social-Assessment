@@ -359,6 +359,36 @@ Layer 3 of the design system: how the components combine into whole pieces of wo
   - **session ended:** over the same page, password only, the person returns exactly where they were with their changes;
   - **offline:** the bar under the header and a save bar that keeps the count and says why Save is unavailable; nothing is saved automatically when the connection comes back (someone else may have saved meanwhile).
 
+## Patterns, group B: tasks (proposal, 2026-11-10 — playground [design/patterns-tasks.html](design/patterns-tasks.html))
+The rest of the recurring work, built from the components and patterns A.
+- **New project and its team (three people, three moments):**
+  - the creator fills in a form with errors at the field ("Enter an end date after the start date (1 Apr 2026)"); a sentence before "Create project" says they will be added as Focal Point and that access managers will be asked to assign the team;
+  - the project opens on its overview with the code (ESMS-031), an info strip that names who was asked, and one main action, "Start screening";
+  - access managers get a notification and a "Needs your action" row "New project needs a team" with "Assign team", which opens the Give access panel for that project.
+- **Uploading:**
+  - a side panel with "Attach to" (required, because every project document needs its workflow place; prefilled from where the person came from);
+  - "Choose files" first, dropping as a shortcut; on a phone also "Take a photo";
+  - the allowed types and the limit are written before anyone tries, and the limit comes from the server setting;
+  - each file has its own state: uploading with progress and Cancel, uploaded, or refused with the reason and the fix ("Larger than 10 MB, the limit. Compress the PDF or split it"). A refused file stays in the list and never stops the others;
+  - photos show as thumbnails; the footer counts ("2 of 5 uploaded · 2 refused").
+- **Giving access:**
+  - one panel, opened from the project ("People on this project"), the user and the Access page;
+  - fields: person, role (each with a sentence saying what it allows) and where (this project / chosen projects / whole organisation);
+  - a choice the person giving access may not use is shown with its reason, not hidden;
+  - a result sentence before the press;
+  - nobody changes their own access;
+  - removing access happens at once with Undo; both changes are logged.
+- **Archive, delete, restore:**
+  - the project menu says what is possible and why ("Approved work cannot be deleted. Archive the project instead");
+  - archiving happens at once with Undo; an archived project is read only, with a strip and "Restore";
+  - Deleted items counts down in days, with Restore and "Delete now…";
+  - **deleting an archived project for good** (administrator only, approved work included) asks for the project code before the button works. It is the only action that removes approved work and cannot be undone.
+- **Monitoring entry (Tool 5):**
+  - the grid works like a spreadsheet (owner, 2026-11-10: the teams fill monitoring from their Excel files): Tab moves to the next column, Enter moves down, and a block copied from Excel pastes into the cells it covers, with Undo and the pasted cells tinted until saved;
+  - values are kept as typed (D57);
+  - a gap is marked in the cell itself (dashed border, icon and the word "Gap"), with a strip that counts them and "Show only gaps";
+  - on a phone each indicator is a card (components group 2).
+
 ## Build notes for the v2.5 phases (collected during the design, 2026-11-10)
 **How these are handled:** the design stage (this file) only records them. Step 5 below turns them into decisions in [DECISIONS.md](DECISIONS.md) and puts each one in the scope of a v2.5 phase file in [phases/](phases/); the phase session that owns that part builds and tests it, and the main chat reviews the code. **Rule (owner, 2026-11-10):** questions about implementation (sizes, types, limits, server settings) are still asked as they come up, and the answer is recorded here; but the work is **assigned to the phase that builds it**, never done now at the expense of the design. v2.5 is above all the design: small and medium changes the design needs go in this table; a large structural change goes to v3 ([V3_VISION.md](V3_VISION.md)) instead. A related change that fits with an item already here (permissions, project code, deleted items, passwords…) is added to this table.
 
@@ -383,6 +413,9 @@ Layer 3 of the design system: how the components combine into whole pieces of wo
 | The workflow sends, per step, its kind (reviewed or working) and what is still missing, as field codes | Patterns A, submitting | Feeds the "Before you submit" checklist and the links to each field; fits the error-codes item. The submit check itself stays on the server (D74 2). |
 | Stale save keeps the person's changes in a list to apply again | Patterns A, interruptions | Frontend only (`useProjectSave`); the 409 `STALE_VERSION` stays as it is. |
 | Review history panel | Patterns A, returned | Frontend only, from `status_history`. |
+| Delete an archived project for good asks for the project code | Patterns B | Frontend only; the purge endpoint and its audit entry stay as they are (D60, D65). |
+| **Paste a block from Excel into the monitoring grid, with Undo** (owner, 2026-11-10: the teams fill monitoring from Excel) | Patterns B | Frontend only; the save is the same bulk save as today (D32). |
+| "Take a photo" on phones | Patterns B | A file input that accepts images and offers the camera; depends on the site-photos item above. |
 | **Reopen an approved screening or assessment** (owner, 2026-11-10) | Patterns A | A new transition `approved` → `rejected` for people who can approve, with a required reason, appended to `status_history` (for example `reopened`) and notified to the submitter. Later steps keep their data; while the step is reopened they follow today's gates (read only). |
 
 ## Quality check for the playgrounds (2026-11-10)
@@ -395,11 +428,11 @@ Layer 3 of the design system: how the components combine into whole pieces of wo
 - The same pass corrected the samples: Tools 3 and 4 were shown "In review" / "Returned", which they cannot be (they have no approval); the samples now return the Assessment, and the row problem is a missing description (the real rule that opens Tool 5), not a missing responsible person.
 
 ## Open questions
-- None open right now. (Closed on 2026-11-10: SEMP (Tools 3 and 4) stays without approval, as today; an approved step can be reopened with a reason; Arabic digits 0123; Levantine month names; AKF palette from AKF's brand guidelines; Program Manager also edits; monitoring has gaps, not dates; the project team is set by admin / specialist; deleted items kept 30 days; location and component stay free text; passwords at least 12 characters; sessions end after 8 idle hours.)
+- None open right now. (Closed on 2026-11-10: monitoring is filled from Excel, so pasting from Excel is in; SEMP (Tools 3 and 4) stays without approval, as today; an approved step can be reopened with a reason; Arabic digits 0123; Levantine month names; AKF palette from AKF's brand guidelines; Program Manager also edits; monitoring has gaps, not dates; the project team is set by admin / specialist; deleted items kept 30 days; location and component stay free text; passwords at least 12 characters; sessions end after 8 idle hours.)
 
 ## Next steps
 1. Close the open questions above. **Done.**
 2. App shell: sidebar, header, project navigation, context slot, Help — options compared with the owner on screen (playground), decision with reasons. **Done: option 1 agreed (see "App shell" above).**
 3. Page by page: priorities and layout. **Done (owner approved all groups, 2026-11-10):** shell, core pages, lists and Administration, account / sign-in / readers / system pages, each in a playground under [design/](design/), with phone views and the tablet rail. A consistency pass over the four playgrounds and these notes followed the same day: where they differed, these notes win.
-4. Design system: foundations → components → patterns. **Foundations done** (2026-11-10, owner answered the locale questions and agreed to AKF's palette). Components (layer 2): groups 1, 2 and 3 approved and committed. Patterns (layer 3): group A (the workflow cycle) proposed; group B (create a project and its team, upload, give access, archive / delete / restore, monitoring entry) next.
+4. Design system: foundations → components → patterns. **Foundations done** (2026-11-10, owner answered the locale questions and agreed to AKF's palette). Components (layer 2): groups 1, 2 and 3 approved and committed. Patterns (layer 3): group A (the workflow cycle) approved and committed; group B (tasks: new project and its team, upload, give access, archive / delete / restore, monitoring entry) proposed. Next: step 5 below.
 5. Record the outcome as decisions (DECISIONS.md), write the v2.5 phase files (each build note above goes into the scope of one phase), and rename the "phase 13" references in CLAUDE.md and plan/ in the same change.

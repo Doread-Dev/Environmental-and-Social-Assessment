@@ -95,6 +95,43 @@ describe("release version 2.0.1", () => {
     expect(read("deploy/linux/install.sh")).toMatch(/for part in [^;]* docs [^;]*; do/);
   });
 
+  // v2.0.1: the release goes to the organisation's IT. Its docs (deploy/ without the owner
+  // runbook, the user guide, the changelog) link only to files inside the release and carry no
+  // internal references (decision numbers, phases, pull requests).
+  it("the release docs for IT are self-contained and free of internal references", () => {
+    const script = read("deploy/build-release.mjs");
+    expect(script).toMatch(/path\.basename\(src\) !== 'OWNER-RUNBOOK\.md'/);
+
+    const walk = (dir) =>
+      fs.readdirSync(path.join(repo, dir), { withFileTypes: true }).flatMap((entry) => {
+        const rel = `${dir}/${entry.name}`;
+        return entry.isDirectory() ? walk(rel) : [rel];
+      });
+    const shipped = new Set([
+      ...walk("deploy").filter((f) => !f.endsWith("OWNER-RUNBOOK.md")),
+      ...walk("docs/user-guide"),
+      "CHANGELOG.md",
+    ]);
+    const problems = [];
+    for (const file of shipped) {
+      const text = read(file);
+      if (/\bD\d{2}\b|\bphase \d|\bPR #\d/i.test(text))
+        problems.push(`${file}: internal reference`);
+      if (!file.endsWith(".md")) continue;
+      for (const [, target] of text.matchAll(/\]\(([^)\s#]+)(?:#[^)]*)?\)/g)) {
+        if (/^(https?:|mailto:)/.test(target)) continue;
+        const resolved = path.posix
+          .normalize(path.posix.join(path.posix.dirname(file), target))
+          .replace(/\/$/, "");
+        const exists = fs.existsSync(path.join(repo, resolved));
+        const inside =
+          shipped.has(resolved) || [...shipped].some((f) => f.startsWith(`${resolved}/`));
+        if (!exists || !inside) problems.push(`${file} -> ${target}`);
+      }
+    }
+    expect(problems).toEqual([]);
+  });
+
   it("both install scripts copy the changelog and VERSION to the server", () => {
     expect(read("deploy/windows/install.ps1")).toMatch(
       /foreach \(\$part in @\([^)]*'VERSION', 'CHANGELOG\.md'\)\)/

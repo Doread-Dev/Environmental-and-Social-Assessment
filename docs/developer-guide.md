@@ -206,6 +206,16 @@ frontend, and the E2E run (`cd e2e && npm test`) when a flow is affected. Lint s
   third-party work: never edit or commit it ([`plan/V2_INVENTORY.md`](../plan/V2_INVENTORY.md)).
 - The official AKF workbook and the library's Annex 1 PDF are client documents: never commit them.
 
+## Hosted demo (until the server is live)
+
+Until the organisation's server runs, a demo runs on Vercel (frontend, from `main`) and Render
+(backend, from `main`, free plan without a persistent disk: uploaded files are lost on every deploy
+or restart) with MongoDB Atlas (D75). The frontend gets its API address from `VITE_API_URL` set in
+Vercel, and the API allows the Vercel address through `FRONTEND_URL`. Removing Vercel
+(`frontend/vercel.json`, the project) and the Render service is a small follow-up once the server
+is live (noted in the phase 13 file). The release package for the server does not mention any of
+this.
+
 ## Git
 
 Remote `origin` = github.com/Doread-Dev/Environmental-and-Social-Assessment. Branches: `main`

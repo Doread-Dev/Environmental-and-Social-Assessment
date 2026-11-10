@@ -1,6 +1,6 @@
 # ESMS on an internal server
 
-ESMS runs on one server inside the organisation, with no internet (D37, D38, D75). One Node.js
+ESMS runs on one server inside the organisation, with no internet. One Node.js
 process serves the app and its API on the same address; MongoDB runs on the same machine; IIS
 (Windows) or nginx (Linux) in front gives HTTPS. Backups go to a second disk or a network share
 every night.
@@ -14,27 +14,22 @@ every night.
 ```
 
 **Before install day:** the organisation's IT works through the [IT checklist](IT-CHECKLIST.md)
-(server, installers, certificate, ports, accounts, backups, the questions to answer). The owner's
-own tasks (building a release, updates, first users, restore, logs) are in the
-[owner runbook](OWNER-RUNBOOK.md).
+(server, installers, certificate, ports, accounts, backups, the questions to answer).
 
 **Pick your guide:** [Windows Server](INSTALL-WINDOWS.md) · [Ubuntu Linux](INSTALL-LINUX.md).
 Both are written for an IT person who is not a developer, on a clean machine with Node.js and
-MongoDB, offline. The Windows path was run on a Windows 11 test machine: in phase 11 every step
-but the service registration, then the owner ran `install.ps1` for real with a service test kit
-(the NSSM service and the backup task registered and checked, 31 checks) on the build before the
-"no MongoDB service dependency" fix (PR #25). That fix is covered by
-`backend/tests/deployScripts.test.js` and was not run again on a real machine (the phase 11 file,
-"Found during phase"). **The Linux path has not been run on a real server yet** (scripts checked
-with `bash -n` and shellcheck in CI).
+MongoDB, offline. **Tested:** the Windows path was run on a Windows 11 test machine, including
+`install.ps1` with the NSSM service and the backup task (31 checks); one later fix to the service
+settings (no dependency on the MongoDB service) is covered by automated tests but was not run again
+on a real machine. **The Linux path has not been run on a real server yet** (the scripts are
+checked automatically).
 
 ## What is in this folder
 
 | Path | What |
 |---|---|
 | `IT-CHECKLIST.md` | For the organisation's IT: what to prepare and decide before install day. |
-| `OWNER-RUNBOOK.md` | For the owner: releases, updates, first users, restore, logs, when the app is down. |
-| `build-release.mjs` | Builds the release on a machine **with** internet: `node deploy/build-release.mjs` → `release/esms-<version>-<date>-<commit>.zip` (or `.tar.gz`), e.g. `esms-2.0.0-2026-11-08-0fbe114.zip`. Everything the server needs, nothing to download there. |
+| `build-release.mjs` | Builds the release on a machine **with** internet: `node deploy/build-release.mjs` → `release/esms-<version>-<date>-<commit>.zip` (or `.tar.gz`), e.g. `esms-2.0.1-2026-11-10-7d6b90c.zip`. Everything the server needs, nothing to download there. |
 | `config/esms.env.example` | The server settings (`backend/.env`), every line explained. |
 | `config/mongod-windows.cfg`, `config/mongod-linux.conf` | MongoDB config with the replica set block. |
 | `windows/install.ps1` | Install / update on Windows (NSSM service, daily backup task). |
@@ -105,8 +100,8 @@ After any change: restart the ESMS service, then run `node backend/scripts/check
 ## MongoDB as a single-node replica set
 
 Transactions need a replica set; one node is enough. With it, a critical action and its audit
-entry (D65), and a Tools 3–5 bulk save with its version, either all happen or none does. Without
-it the app still works (as before phase 11) and says so in its log at start.
+entry, and a Tools 3–5 bulk save with its version, either all happen or none does. Without it the
+app still works and says so in its log at start.
 
 1. Add to MongoDB's config file (the install scripts do it with `-ConfigureMongo` /
    `--configure-mongo`):
@@ -169,17 +164,10 @@ service manager (NSSM / systemd) starts it again until MongoDB answers. Stopping
 IIS (Windows) or nginx (Linux) holds the certificate and forwards to Node on `127.0.0.1:3000`;
 examples in [proxy/](proxy/) set the forwarded headers, the upload limit (`MAX_UPLOAD_MB` + 2 MB)
 and the timeouts (120 s). Security headers (CSP, HSTS …) come from the app. Node holding the
-certificate itself is **not** supported (out of scope, D75).
+certificate itself is **not** supported.
 
 ## Updating
 
 Build a new release, carry it over, and run the install script again from the new folder: it
 stops the service, replaces the code (keeping `backend/.env`, the uploads and the logs), and
 starts it again. Take a backup first.
-
-## Vercel (until the server is live)
-
-The Vercel deployment and its PR previews keep working until the server runs (D75): there the
-frontend gets its API address from `VITE_API_URL` set in Vercel, and the API allows the Vercel
-address through `FRONTEND_URL`. Removing Vercel (`frontend/vercel.json`, the project) is a small
-follow-up once the server is live (noted in the phase 13 file, the v3 UI list).

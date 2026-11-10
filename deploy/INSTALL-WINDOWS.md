@@ -4,14 +4,12 @@ For the IT person installing ESMS. No programming needed; every command is copie
 **administrator PowerShell** (Start → type "PowerShell" → right-click → *Run as administrator*).
 The server needs no internet. Overview and settings: [README.md](README.md).
 
-> Tested on Windows 11 (Node 26, MongoDB 8.3, Database Tools 100.20.1): in phase 11 the release
-> build, replica set, the app from the release, backup, restore and the restore check; then
-> (2026-11-05/06) the owner ran `install.ps1` for real with a service test kit, under test names:
-> the NSSM service and the backup task registered and checked (31 checks: crash restart, MongoDB
-> restart, the backup task). That run was on the build **before** the fix that removed the
-> service's dependency on MongoDB (PR #25, after the kit found that a MongoDB restart left ESMS
-> stopped); the fix is covered by `backend/tests/deployScripts.test.js` but was **not run again
-> on a real machine**. Not yet done on a Windows **Server** edition either: the first real install
+> Tested on Windows 11 (Node 26, MongoDB 8.3, Database Tools 100.20.1): the release, the replica
+> set, the app from the release, backup, restore and the restore check; then `install.ps1` for
+> real, under test names: the NSSM service and the backup task registered and checked (31 checks:
+> crash restart, MongoDB restart, the backup task). One later change, that the service no longer
+> depends on the MongoDB service (so ESMS keeps running when MongoDB restarts), is covered by
+> automated tests but was **not run again on a real machine**. Not yet done on a Windows **Server** edition either: the first real install
 > should follow this guide step by step, check that ESMS keeps running while MongoDB restarts
 > ("Daily operation" below), and report anything unclear.
 

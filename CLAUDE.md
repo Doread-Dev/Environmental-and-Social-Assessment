@@ -30,6 +30,8 @@ The app is being reworked in phases. Before any change:
   silently.
 - [plan/README.md](plan/README.md) — phase order, rules for every phase, progress table. Each phase =
   one conversation, scoped by its file in `plan/phases/`.
+- [plan/V2_5_CONCEPT.md](plan/V2_5_CONCEPT.md) — the running v2.5 design concept (new design system,
+  every page redesigned, access model); working notes until recorded as decisions.
 - [plan/V3_VISION.md](plan/V3_VISION.md) — notes for the v3 restructure (not a spec).
 - [plan/V2_INVENTORY.md](plan/V2_INVENTORY.md) — what the `Environmental-and-Social-Assessment-main version 2/`
   prototype contains. That folder is git-ignored, unreviewed third-party work: never edit or commit

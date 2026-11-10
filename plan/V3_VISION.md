@@ -23,6 +23,17 @@
 - **Single sign-on:** Active Directory / LDAP or SSO for an institutional server.
 - **Organisation structure:** branches, offices or regions, if the client needs them; possibly multi-organisation.
 
+### Global use (client hint, 2026-11-10 — nothing decided)
+The client said ESMS will likely be used beyond Syria: AKF offices in other countries already work on a global AKF platform, and a button there would open ESMS so they can use its tools. Count of countries, which agencies and when: unknown. Where servers and data live is decided with the client in meetings; we advise.
+- **Entry from the global platform:** staff should arrive already signed in (single sign-on with their organisation account, see "Single sign-on" above; ask the client's IT how staff sign in to the global platform), user accounts created on first sign-in, and links that open a given page.
+- **Country / office context:** each user belongs to a country or office by their account; a switcher only for users with access to several. Head-office views across countries: allowed by the structure, not built until asked. Approval rules are expected to stay the same per country.
+- **Where data lives:** one central server or one per country (some countries require data to stay inside them). Shapes the whole structure.
+- **Languages:** the interface becomes multilingual in v2.5 (see the v2.5 notes when written). Translating content (impact questions, indicators, categories — data, not interface text) is a data-model topic for v3.
+- **Branding:** stay close to AKF's own look; exports branded per office ("AKF Syria" today).
+
+### Activities inside a project (owner, 2026-11-10)
+In v3 a project will hold **activities**. An activity is a mini-project: the project keeps its own tools, and each activity inside it goes through all the tools too (screening, assessment, Tools 3–5); users open an activity and work in it like in a project. A structural change for v3 (data model, workflow, permissions, exports); not in v2.5. The v2.5 design keeps room for it (design for variation, see [V2_5_CONCEPT.md](V2_5_CONCEPT.md)).
+
 ### Records & history
 - **Full activity log:** field-level changes for every write, project history for the roles allowed to see the project. It builds on the v2 critical-actions log entries (D65).
 - **Versioning and revisions of documents:** an approved screening or assessment can't be reopened today and has no revisions. The SEMP Plan design (D46) already has a revision history.

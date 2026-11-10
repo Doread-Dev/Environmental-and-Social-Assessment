@@ -87,12 +87,47 @@ Reviewing and editing are not separate kinds of people. The Environmental Specia
 
 The people in the playground (preparer, reviewer, reader, admin) only show typical combinations; they are not fixed screen types.
 
+## Page map (main chat, 2026-11-10 — proposal)
+Every page is built from a small set of page patterns (design-system layer 3), so a new page or a v3 activity reuses one instead of a new layout.
+
+| Pattern | Pages |
+|---|---|
+| **Work queue** (sections of "what needs me", built from permissions) | Home |
+| **Unit overview** (facts, workflow strip, next step, people, activity, documents) | Project overview (v3: activity overview) |
+| **Workflow step** (one anatomy for every tool, see below) | Tool 1 Screening; Tool 2 Assessment (parts: Context, Methods & consultation, Scoring, Summary & submit); Tool 3 Management activities; Tool 4 Mitigation plan; Tool 5 Monitoring; later SEMP Plan, Stakeholder Awareness |
+| **Collection list** (one table look: search, filters, sort, paging, empty/loading/error, row actions) | Projects, Library, project Documents, Notifications, Users, Roles, Activity log, Archive & trash |
+| **Form** (page for a long form, side panel for a short one) | New project / Edit details (page), user, role, assignment, library document (side panels) |
+| **Reader** | Help guide, PDF viewer |
+| **Auth** | Sign in, forced password change (v3: organisation sign-in) |
+| **Organisation report** (built last in v2.5) | GHG Emissions, Environmental Data Collection |
+
+New in v2.5: Notifications page, Administration (Users, Roles & permissions, Access assignments, Activity log, Archive & trash), "People on this project" on the overview, the personal page (profile, password, language, theme, my access, read only).
+
+## Core pages (proposal, 2026-11-10 — playground [design/core-pages.html](design/core-pages.html))
+**Workflow step page — the same anatomy for Tools 1–5:**
+1. Header: tool number and name (Assessment: the part), state, who/when; Export always visible; one primary action by state and permission (Submit / Resubmit; Approve + Return with comments; Add row; none for a reader); the rest under "⋯".
+2. Status strip, always in the same place: returned (reason + reviewer), submitted (locked until the decision), approved (reviewer + recommendations), incomplete (what is missing and what it unlocks, e.g. Tools 3/4 rows without a description).
+3. Body: Tool 1 form (category cards A–F with their meaning, reason, impacts); Tool 2 scoring (questions grouped by category, the level as visible buttons, a sticky summary that updates); Tools 3/4 grid with long text clamped to 3 lines and a **row editor side panel** (all fields, previous/next, responsible staff or external); Tool 5 with every column open (fill in any order, any time) and **gaps** marked: an empty value before a later filled one, Baseline counting first (e.g. Q1 and Q2 filled, Baseline empty; Q3 empty, Q4 filled); a strip names them and a filter shows only them; on a phone each indicator becomes a card with its five fields.
+4. Save bar under the content, only while editable.
+- **One page for reading and editing:** read mode is the same page without inputs. The separate "summary" and "review" pages go away; the reviewer reads exactly what the preparer wrote.
+- **Approve / return in a side panel**, not a modal, so the reviewer writes recommendations with the content in view.
+
+**Home:** sections built from the person's permissions: "Needs your action" (returned first, with the reason on the row), "Waiting for your review", "Monitoring gaps", "My projects"; organisation-wide counts only for people with organisation scope; a restricted reader sees only their projects with Export.
+
+**Project overview:** facts; the five steps on one line with states; a "Next step" card with one button; "People on this project" (with "Manage access" for those allowed); recent activity; documents. Export workbook is a header button, not a full-width bar.
+
+## Monitoring reminders: gaps, not dates (owner, 2026-11-10)
+Teams fill Tool 5 when they like, often all at once (even at the end of the year), so there are **no time-based reminders** and no due dates. The only reminder is a **gap**: an empty value before a later filled one in the order Baseline, Q1, Q2, Q3, Q4 (Baseline empty while Q1/Q2 are filled; Q3 empty while Q4 is filled). Empty quarters at the end are not gaps. The backend computes gaps (with the workflow state, never in the frontend); they show in the Tool 5 status strip, as marked cells, and in "Monitoring gaps" on the home, and disappear once fixed. No notification is sent for a gap.
+
+## Project team (owner, 2026-11-10)
+The person who creates a project does not choose its team (they may be a Focal Point without that right). Access to a project is managed by people with the "manage access" permission (admin and Environmental Specialist in the starting roles). Proposal: the creator is assigned to the new project automatically with their own role, so they can continue working on it, and people who can manage access get an in-app notification "New project — assign its team".
+
 ## Open questions
-- None open right now. (Closed: the Programme Manager also edits at times — see above.)
+- None open right now. (Closed on 2026-11-10: Programme Manager also edits; monitoring has gaps, not dates; the project team is set by admin / specialist.)
 
 ## Next steps
 1. Close the open questions above.
 2. App shell: sidebar, header, project navigation, context slot, Help — options compared with the owner on screen (playground), decision with reasons. **Done: option 1 agreed (see "App shell" above).**
-3. Page by page: priorities and layout.
+3. Page by page: priorities and layout. **In progress:** page map and the core pages (Home, Project overview, workflow step page) proposed; next the collection lists, Administration and the remaining pages.
 4. Design system: foundations → components → patterns.
 5. Record the outcome as decisions (DECISIONS.md), write the v2.5 phase files, and rename the "phase 13" references in CLAUDE.md and plan/ in the same change.

@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ESMS v2.5 — Core pages</title>
+<style>
+:root{--bg:#14161a;--panel:#1b1e23;--panel2:#23272d;--line:#30353d;--ink:#e8eaed;--muted:#9ba2ac;--accent:#86b6ec;--good:#7fd1a0;--bad:#f0a093}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.65 system-ui,"Segoe UI",Tahoma,sans-serif}
+button{font:inherit;color:inherit}
+.app{display:grid;grid-template-columns:350px minmax(0,1fr);min-height:100vh}
+.controls{background:var(--panel);border-inline-end:1px solid var(--line);padding:18px 18px 40px;height:100vh;overflow:auto;position:sticky;top:0}
+.controls h1{font-size:17px;margin:0 0 4px}
+.intro{color:var(--muted);font-size:12.5px;margin:0 0 6px}
+.grp{margin-top:15px}
+.gl{font-size:12px;color:var(--muted);margin-bottom:6px;display:block}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.presets button{background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:4px 11px;font-size:12px;cursor:pointer}
+.presets button:hover{border-color:var(--accent)}
+.seg{display:flex;flex-wrap:wrap;gap:4px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:3px}
+.seg button{flex:1 1 auto;border:0;background:transparent;border-radius:6px;padding:5px 8px;font-size:12.5px;cursor:pointer;white-space:nowrap}
+.seg button.on{background:var(--accent);color:#0d1b2a;font-weight:600}
+.seg button:disabled{opacity:.35;cursor:default}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;padding:3px 0;cursor:pointer}
+.chk input{accent-color:var(--accent)}
+.chk.dis{opacity:.4;cursor:default}
+.hide{display:none!important}
+.stage{padding:18px 22px 40px;min-width:0}
+.stage-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;font-size:13px;color:var(--muted)}
+.stage-bar b{color:var(--ink)}
+.viewport{position:relative;background:#0e1013;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+#frame{position:absolute;top:12px;transform-origin:top left;box-shadow:0 10px 40px rgba(0,0,0,.5);border-radius:8px}
+.boxes{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.box h2{font-size:15px;margin:0 0 8px}
+.box ul{margin:0;padding-inline-start:20px}
+.box li{margin-bottom:6px;font-size:13.5px}
+.box.q{border-color:#6b5a1e;background:#1f1c12}
+.box.q li{margin-bottom:10px}
+.output{margin-top:16px}
+.output textarea{width:100%;min-height:70px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:8px 10px;font:inherit;font-size:13px;resize:vertical}
+.prompt{white-space:pre-wrap;background:#0e1013;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:13px;margin-top:8px}
+.copy{margin-top:8px;background:var(--accent);color:#0d1b2a;border:0;border-radius:8px;padding:7px 16px;font-weight:600;cursor:pointer}
+@media (max-width:1100px){.boxes{grid-template-columns:1fr}}
+@media (max-width:860px){.app{grid-template-columns:1fr}.controls{position:static;height:auto}}
+
+/* ---------- wireframe ---------- */
+.f-shell{--w-bg:#f2f3f5;--w-sf:#fff;--w-ln:#d7dbe1;--w-ink:#262a30;--w-mu:#868d98;--w-ac:#2f6db5;--w-acbg:#e5eef9;--w-ok:#3b7a55;--w-okbg:#e7f3ec;--w-bad:#b0473a;--w-badbg:#f9e8e5;--w-warnbg:#fbf3dc;--w-warn:#8a6a10;
+  position:relative;width:100%;height:100%;background:var(--w-bg);color:var(--w-ink);font:13px/1.45 system-ui,"Segoe UI",Tahoma,sans-serif;display:flex;flex-direction:column;overflow:hidden;border-radius:8px}
+.f-shell .ic{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.f-header{height:48px;flex:none;display:flex;align-items:center;gap:8px;padding-inline:12px;background:var(--w-sf);border-bottom:1px solid var(--w-ln);z-index:9}
+.logo{font-weight:700;padding:2px 8px;border:1.5px solid var(--w-ink);border-radius:4px;font-size:12px}
+.ctx{font-size:11.5px;color:var(--w-mu);border:1px dashed #b9bfc8;padding:1px 9px;border-radius:99px}
+.hsp{flex:1}
+.search{display:flex;align-items:center;gap:6px;width:250px;height:30px;border:1px solid var(--w-ln);border-radius:6px;padding-inline:8px;color:var(--w-mu);font-size:12px;background:var(--w-bg)}
+.ib{width:32px;height:32px;display:grid;place-items:center;border-radius:6px;position:relative;flex:none}
+.badge{position:absolute;top:2px;inset-inline-end:2px;min-width:15px;height:15px;border-radius:99px;background:var(--w-bad);color:#fff;font-size:9px;font-weight:700;display:grid;place-items:center}
+.avatar{width:28px;height:28px;border-radius:50%;background:#dfe2e7;display:grid;place-items:center;font-size:11px;font-weight:700}
+.f-body{flex:1;display:flex;min-height:0;position:relative}
+.side{flex:none;width:250px;background:var(--w-sf);border-inline-end:1px solid var(--w-ln);display:flex;flex-direction:column;overflow:auto;padding:10px 8px}
+.ni{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;font-size:13px;white-space:nowrap}
+.ni.on{background:var(--w-acbg);color:var(--w-ac);font-weight:600}
+.ni.muted{color:var(--w-mu);font-size:12.5px}
+.sec{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--w-mu);padding:12px 10px 4px}
+.unit{padding:6px 10px 10px;margin-bottom:4px;border-bottom:1px solid var(--w-ln)}
+.unit-kind{font-size:10.5px;color:var(--w-mu);text-transform:uppercase;letter-spacing:.5px}
+.unit-name{font-weight:650;font-size:13.5px;line-height:1.3}
+.unit-meta{font-size:11px;color:var(--w-mu);display:flex;gap:6px;align-items:center;margin-top:4px}
+.chip{font-size:10.5px;padding:1px 8px;border-radius:99px;background:var(--w-bg);border:1px solid var(--w-ln);white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.chip.ac{background:var(--w-acbg);border-color:transparent;color:var(--w-ac)}
+.chip.ok{background:var(--w-okbg);border-color:transparent;color:var(--w-ok)}
+.chip.bad{background:var(--w-badbg);border-color:transparent;color:var(--w-bad)}
+.chip.warn{background:var(--w-warnbg);border-color:transparent;color:var(--w-warn)}
+.step{display:flex;align-items:center;gap:9px;padding:6px 10px;border-radius:6px;font-size:13px;white-space:nowrap}
+.dot{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:700;border:1.5px solid var(--w-ink)}
+.st-ok .dot{background:var(--w-ok);border-color:var(--w-ok);color:#fff}
+.st-cur .dot{border-color:var(--w-ac);color:var(--w-ac)}
+.st-bad .dot{border-color:var(--w-bad);color:var(--w-bad)}
+.st-lock{color:var(--w-mu)} .st-lock .dot{border-style:dashed;border-color:#a9b0ba}
+.step.on{background:var(--w-acbg)}
+.step .sl{margin-inline-start:auto;font-size:10.5px;color:var(--w-mu)}
+.subs{margin-inline-start:29px;border-inline-start:1.5px solid var(--w-ln);padding-inline-start:6px;margin-block:2px 4px}
+.subs a{display:block;padding:3px 8px;font-size:12px;border-radius:5px;color:var(--w-mu)}
+.subs a.on{color:var(--w-ac);font-weight:600;background:var(--w-acbg)}
+.f-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.f-page{flex:1;overflow:auto;padding:18px 22px}
+.crumbs{font-size:11.5px;color:var(--w-mu);margin-bottom:4px}
+.eyebrow{font-size:11px;color:var(--w-mu);text-transform:uppercase;letter-spacing:.5px}
+.ph{display:flex;align-items:flex-start;gap:10px 12px;margin-bottom:12px;flex-wrap:wrap}
+.ph h1{font-size:19px;margin:0;font-weight:650;line-height:1.3}
+.ph .tt{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.meta{font-size:11.5px;color:var(--w-mu);margin-top:3px}
+.acts{margin-inline-start:auto;display:flex;gap:8px;flex-wrap:wrap}
+.btn{height:30px;padding:0 12px;border-radius:6px;border:1px solid var(--w-ln);background:var(--w-sf);display:inline-flex;align-items:center;gap:6px;font-size:12.5px;white-space:nowrap}
+.btn .ic{width:15px;height:15px}
+.btn.pr{background:var(--w-ink);color:#fff;border-color:var(--w-ink)}
+.btn.icon{padding:0 8px}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--w-ac)}
+.btn.danger{color:var(--w-bad)}
+.strip{display:flex;gap:12px;align-items:flex-start;border-radius:8px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;border:1px solid transparent}
+.strip .ic{margin-top:1px}
+.strip b{display:block;font-size:13px}
+.strip .grow{flex:1}
+.strip.bad{background:var(--w-badbg);color:#6d2a22}
+.strip.ok{background:var(--w-okbg);color:#24503a}
+.strip.info{background:var(--w-acbg);color:#1f4675}
+.strip.neutral{background:var(--w-sf);border-color:var(--w-ln)}
+.strip.warn{background:var(--w-warnbg);color:#5c470a}
+.card{background:var(--w-sf);border:1px solid var(--w-ln);border-radius:8px;padding:14px}
+.card h3{margin:0 0 8px;font-size:13.5px;display:flex;align-items:center;gap:8px}
+.card h3 .grow{flex:1}
+.row{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--w-ln);font-size:12.5px}
+.card .row:first-of-type{border-top:0}
+.row .grow{flex:1;min-width:0}
+.sub{color:var(--w-mu);font-size:11.5px}
+.bar{height:8px;border-radius:4px;background:#e3e6ea}
+.bar.dk{background:#cdd3db}
+.grid2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px;align-items:start}
+.stack{display:flex;flex-direction:column;gap:14px}
+.fsec{margin-bottom:16px}
+.fsec>label{display:block;font-size:12px;font-weight:600;margin-bottom:6px}
+.fsec>label .sub{font-weight:400}
+.inp{border:1px solid var(--w-ln);background:var(--w-sf);border-radius:6px;padding:9px 10px;min-height:34px}
+.inp.ta{min-height:74px}
+.ro{padding:2px 0}
+.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cat{border:1px solid var(--w-ln);border-radius:8px;padding:9px 10px;background:var(--w-sf);display:flex;gap:10px;align-items:flex-start}
+.cat b{font-size:15px;width:24px;height:24px;border-radius:6px;background:var(--w-bg);display:grid;place-items:center;flex:none}
+.cat.on{border-color:var(--w-ac);box-shadow:0 0 0 1px var(--w-ac) inset}
+.cat.on b{background:var(--w-ac);color:#fff}
+.cat.off{opacity:.45}
+.qgrp{margin-bottom:14px}
+.qhead{display:flex;align-items:center;gap:8px;font-weight:650;font-size:12.5px;padding:6px 2px}
+.q{display:flex;align-items:center;gap:12px;padding:9px 12px;background:var(--w-sf);border:1px solid var(--w-ln);border-top:0}
+.q:first-of-type{border-top:1px solid var(--w-ln);border-radius:8px 8px 0 0}
+.q:last-child{border-radius:0 0 8px 8px}
+.q .grow{flex:1;min-width:0}
+.lv{display:inline-flex;border:1px solid var(--w-ln);border-radius:6px;overflow:hidden;flex:none}
+.lv span{padding:3px 8px;font-size:11px;border-inline-start:1px solid var(--w-ln);color:var(--w-mu)}
+.lv span:first-child{border-inline-start:0}
+.lv span.on{background:var(--w-ink);color:#fff}
+.sumbar{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:7px}
+.sumbar .lbl{width:74px}
+.sumbar .track{flex:1;height:8px;border-radius:4px;background:#eceef1;overflow:hidden}
+.sumbar .track i{display:block;height:100%;background:#9aa4b1}
+.tbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.tbar .grow{flex:1}
+.mini-search{display:flex;align-items:center;gap:6px;height:30px;width:200px;border:1px solid var(--w-ln);border-radius:6px;padding-inline:8px;color:var(--w-mu);font-size:12px;background:var(--w-sf)}
+.tbl{background:var(--w-sf);border:1px solid var(--w-ln);border-radius:8px;overflow:hidden}
+.tr{display:grid;gap:12px;padding:10px 12px;border-bottom:1px solid var(--w-ln);align-items:start}
+.tr:last-child{border-bottom:0}
+.tr.th{background:#f7f8fa;font-size:11px;color:var(--w-mu);font-weight:600;align-items:center}
+.tr.sel{background:var(--w-acbg);box-shadow:inset 3px 0 0 var(--w-ac)}
+.tr.grp{background:#fafbfc;font-weight:650;font-size:12px;padding:7px 12px}
+.lines{display:flex;flex-direction:column;gap:6px}
+.cell-in{border:1px solid var(--w-ac);background:#fff;border-radius:5px;height:26px}
+.cell-ro{height:8px;border-radius:4px;background:#e3e6ea;margin-top:9px}
+.col-focus{background:#f4f8fd}
+.flag{width:7px;height:7px;border-radius:50%;background:var(--w-bad);display:inline-block}
+.panel{flex:none;width:340px;background:var(--w-sf);border-inline-start:1px solid var(--w-ln);display:flex;flex-direction:column;z-index:5}
+.panel .phd{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--w-ln);font-weight:650}
+.panel .pbd{padding:14px;flex:1;overflow:auto}
+.panel .pft{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--w-ln)}
+.panel .pft .grow{flex:1}
+.tabs2{display:flex;border:1px solid var(--w-ln);border-radius:7px;overflow:hidden;margin-bottom:12px}
+.tabs2 span{flex:1;text-align:center;padding:6px;font-size:12px}
+.tabs2 span.on{background:var(--w-ink);color:#fff}
+.savebar{flex:none;display:flex;align-items:center;gap:8px;padding:9px 22px;background:var(--w-sf);border-top:1px solid var(--w-ln);font-size:12.5px}
+.savebar .grow{flex:1;color:var(--w-mu)}
+.wf{display:flex;gap:0;margin-bottom:14px;background:var(--w-sf);border:1px solid var(--w-ln);border-radius:8px;padding:12px 8px}
+.wf .w{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;font-size:11.5px;position:relative}
+.wf .w::after{content:"";position:absolute;top:10px;inset-inline-start:calc(50% + 14px);inset-inline-end:calc(-50% + 14px);height:1.5px;background:var(--w-ln)}
+.wf .w:last-child::after{display:none}
+.next{display:flex;align-items:center;gap:14px;background:var(--w-ink);color:#fff;border-radius:8px;padding:14px 16px;margin-bottom:14px}
+.next .grow{flex:1}
+.next .sub{color:#c3c8cf}
+.next .btn{background:#fff;color:var(--w-ink);border-color:#fff}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;font-size:12px}
+.facts span{display:block;color:var(--w-mu);font-size:11px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stat{background:var(--w-sf);border:1px solid var(--w-ln);border-radius:8px;padding:10px 12px}
+.stat b{display:block;font-size:20px}
+.stat span{font-size:11.5px;color:var(--w-mu)}
+.stepbar{flex:none;display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--w-sf);border-bottom:1px solid var(--w-ln);font-size:12.5px}
+.stepbar .grow{flex:1}
+.pills{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px}
+.pill{padding:3px 11px;border-radius:99px;font-size:12px;border:1px solid var(--w-ln);background:var(--w-sf);white-space:nowrap}
+.pill.on{background:var(--w-acbg);color:var(--w-ac);border-color:transparent;font-weight:600}
+.dev-phone .f-page{padding:14px}
+.dev-phone .ph h1{font-size:16px}
+.dev-phone .acts{margin-inline-start:0;width:100%}
+.dev-phone .acts .btn.pr{flex:1;justify-content:center}
+.dev-phone .grid2,.dev-phone .cats{grid-template-columns:1fr}
+.dev-phone .facts,.dev-phone .stats{grid-template-columns:1fr 1fr}
+.dev-phone .panel{position:absolute;inset:0;width:auto;border:0;z-index:13}
+.dev-phone .savebar{padding:9px 14px}
+.dev-phone .wf{flex-direction:column;gap:8px;align-items:stretch;padding:10px 12px}
+.dev-phone .wf .w{flex-direction:row;text-align:start}
+.dev-phone .wf .w::after{display:none}
+.dev-phone .q{flex-wrap:wrap}
+.dev-phone .q .lv{width:100%}
+.dev-phone .q .lv span{flex:1;text-align:center}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="controls">
+    <h1>الصفحات الأساسية — ESMS v2.5</h1>
+    <p class="intro">نفس هيكل الخيار ١ اللي اتفقنا عليه. هون التركيز على <b>جوّا الصفحة</b>: شو الأهم، وين الأزرار، وشو بيتغيّر حسب حالة الأداة وصلاحيات الشخص. مربعات بس، المحتوى وهمي.</p>
+
+    <div class="grp"><span class="gl">جاهزين</span><div class="presets" id="presets"></div></div>
+    <div class="grp"><span class="gl">الصفحة</span><div class="seg" data-key="page"></div></div>
+    <div class="grp" id="g-tool"><span class="gl">الأداة</span><div class="seg" data-key="tool"></div></div>
+    <div class="grp" id="g-state"><span class="gl">حالة الأداة</span><div class="seg" data-key="state"></div></div>
+    <div class="grp"><span class="gl">صلاحيات الشخص (مش اسم دور)</span><div class="seg" data-key="person"></div></div>
+    <div class="grp"><span class="gl">الجهاز</span><div class="seg" data-key="device"></div></div>
+    <div class="grp"><span class="gl">افتح</span>
+      <label class="chk" id="c-review"><input type="checkbox" data-flag="review"> لوحة المراجعة (اعتماد / إرجاع)</label>
+      <label class="chk" id="c-row"><input type="checkbox" data-flag="row"> محرّر الصف (الأداة ٣)</label>
+    </div>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-bar" id="stagebar"></div>
+    <div class="viewport" id="viewport"><div id="frame"></div></div>
+    <section class="boxes">
+      <div class="box" id="why"></div>
+      <div class="box q" id="questions"></div>
+    </section>
+    <section class="box output">
+      <h2>رأيك</h2>
+      <textarea id="notes" placeholder="ملاحظاتك، وجوابك عالأسئلة الصفرا إذا بتعرفه…"></textarea>
+      <div class="prompt" id="prompt"></div>
+      <button class="copy" id="copy">انسخ وابعتلي ياه</button>
+    </section>
+  </main>
+</div>
+
+<script>
+const DEFAULTS = {page:'tool', tool:'2', state:'draft', person:'edit', device:'laptop', review:false, row:true};
+const S = {...DEFAULTS};
+const SEGS = {
+  page:[['home','الرئيسية'],['overview','نظرة عامة عالمشروع'],['tool','صفحة أداة']],
+  tool:[['1','١ الفرز'],['2','٢ التقييم (التقدير)'],['3','٣ أنشطة الإدارة'],['5','٥ الرصد']],
+  state:[['draft','مسودة'],['returned','مُرجعة بملاحظات'],['submitted','مُرسلة للمراجعة'],['approved','معتمدة'],['progress','قيد العمل'],['complete','مكتملة']],
+  person:[['edit','بيعدّل'],['both','بيعدّل وبيعتمد'],['read','بيقرأ بس']],
+  device:[['laptop','لابتوب'],['phone','موبايل']],
+};
+const PRESETS = [
+  ['المُعِدّ: أداة مُرجعة', {state:'returned'}],
+  ['المراجِع: بدو يعتمد', {state:'submitted', person:'both', review:true}],
+  ['الأداة ٣ مع محرّر الصف', {tool:'3', state:'progress', row:true}],
+  ['الرصد مع فجوات', {tool:'5', state:'progress'}],
+  ['الرئيسية للمراجِع', {page:'home', person:'both'}],
+  ['نظرة عامة عالمشروع', {page:'overview'}],
+  ['قارئ عالموبايل', {page:'tool', state:'approved', person:'read', device:'phone'}],
+];
+const DIM = {laptop:[1366,800], phone:[390,820]};
+const P = {
+ home:'M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z', proj:'M3 7a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z',
+ lib:'M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2zM5 18a2 2 0 0 1 2-2h11', org:'M4 21V4h10v17M14 9h6v12M3 21h18', admin:'M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6zM12 3v3M12 18v3M3 12h3M18 12h3',
+ bell:'M6 16v-5a6 6 0 0 1 12 0v5l2 2H4zM10 21a2 2 0 0 0 4 0', search:'M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM20 20l-4-4',
+ help:'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.5V14M12 17.2v.1', menu:'M4 6h16M4 12h16M4 18h16',
+ back:'M15 6l-6 6 6 6', doc:'M7 3h7l5 5v13H7zM14 3v5h5', chev:'M6 9l6 6 6-6', grid:'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+ layers:'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5', dl:'M12 4v11M7 10l5 5 5-5M5 20h14', more:'M5 12h.01M12 12h.01M19 12h.01', close:'M6 6l12 12M18 6L6 18',
+ alert:'M12 4l9 16H3zM12 10v4M12 17v.1', check:'M5 12l5 5 9-10', clock:'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 7v5l3 2', lock:'M6 11h12v9H6zM9 11V8a3 3 0 0 1 6 0v3',
+ plus:'M12 5v14M5 12h14', filter:'M4 5h16l-6 7v6l-4 2v-8z', note:'M5 4h14v12l-4 4H5zM15 16v4M15 16h4', people:'M9 11a3 3 0 1 0 0-6a3 3 0 1 0 0 6zM3 20a6 6 0 0 1 12 0', arrow:'M5 12h14M13 6l6 6-6 6'
+};
+const ic = n => `<svg class="ic" viewBox="0 0 24 24"><path d="${P[n]}"/></svg>`;
+const lines = (ws, cls='') => `<div class="lines">${ws.map(w=>`<div class="bar ${cls}" style="width:${w}%"></div>`).join('')}</div>`;
+
+/* ---------- derived ---------- */
+const reviewTool = () => S.tool==='1' || S.tool==='2';
+const can = () => ({ edit: S.person!=='read', approve: S.person==='both', export: true });
+function normState(){ // keep state valid for the tool
+  if (reviewTool() && !['draft','returned','submitted','approved'].includes(S.state)) S.state='draft';
+  if (!reviewTool() && !['progress','complete'].includes(S.state)) S.state='progress';
+}
+const editable = () => can().edit && (!reviewTool() || S.state==='draft' || S.state==='returned');
+const TOOLNAME = {'1':'Screening','2':'Assessment','3':'Management activities','4':'Mitigation plan','5':'Monitoring'};
+function stepStates(){
+  const map = {draft:['cur','Draft'],returned:['bad','Returned'],submitted:['cur','Submitted'],approved:['ok','Approved'],progress:['cur','In progress'],complete:['ok','Complete']};
+  const ok=['ok','Approved'], okc=['ok','Complete'], lock=['lock',''];
+  const cur = map[S.state];
+  if (S.page!=='tool') return {1:ok,2:['cur','Draft'],3:lock,4:lock,5:lock};
+  if (S.tool==='1') return {1:cur,2:lock,3:lock,4:lock,5:lock};
+  if (S.tool==='2') return {1:ok,2:cur,3:lock,4:lock,5:lock};
+  if (S.tool==='3') return {1:ok,2:ok,3:cur,4:['cur','In progress'],5:S.state==='complete'?['cur','Not started']:lock};
+  return {1:ok,2:ok,3:okc,4:okc,5:cur};
+}
+
+/* ---------- shell ---------- */
+function header(){
+  const ph = S.device==='phone';
+  return `<header class="f-header">${ph?`<span class="ib">${ic('menu')}</span>`:''}<span class="logo">ESMS</span>${ph?'':'<span class="ctx">AKF Syria</span>'}<span class="hsp"></span>
+   ${ph?`<span class="ib">${ic('search')}</span>`:`<span class="search">${ic('search')}<span>Search projects…</span></span>`}<span class="ib">${ic('help')}</span><span class="ib">${ic('bell')}<span class="badge">3</span></span><span class="avatar">U</span></header>`;
+}
+function sidebar(){
+  if (S.device==='phone') return '';
+  if (S.page==='home') {
+    let h = `<a class="ni on">${ic('home')}<span>Home</span></a><a class="ni">${ic('proj')}<span>Projects</span></a>`;
+    if (S.person!=='read') h += `<a class="ni">${ic('lib')}<span>Library</span></a><div class="sec">Organisation</div><a class="ni">${ic('org')}<span>GHG emissions</span></a><a class="ni">${ic('layers')}<span>Environmental data</span></a>`;
+    if (S.person==='both') h += `<div style="margin-top:auto;border-top:1px solid var(--w-ln);padding-top:8px"><a class="ni">${ic('admin')}<span>Administration</span></a></div>`;
+    return `<nav class="side">${h}</nav>`;
+  }
+  const st = stepStates();
+  let h = `<a class="ni muted">${ic('back')}<span>All projects</span></a><div class="unit"><div class="unit-kind">Project</div><div class="unit-name">School rehabilitation – Aleppo</div><div class="unit-meta">ESMS-024 <span class="chip ac">In progress</span></div></div>`;
+  h += `<a class="ni ${S.page==='overview'?'on':''}">${ic('grid')}<span>Overview</span></a><div class="sec">Workflow</div>`;
+  for (const n of ['1','2','3','4','5']){
+    const [k,l] = st[n], on = S.page==='tool' && n===S.tool;
+    h += `<a class="step st-${k} ${on && n!=='2'?'on':''}"><span class="dot">${k==='ok'?'✓':n}</span><span>${TOOLNAME[n]}</span><span class="sl">${l}</span></a>`;
+    if (n==='2' && on) h += `<div class="subs"><a>Context</a><a>Methods &amp; consultation</a><a class="on">Scoring</a><a>Summary &amp; submit</a></div>`;
+  }
+  h += `<div class="sec">Project</div><a class="ni">${ic('doc')}<span>Documents</span></a><a class="ni">${ic('doc')}<span>SEMP plan</span></a><a class="ni">${ic('people')}<span>Stakeholder awareness</span></a>`;
+  return `<nav class="side">${h}</nav>`;
+}
+
+/* ---------- tool page ---------- */
+function toolHeader(){
+  const c = can(), t = S.tool;
+  const title = t==='2' ? 'Scoring' : TOOLNAME[t];
+  const eyebrow = t==='2' ? 'Tool 2 · Assessment' : `Tool ${t}`;
+  const stMap = {draft:['ac','Draft'],returned:['bad','Returned with comments'],submitted:['ac','Submitted'],approved:['ok','Approved'],progress:['ac','In progress'],complete:['ok','Complete']};
+  const [sc, sl] = stMap[S.state];
+  const metaMap = {draft:'Last saved today 10:42 by Rana H.',returned:'Returned 2 days ago by Omar K.',submitted:'Submitted yesterday by Rana H.',approved:'Approved 3 Nov 2026 by Omar K.',progress:'8 rows · last saved today 10:42',complete:'8 rows · last saved 4 Nov 2026'};
+  if (t==='5') metaMap.progress = '18 indicators · last saved today 10:42';
+  let acts = `<span class="btn">${ic('dl')}Export</span>`;
+  if (c.edit || c.approve) acts += `<span class="btn icon">${ic('more')}</span>`;
+  if (reviewTool()){
+    if (editable()) acts += `<span class="btn pr">${S.state==='returned'?'Resubmit for review':'Submit for review'}</span>`;
+    else if (S.state==='submitted' && c.approve) acts += `<span class="btn">Return with comments</span><span class="btn pr">Approve</span>`;
+  } else if (t==='3' && editable()) acts += `<span class="btn pr">${ic('plus')}Add row</span>`;
+  const ph = S.device==='phone';
+  return `${ph?'':`<div class="crumbs">Projects / School rehabilitation – Aleppo / ${TOOLNAME[t]}</div>`}
+   <div class="ph"><div><div class="eyebrow">${eyebrow}</div><div class="tt"><h1>${title}</h1><span class="chip ${sc}">${sl}</span>${!c.edit?'<span class="chip">Read only</span>':''}</div><div class="meta">${metaMap[S.state]}</div></div><div class="acts">${acts}</div></div>`;
+}
+function statusStrip(){
+  const c = can();
+  if (S.state==='returned') return `<div class="strip bad">${ic('alert')}<div class="grow"><b>Returned with comments by Omar K. · 2 days ago</b>“Category C needs a reason that mentions the river crossing; add the land ownership note.”</div>${editable()?'<span class="btn">See all comments</span>':''}</div>`;
+  if (S.state==='submitted' && c.approve) return `<div class="strip info">${ic('clock')}<div class="grow"><b>Waiting for your review</b>Submitted yesterday by Rana H. You can read everything here; approve or return it from the buttons above.</div></div>`;
+  if (S.state==='submitted') return `<div class="strip neutral">${ic('lock')}<div class="grow"><b>Submitted · waiting for review</b>Editing is locked until the reviewer decides. You will get a notification.</div></div>`;
+  if (S.state==='approved') return `<div class="strip ok">${ic('check')}<div class="grow"><b>Approved by Omar K. · 3 Nov 2026</b>Recommendations: keep dust control during demolition; report quarterly. <u>Show all</u></div></div>`;
+  if (S.tool==='3' && S.state==='progress') return `<div class="strip warn">${ic('alert')}<div class="grow"><b>2 rows need a description</b>Monitoring (Tool 5) opens when Tools 3 and 4 each have at least one row and every row has its description.</div><span class="btn">Show them</span></div>`;
+  if (S.tool==='5' && S.state==='progress') return `<div class="strip warn">${ic('alert')}<div class="grow"><b>2 gaps to check</b>Generator hours: Baseline is empty but Q1 and Q2 are filled · Water use: Q2 is empty but Q3 is filled.</div><span class="btn">Show them</span></div>`;
+  if (S.state==='complete') return `<div class="strip ok">${ic('check')}<div class="grow"><b>Complete</b>${S.tool==='5'?'All four quarters filled for at least one indicator.':'Every row has its description. Monitoring is open.'}</div></div>`;
+  return '';
+}
+function body1(){
+  const e = editable(), ph = S.device==='phone';
+  const cats = ['A','B','C','D','E','F'].map(l=>`<div class="cat ${l==='C'?'on':''} ${!e&&l!=='C'?'off':''}"><b>${l}</b><div style="flex:1">${lines([80,55])}</div></div>`).join('');
+  const field = (label, ta) => `<div class="fsec"><label>${label}</label>${e?`<div class="inp ${ta?'ta':''}"></div>`:`<div class="ro">${lines([92,85,60],'dk')}</div>`}</div>`;
+  return `<div class="card" style="padding:16px 18px"><div class="fsec"><label>Category <span class="sub">— pick one; each card says what it means</span></label><div class="cats">${e||ph?cats:cats}</div></div>
+   ${field('Reason for this category', true)}<div class="${ph?'':'grid2'}" style="${ph?'':'grid-template-columns:1fr 1fr'}">${field('Potential negative impacts', true)}${field('Potential positive impacts', true)}</div></div>`;
+}
+function body2(){
+  const e = editable(), ph = S.device==='phone';
+  const lv = ['Negligible','Low','Medium','High','N/A'];
+  const q = (sel, w, flagged) => `<div class="q"><div class="grow">${lines([w, w-30])}</div>${e?`<span class="lv">${lv.map((x,i)=>`<span class="${i===sel?'on':''}">${ph?x.slice(0,3):x}</span>`).join('')}</span><span class="btn icon" title="Note">${ic('note')}</span>`:`<span class="chip ${sel>0?'warn':''}">${lv[sel]}</span>`}</div>`;
+  const groups = `<div class="qgrp"><div class="qhead">A · Air quality and dust <span class="chip">4</span></div>${q(0,85)}${q(2,70)}${q(0,90)}${q(1,65)}</div>
+    <div class="qgrp"><div class="qhead">B · Water resources <span class="chip">3</span></div>${q(0,75)}${q(0,88)}${q(3,60)}</div>`;
+  const summary = `<div class="card"><h3>Summary</h3>${[['Negligible',80],['Low',8],['Medium',8],['High',4],['N/A',0]].map(([l,w])=>`<div class="sumbar"><span class="lbl">${l}</span><span class="track"><i style="width:${w}%"></i></span></div>`).join('')}
+    <div class="row" style="border-top:1px solid var(--w-ln);margin-top:6px"><div class="grow">Highest impact</div><span class="chip warn">High</span></div><div class="row"><div class="grow">Differ from Negligible</div><b>4 of 31</b></div></div>`;
+  if (ph) return `<details style="margin-bottom:12px"><summary class="btn" style="margin-bottom:8px">Summary · highest impact: High</summary>${summary}</details>${groups}`;
+  return `<div class="grid2" style="grid-template-columns:minmax(0,1fr) 270px">${`<div>${groups}</div>`}<div style="position:sticky;top:0">${summary}</div></div>`;
+}
+function body3(){
+  const e = editable(), ph = S.device==='phone';
+  const cols = '34px 2.2fr 1.4fr 1.8fr 1.4fr 1fr';
+  const rows = [[1,[90,70,40]],[2,[80,85,30]],[3,[95,60,75]],[4,null],[5,[70,50]],[6,[85,40]],[7,null],[8,[60,75,55]]];
+  if (ph) return `<div class="tbar"><span class="mini-search" style="flex:1">${ic('search')}Search rows</span></div>` + rows.map(([n,d])=>`<div class="card" style="margin-bottom:8px;padding:11px 12px"><div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><b>#${n}</b>${d?'':'<span class="chip bad">Needs a description</span>'}<span class="hsp"></span>${ic('arrow')}</div>${d?lines(d.map(x=>x*.9)):lines([40],'')}</div>`).join('');
+  let h = `<div class="tbar"><span class="mini-search">${ic('search')}Search rows</span><span class="chip bad"><span class="flag"></span>2 need a description</span><span class="grow"></span><span class="sub">Long text shows 3 lines; open a row to read or edit all of it</span></div>`;
+  h += `<div class="tbl"><div class="tr th" style="grid-template-columns:${cols}"><div>#</div><div>Activity description</div><div>Potential impact</div><div>Recommended actions</div><div>Monitoring requirements</div><div>Responsible</div></div>`;
+  for (const [n,d] of rows){
+    const sel = S.row && n===3;
+    h += `<div class="tr ${sel?'sel':''}" style="grid-template-columns:${cols}"><div>${n}${d?'':' <span class="flag"></span>'}</div><div>${d?lines(d):'<span class="sub">— no description —</span>'}</div><div>${lines([80,50])}</div><div>${lines([90,70,60])}</div><div>${lines([70,40])}</div><div><span class="chip">${n%3?'Rana H.':'Contractor'}</span></div></div>`;
+  }
+  return h + `</div>`;
+}
+/* Tool 5: no due dates (owner: teams fill monitoring whenever they like, often all at once).
+   A "gap" = an empty value before a later filled one (Baseline counts first); computed by the backend. */
+const MON = [['A · Air quality',[['Dust complaints',[1,1,1,0,0]],['Generator hours',[0,1,1,0,0]],['Vehicle trips',[1,1,1,0,0]]]],['B · Water',[['Water use (m³)',[1,1,0,1,0]],['Spill incidents',[1,1,1,0,0]]]]];
+const isGap = (f,i) => !f[i] && f.slice(i+1).some(Boolean);
+function body5(){
+  const e = editable(), ph = S.device==='phone', complete = S.state==='complete';
+  const cols = ['Baseline','Q1','Q2','Q3','Q4'];
+  const data = MON.map(([g,list])=>[g, list.map(([n,f])=>[n, complete?[1,1,1,1,1]:f])]);
+  let h = `<div class="tbar"><span class="mini-search">${ic('search')}Search indicators</span>${complete?'':`<span class="chip bad"><span class="flag"></span>2 gaps</span><span class="chip">${ic('filter')}Only gaps</span>`}<span class="grow"></span>${ph?'':'<span class="sub">Fill in any order and any time; values are free text, as today</span>'}</div>`;
+  const cell = (filled, gap, ro) => {
+    if (gap) return e ? `<div class="cell-in" style="border:1.5px dashed var(--w-bad);background:var(--w-badbg)"></div>` : `<span style="color:var(--w-bad)">— gap</span>`;
+    if (e) return `<div class="cell-in" style="border-color:var(--w-ln)">${filled?'<div class="bar" style="width:60%;margin:9px 8px"></div>':''}</div>`;
+    return filled ? '<div class="cell-ro"></div>' : '<span class="sub">—</span>';
+  };
+  if (ph){
+    for (const [g,list] of data){ h += `<div class="qhead">${g}</div>`; for (const [n,f] of list){ const gaps = f.map((_,i)=>isGap(f,i)); h += `<div class="card" style="margin-bottom:8px;padding:11px 12px"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><b style="font-size:12.5px">${n}</b>${gaps.some(Boolean)?'<span class="chip bad">Gap</span>':''}</div><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">${cols.map((c,i)=>`<div><div class="sub" style="font-size:10.5px">${c==='Baseline'?'Base':c}</div>${cell(f[i],gaps[i])}</div>`).join('')}</div></div>`; } }
+    return h;
+  }
+  const grid = '1.8fr repeat(5,.8fr) .8fr 1fr 1fr';
+  h += `<div class="tbl"><div class="tr th" style="grid-template-columns:${grid}"><div>Indicator</div>${cols.map(c=>`<div>${c}</div>`).join('')}<div>Total</div><div>Ranking</div><div>Responsible</div></div>`;
+  for (const [g,list] of data){
+    h += `<div class="tr grp" style="grid-template-columns:1fr"><div>${g}</div></div>`;
+    for (const [n,f] of list){
+      h += `<div class="tr" style="grid-template-columns:${grid}"><div style="font-size:12.5px">${n}${f.some((_,i)=>isGap(f,i))?' <span class="flag"></span>':''}</div>${cols.map((c,i)=>`<div>${cell(f[i], isGap(f,i))}</div>`).join('')}<div>${e?cell(complete,false):'<div class="cell-ro"></div>'}</div><div><span class="chip">${complete?'Low':'—'}</span></div><div><span class="chip">Rana H.</span></div></div>`;
+    }
+  }
+  return h + `</div>`;
+}
+function toolPage(){
+  const ph = S.device==='phone';
+  let h = '';
+  if (S.tool==='2' && ph) h += `<div class="pills"><span class="pill">Context</span><span class="pill">Methods</span><span class="pill on">Scoring</span><span class="pill">Summary</span></div>`;
+  h += toolHeader() + statusStrip();
+  h += {'1':body1,'2':body2,'3':body3,'5':body5}[S.tool]();
+  return h;
+}
+function reviewPanel(){
+  return `<aside class="panel"><div class="phd">Review · ${TOOLNAME[S.tool]}<span class="hsp"></span>${ic('close')}</div><div class="pbd">
+   <div class="tabs2"><span class="on">Approve</span><span>Return with comments</span></div>
+   <div class="fsec"><label>Recommendations <span class="sub">— required to approve</span></label><div class="inp ta" style="min-height:140px"></div></div>
+   <div class="sub">Rana H. gets a notification. The decision, your name and the date are kept in the project's history and in the export.</div></div>
+   <div class="pft"><span class="btn">Cancel</span><span class="grow"></span><span class="btn pr">Approve</span></div></aside>`;
+}
+function rowPanel(){
+  const e = editable();
+  const f = (l, ta) => `<div class="fsec"><label>${l}</label>${e?`<div class="inp ${ta?'ta':''}"></div>`:lines([95,80,60],'dk')}</div>`;
+  return `<aside class="panel"><div class="phd">Row 3 of 8<span class="hsp"></span><span class="btn icon">${ic('back')}</span><span class="btn icon" style="transform:scaleX(-1)">${ic('back')}</span>${ic('close')}</div><div class="pbd">
+   ${f('Activity description *',true)}${f('Potential impact',true)}${f('Recommended actions',true)}${f('Monitoring requirements',true)}
+   <div class="fsec"><label>Responsible</label><div class="tabs2" style="margin-bottom:6px"><span class="on">Staff member</span><span>External party</span></div><div class="inp"></div></div>${f('Notes',false)}</div>
+   ${e?`<div class="pft"><span class="btn danger">Delete row</span><span class="grow"></span><span class="btn pr">Done</span></div>`:''}</aside>`;
+}
+function saveBar(){
+  if (S.page!=='tool' || !editable()) return '';
+  return `<div class="savebar"><span class="grow">● 2 unsaved changes</span><span class="btn">Discard</span><span class="btn pr">Save</span></div>`;
+}
+
+/* ---------- home ---------- */
+function homePage(){
+  const c = can();
+  let h = `<div class="ph"><div><h1>Home</h1><div class="meta">What needs you now, built from your access</div></div></div>`;
+  if (S.person==='read'){
+    return h + `<div class="card"><h3>Your projects <span class="chip">2</span></h3>${['School rehabilitation – Aleppo','Water network – Hama'].map((p,i)=>`<div class="row"><div class="grow"><div>${p}</div><div class="sub">${i?'Monitoring · Q3':'Assessment · submitted'}</div></div><span class="btn">${ic('dl')}Export</span></div>`).join('')}</div>`;
+  }
+  const action = `<div class="card"><h3>Needs your action <span class="chip bad">2</span></h3>
+    <div class="row"><span class="chip bad">Returned</span><div class="grow"><div>Screening · Health centre – Idlib</div><div class="sub">“Add the land ownership note.” — Omar K., 2 days ago</div></div><span class="btn pr">Fix</span></div>
+    <div class="row"><span class="chip ac">Draft</span><div class="grow"><div>Assessment · School rehabilitation – Aleppo</div><div class="sub">Scoring 19 of 31 · saved today</div></div><span class="btn">Continue</span></div></div>`;
+  const review = `<div class="card"><h3>Waiting for your review <span class="chip ac">2</span></h3>
+    <div class="row"><div class="grow"><div>Screening · Water network – Hama</div><div class="sub">Submitted 2 days ago by Rana H.</div></div><span class="btn pr">Review</span></div>
+    <div class="row"><div class="grow"><div>Assessment · Bakery support – Homs</div><div class="sub">Submitted today by Sami D.</div></div><span class="btn">Review</span></div></div>`;
+  const monitoring = `<div class="card"><h3>Monitoring gaps <span class="chip warn">2</span></h3>
+    <div class="row"><div class="grow"><div>Water network – Hama</div><div class="sub">Baseline empty while Q1 and Q2 are filled (3 indicators)</div></div><span class="btn">Fix</span></div>
+    <div class="row"><div class="grow"><div>Clinic solar panels – Hama</div><div class="sub">Q3 empty while Q4 is filled (1 indicator)</div></div><span class="btn">Fix</span></div></div>`;
+  const projects = `<div class="card"><h3><span class="grow">My projects</span><span class="btn ghost">All projects ${ic('arrow')}</span></h3>${['School rehabilitation – Aleppo|Assessment · draft','Water network – Hama|Monitoring · Q3','Health centre – Idlib|Screening · returned'].map(x=>{const [a,b]=x.split('|');return `<div class="row"><div class="grow"><div>${a}</div><div class="sub">${b}</div></div>${ic('arrow')}</div>`}).join('')}</div>`;
+  const stats = `<div class="stats" style="margin-bottom:14px"><div class="stat"><b>18</b><span>Active projects</span></div><div class="stat"><b>2</b><span>Waiting review</span></div><div class="stat"><b>5</b><span>In monitoring</span></div><div class="stat"><b>3</b><span>No change in 30 days</span></div></div>`;
+  if (S.person==='both') return h + stats + `<div class="grid2"><div class="stack">${review}${action}</div><div class="stack">${monitoring}${projects}</div></div>`;
+  return h + `<div class="grid2"><div class="stack">${action}${monitoring}</div><div class="stack">${projects}</div></div>`;
+}
+
+/* ---------- overview ---------- */
+function overviewPage(){
+  const c = can();
+  let h = `<div class="crumbs">Projects</div><div class="ph"><div><div class="eyebrow">Project · ESMS-024</div><div class="tt"><h1>School rehabilitation – Aleppo</h1><span class="chip ac">In assessment</span></div></div>
+   <div class="acts"><span class="btn">${ic('dl')}Export workbook</span>${c.edit?`<span class="btn">Edit details</span><span class="btn icon">${ic('more')}</span>`:''}</div></div>`;
+  h += `<div class="card" style="margin-bottom:14px"><div class="facts"><div><span>Location</span>Aleppo, Al-Jamiliyah</div><div><span>Dates</span>1 Sep 2026 – 30 Jun 2027</div><div><span>Component</span>Education</div><div><span>Created</span>2 Sep 2026 by Rana H.</div></div></div>`;
+  const ws = [['ok','✓','Screening','Approved 12 Sep'],['cur','2','Assessment','Draft · 60%'],['lock','3','Management activities','Locked'],['lock','4','Mitigation plan','Locked'],['lock','5','Monitoring','Locked']];
+  h += `<div class="wf">${ws.map(([k,d,n,s])=>`<div class="w st-${k}"><span class="dot">${d}</span><div><b style="font-weight:600">${n}</b><div class="sub">${s}</div></div></div>`).join('')}</div>`;
+  if (c.edit) h += `<div class="next"><div class="grow"><div class="sub">Next step</div><b>Finish the assessment scoring (19 of 31), then submit it for review</b></div><span class="btn">Continue</span></div>`;
+  h += `<div class="grid2"><div class="stack"><div class="card"><h3>Recent activity</h3>${['Rana H. saved Assessment · Scoring|today 10:42','Omar K. approved Screening|12 Sep','Rana H. submitted Screening|10 Sep'].map(x=>{const [a,b]=x.split('|');return `<div class="row"><div class="grow">${a}</div><span class="sub">${b}</span></div>`}).join('')}</div>
+    <div class="card"><h3><span class="grow">Documents</span><span class="btn ghost">Open ${ic('arrow')}</span></h3><div class="row"><div class="grow">Screening</div><span class="sub">3 files</span></div><div class="row"><div class="grow">Assessment</div><span class="sub">1 file</span></div></div></div>
+    <div class="stack"><div class="card"><h3><span class="grow">People on this project</span>${c.approve?'<span class="btn ghost">Manage access</span>':''}</h3>${['Rana H.|Focal point','Sami D.|Project manager','Omar K.|Reviewer (whole organisation)','Partner NGO|Reader, own projects'].map(x=>{const [a,b]=x.split('|');return `<div class="row"><span class="avatar">${a[0]}</span><div class="grow"><div>${a}</div><div class="sub">${b}</div></div></div>`}).join('')}<div class="sub" style="margin-top:6px">${c.approve?'Only people allowed to manage access add or change the team.':'The team is set by an administrator or the specialist.'}</div></div></div></div>`;
+  return h;
+}
+
+/* ---------- render ---------- */
+function stepBar(){
+  if (S.device!=='phone' || S.page!=='tool') return '';
+  const n = S.tool;
+  return `<div class="stepbar"><span class="dot" style="border-color:var(--w-ac);color:var(--w-ac)">${n}</span><span class="grow"><b>Step ${n==='5'?5:n} of 5</b> · ${TOOLNAME[n]}</span>${ic('chev')}</div>`;
+}
+function renderFrame(){
+  const [w,hgt] = DIM[S.device];
+  let html = `<div class="f-shell dev-${S.device}" dir="ltr">${header()}<div class="f-body">${sidebar()}<div class="f-main">${stepBar()}<div class="f-page">`;
+  html += S.page==='home' ? homePage() : S.page==='overview' ? overviewPage() : toolPage();
+  html += `</div>${saveBar()}</div>`;
+  if (S.page==='tool' && S.review && reviewTool() && S.state==='submitted' && can().approve) html += reviewPanel();
+  else if (S.page==='tool' && S.row && S.tool==='3') html += rowPanel();
+  html += `</div></div>`;
+  const fr = document.getElementById('frame');
+  fr.innerHTML = html; fr.style.width = w+'px'; fr.style.height = hgt+'px'; fit();
+}
+function fit(){
+  const vp = document.getElementById('viewport'), fr = document.getElementById('frame'), [w,h] = DIM[S.device];
+  const s = Math.min(1, (vp.clientWidth-24)/w);
+  fr.style.transform = `scale(${s})`; fr.style.left = ((vp.clientWidth - w*s)/2)+'px'; vp.style.height = (h*s+24)+'px';
+}
+
+/* ---------- reasons + questions ---------- */
+const WHY = {
+ home:['<b>الرئيسية = "شو بدو مني هلق"،</b> وبتنبني من صلاحيات الشخص: اللي بيعدّل بيشوف "بحاجة لإجراء منك"، واللي بيعتمد بيشوف "بانتظار مراجعتك"، واللي عندو الاتنين بيشوف الاتنين.',
+  '<b>المُرجَع أول شي، ومعو سبب الإرجاع</b> مكتوب بالسطر نفسو، فبيعرف شو لازم يصلّح قبل ما يفتح.',
+  '<b>"فجوات الرصد":</b> ما في تذكيرات وقت. بيطلع المشروع هون بس إذا في خانة فاضية قبل وحدة معبّاية (متل Baseline فاضي وQ1 وQ2 معبّايين). وبيختفي لحالو أول ما تتصلّح الفجوة.',
+  'أرقام عامة فوق (مشاريع نشطة، بانتظار مراجعة، عالقة) بس للي صلاحيتو على كل المؤسسة.',
+  'القارئ من طرف ثالث بيشوف مشاريعو بس، مع زر تصدير جنب كل وحدة.'],
+ overview:['<b>فوق: معلومات المشروع الأساسية،</b> وبعدها <b>مسار الأدوات الخمسة بخط واحد</b> مع حالة كل وحدة.',
+  '<b>كرت "الخطوة الجاية"</b> واضح وبزر واحد: ما حدا بيضطر يفكّر وين يكبس.',
+  '"تصدير الملف الكامل" زر بالترويسة، مش شريط عريض بيدفش كل شي لتحت (كانت مشكلة بالنسخة الحالية).',
+  '<b>"الأشخاص عالمشروع"</b> كرت جديد: مين إلو وصول وبأي دور، وزر "إدارة الوصول" للي مسموحلو. هون بيبان نموذج الصلاحيات الجديد.',
+  'آخر الحركات والوثائق تحت، لأنن معلومات مش إجراءات.'],
+ tool:['<b>كل الأدوات الخمسة إلها نفس الهيكل بالضبط:</b> ترويسة (رقم الأداة، الاسم، الحالة، مين وإيمتى) ← شريط الحالة ← المحتوى ← شريط الحفظ. بيتعلّمها المستخدم مرة وحدة، وبـ v3 النشاط بيستعمل نفس الصفحة.',
+  '<b>شريط الحالة دايماً بنفس المكان تحت العنوان:</b> مُرجعة (أحمر، مع السبب واسم المراجِع)، مُرسلة (مقفلة لحتى القرار)، معتمدة (أخضر، مع التوصيات)، ناقصة (شو الناقص وشو بيفتح بعدها).',
+  '<b>إجراء أساسي واحد</b> حسب الحالة والصلاحية: "إرسال للمراجعة" للي بيعدّل، "اعتماد" للي بيعتمد، ولا شي للقارئ. و"تصدير" دايماً ظاهر.',
+  '<b>صفحة القراءة هي نفس صفحة التعديل</b> بس بلا حقول. منلغي صفحات "الملخّص" و"المراجعة" المنفصلة: المراجِع بيقرأ نفس الشي اللي كتبو المُعِدّ.',
+  '<b>الاعتماد والإرجاع بلوحة جانبية، مش نافذة:</b> المراجِع بيكتب التوصيات وهو شايف المحتوى جنبها.',
+  '<b>التقييم:</b> الأسئلة مجموعة حسب الفئة، والمستوى بأزرار ظاهرة (مش قائمة منسدلة)، وملخّص ثابت عاليمين بيتحدّث وانت عم تعبّي.',
+  '<b>الأداة ٣ و٤:</b> الجدول للنظرة العامة (النص الطويل بيبيّن ٣ أسطر)، وكبسة عالصف بتفتح محرّر جانبي فيه كل الحقول براحة، مع "السابق / التالي". هيك منحل مشكلة الخلايا اللي بتطول مية سطر، وبيشتغل عالموبايل.',
+  '<b>الرصد:</b> كل الفصول ظاهرة ومفتوحة، فيك تعبّي بأي ترتيب وبأي وقت، حتى كلها دفعة وحدة بآخر السنة. <b>الفجوة</b> (خانة فاضية قبل وحدة معبّاية) بتتعلّم بالأحمر، ومعها شريط بيقول وين بالضبط، وفلتر "الفجوات بس". عالموبايل كل مؤشر بيصير كرت فيه الخمس خانات.']
+};
+const QUESTIONS = [
+ '<b>الرصد (جاوبت):</b> ما في تذكيرات وقت، كل فريق بيعبّي على راحتو. بس الفجوات: خانة فاضية قبل وحدة معبّاية.',
+ '<b>فريق المشروع (جاوبت):</b> المدير أو السبيشالست بيقرّروا مين بيشتغل عالمشروع، مش اللي عملو. اللي بيعمل المشروع بينضاف عليه تلقائياً بدورو، ومين عندو صلاحية "إدارة الوصول" بيوصلو إشعار "مشروع جديد بدو فريق".'
+];
+function renderBoxes(){
+  document.getElementById('why').innerHTML = `<h2>قراراتي بهالصفحة وليش</h2><ul>${WHY[S.page].map(x=>`<li>${x}</li>`).join('')}</ul>`;
+  document.getElementById('questions').innerHTML = `<h2>أجوبتك عن شغل الزبون</h2><ul>${QUESTIONS.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+}
+function updatePrompt(){
+  const notes = document.getElementById('notes').value.trim();
+  let s = `رأيي بالصفحات الأساسية (playground core-pages):`;
+  s += notes ? `\n${notes}` : `\n(ما كتبت ملاحظات)`;
+  const seen = [];
+  for (const k of ['page','tool','state','person','device']) if (S[k]!==DEFAULTS[k]) seen.push(SEGS[k].find(x=>x[0]===S[k])[1]);
+  if (seen.length) s += `\n(كنت عم شوف: ${seen.join('، ')})`;
+  document.getElementById('prompt').textContent = s;
+}
+function syncControls(){
+  document.querySelectorAll('.seg').forEach(seg=>seg.querySelectorAll('button').forEach(b=>{
+    b.classList.toggle('on', S[seg.dataset.key]===b.dataset.v);
+    if (seg.dataset.key==='state') b.disabled = reviewTool() ? !['draft','returned','submitted','approved'].includes(b.dataset.v) : !['progress','complete'].includes(b.dataset.v);
+  }));
+  document.getElementById('g-tool').classList.toggle('hide', S.page!=='tool');
+  document.getElementById('g-state').classList.toggle('hide', S.page!=='tool');
+  const rOk = S.page==='tool' && reviewTool() && S.state==='submitted' && can().approve;
+  const rowOk = S.page==='tool' && S.tool==='3';
+  document.getElementById('c-review').classList.toggle('dis', !rOk); document.querySelector('[data-flag=review]').disabled = !rOk;
+  document.getElementById('c-row').classList.toggle('dis', !rowOk); document.querySelector('[data-flag=row]').disabled = !rowOk;
+  document.querySelectorAll('[data-flag]').forEach(i=>i.checked = !!S[i.dataset.flag]);
+}
+function stageBar(){
+  const p = [SEGS.page.find(x=>x[0]===S.page)[1]];
+  if (S.page==='tool') p.push(SEGS.tool.find(x=>x[0]===S.tool)[1], SEGS.state.find(x=>x[0]===S.state)[1]);
+  p.push('شخص '+SEGS.person.find(x=>x[0]===S.person)[1], SEGS.device.find(x=>x[0]===S.device)[1]);
+  document.getElementById('stagebar').innerHTML = '<b>'+p[0]+'</b> · '+p.slice(1).join(' · ');
+}
+function updateAll(){ normState(); renderFrame(); renderBoxes(); updatePrompt(); stageBar(); syncControls(); }
+
+document.getElementById('presets').innerHTML = PRESETS.map((p,i)=>`<button data-i="${i}">${p[0]}</button>`).join('');
+document.getElementById('presets').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; Object.assign(S, DEFAULTS, PRESETS[+b.dataset.i][1]); updateAll(); });
+document.querySelectorAll('.seg').forEach(seg=>{
+  seg.innerHTML = SEGS[seg.dataset.key].map(([v,l])=>`<button data-v="${v}">${l}</button>`).join('');
+  seg.addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b||b.disabled) return; S[seg.dataset.key]=b.dataset.v; updateAll(); });
+});
+document.querySelectorAll('[data-flag]').forEach(i=>i.addEventListener('change', ()=>{ S[i.dataset.flag]=i.checked; updateAll(); }));
+document.getElementById('notes').addEventListener('input', updatePrompt);
+document.getElementById('copy').addEventListener('click', async e=>{
+  const txt = document.getElementById('prompt').textContent;
+  try { await navigator.clipboard.writeText(txt); } catch { const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  e.target.textContent='انتسخ ✓'; setTimeout(()=>e.target.textContent='انسخ وابعتلي ياه',1400);
+});
+new ResizeObserver(fit).observe(document.getElementById('viewport'));
+updateAll();
+</script>
+</body>
+</html>

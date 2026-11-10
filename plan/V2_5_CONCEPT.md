@@ -25,7 +25,7 @@ No access to real users yet (the system is new to them), so priorities are infer
 |---|---|---|---|
 | **Preparer** | Environmental Focal Point, Project Manager (others can too) | create a project; fill Tools 1–5; submit; fix after a rejection; quarterly monitoring; upload documents; export | daily during a project; monitoring every quarter |
 | **Reviewer** | Environmental Specialist (one or two for all of Syria) | review what is waiting; approve or reject with recommendations; also authors; manages the library; archives/deletes | whenever something is submitted |
-| **Overseer** | Program Manager (inferred, owner unsure) | follow where each project stands; spot what is stuck; export for reporting | weekly |
+| **Overseer** | Program Manager | follow where each project stands; spot what is stuck; approve/review; export for reporting; **also edits tools at times** (owner) | weekly |
 | **Reader** | Viewer: internal management, **or a third party** (agent, partner) | read projects; possibly download | occasional |
 | **Administrator** | Admin | users and access, activity log, purge | rare |
 
@@ -59,12 +59,40 @@ The owner rejected a "project-scoped viewer" patch: the real need is per-person 
 
 - **Third-party readers download by default** (owner); if the client asks otherwise, the admin removes the export permission from that role in Settings — a setting, not a code change.
 
+## App shell (agreed by the owner: option 1, 2026-11-10)
+Three options compared on screen in [design/app-shell-options.html](design/app-shell-options.html) (wireframe playground: option, place, person, device, language; open it in a browser). Recommended and agreed: **option 1**.
+
+1. **Switching sidebar (recommended):** outside a project, one sidebar with the global menu; inside a project, the same column becomes the project's workflow spine (back link, project name and state, Overview, Tools 1–5 in order each with its state and sub-parts, then Documents and the project support tools, and a reserved "Activities" slot for v3). Collapsible to icons and tool numbers.
+2. Icon rail + project panel: global icons always visible, a second panel with the spine inside a project.
+3. Top menu + project tabs: global menu in the header, tools as horizontal tabs (plus a second row for sub-parts).
+
+Why option 1: one navigation column leaves the most width for long tables on a laptop; full labels (clear to new users, fit longer translations); the vertical spine carries each tool's state and sub-parts without extra rows; a v3 activity opens with the same spine one level down (back to the project), so nothing is redrawn. Weak point: the global menu is not visible inside a project; search, notifications, help and the logo stay in the header, and most work happens inside one project anyway. Option 2 costs about 300 px of width and relies on unlabelled icons; option 3 does not fit 8–9 tabs with states (worse in Arabic), needs a second tab row for sub-parts and has no natural place for activities.
+
+Applies to any option:
+- **Header:** logo, context slot ("AKF Syria"; a switcher in v3 only for people with several offices), project search (Ctrl+K), Help "?", notifications bell, user menu (profile, language, theme, sign out).
+- **Help:** the header "?" opens a side panel "Help with this page" with two tabs, the guide section for this page and the library guidance linked to the page (D64), plus a link to the full guide. No floating button and no sidebar item: one fixed place; a floating button covers the save bar and the last table row; a side panel keeps the page visible (a modal would hide it). Full screen on a phone.
+- **Notifications:** bell with a count; a short list; each item opens its place.
+- **Administration:** an item at the bottom of the sidebar, shown only to people with an admin permission and listing only the sections they may use.
+- **Access-aware:** a restricted reader sees only their projects and no section they lack permission for.
+- **Page header:** breadcrumb, title, state; one primary action; Export always visible; the rest under "⋯". The save bar is part of the page under the content, never floating over it.
+- **Phone and tablet:** the sidebar becomes a drawer (☰); inside a project on a phone a "Step n of 5" bar switches tools.
+- **RTL:** the whole shell mirrors from logical CSS properties; no separate design.
+
+## Screens follow permissions, not role names (owner clarification, 2026-11-10)
+Reviewing and editing are not separate kinds of people. The Environmental Specialist, the admin and the Programme Manager mainly review and approve, but they also edit at times. So every screen is built from **what this person may do** (their assignments) **and the item's state**, never from a role label:
+- anyone allowed to edit an item sees the editing surface, the save bar and "Submit" while it is a draft;
+- anyone allowed to approve sees "Approve / Return" once it is submitted;
+- one person can have both, and then sees both, each at the right state;
+- the home combines sections the same way: a specialist who also prepares projects sees "Waiting for your review" **and** "My projects".
+
+The people in the playground (preparer, reviewer, reader, admin) only show typical combinations; they are not fixed screen types.
+
 ## Open questions
-- Programme Manager: oversee only, or also fill tools? (Owner unsure; the home adapts to the person's assignments either way.)
+- None open right now. (Closed: the Programme Manager also edits at times — see above.)
 
 ## Next steps
 1. Close the open questions above.
-2. App shell: sidebar, header, project navigation, context slot, Help — options compared with the owner on screen (playground), decision with reasons.
+2. App shell: sidebar, header, project navigation, context slot, Help — options compared with the owner on screen (playground), decision with reasons. **Done: option 1 agreed (see "App shell" above).**
 3. Page by page: priorities and layout.
 4. Design system: foundations → components → patterns.
 5. Record the outcome as decisions (DECISIONS.md), write the v2.5 phase files, and rename the "phase 13" references in CLAUDE.md and plan/ in the same change.

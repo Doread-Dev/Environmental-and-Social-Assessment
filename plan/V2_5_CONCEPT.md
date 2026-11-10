@@ -274,7 +274,7 @@ Layer 2 of the design system, first group: everything a person presses or fills 
 - **Upload:** a "Choose files" button first (works on phones and with the keyboard), dropping as a laptop shortcut; the allowed types and the size limit are written before anyone tries. Several files can be chosen; they go up one by one (the server takes one file per request, no backend change); each file shows its own state (uploading with progress and Cancel, uploaded, or the reason it was refused and the fix). One bad file does not stop the others.
 - **Search:** filters while typing (after a short pause), shows "4 of 23 projects", has a clear button, and keeps the text in the page address like the filters. The header search (Ctrl K) is designed with the overlays group.
 - **Arabic interface text:** simple Modern Standard Arabic, buttons as verbal nouns ("حفظ التعديلات", "إرسال للمراجعة"); the notes to the owner stay Levantine. Arabic labels run about 25% longer, so no button or column has a fixed text width.
-- **Still to come in layer 2:** group 3, navigation and overlays (sidebar items and the diamond spine, tabs, breadcrumb, the phone step bar, notices, toasts, dialogs and confirmations, side panels, tooltips, the save bar, the notifications panel, Ctrl K search). Group 2 (data display) is below.
+- **Layer 2 in three groups:** this group 1, group 2 data display and group 3 navigation and overlays (both below). Layer 3, patterns (how components combine into whole flows), comes next.
 
 ## Components, group 2: data display (proposal, 2026-11-10 — playground [design/components-data.html](design/components-data.html))
 Tables and everything that shows information. Built from the foundations and group 1; charts follow the dataviz method (form first, colour last, every palette checked with its colour-blindness validator, not by eye).
@@ -298,6 +298,40 @@ Tables and everything that shows information. Built from the foundations and gro
   - monitoring coverage: indicators × quarters in **status colours with an icon in every cell** (filled, empty, gap), so it reads without colour;
   - part-to-whole (example for the GHG module): a thin segmented bar with the figures in the legend, in text colour;
   - **chart colours (in the foundations tokens):** sequential `--seq-1…5` (Verdant ramp, light to dark; its own steps in dark mode); categorical `--cat-1…4` in fixed order: turquoise, rubine, gold (from AKF's secondary colours, re-stepped because the raw AKF green and gold look the same to colour-blind readers) and violet. At most 4 groups; more fold into "Other" or a table. Gold is under 3:1 on white, so categorical charts always carry direct labels or a legend with figures. Status colours are never used for groups; text never takes a series colour.
+
+## Components, group 3: navigation and overlays (proposal, 2026-11-10 — playground [design/components-nav.html](design/components-nav.html))
+The last group of layer 2: the app shell agreed in option 1, built as components, plus messages and everything that opens over the page.
+- **Sidebar:** outside a project, the main menu (Home, Projects with its count, Library, Notifications with unread count; Administration at the bottom under a small heading, only for people with an admin permission; Collapse). Inside a project, the same column is the spine: back to all projects, the project name with code and category, Overview, Tools 1–5 each with its diamond and state (sub-parts under the open tool), Documents with a count, the reserved Activities (v3) slot, Collapse. The current item has a tint, a bar at the start and bold text (three cues).
+- **Collapsed sidebar and tablet rail (64 px):** icons, and for the tools the step number inside a diamond in its state colour; each item has a tooltip with name and state. On a tablet ☰ in the header opens the full menu as a drawer.
+- **Phone:** ☰ opens the menu as a drawer over a dimmed page; inside a project a "Step 4 of 5 · Returned" bar with previous / next arrows and a list of the five steps.
+- **Header:** logo, "AKF Syria", project search with Ctrl K, Help "?", the bell with an unread count, the account menu (My account, Language and Theme with their current values, Sign out).
+- **Page header:** breadcrumb (links, the current page as plain text), title, state with who and when, then Export (always), one primary action, "⋯". **Tabs** only for sibling views of one thing (Details / Access / Security), with counts where useful; never for moving between tools (that is the spine). A **status strip** in the same place on every workflow step.
+- **Messages:**
+  - page notices stay until the situation changes; only the information notice can be dismissed;
+  - **toasts** confirm what just happened in the button's own words ("Changes saved"). They sit at the bottom on the start side, away from the save button at the end. They go after 6 seconds but stay while hovered or focused. They carry **Undo** for reversible actions (archive), so those need no confirmation. Error toasts never leave on their own;
+  - the **offline bar** sits under the header.
+- **Dialogs:**
+  - only for confirming what is hard to undo. The title is the exact question ("Delete "Rural water network"?"), the body says what will happen (Deleted items for 30 days), and the button repeats the action ("Delete project"), never "OK";
+  - focus starts on Cancel, so a stray Enter does not delete.
+- **Side panels (400 px; full screen on a phone):**
+  - for work done next to the page: approve or return, the row editor, Help, upload, details;
+  - the page stays readable, and is not editable while a review panel is open.
+- **Choosing the right container:**
+  - dialog for a hard-to-undo confirmation or a short standalone form;
+  - side panel when the page must stay in view;
+  - a page for anything long or with several steps.
+- **Links:** navigation, menus, breadcrumbs and clickable cards are links without an underline (the breadcrumb underlines on hover); a link inside a sentence (an error summary, help text) is underlined in the action colour, so it is not marked by colour alone (WCAG 1.4.1).
+- **Tooltips:** short names and definitions on hover and keyboard focus; never the only place for information someone needs to act (touch screens have no hover).
+- **Notifications panel (the bell):** latest items, each opens its place and becomes read, "Mark all as read", link to the full page.
+- **Quick search (Ctrl K):** from anywhere; projects first (name, code, place) with the match marked, then pages; an empty box shows recent projects; only what the person can access (a third-party reader never sees other projects' names).
+- **Keyboard and focus (all three groups):**
+  - a "Skip to content" link first;
+  - Tab order follows reading order (mirrored in Arabic);
+  - Ctrl K searches, and Ctrl S saves pages that have a save bar;
+  - Esc closes only the topmost layer and returns focus to what opened it (as `useOverlay` does today);
+  - dialogs keep focus inside;
+  - after saving, focus does not move and screen readers announce the toast;
+  - leaving a page with unsaved changes asks in an in-app dialog, never the browser's.
 
 ## Build notes for the v2.5 phases (collected during the design, 2026-11-10)
 **How these are handled:** the design stage (this file) only records them. Step 5 below turns them into decisions in [DECISIONS.md](DECISIONS.md) and puts each one in the scope of a v2.5 phase file in [phases/](phases/); the phase session that owns that part builds and tests it, and the main chat reviews the code. **Rule (owner, 2026-11-10):** questions about implementation (sizes, types, limits, server settings) are still asked as they come up, and the answer is recorded here; but the work is **assigned to the phase that builds it**, never done now at the expense of the design. v2.5 is above all the design: small and medium changes the design needs go in this table; a large structural change goes to v3 ([V3_VISION.md](V3_VISION.md)) instead. A related change that fits with an item already here (permissions, project code, deleted items, passwords…) is added to this table.
@@ -326,5 +360,5 @@ Tables and everything that shows information. Built from the foundations and gro
 1. Close the open questions above. **Done.**
 2. App shell: sidebar, header, project navigation, context slot, Help — options compared with the owner on screen (playground), decision with reasons. **Done: option 1 agreed (see "App shell" above).**
 3. Page by page: priorities and layout. **Done (owner approved all groups, 2026-11-10):** shell, core pages, lists and Administration, account / sign-in / readers / system pages, each in a playground under [design/](design/), with phone views and the tablet rail. A consistency pass over the four playgrounds and these notes followed the same day: where they differed, these notes win.
-4. Design system: foundations → components → patterns. **Foundations done** (2026-11-10, owner answered the locale questions and agreed to AKF's palette). Components: group 1 (actions and inputs) approved and committed; group 2 (data display) proposed; group 3 (navigation and overlays) next.
+4. Design system: foundations → components → patterns. **Foundations done** (2026-11-10, owner answered the locale questions and agreed to AKF's palette). Components: groups 1 and 2 approved and committed; group 3 (navigation and overlays) proposed. Patterns (layer 3) next.
 5. Record the outcome as decisions (DECISIONS.md), write the v2.5 phase files (each build note above goes into the scope of one phase), and rename the "phase 13" references in CLAUDE.md and plan/ in the same change.

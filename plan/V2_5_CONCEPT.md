@@ -95,13 +95,13 @@ Every page is built from a small set of page patterns (design-system layer 3), s
 | **Work queue** (sections of "what needs me", built from permissions) | Home |
 | **Unit overview** (facts, workflow strip, next step, people, activity, documents) | Project overview (v3: activity overview) |
 | **Workflow step** (one anatomy for every tool, see below) | Tool 1 Screening; Tool 2 Assessment (parts: Context, Methods & consultation, Scoring, Summary & submit); Tool 3 Management activities; Tool 4 Mitigation plan; Tool 5 Monitoring; later SEMP Plan, Stakeholder Awareness |
-| **Collection list** (one table look: search, filters, sort, paging, empty/loading/error, row actions) | Projects, Library, project Documents, Notifications, Users, Roles, Activity log, Archive & trash |
+| **Collection list** (one table look: search, filters, sort, paging, empty/loading/error, row actions) | Projects (with an "Archived" tab), Library, project Documents, Notifications, Users, Access, Activity log, Deleted items; Roles & permissions is a matrix on the same frame |
 | **Form** (page for a long form, side panel for a short one) | New project / Edit details (page), user, role, assignment, library document (side panels) |
 | **Reader** | Help guide, PDF viewer |
 | **Auth** | Sign in, forced password change (v3: organisation sign-in) |
 | **Organisation report** (built last in v2.5) | GHG Emissions, Environmental Data Collection |
 
-New in v2.5: Notifications page, Administration (Users, Roles & permissions, Access assignments, Activity log, Archive & trash), "People on this project" on the overview, the personal page (profile, password, language, theme, my access, read only).
+New in v2.5: Notifications page, Administration (Users, Roles & permissions, Access, Activity log, Deleted items), "People on this project" on the overview, the personal page (profile, password, language, theme, my access, read only).
 
 ## Core pages (proposal, 2026-11-10 — playground [design/core-pages.html](design/core-pages.html))
 **Workflow step page — the same anatomy for Tools 1–5:**
@@ -122,12 +122,87 @@ Teams fill Tool 5 when they like, often all at once (even at the end of the year
 ## Project team (owner, 2026-11-10)
 The person who creates a project does not choose its team (they may be a Focal Point without that right). Access to a project is managed by people with the "manage access" permission (admin and Environmental Specialist in the starting roles). Proposal: the creator is assigned to the new project automatically with their own role, so they can continue working on it, and people who can manage access get an in-app notification "New project — assign its team".
 
+## Lists, Administration and New project (proposal, 2026-11-10 — playground [design/lists-and-admin.html](design/lists-and-admin.html))
+**Collection list pattern (every list):**
+- Page header with the count and one primary action (New project, Upload, Add user, Give access); then search and filters; then the table; then paging.
+- Active filters are highlighted, with "Clear filters". Filters, sort and page live in the URL, so going back returns to the same list and a link can be shared.
+- Five drawn states for every list:
+  - data;
+  - empty on first use (says what goes here, with the primary action);
+  - no results (with "Clear filters");
+  - loading (grey skeleton in the table's own shape, so nothing jumps);
+  - error (with "Try again").
+- A row click opens the item. Small row buttons are for quick actions (export, preview, "⋯").
+- On a phone, rows become cards, the filters sit behind one "Filters" button, and "Show more" replaces paging.
+- Bulk selection only where it means something (Deleted items).
+- A page the person may not use is not in the menu. A direct link shows a clear "You don't have access to this page" page.
+
+**Pages:**
+- **Projects:**
+  - tabs "My projects" / "All projects" (organisation scope only) / "Archived" (people who can archive). The archive is a tab here, not its own page.
+  - Columns: project (with a short code and the place), a mini workflow of five bars, where it stands, "Needs attention" built from the person's permissions (returned, waiting for your review, monitoring gaps, needs a team), last update, Export.
+  - "Export list" exports the filtered list to Excel.
+  - A third-party reader sees only their projects: no tabs, no attention column, no counts of others.
+  - **New:** a short project code (for example ESMS-024), given by the server, for search, talk and exports.
+- **Library:**
+  - each document shows where it appears ("Shows on": the pages whose "Help with this page" panel lists it);
+  - upload and edit in a side panel (file, title, description, pages, position);
+  - "Read the library" is a permission; the starting Reader role does not have it.
+- **Project documents:**
+  - grouped by workflow step in spine order, with empty steps hidden;
+  - a drop zone that states the allowed types and size up front;
+  - PDFs open in the viewer, other files download;
+  - "Download all" as a ZIP.
+- **Notifications page:**
+  - All / Unread, and "Mark all as read";
+  - each item is a sentence (who, what, which project, when) and opens the exact place;
+  - items follow permissions: submitted for your review, returned, approved, new project needs a team, you were given access;
+  - in-app only (email on the same events if the server can send mail); no notification for monitoring gaps.
+- **New project:**
+  - a full page with sections (Project, Location, Dates) and errors shown at the field while typing;
+  - a note that the creator is added automatically with their role and that access managers are notified;
+  - after creating, the project overview opens with "Start screening".
+- **Users:**
+  - name and email, job title, access as a short line ("Focal Point · 4 projects"), status ("No access yet" highlighted), last sign-in;
+  - **new:** a `last sign-in` field;
+  - a row opens a side panel with the tabs Details / Access / Security (temporary password, deactivate; never delete, D4);
+  - you cannot change your own access or deactivate yourself (v2.0.1 rule).
+- **Roles & permissions:**
+  - one matrix, with permissions as rows (grouped: Projects, Workflow tools, Library, Administration, each a plain sentence) and roles as columns with their people count;
+  - click to change, with a save bar;
+  - "organisation only" marks permissions that work only when the role is given for the whole organisation;
+  - the six v2 roles become editable starting roles: the Programme Manager gets "approve or return" (owner: they review and approve) and the Reader keeps Export (owner);
+  - the Administrator's "Manage users" and "Manage roles" are locked, so nobody locks everyone out;
+  - "New role" in a side panel (name, description, start from an existing role);
+  - on a phone: pick a role, see its permissions as a list.
+- **Access:**
+  - one list answers "who works on what", one line per person + role + where (whole organisation or chosen projects);
+  - a strip "New projects need a team" with "Assign team";
+  - "Give access" in a side panel: person, role (with what it allows), where, and a **result sentence** before saving ("Lina S. will be able to … on 1 project: …");
+  - the same panel opens from the user's Access tab and from "People on this project";
+  - a specialist sees only "Access" under Administration.
+- **Activity log:**
+  - the D65 critical actions, plus **every access and role change**;
+  - each entry is a sentence with the person and their role at the time;
+  - a row opens details with "As it was before";
+  - filters (action, person, project, date) and export;
+  - entries are never edited or deleted;
+  - workflow decisions stay in each tool's history; a field-level log is v3.
+- **Deleted items (new, proposal):**
+  - deleting a project, a project file or a library document moves it to Deleted items for 30 days (restore or delete now), then it is removed for good;
+  - needs a soft delete in the backend;
+  - archiving stays separate (finished projects kept for the record); permanent delete of an archived project stays with the admin.
+
+**Owner answers (2026-11-10):**
+- **Deleted items:** the client has no retention rule; 30 days, as proposed.
+- **Location and component stay free text.** There is no grouping by sector. Grouping by place may come later; the owner's idea is to pick the place on a map (coordinates). That is kept for v3, where the global shape is decided (see [V3_VISION.md](V3_VISION.md), "Global use").
+
 ## Open questions
-- None open right now. (Closed on 2026-11-10: Programme Manager also edits; monitoring has gaps, not dates; the project team is set by admin / specialist.)
+- None open right now. (Closed on 2026-11-10: Programme Manager also edits; monitoring has gaps, not dates; the project team is set by admin / specialist; deleted items kept 30 days; location and component stay free text.)
 
 ## Next steps
 1. Close the open questions above.
 2. App shell: sidebar, header, project navigation, context slot, Help — options compared with the owner on screen (playground), decision with reasons. **Done: option 1 agreed (see "App shell" above).**
-3. Page by page: priorities and layout. **In progress:** page map and the core pages (Home, Project overview, workflow step page) proposed; next the collection lists, Administration and the remaining pages.
+3. Page by page: priorities and layout. **In progress:** page map, core pages (Home, Project overview, workflow step page), collection lists, Administration and New project proposed; next the personal page, sign-in pages, the Help reader and the phone/tablet pass over all pages.
 4. Design system: foundations → components → patterns.
 5. Record the outcome as decisions (DECISIONS.md), write the v2.5 phase files, and rename the "phase 13" references in CLAUDE.md and plan/ in the same change.

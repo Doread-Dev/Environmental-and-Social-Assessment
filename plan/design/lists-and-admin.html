@@ -1,0 +1,813 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ESMS v2.5 — Lists and administration</title>
+<style>
+:root{--bg:#14161a;--panel:#1b1e23;--panel2:#23272d;--line:#30353d;--ink:#e8eaed;--muted:#9ba2ac;--accent:#86b6ec;--good:#7fd1a0;--bad:#f0a093}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.65 system-ui,"Segoe UI",Tahoma,sans-serif}
+button{font:inherit;color:inherit}
+.app{display:grid;grid-template-columns:350px minmax(0,1fr);min-height:100vh}
+.controls{background:var(--panel);border-inline-end:1px solid var(--line);padding:18px 18px 40px;height:100vh;overflow:auto;position:sticky;top:0}
+.controls h1{font-size:17px;margin:0 0 4px}
+.intro{color:var(--muted);font-size:12.5px;margin:0 0 6px}
+.grp{margin-top:15px}
+.gl{font-size:12px;color:var(--muted);margin-bottom:6px;display:block}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.presets button{background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:4px 11px;font-size:12px;cursor:pointer}
+.presets button:hover{border-color:var(--accent)}
+.seg{display:flex;flex-wrap:wrap;gap:4px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:3px}
+.seg button{flex:1 1 auto;border:0;background:transparent;border-radius:6px;padding:5px 8px;font-size:12.5px;cursor:pointer;white-space:nowrap}
+.seg button.on{background:var(--accent);color:#0d1b2a;font-weight:600}
+.seg button:disabled{opacity:.35;cursor:default}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;padding:3px 0;cursor:pointer}
+.chk input{accent-color:var(--accent)}
+.chk.dis{opacity:.4;cursor:default}
+.hide{display:none!important}
+.stage{padding:18px 22px 40px;min-width:0}
+.stage-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;font-size:13px;color:var(--muted)}
+.stage-bar b{color:var(--ink)}
+.viewport{position:relative;background:#0e1013;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+#frame{position:absolute;top:12px;transform-origin:top left;box-shadow:0 10px 40px rgba(0,0,0,.5);border-radius:8px}
+.boxes{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.box h2{font-size:15px;margin:0 0 8px}
+.box ul{margin:0;padding-inline-start:20px}
+.box li{margin-bottom:6px;font-size:13.5px}
+.box.q{border-color:#6b5a1e;background:#1f1c12}
+.box.q li{margin-bottom:10px}
+.output{margin-top:16px}
+.output textarea{width:100%;min-height:70px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:8px 10px;font:inherit;font-size:13px;resize:vertical}
+.prompt{white-space:pre-wrap;background:#0e1013;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:13px;margin-top:8px}
+.copy{margin-top:8px;background:var(--accent);color:#0d1b2a;border:0;border-radius:8px;padding:7px 16px;font-weight:600;cursor:pointer}
+@media (max-width:1100px){.boxes{grid-template-columns:1fr}}
+@media (max-width:860px){.app{grid-template-columns:1fr}.controls{position:static;height:auto}}
+
+/* ---------- wireframe ---------- */
+.f-shell{--w-bg:#f2f3f5;--w-sf:#fff;--w-ln:#d7dbe1;--w-ink:#262a30;--w-mu:#868d98;--w-ac:#2f6db5;--w-acbg:#e5eef9;--w-ok:#3b7a55;--w-okbg:#e7f3ec;--w-bad:#b0473a;--w-badbg:#f9e8e5;--w-warnbg:#fbf3dc;--w-warn:#8a6a10;
+  position:relative;width:100%;height:100%;background:var(--w-bg);color:var(--w-ink);font:13px/1.45 system-ui,"Segoe UI",Tahoma,sans-serif;display:flex;flex-direction:column;overflow:hidden;border-radius:8px}
+.f-shell .ic{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.f-header{height:48px;flex:none;display:flex;align-items:center;gap:8px;padding-inline:12px;background:var(--w-sf);border-bottom:1px solid var(--w-ln);z-index:9}
+.logo{font-weight:700;padding:2px 8px;border:1.5px solid var(--w-ink);border-radius:4px;font-size:12px}
+.ctx{font-size:11.5px;color:var(--w-mu);border:1px dashed #b9bfc8;padding:1px 9px;border-radius:99px}
+.hsp{flex:1}
+.search{display:flex;align-items:center;gap:6px;width:250px;height:30px;border:1px solid var(--w-ln);border-radius:6px;padding-inline:8px;color:var(--w-mu);font-size:12px;background:var(--w-bg)}
+.ib{width:32px;height:32px;display:grid;place-items:center;border-radius:6px;position:relative;flex:none}
+.badge{position:absolute;top:2px;inset-inline-end:2px;min-width:15px;height:15px;border-radius:99px;background:var(--w-bad);color:#fff;font-size:9px;font-weight:700;display:grid;place-items:center}
+.avatar{width:28px;height:28px;border-radius:50%;background:#dfe2e7;display:grid;place-items:center;font-size:11px;font-weight:700}
+.f-body{flex:1;display:flex;min-height:0;position:relative}
+.side{flex:none;width:250px;background:var(--w-sf);border-inline-end:1px solid var(--w-ln);display:flex;flex-direction:column;overflow:auto;padding:10px 8px}
+.ni{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;font-size:13px;white-space:nowrap}
+.ni.on{background:var(--w-acbg);color:var(--w-ac);font-weight:600}
+.ni.muted{color:var(--w-mu);font-size:12.5px}
+.sec{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--w-mu);padding:12px 10px 4px}
+.unit{padding:6px 10px 10px;margin-bottom:4px;border-bottom:1px solid var(--w-ln)}
+.unit-kind{font-size:10.5px;color:var(--w-mu);text-transform:uppercase;letter-spacing:.5px}
+.unit-name{font-weight:650;font-size:13.5px;line-height:1.3}
+.unit-meta{font-size:11px;color:var(--w-mu);display:flex;gap:6px;align-items:center;margin-top:4px}
+.chip{font-size:10.5px;padding:1px 8px;border-radius:99px;background:var(--w-bg);border:1px solid var(--w-ln);white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.chip.ac{background:var(--w-acbg);border-color:transparent;color:var(--w-ac)}
+.chip.ok{background:var(--w-okbg);border-color:transparent;color:var(--w-ok)}
+.chip.bad{background:var(--w-badbg);border-color:transparent;color:var(--w-bad)}
+.chip.warn{background:var(--w-warnbg);border-color:transparent;color:var(--w-warn)}
+.step{display:flex;align-items:center;gap:9px;padding:6px 10px;border-radius:6px;font-size:13px;white-space:nowrap}
+.dot{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:700;border:1.5px solid var(--w-ink)}
+.st-ok .dot{background:var(--w-ok);border-color:var(--w-ok);color:#fff}
+.st-cur .dot{border-color:var(--w-ac);color:var(--w-ac)}
+.st-bad .dot{border-color:var(--w-bad);color:var(--w-bad)}
+.st-lock{color:var(--w-mu)} .st-lock .dot{border-style:dashed;border-color:#a9b0ba}
+.step.on{background:var(--w-acbg)}
+.step .sl{margin-inline-start:auto;font-size:10.5px;color:var(--w-mu)}
+.subs{margin-inline-start:29px;border-inline-start:1.5px solid var(--w-ln);padding-inline-start:6px;margin-block:2px 4px}
+.subs a{display:block;padding:3px 8px;font-size:12px;border-radius:5px;color:var(--w-mu)}
+.subs a.on{color:var(--w-ac);font-weight:600;background:var(--w-acbg)}
+.f-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.f-page{flex:1;overflow:auto;padding:18px 22px}
+.crumbs{font-size:11.5px;color:var(--w-mu);margin-bottom:4px}
+.eyebrow{font-size:11px;color:var(--w-mu);text-transform:uppercase;letter-spacing:.5px}
+.ph{display:flex;align-items:flex-start;gap:10px 12px;margin-bottom:12px;flex-wrap:wrap}
+.ph h1{font-size:19px;margin:0;font-weight:650;line-height:1.3}
+.ph .tt{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.meta{font-size:11.5px;color:var(--w-mu);margin-top:3px}
+.acts{margin-inline-start:auto;display:flex;gap:8px;flex-wrap:wrap}
+.btn{height:30px;padding:0 12px;border-radius:6px;border:1px solid var(--w-ln);background:var(--w-sf);display:inline-flex;align-items:center;gap:6px;font-size:12.5px;white-space:nowrap}
+.btn .ic{width:15px;height:15px}
+.btn.pr{background:var(--w-ink);color:#fff;border-color:var(--w-ink)}
+.btn.icon{padding:0 8px}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--w-ac)}
+.btn.danger{color:var(--w-bad)}
+.strip{display:flex;gap:12px;align-items:flex-start;border-radius:8px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;border:1px solid transparent}
+.strip .ic{margin-top:1px}
+.strip b{display:block;font-size:13px}
+.strip .grow{flex:1}
+.strip.bad{background:var(--w-badbg);color:#6d2a22}
+.strip.ok{background:var(--w-okbg);color:#24503a}
+.strip.info{background:var(--w-acbg);color:#1f4675}
+.strip.neutral{background:var(--w-sf);border-color:var(--w-ln)}
+.strip.warn{background:var(--w-warnbg);color:#5c470a}
+.card{background:var(--w-sf);border:1px solid var(--w-ln);border-radius:8px;padding:14px}
+.card h3{margin:0 0 8px;font-size:13.5px;display:flex;align-items:center;gap:8px}
+.card h3 .grow{flex:1}
+.row{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--w-ln);font-size:12.5px}
+.card .row:first-of-type{border-top:0}
+.row .grow{flex:1;min-width:0}
+.sub{color:var(--w-mu);font-size:11.5px}
+.bar{height:8px;border-radius:4px;background:#e3e6ea}
+.bar.dk{background:#cdd3db}
+.grid2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px;align-items:start}
+.stack{display:flex;flex-direction:column;gap:14px}
+.fsec{margin-bottom:16px}
+.fsec>label{display:block;font-size:12px;font-weight:600;margin-bottom:6px}
+.fsec>label .sub{font-weight:400}
+.inp{border:1px solid var(--w-ln);background:var(--w-sf);border-radius:6px;padding:9px 10px;min-height:34px}
+.inp.ta{min-height:74px}
+.ro{padding:2px 0}
+.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cat{border:1px solid var(--w-ln);border-radius:8px;padding:9px 10px;background:var(--w-sf);display:flex;gap:10px;align-items:flex-start}
+.cat b{font-size:15px;width:24px;height:24px;border-radius:6px;background:var(--w-bg);display:grid;place-items:center;flex:none}
+.cat.on{border-color:var(--w-ac);box-shadow:0 0 0 1px var(--w-ac) inset}
+.cat.on b{background:var(--w-ac);color:#fff}
+.cat.off{opacity:.45}
+.qgrp{margin-bottom:14px}
+.qhead{display:flex;align-items:center;gap:8px;font-weight:650;font-size:12.5px;padding:6px 2px}
+.q{display:flex;align-items:center;gap:12px;padding:9px 12px;background:var(--w-sf);border:1px solid var(--w-ln);border-top:0}
+.q:first-of-type{border-top:1px solid var(--w-ln);border-radius:8px 8px 0 0}
+.q:last-child{border-radius:0 0 8px 8px}
+.q .grow{flex:1;min-width:0}
+.lv{display:inline-flex;border:1px solid var(--w-ln);border-radius:6px;overflow:hidden;flex:none}
+.lv span{padding:3px 8px;font-size:11px;border-inline-start:1px solid var(--w-ln);color:var(--w-mu)}
+.lv span:first-child{border-inline-start:0}
+.lv span.on{background:var(--w-ink);color:#fff}
+.sumbar{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:7px}
+.sumbar .lbl{width:74px}
+.sumbar .track{flex:1;height:8px;border-radius:4px;background:#eceef1;overflow:hidden}
+.sumbar .track i{display:block;height:100%;background:#9aa4b1}
+.tbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.tbar .grow{flex:1}
+.mini-search{display:flex;align-items:center;gap:6px;height:30px;width:200px;border:1px solid var(--w-ln);border-radius:6px;padding-inline:8px;color:var(--w-mu);font-size:12px;background:var(--w-sf)}
+.tbl{background:var(--w-sf);border:1px solid var(--w-ln);border-radius:8px;overflow:hidden}
+.tr{display:grid;gap:12px;padding:10px 12px;border-bottom:1px solid var(--w-ln);align-items:start}
+.tr:last-child{border-bottom:0}
+.tr.th{background:#f7f8fa;font-size:11px;color:var(--w-mu);font-weight:600;align-items:center}
+.tr.sel{background:var(--w-acbg);box-shadow:inset 3px 0 0 var(--w-ac)}
+.tr.grp{background:#fafbfc;font-weight:650;font-size:12px;padding:7px 12px}
+.lines{display:flex;flex-direction:column;gap:6px}
+.cell-in{border:1px solid var(--w-ac);background:#fff;border-radius:5px;height:26px}
+.cell-ro{height:8px;border-radius:4px;background:#e3e6ea;margin-top:9px}
+.col-focus{background:#f4f8fd}
+.flag{width:7px;height:7px;border-radius:50%;background:var(--w-bad);display:inline-block}
+.panel{flex:none;width:340px;background:var(--w-sf);border-inline-start:1px solid var(--w-ln);display:flex;flex-direction:column;z-index:5}
+.panel .phd{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--w-ln);font-weight:650}
+.panel .pbd{padding:14px;flex:1;overflow:auto}
+.panel .pft{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--w-ln)}
+.panel .pft .grow{flex:1}
+.tabs2{display:flex;border:1px solid var(--w-ln);border-radius:7px;overflow:hidden;margin-bottom:12px}
+.tabs2 span{flex:1;text-align:center;padding:6px;font-size:12px}
+.tabs2 span.on{background:var(--w-ink);color:#fff}
+.savebar{flex:none;display:flex;align-items:center;gap:8px;padding:9px 22px;background:var(--w-sf);border-top:1px solid var(--w-ln);font-size:12.5px}
+.savebar .grow{flex:1;color:var(--w-mu)}
+.wf{display:flex;gap:0;margin-bottom:14px;background:var(--w-sf);border:1px solid var(--w-ln);border-radius:8px;padding:12px 8px}
+.wf .w{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;font-size:11.5px;position:relative}
+.wf .w::after{content:"";position:absolute;top:10px;inset-inline-start:calc(50% + 14px);inset-inline-end:calc(-50% + 14px);height:1.5px;background:var(--w-ln)}
+.wf .w:last-child::after{display:none}
+.next{display:flex;align-items:center;gap:14px;background:var(--w-ink);color:#fff;border-radius:8px;padding:14px 16px;margin-bottom:14px}
+.next .grow{flex:1}
+.next .sub{color:#c3c8cf}
+.next .btn{background:#fff;color:var(--w-ink);border-color:#fff}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;font-size:12px}
+.facts span{display:block;color:var(--w-mu);font-size:11px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stat{background:var(--w-sf);border:1px solid var(--w-ln);border-radius:8px;padding:10px 12px}
+.stat b{display:block;font-size:20px}
+.stat span{font-size:11.5px;color:var(--w-mu)}
+.stepbar{flex:none;display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--w-sf);border-bottom:1px solid var(--w-ln);font-size:12.5px}
+.stepbar .grow{flex:1}
+.pills{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px}
+.pill{padding:3px 11px;border-radius:99px;font-size:12px;border:1px solid var(--w-ln);background:var(--w-sf);white-space:nowrap}
+.pill.on{background:var(--w-acbg);color:var(--w-ac);border-color:transparent;font-weight:600}
+.dev-phone .f-page{padding:14px}
+.dev-phone .ph h1{font-size:16px}
+.dev-phone .acts{margin-inline-start:0;width:100%}
+.dev-phone .acts .btn.pr{flex:1;justify-content:center}
+.dev-phone .grid2,.dev-phone .cats{grid-template-columns:1fr}
+.dev-phone .facts,.dev-phone .stats{grid-template-columns:1fr 1fr}
+.dev-phone .panel{position:absolute;inset:0;width:auto;border:0;z-index:13}
+.dev-phone .savebar{padding:9px 14px}
+.dev-phone .wf{flex-direction:column;gap:8px;align-items:stretch;padding:10px 12px}
+.dev-phone .wf .w{flex-direction:row;text-align:start}
+.dev-phone .wf .w::after{display:none}
+.dev-phone .q{flex-wrap:wrap}
+.dev-phone .q .lv{width:100%}
+.dev-phone .q .lv span{flex:1;text-align:center}
+/* ---------- lists + administration ---------- */
+.tabsl{display:flex;gap:2px;border-bottom:1px solid var(--w-ln);margin-bottom:12px;overflow-x:auto}
+.tabsl span{padding:7px 12px;font-size:12.5px;color:var(--w-mu);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tabsl span.on{color:var(--w-ink);border-color:var(--w-ink);font-weight:600}
+.fchip{display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border:1px solid var(--w-ln);border-radius:99px;background:var(--w-sf);font-size:12px;white-space:nowrap}
+.fchip.set{background:var(--w-acbg);border-color:transparent;color:var(--w-ac);font-weight:600}
+.fchip .ic{width:13px;height:13px}
+.pager{display:flex;align-items:center;gap:8px;padding:10px 2px;font-size:12px;color:var(--w-mu)}
+.pager .grow{flex:1}
+.mini-wf{display:inline-flex;gap:3px;align-items:center}
+.mini-wf i{width:14px;height:6px;border-radius:3px;background:#dfe3e8}
+.mini-wf i.ok{background:var(--w-ok)} .mini-wf i.cur{background:var(--w-ac)} .mini-wf i.bad{background:var(--w-bad)}
+.skel{height:10px;border-radius:5px;background:#eceef1}
+.empty{text-align:center;padding:44px 20px;color:var(--w-mu);font-size:12.5px}
+.empty .ill{width:54px;height:54px;border-radius:14px;background:var(--w-bg);border:1px solid var(--w-ln);display:grid;place-items:center;margin:0 auto 12px;color:var(--w-mu)}
+.empty .ill .ic{width:24px;height:24px}
+.empty b{display:block;color:var(--w-ink);font-size:14px;margin-bottom:4px}
+.empty .btn{margin-top:14px}
+.cb{width:15px;height:15px;border:1.5px solid #a9b0ba;border-radius:4px;display:inline-grid;place-items:center;flex:none;background:#fff;font-size:10px;line-height:1}
+.cb.on{background:var(--w-ink);border-color:var(--w-ink);color:#fff}
+.cb.on::after{content:"✓"}
+.cb.chg{box-shadow:0 0 0 3px #f3d98b}
+.cb.dim{opacity:.5}
+.mx .tr{align-items:center}
+.mx .tr>div:not(:first-child){display:flex;justify-content:center;text-align:center}
+.tag{font-size:9.5px;padding:0 5px;border-radius:4px;background:var(--w-bg);border:1px solid var(--w-ln);color:var(--w-mu);margin-inline-start:6px;white-space:nowrap}
+.unread{width:8px;height:8px;border-radius:50%;background:var(--w-ac);flex:none}
+.drop{border:1.5px dashed #b9bfc8;border-radius:8px;padding:14px;text-align:center;color:var(--w-mu);font-size:12px;background:var(--w-sf);margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px}
+.formpage{max-width:760px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.fsec .err{border-color:var(--w-bad);box-shadow:0 0 0 1px var(--w-bad) inset}
+.fsec .msg{font-size:11.5px;color:var(--w-bad);margin-top:4px}
+.fsec .hint{font-size:11.5px;color:var(--w-mu);margin-top:4px}
+.ftitle{font-size:13px;font-weight:650;margin:2px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--w-ln)}
+.selbar{display:flex;align-items:center;gap:8px;background:var(--w-ink);color:#fff;border-radius:8px;padding:7px 12px;margin-bottom:10px;font-size:12.5px}
+.selbar .btn{background:transparent;color:#fff;border-color:#5b616a;height:26px}
+.selbar .grow{flex:1}
+.nsub{margin-inline-start:20px;border-inline-start:1.5px solid var(--w-ln);padding-inline-start:6px;margin-bottom:4px}
+.nsub a{display:block;padding:4px 8px;font-size:12px;border-radius:5px;color:var(--w-mu)}
+.nsub a.on{color:var(--w-ac);font-weight:600;background:var(--w-acbg)}
+.lcard{background:var(--w-sf);border:1px solid var(--w-ln);border-radius:8px;padding:11px 12px;margin-bottom:8px}
+.kv{display:grid;grid-template-columns:96px 1fr;gap:7px 10px;font-size:12px;margin-bottom:14px}
+.kv span{color:var(--w-mu)}
+.opt{border:1px solid var(--w-ln);border-radius:8px;padding:9px 11px;display:flex;gap:9px;align-items:flex-start;margin-bottom:6px;font-size:12.5px}
+.opt.on{border-color:var(--w-ac);box-shadow:0 0 0 1px var(--w-ac) inset}
+.radio{width:14px;height:14px;border-radius:50%;border:1.5px solid #a9b0ba;flex:none;margin-top:2px}
+.opt.on .radio{border:4px solid var(--w-ac)}
+.result{background:var(--w-okbg);color:#24503a;border-radius:8px;padding:10px 12px;font-size:12.5px}
+.ib.soft{background:var(--w-bg);width:28px;height:28px}
+.tr .chip{white-space:normal;line-height:1.35;padding:2px 8px;max-width:100%}
+.dev-phone .fgrid{grid-template-columns:1fr}
+.dev-phone .tbar .mini-search{width:auto;flex:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="controls">
+    <h1>القوائم والإدارة — ESMS v2.5</h1>
+    <p class="intro">نفس الهيكل (الخيار ١). هون <b>نمط القائمة</b> اللي بيتكرّر بكل التطبيق (المشاريع، المكتبة، الوثائق، الإشعارات، المستخدمين، السجل…)، وصفحات <b>الإدارة</b> اللي بتشغّل نموذج الصلاحيات الجديد، وصفحة <b>مشروع جديد</b>. مربعات بس، المحتوى وهمي.</p>
+
+    <div class="grp"><span class="gl">جاهزين</span><div class="presets" id="presets"></div></div>
+    <div class="grp"><span class="gl">الصفحة</span><div class="seg" data-key="page"></div></div>
+    <div class="grp"><span class="gl">صلاحيات الشخص (مش اسم دور)</span><div class="seg" data-key="person"></div></div>
+    <div class="grp" id="g-list"><span class="gl">حالة القائمة</span><div class="seg" data-key="list"></div></div>
+    <div class="grp"><span class="gl">الجهاز</span><div class="seg" data-key="device"></div></div>
+    <div class="grp"><span class="gl">افتح</span>
+      <label class="chk" id="c-panel"><input type="checkbox" data-flag="panel"> <span id="panel-label">اللوحة الجانبية</span></label>
+    </div>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-bar" id="stagebar"></div>
+    <div class="viewport" id="viewport"><div id="frame"></div></div>
+    <section class="boxes">
+      <div class="box" id="why"></div>
+      <div class="box q" id="questions"></div>
+    </section>
+    <section class="box output">
+      <h2>رأيك</h2>
+      <textarea id="notes" placeholder="ملاحظاتك، وجوابك عالأسئلة الصفرا إذا بتعرفه…"></textarea>
+      <div class="prompt" id="prompt"></div>
+      <button class="copy" id="copy">انسخ وابعتلي ياه</button>
+    </section>
+  </main>
+</div>
+
+<script>
+const DEFAULTS = {page:'projects', person:'both', list:'data', device:'laptop', panel:false};
+const S = {...DEFAULTS};
+const SEGS = {
+  page:[['projects','المشاريع'],['library','المكتبة'],['documents','وثائق المشروع'],['notifications','الإشعارات'],['newproject','مشروع جديد'],['users','إدارة: المستخدمين'],['roles','إدارة: الأدوار والصلاحيات'],['access','إدارة: الوصول'],['log','إدارة: سجل النشاط'],['trash','إدارة: المحذوفات']],
+  person:[['edit','بيعدّل'],['both','بيعدّل وبيعتمد وبيدير الوصول'],['read','قارئ من طرف ثالث'],['admin','مدير النظام']],
+  list:[['data','فيها بيانات'],['empty','فاضية (أول مرة)'],['noresults','ما في نتائج للفلتر'],['loading','عم تحمّل'],['error','خطأ']],
+  device:[['laptop','لابتوب'],['phone','موبايل']],
+};
+const PRESETS = [
+  ['قائمة المشاريع', {}],
+  ['المشاريع: ما في نتائج', {list:'noresults'}],
+  ['المكتبة + رفع وثيقة', {page:'library', panel:true}],
+  ['وثائق المشروع', {page:'documents', person:'edit'}],
+  ['الإشعارات', {page:'notifications'}],
+  ['مشروع جديد', {page:'newproject', person:'edit'}],
+  ['مستخدم ووصولو', {page:'users', person:'admin', panel:true}],
+  ['الأدوار والصلاحيات', {page:'roles', person:'admin'}],
+  ['إعطاء وصول', {page:'access', panel:true}],
+  ['سجل النشاط', {page:'log', person:'admin', panel:true}],
+  ['المحذوفات', {page:'trash', person:'admin'}],
+  ['قارئ عالموبايل', {person:'read', device:'phone'}],
+  ['صفحة بلا صلاحية', {page:'users', person:'edit'}],
+];
+const DIM = {laptop:[1366,800], phone:[390,820]};
+const P = {
+ home:'M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z', proj:'M3 7a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z',
+ lib:'M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2zM5 18a2 2 0 0 1 2-2h11', org:'M4 21V4h10v17M14 9h6v12M3 21h18', admin:'M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6zM12 3v3M12 18v3M3 12h3M18 12h3',
+ bell:'M6 16v-5a6 6 0 0 1 12 0v5l2 2H4zM10 21a2 2 0 0 0 4 0', search:'M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM20 20l-4-4',
+ help:'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.5V14M12 17.2v.1', menu:'M4 6h16M4 12h16M4 18h16',
+ back:'M15 6l-6 6 6 6', fwd:'M9 6l6 6-6 6', doc:'M7 3h7l5 5v13H7zM14 3v5h5', chev:'M6 9l6 6 6-6', grid:'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+ layers:'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5', dl:'M12 4v11M7 10l5 5 5-5M5 20h14', more:'M5 12h.01M12 12h.01M19 12h.01', close:'M6 6l12 12M18 6L6 18',
+ alert:'M12 4l9 16H3zM12 10v4M12 17v.1', check:'M5 12l5 5 9-10', clock:'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 7v5l3 2', lock:'M6 11h12v9H6zM9 11V8a3 3 0 0 1 6 0v3',
+ plus:'M12 5v14M5 12h14', filter:'M4 5h16l-6 7v6l-4 2v-8z', people:'M9 11a3 3 0 1 0 0-6a3 3 0 1 0 0 6zM3 20a6 6 0 0 1 12 0M16 11a3 3 0 1 0 0-6M21 20a6 6 0 0 0-4-5.6', arrow:'M5 12h14M13 6l6 6-6 6',
+ trash:'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13', eye:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6z', upload:'M12 20V9M7 14l5-5 5 5M5 4h14',
+ restore:'M4 12a8 8 0 1 0 3-6.2M4 4v4h4', key:'M15 4a5 5 0 1 0 0 10a5 5 0 1 0 0-10zM11.5 12.5L3 21M6 18l2 2', shield:'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z',
+ sort:'M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4', user:'M12 12a4 4 0 1 0 0-8a4 4 0 1 0 0 8zM4 21a8 8 0 0 1 16 0', log:'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01'
+};
+const ic = n => `<svg class="ic" viewBox="0 0 24 24"><path d="${P[n]}"/></svg>`;
+const lines = (ws, cls='') => `<div class="lines">${ws.map(w=>`<div class="bar ${cls}" style="width:${w}%"></div>`).join('')}</div>`;
+const ph = () => S.device==='phone';
+
+/* ---------- permissions (from assignments, never from a role name) ---------- */
+const can = () => { const p = S.person; return {
+  edit: p!=='read', approve: p==='both'||p==='admin', manageLib: p==='both'||p==='admin', viewLib: p!=='read',
+  manageAccess: p==='both'||p==='admin', admin: p==='admin', org: p==='both'||p==='admin', archive: p==='both'||p==='admin' }; };
+const ALLOWED = {projects:()=>true, library:c=>c.viewLib, documents:()=>true, notifications:()=>true, newproject:c=>c.edit,
+  users:c=>c.admin, roles:c=>c.admin, access:c=>c.manageAccess, log:c=>c.admin, trash:c=>c.admin};
+const allowed = () => ALLOWED[S.page](can());
+const ADMIN_PAGES = [['users','Users'],['roles','Roles & permissions'],['access','Access'],['log','Activity log'],['trash','Deleted items']];
+const LIST_PAGES = ['projects','library','documents','notifications','users','access','log','trash'];
+const PANEL_LABEL = {library:'لوحة رفع وثيقة', users:'لوحة المستخدم (تبويب الوصول)', roles:'لوحة دور جديد', access:'لوحة "إعطاء وصول"', log:'تفاصيل حركة من السجل'};
+const panelOk = () => !!PANEL_LABEL[S.page] && allowed() && S.list==='data' && (S.page!=='library' || can().manageLib);
+
+/* ---------- shell ---------- */
+function header(){
+  return `<header class="f-header">${ph()?`<span class="ib">${ic('menu')}</span>`:''}<span class="logo">ESMS</span>${ph()?'':'<span class="ctx">AKF Syria</span>'}<span class="hsp"></span>
+   ${ph()?`<span class="ib">${ic('search')}</span>`:`<span class="search">${ic('search')}<span>Search projects…</span></span>`}<span class="ib">${ic('help')}</span><span class="ib">${ic('bell')}<span class="badge">3</span></span><span class="avatar">U</span></header>`;
+}
+const ni = (i, l, on) => `<a class="ni ${on?'on':''}">${ic(i)}<span>${l}</span></a>`;
+function sidebar(){
+  if (ph()) return '';
+  if (S.page==='documents') return spine();
+  const c = can(), isAdm = ADMIN_PAGES.some(([k])=>k===S.page);
+  let h = ni('home','Home',false) + ni('proj','Projects',S.page==='projects'||S.page==='newproject');
+  if (c.viewLib) h += ni('lib','Library',S.page==='library');
+  if (S.person!=='read') h += `<div class="sec">Organisation</div>${ni('org','GHG emissions')}${ni('layers','Environmental data')}`;
+  const adm = ADMIN_PAGES.filter(([k])=>ALLOWED[k](c));
+  if (adm.length) h += `<div style="margin-top:auto;border-top:1px solid var(--w-ln);padding-top:8px">${ni('admin','Administration',false)}${isAdm?`<div class="nsub">${adm.map(([k,l])=>`<a class="${k===S.page?'on':''}">${l}</a>`).join('')}</div>`:''}</div>`;
+  return `<nav class="side">${h}</nav>`;
+}
+function spine(){
+  const st = [['ok','✓','Screening','Approved'],['cur','2','Assessment','Draft'],['lock','3','Management activities',''],['lock','4','Mitigation plan',''],['lock','5','Monitoring','']];
+  let h = `<a class="ni muted">${ic('back')}<span>All projects</span></a><div class="unit"><div class="unit-kind">Project</div><div class="unit-name">School rehabilitation – Aleppo</div><div class="unit-meta">ESMS-024 <span class="chip ac">In progress</span></div></div>`;
+  h += `${ni('grid','Overview')}<div class="sec">Workflow</div>` + st.map(([k,d,n,l])=>`<a class="step st-${k}"><span class="dot">${d}</span><span>${n}</span><span class="sl">${l}</span></a>`).join('');
+  h += `<div class="sec">Project</div>${ni('doc','Documents',true)}${ni('doc','SEMP plan')}${ni('people','Stakeholder awareness')}`;
+  return `<nav class="side">${h}</nav>`;
+}
+
+/* ---------- the collection-list pattern ---------- */
+function pageHead({crumbs, eyebrow, title, count, meta, acts}){
+  return `${crumbs && !ph()?`<div class="crumbs">${crumbs}</div>`:''}<div class="ph"><div>${eyebrow?`<div class="eyebrow">${eyebrow}</div>`:''}<div class="tt"><h1>${title}</h1>${count!=null && S.list!=='loading'?`<span class="chip">${S.list==='empty'?0:count}</span>`:''}</div>${meta?`<div class="meta">${meta}</div>`:''}</div>${acts?`<div class="acts">${acts}</div>`:''}</div>`;
+}
+const tabs = (list, on=0) => S.list==='empty' ? '' : `<div class="tabsl">${list.map(([l,n],i)=>`<span class="${i===on?'on':''}">${l}${n!=null?` <span class="sub">${n}</span>`:''}</span>`).join('')}</div>`;
+function toolbar(phText, filters, right=''){
+  if (S.list==='empty') return '';
+  const nr = S.list==='noresults';
+  if (ph()) return `<div class="tbar"><span class="mini-search">${ic('search')}${nr?'<span style="color:var(--w-ink)">solar pump</span>':phText}</span><span class="fchip ${nr?'set':''}">${ic('filter')}Filters${nr?' · 2':''}</span></div>`;
+  const fl = filters.map((f,i)=>{ const set = f.always || (nr && i<2); return `<span class="fchip ${set?'set':''}">${set && f.set?f.set:f.l} ${ic('chev')}</span>`; }).join('');
+  return `<div class="tbar"><span class="mini-search">${ic('search')}${nr?'<span style="color:var(--w-ink)">solar pump</span>':phText}</span>${fl}${nr?'<span class="btn ghost">Clear filters</span>':''}<span class="grow"></span>${right}</div>`;
+}
+function table(cols, head, rows, rowCls=[]){
+  let h = `<div class="tbl"><div class="tr th" style="grid-template-columns:${cols}">${head.map(x=>`<div>${x}</div>`).join('')}</div>`;
+  rows.forEach((r,i)=>{ h += `<div class="tr ${rowCls[i]||''}" style="grid-template-columns:${cols};align-items:center">${r.map(x=>`<div style="min-width:0">${x}</div>`).join('')}</div>`; });
+  return h + `</div>`;
+}
+const pager = n => ph() ? (n>4?`<div class="pager"><span>${Math.min(n,4)} of ${n}</span><span class="grow"></span><span class="btn">Show more</span></div>`:'') : `<div class="pager"><span>1–${n} of ${n}</span><span class="grow"></span><span>Rows per page: 25 ${''}</span><span class="btn icon">${ic('back')}</span><span class="btn icon">${ic('fwd')}</span></div>`;
+function stateView(k){
+  const box = (icon, title, text, btn, pr) => `<div class="card"><div class="empty"><div class="ill">${ic(icon)}</div><b>${title}</b>${text}${btn?`<br><span class="btn ${pr?'pr':''}">${btn}</span>`:''}</div></div>`;
+  if (S.list==='error') return box('alert', `Couldn’t load ${k.noun}`, 'The server did not answer. Check the connection and try again.', 'Try again');
+  if (S.list==='empty') return box(k.icon, k.emptyTitle, k.emptyText, k.emptyAction, true);
+  if (S.list==='noresults') return box('search', `No ${k.noun} match these filters`, 'Try other words, or clear the filters.', 'Clear filters');
+  return null;
+}
+/* o: {cols, head, rows, rowCls, cards, kind, before} */
+function listView(o){
+  if (S.list==='loading'){
+    if (ph()) return Array.from({length:4},()=>`<div class="lcard"><div class="skel" style="width:70%;margin-bottom:8px"></div><div class="skel" style="width:45%"></div></div>`).join('');
+    return table(o.cols, o.head, Array.from({length:6},()=>o.head.map((_,j)=>j===o.head.length-1&&!o.head[j]?'':`<div class="skel" style="width:${[75,55,65,45,60,35,50][j%7]}%"></div>`)));
+  }
+  const sv = stateView(o.kind); if (sv) return sv;
+  const n = o.count ?? o.rows.length;
+  if (ph()) return (o.before||'') + o.cards.slice(0,4).join('') + pager(n);
+  return (o.before||'') + table(o.cols, o.head, o.rows, o.rowCls) + pager(n);
+}
+const chip = (cl, t) => `<span class="chip ${cl||''}">${t}</span>`;
+const nameCell = (t, s, icon) => `<div style="display:flex;gap:10px;align-items:center">${icon?`<span class="ib soft">${ic(icon)}</span>`:''}<div style="min-width:0"><div style="font-weight:600">${t}</div>${s?`<div class="sub">${s}</div>`:''}</div></div>`;
+const rowBtns = (...k) => `<div style="display:flex;gap:4px;justify-content:flex-end">${k.map(x=>`<span class="btn icon ${x==='trash'?'danger':''}">${ic(x)}</span>`).join('')}</div>`;
+const card = (title, sub, extra) => `<div class="lcard"><div style="display:flex;gap:8px;align-items:flex-start"><div style="flex:1;min-width:0"><b style="font-size:13px">${title}</b>${sub?`<div class="sub">${sub}</div>`:''}</div>${ic('arrow')}</div>${extra?`<div style="display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap">${extra}</div>`:''}</div>`;
+
+/* ---------- Projects ---------- */
+const PROJ = [
+ {t:'School rehabilitation – Aleppo',c:'ESMS-024',l:'Aleppo',wf:'ok cur lock lock lock',st:['ac','Assessment · draft'],att:[],u:'Today 10:42',mine:1,rd:1},
+ {t:'Water network – Hama',c:'ESMS-019',l:'Hama',wf:'ok ok ok ok cur',st:['ac','Monitoring'],att:[['edit','warn','3 monitoring gaps']],u:'Yesterday',mine:1,rd:1},
+ {t:'Health centre – Idlib',c:'ESMS-027',l:'Idlib',wf:'bad lock lock lock lock',st:['bad','Screening · returned'],att:[['edit','bad','Returned with comments']],u:'2 days ago',mine:1},
+ {t:'Road repair – Latakia',c:'ESMS-028',l:'Latakia',wf:'cur lock lock lock lock',st:['ac','Screening · draft'],att:[['manageAccess','warn','Needs a team']],u:'Today 08:10',mine:1},
+ {t:'Bakery support – Homs',c:'ESMS-021',l:'Homs',wf:'ok cur lock lock lock',st:['ac','Assessment · submitted'],att:[['approve','ac','Waiting for your review']],u:'Today 09:30'},
+ {t:'Clinic solar panels – Hama',c:'ESMS-015',l:'Hama',wf:'ok ok ok ok cur',st:['ac','Monitoring'],att:[['edit','warn','1 monitoring gap']],u:'5 Nov'},
+ {t:'Market lighting – Deir ez-Zor',c:'ESMS-012',l:'Deir ez-Zor',wf:'ok ok ok ok ok',st:['ok','Monitoring complete'],att:[],u:'28 Oct'},
+];
+const miniWf = s => `<span class="mini-wf" title="Tools 1–5">${s.split(' ').map(k=>`<i class="${k}"></i>`).join('')}</span>`;
+function projectsPage(){
+  const c = can(), p = S.person, rd = p==='read';
+  const list = PROJ.filter(r => rd ? r.rd : p==='edit' ? r.mine : true);
+  const att = r => r.att.filter(([k])=>c[k]).map(([,cl,t])=>chip(cl,t)).join(' ') || '<span class="sub">—</span>';
+  const acts = `<span class="btn">${ic('dl')}Export list</span>` + (c.edit?`<span class="btn pr">${ic('plus')}New project</span>`:'');
+  let h = pageHead({title:'Projects', count:list.length, meta: rd ? 'The projects you have been given access to' : '', acts});
+  if (c.org) h += tabs([['My projects',4],['All projects',list.length]].concat(c.archive?[['Archived',3]]:[]), 1);
+  h += toolbar('Search by name, code or place', [{l:'Step',set:'Step: Monitoring'},{l:'State',set:'State: Has gaps'},{l:'Location'},{l:'Component'}], `<span class="fchip">${ic('sort')}Last updated</span>`);
+  const cols = rd ? 'minmax(0,2.4fr) 100px minmax(0,1.5fr) 110px 52px' : 'minmax(0,2.3fr) 100px minmax(0,1.3fr) minmax(0,1.6fr) 100px 72px';
+  const head = rd ? ['Project','Workflow','Where it stands','Updated ▾',''] : ['Project','Workflow','Where it stands','Needs attention','Updated ▾',''];
+  const rows = list.map(r => { const cells = [nameCell(r.t, `${r.c} · ${r.l}`), miniWf(r.wf), chip(r.st[0], r.st[1])]; if (!rd) cells.push(att(r)); cells.push(`<span class="sub">${r.u}</span>`, rd ? rowBtns('dl') : rowBtns('dl','more')); return cells; });
+  const cards = list.map(r => card(r.t, `${r.c} · ${r.l} · ${r.u}`, miniWf(r.wf) + chip(r.st[0], r.st[1]) + (rd?'':att(r).replace('<span class="sub">—</span>',''))));
+  return h + listView({cols, head, rows, cards, kind:{noun:'projects', icon:'proj', emptyTitle:'No projects yet', emptyText: c.edit ? 'Create the first project to start its screening.' : 'When someone gives you access to a project, it shows here.', emptyAction: c.edit ? 'New project' : null}});
+}
+
+/* ---------- Library ---------- */
+const DOCS = [
+ ['ESMS manual (Annex 1)','The full management system: process, roles and tools','General','4.2 MB','3 Nov · Omar K.'],
+ ['Screening categories A–F explained','What each category means, with examples','Tool 1 · Screening','620 KB','2 Nov · Omar K.'],
+ ['Impact scoring guidance','How to choose a level for each question','Tool 2 · Scoring','1.1 MB','2 Nov · Omar K.'],
+ ['Consultation record template','Form for community consultations','Tool 2 · Methods & consultation','210 KB','30 Oct · Omar K.'],
+ ['Monitoring indicators handbook','Definitions and how to measure each indicator','Tool 5 · Monitoring|Tool 3 · Management activities','2.3 MB','28 Oct · Omar K.'],
+ ['GHG reporting guide','Scopes, factors and quarterly reporting','Organisation · GHG emissions','900 KB','20 Oct · Admin'],
+];
+function libraryPage(){
+  const c = can(), m = c.manageLib;
+  let h = pageHead({title:'Library', count:DOCS.length, meta:'Guidance documents. Each one also shows in “Help with this page” on the pages it is linked to.', acts: m?`<span class="btn pr">${ic('upload')}Upload document</span>`:''});
+  h += toolbar('Search titles and descriptions', [{l:'Shows on: any page',set:'Shows on: Tool 2'},{l:'Updated: any time',set:'Updated: last 30 days'}]);
+  const places = s => `<div style="display:flex;gap:4px;flex-wrap:wrap">${s.split('|').map(x=>chip(x==='General'?'':'ac',x)).join('')}</div>`;
+  const rows = DOCS.map(([t,d,pl,sz,u]) => [nameCell(t,d,'doc'), places(pl), `<span class="sub">${sz}</span>`, `<span class="sub">${u}</span>`, m ? rowBtns('eye','more') : rowBtns('eye','dl')]);
+  const cards = DOCS.map(([t,d,pl,sz]) => card(t, `${d} · PDF ${sz}`, places(pl)));
+  return h + listView({cols:'minmax(0,2.6fr) minmax(0,1.7fr) 80px 120px 72px', head:['Document','Shows on','Size','Updated',''], rows, cards,
+    kind:{noun:'documents', icon:'lib', emptyTitle:'The library is empty', emptyText: m?'Upload guidance PDFs and choose the pages each one shows on.':'Guidance documents will show here when the specialist adds them.', emptyAction: m?'Upload document':null}});
+}
+function uploadPanel(){
+  const grp = (t, items) => `<div class="sub" style="margin:8px 0 4px;font-weight:600">${t}</div>` + items.map(([l,on])=>`<div style="display:flex;gap:8px;align-items:center;padding:3px 0;font-size:12.5px"><span class="cb ${on?'on':''}"></span>${l}</div>`).join('');
+  return `<aside class="panel"><div class="phd">Upload document<span class="hsp"></span>${ic('close')}</div><div class="pbd">
+    <div class="drop">${ic('upload')}<span>Drop a PDF here or <u>choose a file</u> · up to 20 MB</span></div>
+    <div class="fsec"><label>Title *</label><div class="inp"></div></div>
+    <div class="fsec"><label>Description</label><div class="inp ta"></div></div>
+    <div class="fsec"><label>Shows on <span class="sub">— leave empty for general guidance</span></label>
+      ${grp('Workflow',[['Tool 1 · Screening',0],['Tool 2 · Scoring',1],['Tool 2 · Methods & consultation',1],['Tool 5 · Monitoring',0]])}${grp('Organisation',[['GHG emissions',0],['Environmental data',0]])}</div>
+    <div class="fsec"><label>Position <span class="sub">— order among documents on the same page</span></label><div class="inp" style="width:90px"></div></div></div>
+    <div class="pft"><span class="btn">Cancel</span><span class="grow"></span><span class="btn pr">Upload</span></div></aside>`;
+}
+
+/* ---------- Project documents ---------- */
+const FILES = [['Screening',[['Site visit report.pdf','PDF · 1.2 MB','Rana H.','10 Sep',1],['Land ownership letter.pdf','PDF · 340 KB','Rana H.','12 Sep',1],['Site photos.zip','ZIP · 18 MB','Sami D.','9 Sep',0]]],
+  ['Assessment',[['Consultation minutes – 14 Oct.docx','Word · 88 KB','Rana H.','14 Oct',0]]],
+  ['Other',[['Contractor contract.pdf','PDF · 2.1 MB','Sami D.','5 Sep',1],['Budget summary.xlsx','Excel · 45 KB','Sami D.','5 Sep',0]]]];
+function documentsPage(){
+  const c = can(), e = c.edit;
+  let h = pageHead({crumbs:'Projects / School rehabilitation – Aleppo', eyebrow:'Project', title:'Documents', count:6, acts:`<span class="btn">${ic('dl')}Download all</span>${e?`<span class="btn pr">${ic('upload')}Upload</span>`:''}`});
+  if (e && !ph() && S.list!=='loading' && S.list!=='error') h += `<div class="drop">${ic('upload')}<span>Drop files here to upload, or <u>choose files</u> · PDF, Word, Excel, images, ZIP · up to 20 MB each · you choose the step after dropping</span></div>`;
+  h += toolbar('Search file names', [{l:'Step: all',set:'Step: Screening'},{l:'Type: any',set:'Type: PDF'}]);
+  const sv = S.list==='loading' ? null : stateView({noun:'documents', icon:'doc', emptyTitle:'No documents yet', emptyText:'Upload site reports, letters, photos and consultation records. Each file is filed under a workflow step.', emptyAction: e?'Upload':null});
+  if (sv) return h + sv;
+  const cols = 'minmax(0,2.6fr) minmax(0,1fr) 100px 110px';
+  if (S.list==='loading') return h + listView({cols, head:['File','Uploaded by','Date',''], rows:[], cards:[]});
+  if (ph()) return h + FILES.map(([g,fs])=>`<div class="qhead">${g} <span class="chip">${fs.length}</span></div>` + fs.map(([n,t,b,d])=>card(n, `${t} · ${b} · ${d}`)).join('')).join('');
+  let t = `<div class="tbl"><div class="tr th" style="grid-template-columns:${cols}"><div>File</div><div>Uploaded by</div><div>Date</div><div></div></div>`;
+  for (const [g,fs] of FILES){
+    t += `<div class="tr grp" style="grid-template-columns:1fr auto;align-items:center"><div>${g} <span class="chip">${fs.length}</span></div>${e?`<span class="btn ghost" style="height:22px">${ic('plus')}Add to ${g}</span>`:''}</div>`;
+    for (const [n,ty,b,d,pdf] of fs) t += `<div class="tr" style="grid-template-columns:${cols};align-items:center"><div>${nameCell(n, ty, 'doc')}</div><div class="sub">${b}</div><div class="sub">${d}</div><div>${rowBtns(...(pdf?['eye']:[]),'dl',...(e?['more']:[]))}</div></div>`;
+  }
+  return h + t + `</div><div class="sub" style="margin-top:8px">Steps without files are hidden. PDFs open in the viewer; other files download.</div>`;
+}
+
+/* ---------- Notifications ---------- */
+function notificationsPage(){
+  const c = can();
+  const all = [
+    c.approve && [1,'t','clock','<b>Sami D.</b> submitted <b>Assessment</b> for your review','Bakery support – Homs','09:30'],
+    c.manageAccess && [1,'t','people','New project needs a team: <b>Road repair – Latakia</b>','Created by Rana H. (added automatically)','08:10'],
+    c.edit && [1,'e','alert','<b>Omar K.</b> returned <b>Screening</b> with comments','Health centre – Idlib','Monday'],
+    c.edit && [0,'e','check','<b>Omar K.</b> approved <b>Screening</b>','School rehabilitation – Aleppo','Sunday'],
+    [0,'e','shield', S.person==='read' ? 'You were given access: <b>Reader</b> on 2 projects' : 'You were given access: <b>Focal Point</b> on Road repair – Latakia', S.person==='read'?'By Admin':'By Omar K.','Sunday'],
+  ].filter(Boolean);
+  const unread = all.filter(x=>x[0]).length;
+  let h = pageHead({title:'Notifications', meta:'In the app only for now. Email can be added on the same events if the server can send mail.', acts: unread?`<span class="btn">${ic('check')}Mark all as read</span>`:''});
+  h += tabs([['All',all.length],['Unread',unread]]);
+  const sv = S.list==='loading'||S.list==='data' ? null : stateView({noun:'notifications', icon:'bell', emptyTitle:'You’re all caught up', emptyText:'Submissions, decisions and access changes that concern you show here.', emptyAction:null});
+  if (sv) return h + sv;
+  if (S.list==='loading') return h + `<div class="card">${Array.from({length:5},()=>`<div class="row"><div class="grow"><div class="skel" style="width:60%;margin-bottom:6px"></div><div class="skel" style="width:30%"></div></div></div>`).join('')}</div>`;
+  const item = ([u,,icon,t,p,tm]) => `<div class="row" style="padding:11px 2px">${u?'<span class="unread"></span>':'<span style="width:8px;flex:none"></span>'}<span class="ib soft">${ic(icon)}</span><div class="grow"><div ${u?'style="font-weight:500"':''}>${t}</div><div class="sub">${p} · ${tm}</div></div>${ic('arrow')}</div>`;
+  const grp = (k, label) => { const xs = all.filter(x=>x[1]===k); return xs.length ? `<div class="card" style="margin-bottom:12px"><h3>${label}</h3>${xs.map(item).join('')}</div>` : ''; };
+  return h + grp('t','Today') + grp('e','Earlier this week');
+}
+
+/* ---------- New project ---------- */
+function newProjectPage(){
+  let h = pageHead({crumbs:'Projects / New project', title:'New project', meta:'Fields marked * are required. Everything can be changed later in “Edit details”.'});
+  h += `<div class="card formpage" style="padding:18px 20px">
+    <div class="ftitle">Project</div>
+    <div class="fsec"><label>Title *</label><div class="inp"></div></div>
+    <div class="fgrid"><div class="fsec"><label>Component</label><div class="inp"></div></div><div></div></div>
+    <div class="ftitle" style="margin-top:6px">Location</div>
+    <div class="fsec"><label>Location *</label><div class="inp"></div><div class="hint">Free text, as today. Picking the place on a map is kept for later (v3).</div></div>
+    <div class="ftitle" style="margin-top:6px">Dates</div>
+    <div class="fgrid"><div class="fsec"><label>Start date *</label><div class="inp">1 Dec 2026</div></div><div class="fsec"><label>End date *</label><div class="inp err">30 Nov 2026</div><div class="msg">The end date can’t be before the start date.</div></div></div>
+    <div class="strip info" style="margin:6px 0 0">${ic('people')}<div class="grow"><b>Project team</b>You are added to this project automatically as <b>Focal Point</b> (your role), so you can start the screening. People who manage access get a notification to assign the rest of the team.</div></div>
+  </div>`;
+  return h;
+}
+
+/* ---------- Administration: Users ---------- */
+const USERS = [
+ ['Omar K.','omar.k@akf.org','Environmental Specialist',['ac|Specialist · whole organisation'],'ok|Active','Today'],
+ ['Rana H.','rana.h@akf.org','Environmental Focal Point',['|Focal Point · 4 projects'],'ok|Active','Today'],
+ ['Huda M.','huda.m@akf.org','Program Manager',['ac|Programme Manager · whole organisation'],'ok|Active','3 days ago'],
+ ['Sami D.','sami.d@akf.org','Project Manager',['|Project Manager · 2 projects'],'ok|Active','Yesterday'],
+ ['Partner NGO – Hama','contact@partner.org','External',['|Reader · 2 projects'],'warn|Must change password','Never'],
+ ['Lina S.','lina.s@akf.org','Environmental Focal Point',[],'warn|No access yet','Never'],
+ ['Admin (you)','admin@akf.org','IT Officer',['ac|Administrator · whole organisation'],'ok|Active','Now'],
+];
+function usersPage(){
+  let h = pageHead({title:'Users', count:USERS.length, meta:'People who can sign in. Accounts are deactivated, never deleted.', acts:`<span class="btn pr">${ic('plus')}Add user</span>`});
+  h += tabs([['Active',USERS.length],['Deactivated',2]]);
+  h += toolbar('Search name or email', [{l:'Role',set:'Role: Focal Point'},{l:'Status',set:'Status: No access yet'},{l:'Where'}]);
+  const access = a => a.length ? a.map(x=>{const [cl,t]=x.split('|'); return chip(cl,t);}).join(' ') : chip('warn','No access yet');
+  const st = s => { const [cl,t]=s.split('|'); return t==='No access yet' ? '<span class="sub">Active</span>' : chip(cl,t); };
+  const rows = USERS.map(([n,e,j,a,s,l]) => [`<div style="display:flex;gap:9px;align-items:center"><span class="avatar">${n[0]}</span><div style="min-width:0"><div style="font-weight:600">${n}</div><div class="sub">${e}</div></div></div>`, `<span class="sub">${j}</span>`, access(a), st(s), `<span class="sub">${l}</span>`, rowBtns('more')]);
+  const cards = USERS.map(([n,e,j,a,s]) => card(n, `${e} · ${j}`, access(a)));
+  return h + listView({cols:'minmax(0,2.1fr) minmax(0,1.3fr) minmax(0,2fr) minmax(0,1.2fr) 92px 44px', head:['Name','Job title','Access','Status','Last sign-in',''], rows, cards, rowCls: S.panel?['','sel']:[],
+    kind:{noun:'users', icon:'user', emptyTitle:'Only you so far', emptyText:'Add the people who will use ESMS, then give each one access.', emptyAction:'Add user'}});
+}
+function userPanel(){
+  const a = (role, where, by) => `<div class="row" style="align-items:flex-start"><div class="grow"><div style="font-weight:600">${role}</div><div class="sub">${where}</div><div class="sub">${by}</div></div><span class="btn icon">${ic('more')}</span></div>`;
+  return `<aside class="panel"><div class="phd"><span class="avatar">R</span><div style="line-height:1.2"><div>Rana H.</div><div class="sub" style="font-weight:400">rana.h@akf.org · Environmental Focal Point</div></div><span class="hsp"></span>${ic('close')}</div><div class="pbd">
+    <div class="tabs2"><span>Details</span><span class="on">Access</span><span>Security</span></div>
+    <div class="card" style="padding:4px 12px">${a('Focal Point','School rehabilitation – Aleppo, Water network – Hama, Health centre – Idlib','Given by Omar K. · 2 Sep')}${a('Focal Point','Road repair – Latakia','Automatic · created the project · today')}</div>
+    <span class="btn" style="margin-top:10px">${ic('plus')}Add access</span>
+    <div class="sub" style="margin-top:12px">What a person can do is everything their access gives, together. Every change is kept in the activity log and the person gets a notification.</div>
+    <div class="sub" style="margin-top:8px">Security tab: reset password (a temporary one, shown once), deactivate. You can’t change your own access or deactivate yourself.</div></div></aside>`;
+}
+
+/* ---------- Administration: Roles & permissions ---------- */
+const ROLES = [['Administrator',1],['Environmental Specialist',2],['Programme Manager',2],['Project Manager',4],['Focal Point',9],['Reader',6]];
+const PERMS = [
+ ['Projects',[['View the projects in their access',[1,1,1,1,1,1]],['Create projects',[1,1,1,1,1,0]],['Edit project details',[1,1,1,1,1,0]],['Archive and restore projects',[1,1,0,0,0,0]],['Delete projects that are not approved',[1,1,0,0,0,0]]]],
+ ['Workflow tools',[['Fill in and submit the tools',[1,1,1,1,1,0]],['Approve or return Screening and Assessment',[1,1,'c',0,0,0]],['Export to Excel',[1,1,1,1,1,1]],['Upload and delete project documents',[1,1,1,1,1,0]]]],
+ ['Library',[['Read the library',[1,1,1,1,1,0]],['Manage library documents',[1,1,0,0,0,0],'org']]],
+ ['Administration',[['Manage access to projects',[1,1,0,0,0,0],'org'],['Manage users',['L',0,0,0,0,0],'org'],['Manage roles',['L',0,0,0,0,0],'org'],['Read the activity log',[1,0,0,0,0,0],'org'],['Restore and empty deleted items',[1,0,0,0,0,0],'org']]],
+];
+function rolesPage(){
+  let h = pageHead({title:'Roles & permissions', count:ROLES.length, meta:'A role is a named set of permissions. Who has a role, and on which projects, is set in Access.', acts:`<span class="btn">${ic('plus')}New role</span>`});
+  const cb = v => v==='L' ? `<span title="Locked: someone must always be able to manage users and roles" style="color:var(--w-mu)">${ic('lock')}</span>` : `<span class="cb ${v?'on':''} ${v==='c'?'chg':''}"></span>`;
+  if (ph()){
+    h += `<div class="tbar"><span class="fchip set" style="flex:1;justify-content:space-between">Role: Programme Manager · 2 people ${ic('chev')}</span></div>`;
+    for (const [g,ps] of PERMS) h += `<div class="qhead">${g}</div><div class="card" style="padding:2px 12px;margin-bottom:10px">${ps.map(([n,v,o])=>`<div class="row"><div class="grow">${n}${o?'<span class="tag">organisation only</span>':''}</div>${cb(v[2])}</div>`).join('')}</div>`;
+    return h;
+  }
+  const cols = `minmax(0,2.6fr) repeat(${ROLES.length}, minmax(0,1fr))`;
+  let t = `<div class="tbl mx"><div class="tr th" style="grid-template-columns:${cols};align-items:end"><div>Permission</div>${ROLES.map(([n,c])=>`<div style="flex-direction:column"><b style="color:var(--w-ink);font-size:11.5px;line-height:1.25">${n}</b><span>${c} ${c===1?'person':'people'}</span></div>`).join('')}</div>`;
+  for (const [g,ps] of PERMS){
+    t += `<div class="tr grp" style="grid-template-columns:1fr"><div>${g}</div></div>`;
+    for (const [n,v,o] of ps) t += `<div class="tr" style="grid-template-columns:${cols}"><div style="font-size:12.5px">${n}${o?'<span class="tag">organisation only</span>':''}</div>${v.map(x=>`<div>${cb(x)}</div>`).join('')}</div>`;
+  }
+  return h + t + `</div><div class="sub" style="margin-top:8px">The six roles of v2 become starting roles and can be changed. “Organisation only”: works only when the role is given for the whole organisation, not for single projects.</div>`;
+}
+function rolePanel(){
+  return `<aside class="panel"><div class="phd">New role<span class="hsp"></span>${ic('close')}</div><div class="pbd">
+    <div class="fsec"><label>Name *</label><div class="inp">Monitoring officer</div></div>
+    <div class="fsec"><label>Description</label><div class="inp ta"></div><div class="hint">Shown when someone chooses this role in Access.</div></div>
+    <div class="fsec"><label>Start from</label><div class="inp" style="display:flex;justify-content:space-between;align-items:center">Focal Point ${ic('chev')}</div><div class="hint">Copies its permissions; change them in the table after creating.</div></div></div>
+    <div class="pft"><span class="btn">Cancel</span><span class="grow"></span><span class="btn pr">Create role</span></div></aside>`;
+}
+
+/* ---------- Administration: Access ---------- */
+const ASSIGN = [
+ ['Omar K.','Environmental Specialist','org','Admin · 1 Sep'],
+ ['Huda M.','Programme Manager','org','Admin · 1 Sep'],
+ ['Rana H.','Focal Point','School rehabilitation – Aleppo, Water network – Hama, Health centre – Idlib','Omar K. · 2 Sep'],
+ ['Rana H.','Focal Point','Road repair – Latakia','Automatic · created the project · today'],
+ ['Sami D.','Project Manager','School rehabilitation – Aleppo, Bakery support – Homs','Omar K. · 5 Sep'],
+ ['Partner NGO – Hama','Reader','Water network – Hama, Clinic solar panels – Hama','Admin · 20 Oct'],
+];
+function accessPage(){
+  let h = pageHead({title:'Access', count:ASSIGN.length, meta:'Who works on what. Each line gives one person one role, for the whole organisation or for chosen projects.', acts:`<span class="btn pr">${ic('plus')}Give access</span>`});
+  if (S.list==='data' || S.list==='noresults') h += `<div class="strip warn">${ic('people')}<div class="grow"><b>1 new project needs a team</b>Road repair – Latakia was created today by Rana H., who was added automatically.</div><span class="btn">Assign team</span></div>`;
+  h += toolbar('Search people or projects', [{l:'Person',set:'Person: Lina S.'},{l:'Role',set:'Role: Reader'},{l:'Project'},{l:'Where'}]);
+  const where = w => w==='org' ? chip('ac','Whole organisation') : `<span style="font-size:12.5px">${w}</span>`;
+  const rows = ASSIGN.map(([p,r,w,b]) => [`<div style="display:flex;gap:9px;align-items:center"><span class="avatar">${p[0]}</span><b style="font-weight:600">${p}</b></div>`, r, where(w), `<span class="sub">${b}</span>`, rowBtns('more')]);
+  const cards = ASSIGN.map(([p,r,w,b]) => card(`${p} · ${r}`, b, where(w)));
+  return h + listView({cols:'minmax(0,1.5fr) minmax(0,1.3fr) minmax(0,2.4fr) minmax(0,1.5fr) 44px', head:['Person','Role','Where','Given by',''], rows, cards,
+    kind:{noun:'access lines', icon:'people', emptyTitle:'Nobody has access yet', emptyText:'Give each person a role, for the whole organisation or for chosen projects.', emptyAction:'Give access'}});
+}
+function accessPanel(){
+  return `<aside class="panel"><div class="phd">Give access<span class="hsp"></span>${ic('close')}</div><div class="pbd">
+    <div class="fsec"><label>Person *</label><div class="inp" style="display:flex;gap:8px;align-items:center"><span class="avatar" style="width:22px;height:22px">L</span>Lina S. <span class="sub">· Environmental Focal Point</span></div></div>
+    <div class="fsec"><label>Role *</label><div class="inp" style="display:flex;justify-content:space-between;align-items:center">Focal Point ${ic('chev')}</div><div class="hint">Can fill in and submit the tools, upload documents and export.</div></div>
+    <div class="fsec"><label>Where *</label>
+      <div class="opt"><span class="radio"></span><div><b>Whole organisation</b><div class="sub">Every project, now and future</div></div></div>
+      <div class="opt on"><span class="radio"></span><div style="flex:1"><b>Chosen projects</b><div style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0">${chip('ac','Road repair – Latakia ✕')}</div><div class="inp" style="min-height:28px;padding:4px 8px;color:var(--w-mu);font-size:12px">${ic('search')} Add a project…</div></div></div></div>
+    <div class="result"><b>Lina S. will be able to</b> read, fill in and submit the tools, upload documents and export, on <b>1 project</b>: Road repair – Latakia.</div>
+    <div class="sub" style="margin-top:10px">Lina gets a notification. The change is kept in the activity log.</div></div>
+    <div class="pft"><span class="btn">Cancel</span><span class="grow"></span><span class="btn pr">Give access</span></div></aside>`;
+}
+
+/* ---------- Administration: Activity log ---------- */
+const LOG = [
+ ['Today 10:42','Admin','Administrator','Gave <b>Lina S.</b> Focal Point on Road repair – Latakia','—'],
+ ['Today 09:15','Omar K.','Environmental Specialist','Archived the project','Old warehouse – Homs'],
+ ['Yesterday','Rana H.','Focal Point','Removed <b>2 rows</b> from Management activities','School rehabilitation – Aleppo'],
+ ['3 Nov','Omar K.','Environmental Specialist','Replaced the file of “Impact scoring guidance”','—'],
+ ['2 Nov','Admin','Administrator','Reset the password of Partner NGO – Hama','—'],
+ ['1 Nov','Admin','Administrator','Changed Sami D. from Focal Point to Project Manager','—'],
+];
+function logPage(){
+  let h = pageHead({title:'Activity log', meta:'Important actions, kept for good. Entries can’t be changed or deleted.', acts:`<span class="btn">${ic('dl')}Export</span>`});
+  h += toolbar('Search', [{l:'Action',set:'Action: Rows removed'},{l:'Person',set:'Person: Rana H.'},{l:'Project'},{l:'Last 30 days',always:true}]);
+  const rows = LOG.map(([w,n,r,a,p]) => [`<span class="sub">${w}</span>`, `<div><div style="font-weight:600">${n}</div><div class="sub">${r}</div></div>`, `<span style="font-size:12.5px">${a}</span>`, `<span class="sub">${p}</span>`, ic('fwd')]);
+  const cards = LOG.map(([w,n,r,a,p]) => card(a, `${n} · ${w}${p!=='—'?' · '+p:''}`));
+  return h + listView({cols:'100px minmax(0,1.4fr) minmax(0,2.6fr) minmax(0,1.7fr) 28px', head:['When','Who','What happened','Project',''], rows, cards, rowCls: S.panel?['','','sel']:[],
+    kind:{noun:'entries', icon:'log', emptyTitle:'Nothing logged yet', emptyText:'Deletes, archives, file changes, users and access changes are kept here.', emptyAction:null}});
+}
+function logPanel(){
+  return `<aside class="panel"><div class="phd">Rows removed<span class="hsp"></span>${ic('close')}</div><div class="pbd">
+    <div class="kv"><span>When</span><div>Yesterday 16:05</div><span>Who</span><div>Rana H. · Focal Point</div><span>Project</span><div>School rehabilitation – Aleppo</div><span>Where</span><div>Tool 3 · Management activities</div></div>
+    <div class="ftitle">As it was before</div>
+    <div class="card" style="padding:10px 12px;margin-bottom:8px"><div class="sub" style="margin-bottom:6px">Row 6</div>${lines([90,70,40])}</div>
+    <div class="card" style="padding:10px 12px"><div class="sub" style="margin-bottom:6px">Row 7</div>${lines([80,55])}</div></div></aside>`;
+}
+
+/* ---------- Administration: Deleted items ---------- */
+const TRASH = [
+ ['Site photos March.zip','File','School rehabilitation – Aleppo','Rana H. · today','30 days',1],
+ ['Test project','Project','—','Omar K. · 4 Nov','24 days',1],
+ ['Old consultation form.pdf','Library document','Library','Omar K. · 1 Nov','21 days',0],
+ ['Contractor letter.pdf','File','Water network – Hama','Sami D. · 28 Oct','17 days',0],
+];
+function trashPage(){
+  let h = pageHead({title:'Deleted items', count:TRASH.length, meta:'Deleted projects, files and library documents stay here for 30 days, then they are removed for good.', acts:`<span class="btn danger">${ic('trash')}Empty now</span>`});
+  h += toolbar('Search', [{l:'Type',set:'Type: Project'},{l:'Deleted by',set:'Deleted by: Sami D.'}]);
+  const sel = S.list==='data' && !ph() ? `<div class="selbar"><span class="cb on"></span><span class="grow">2 selected</span><span class="btn">${ic('restore')}Restore</span><span class="btn">${ic('trash')}Delete now</span></div>` : '';
+  const rows = TRASH.map(([n,t,f,b,d,s]) => [`<span class="cb ${s?'on':''}"></span>`, nameCell(n,'', t==='Project'?'proj':'doc'), chip('',t), `<span class="sub">${f}</span>`, `<span class="sub">${b}</span>`, `<span class="sub">in ${d}</span>`, `<div style="display:flex;gap:4px;justify-content:flex-end"><span class="btn">${ic('restore')}Restore</span><span class="btn icon danger">${ic('trash')}</span></div>`]);
+  const cards = TRASH.map(([n,t,f,b,d]) => card(n, `${t} · ${f} · ${b}`, chip('',`Removed for good in ${d}`)));
+  return h + listView({cols:'28px minmax(0,2.2fr) 120px minmax(0,1.6fr) minmax(0,1.3fr) 100px 140px', head:['<span class="cb"></span>','Item','Type','From','Deleted by','Removed for good',''], rows, cards, before:sel, rowCls:['sel','sel'],
+    kind:{noun:'items', icon:'trash', emptyTitle:'Nothing deleted', emptyText:'When someone deletes a project, a file or a library document, it waits here for 30 days.', emptyAction:null}});
+}
+
+/* ---------- no access ---------- */
+function noAccessPage(){
+  return `<div class="card" style="max-width:520px;margin:40px auto"><div class="empty"><div class="ill">${ic('lock')}</div><b>You don’t have access to this page</b>Your access doesn’t include it. If you need it for your work, ask an administrator.<br><span class="btn pr">Go to Home</span></div></div>`;
+}
+
+/* ---------- render ---------- */
+const PAGES = {projects:projectsPage, library:libraryPage, documents:documentsPage, notifications:notificationsPage, newproject:newProjectPage, users:usersPage, roles:rolesPage, access:accessPage, log:logPage, trash:trashPage};
+const PANELS = {library:uploadPanel, users:userPanel, roles:rolePanel, access:accessPanel, log:logPanel};
+function saveBar(){
+  if (!allowed()) return '';
+  if (S.page==='roles') return `<div class="savebar"><span class="grow">● 1 unsaved change · Programme Manager: approve or return</span><span class="btn">Discard</span><span class="btn pr">Save</span></div>`;
+  if (S.page==='newproject') return `<div class="savebar"><span class="grow">Next: the project opens on its overview, with “Start screening”.</span><span class="btn">Cancel</span><span class="btn pr">Create project</span></div>`;
+  return '';
+}
+function renderFrame(){
+  const [w,hgt] = DIM[S.device];
+  let html = `<div class="f-shell dev-${S.device}" dir="ltr">${header()}<div class="f-body">${sidebar()}<div class="f-main"><div class="f-page">`;
+  html += allowed() ? PAGES[S.page]() : noAccessPage();
+  html += `</div>${saveBar()}</div>`;
+  if (S.panel && panelOk()) html += PANELS[S.page]();
+  html += `</div></div>`;
+  const fr = document.getElementById('frame');
+  fr.innerHTML = html; fr.style.width = w+'px'; fr.style.height = hgt+'px'; fit();
+}
+function fit(){
+  const vp = document.getElementById('viewport'), fr = document.getElementById('frame'), [w,h] = DIM[S.device];
+  const s = Math.min(1, (vp.clientWidth-24)/w);
+  fr.style.transform = `scale(${s})`; fr.style.left = ((vp.clientWidth - w*s)/2)+'px'; vp.style.height = (h*s+24)+'px';
+}
+
+/* ---------- reasons + questions ---------- */
+const LIST_WHY = [
+ '<b>كل القوائم إلها نفس الهيكل:</b> عنوان مع العدد، زر رئيسي واحد (مشروع جديد، رفع وثيقة، إضافة مستخدم)، تحتو بحث وفلاتر، بعدين الجدول، وتحت ترقيم الصفحات. بيتعلّمها المستخدم مرة وحدة.',
+ '<b>الفلاتر المفعّلة بتبيّن ملوّنة</b> ومعها "مسح الفلاتر"، وبتنحفظ بالرابط: بتفتح مشروع وبترجع، بتلاقي القائمة متل ما تركتها، وفيك تبعت الرابط لزميل.',
+ '<b>خمس حالات مرسومة لكل قائمة</b> (جرّبها من "حالة القائمة"): فاضية أول مرة (بتشرح شو بيصير هون وبتعطي الزر)، ما في نتائج (مع مسح الفلاتر)، عم تحمّل (هيكل رمادي بنفس شكل الجدول، فالصفحة ما بتنطّ)، وخطأ (مع "حاول مرة تانية").',
+ 'كبسة عالسطر بتفتحو؛ الأزرار الصغيرة بآخر السطر للأشياء السريعة (تصدير، معاينة، ⋯).',
+ '<b>عالموبايل كل سطر بيصير كرت،</b> والفلاتر كلها بزر واحد، و"عرض المزيد" بدل أرقام الصفحات.',
+ 'التحديد الجماعي بس وين إلو معنى (المحذوفات)، مش بكل جدول.',
+];
+const WHY = {
+ projects:['<b>تبويبات:</b> "مشاريعي" / "كل المشاريع" (بس للي وصولو على كل المؤسسة) / "المؤرشفة" (للي بيقدر يأرشف). الأرشيف صار هون بدل صفحة لحالها، لأنو بالآخر هو مشاريع.',
+  '<b>عمود "المسار":</b> خمس شحطات صغيرة لحالة الأدوات الخمسة، فبتشوف وين واقف كل مشروع بلمحة، بلا ما تفتحو.',
+  '<b>عمود "بدو انتباه" بينبني من صلاحياتك:</b> "مُرجع بملاحظات" للي بيعدّل، "بانتظار مراجعتك" للي بيعتمد، "فجوات رصد"، و"بدو فريق" للي بيدير الوصول.',
+  '<b>رمز قصير لكل مشروع</b> (ESMS-024) بيعطيه السيرفر تلقائياً: بيسهّل البحث والحكي عن المشروع، وبيطلع بالتصدير. تغيير صغير بالباكند.',
+  'القارئ من طرف ثالث بيشوف مشاريعو بس: بلا تبويبات، بلا عمود الانتباه، وبلا أي عدد للباقي.',
+  '"تصدير القائمة" لملف Excel بنفس الفلاتر المختارة.'],
+ library:['<b>عمود "بيطلع بـ":</b> كل وثيقة بتقول بأي صفحة بتبيّن جوّا "المساعدة بهالصفحة". هيك اللي بيدير المكتبة بيعرف وين رح يشوفها المستخدم.',
+  '<b>الرفع والتعديل بلوحة جانبية</b> لأنو فورم قصير، والقائمة بتضل مبيّنة جنبها.',
+  '"الترتيب" بيحدد مكان الوثيقة بين وثائق نفس الصفحة.',
+  'المكتبة بتنشاف حسب صلاحية "قراءة المكتبة". بالأدوار الأولية القارئ الخارجي ما عندو ياها (وفيك تغيّرها من الأدوار).'],
+ documents:['<b>الوثائق مجموعة حسب خطوات المسار</b> (الفرز، التقييم، …، غير ذلك)، بنفس ترتيب الشريط الجانبي. الخطوات اللي ما فيها ملفات ما بتبيّن.',
+  '<b>منطقة سحب وإفلات فوق</b> للي بيقدر يرفع، والأنواع والحجم المسموح مكتوبين قبل ما يغلط، مش بعد.',
+  'PDF بينفتح بالعارض، والباقي بينزل (معاينة ملفات أوفيس مش موجودة، D64).',
+  '"تنزيل الكل" بملف مضغوط، لأنو الملفات بتطلع لبرّا مع التقارير.',
+  'الحذف بيروح عالمحذوفات ٣٠ يوم.'],
+ notifications:['<b>الجرس بالترويسة</b> بيعرض آخر شي بقائمة صغيرة؛ هالصفحة للكل، مع "غير مقروء" و"تعليم الكل كمقروء".',
+  '<b>كل إشعار جملة واضحة:</b> مين، شو عمل، على أي مشروع، وإيمتى. الكبسة بتفتح المكان بالضبط (الأداة، مش المشروع بس).',
+  '<b>الإشعارات بتنبني من صلاحياتك:</b> اللي بيعتمد بيوصلو "أُرسل لمراجعتك"، واللي بيدير الوصول "مشروع جديد بدو فريق"، واللي بيعدّل "انرجع بملاحظات" و"انعتمد".',
+  'جوّا التطبيق بس هلق. الإيميل بينضاف على نفس الأحداث إذا السيرفر بيقدر يبعت (سؤال لـ IT).',
+  'ما في إشعار للفجوات بالرصد (متل ما اتفقنا)، بس بتطلع بالرئيسية.'],
+ newproject:['<b>صفحة كاملة مش نافذة صغيرة،</b> بأقسام: المشروع، المكان، التواريخ.',
+  '<b>الخطأ بيبيّن جنب الحقل وقت التعبئة</b> (متل: تاريخ النهاية قبل البداية)، مش بس بعد الضغط على "إنشاء".',
+  '<b>ملاحظة الفريق واضحة:</b> انت بتنضاف تلقائياً بدورك لتقدر تبلّش، والمدير أو السبيشالست بيوصلو إشعار ليعيّن الباقي.',
+  'بعد الإنشاء بتفتح النظرة العامة، والخطوة الجاية "ابدأ الفرز".',
+  'المكان والمكوّن بيضلّوا نص حر (جوابك). تحديد المكان عخريطة محفوظ كفكرة لـ v3.'],
+ users:['<b>كل مستخدم بسطر:</b> الاسم والإيميل، المسمّى الوظيفي، <b>الوصول بجملة قصيرة</b> ("Focal Point · 4 projects")، الحالة، وآخر دخول.',
+  '<b>"آخر دخول" جديد</b> (حقل صغير بالباكند): بيساعد المدير يلاقي الحسابات اللي ما حدا عم يستعملها.',
+  '<b>"بلا وصول بعد"</b> بلون تنبيه: حساب انعمل بس ما انعطى ولا مشروع، فما رح يشوف شي.',
+  '<b>كبسة عالمستخدم بتفتح لوحة</b> فيها ٣ تبويبات: التفاصيل، الوصول، الأمان (كلمة سر مؤقتة، إيقاف). الحسابات ما بتنحذف، بتنوقف (D4).',
+  'حسابك انت: ما فيك تغيّر وصولك أو توقّف حالك (قاعدة v2.0.1 بتضل).'],
+ roles:['<b>جدول واحد:</b> الصلاحيات بالأسطر والأدوار بالأعمدة، فبتقارن الأدوار ببعض بلمحة وبتعدّل بكبسة، ومع شريط حفظ.',
+  '<b>كل صلاحية جملة مفهومة</b> ("اعتماد أو إرجاع الفرز والتقييم")، مش اسم تقني، ومجموعة: المشاريع، أدوات المسار، المكتبة، الإدارة.',
+  '<b>"على مستوى المؤسسة بس":</b> صلاحيات متل إدارة المكتبة والمستخدمين ما إلها معنى على مشروع واحد، فعليها علامة.',
+  '<b>الأدوار الستة الحالية بتصير أدوار أولية قابلة للتعديل.</b> بالأصفر: مدير البرنامج صار عندو "اعتماد"، لأنك قلت إنو بيراجع وبيعتمد (بالـ v2 ما عندو). والقارئ عندو "تصدير" (متل ما قلت).',
+  '<b>قفل بالمدير:</b> "إدارة المستخدمين" و"إدارة الأدوار" ما بينشالوا من دور المدير، لحتى ما حدا يقفل النظام على حالو.',
+  '"دور جديد" بلوحة: اسم، وصف، و"ابدأ من دور موجود" بينسخ صلاحياتو.',
+  'عالموبايل: بتختار دور وبتشوف صلاحياتو قائمة.'],
+ access:['<b>صفحة وحدة بتجاوب "مين بيشتغل على شو":</b> كل سطر = شخص + دور + وين (كل المؤسسة أو مشاريع محددة).',
+  '<b>فوق شريط "مشاريع جديدة بدها فريق"</b> مع زر مباشر، من قرار فريق المشروع.',
+  '<b>"إعطاء وصول" بلوحة:</b> الشخص، الدور (وتحتو شو بيقدر يعمل)، وين، و<b>بالآخر جملة بتلخّص النتيجة</b> قبل الحفظ، فما حدا بيعطي وصول غلط بلا ما ينتبه.',
+  'نفس اللوحة بتنفتح من ٣ أماكن: من هون، من تبويب "الوصول" بصفحة المستخدم، ومن كرت "الأشخاص عالمشروع".',
+  'السبيشالست بيشوف تحت "الإدارة" بند "الوصول" بس، لأنو هو الوحيد اللي إلو صلاحية فيه (جرّب تغيير الشخص).'],
+ log:['<b>السجل للإجراءات المهمة</b> (D65): حذف، أرشفة، ملفات، مستخدمين. ومع نموذج الصلاحيات، <b>كل تغيير وصول أو دور</b> كمان بينسجّل.',
+  '<b>كل حركة جملة مفهومة</b> ("شال سطرين من أنشطة الإدارة")، مع اسم الشخص ودورو وقتها.',
+  '<b>كبسة بتفتح التفاصيل جنب،</b> وفيها "كيف كان قبل" (اللي انحذف). ما في تعديل ولا حذف للسجل.',
+  'فلاتر: نوع الحركة، الشخص، المشروع، التاريخ؛ وتصدير.',
+  'قرارات الإرسال والاعتماد والإرجاع محفوظة بتاريخ كل أداة وبتطلع بالنظرة العامة. السجل الكامل لكل حقل موضوعو v3.'],
+ trash:['<b>اقتراح جديد: الحذف ما بيكون نهائي فوراً.</b> المشاريع والملفات ووثائق المكتبة المحذوفة بتروح عالمحذوفات ٣٠ يوم، وفيك ترجّعها، وبعدها بتنمسح لحالها.',
+  'هاد بيحمي من الحذف بالغلط، وهو الطبيعي بأنظمة الشركات. بدو تغيير بالباكند (حذف ناعم بدل الحذف الفوري).',
+  '<b>المؤرشف شي تاني:</b> مشروع خلص بس لازم ينحفظ. صار تبويب بقائمة المشاريع، و"الحذف النهائي" للمؤرشف بيضل للمدير.',
+  'تحديد كذا عنصر سوا: "رجّع" أو "احذف هلق"، مع تأكيد قبل الحذف النهائي.'],
+};
+const NOACCESS = '<b>الصفحة اللي ما إلك صلاحية فيها ما بتطلع بالقائمة أصلاً.</b> وإذا حدا فتح رابطها مباشرة، بتطلعلو صفحة "ما عندك وصول" واضحة، بدل صفحة فاضية أو رسالة خطأ.';
+const QUESTIONS = [
+ '<b>١. المحذوفات (جاوبت):</b> ما في قاعدة عند الزبون، فمنمشي بالـ٣٠ يوم.',
+ '<b>٢. المكان والمكوّن (جاوبت):</b> بيضلّوا نص حر. ما في تقسيم حسب القطاع. التقسيم حسب المكان ممكن لاحقاً، والفكرة تحديد المكان عخريطة (إحداثيات)، محفوظة لـ v3 لأنها بتتعلّق بشكل النسخة العالمية.',
+];
+function renderBoxes(){
+  let w = `<h2>قراراتي بهالصفحة وليش</h2><ul>${(allowed()?[]:[NOACCESS]).concat(WHY[S.page]).map(x=>`<li>${x}</li>`).join('')}</ul>`;
+  if (LIST_PAGES.includes(S.page)) w += `<h2 style="margin-top:14px">نمط القائمة (نفسو بكل القوائم)</h2><ul>${LIST_WHY.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+  document.getElementById('why').innerHTML = w;
+  document.getElementById('questions').innerHTML = `<h2>أجوبتك عن شغل الزبون</h2><ul>${QUESTIONS.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+}
+function updatePrompt(){
+  const notes = document.getElementById('notes').value.trim();
+  let s = `رأيي بالقوائم والإدارة (playground lists-and-admin):`;
+  s += notes ? `\n${notes}` : `\n(ما كتبت ملاحظات)`;
+  const seen = [];
+  for (const k of ['page','person','list','device']) if (S[k]!==DEFAULTS[k]) seen.push(SEGS[k].find(x=>x[0]===S[k])[1]);
+  if (seen.length) s += `\n(كنت عم شوف: ${seen.join('، ')})`;
+  document.getElementById('prompt').textContent = s;
+}
+function syncControls(){
+  const listOk = LIST_PAGES.includes(S.page) && allowed();
+  document.querySelectorAll('.seg').forEach(seg=>seg.querySelectorAll('button').forEach(b=>{
+    b.classList.toggle('on', S[seg.dataset.key]===b.dataset.v);
+    if (seg.dataset.key==='list') b.disabled = !listOk && b.dataset.v!=='data';
+  }));
+  const pOk = panelOk();
+  document.getElementById('panel-label').textContent = PANEL_LABEL[S.page] || 'ما في لوحة جانبية بهالصفحة';
+  document.getElementById('c-panel').classList.toggle('dis', !pOk); document.querySelector('[data-flag=panel]').disabled = !pOk;
+  document.querySelectorAll('[data-flag]').forEach(i=>i.checked = !!S[i.dataset.flag]);
+}
+function stageBar(){
+  const p = [SEGS.page.find(x=>x[0]===S.page)[1], 'شخص '+SEGS.person.find(x=>x[0]===S.person)[1]];
+  if (LIST_PAGES.includes(S.page) && S.list!=='data') p.push(SEGS.list.find(x=>x[0]===S.list)[1]);
+  p.push(SEGS.device.find(x=>x[0]===S.device)[1]);
+  if (!allowed()) p.push('ما عندو صلاحية');
+  document.getElementById('stagebar').innerHTML = '<b>'+p[0]+'</b> · '+p.slice(1).join(' · ');
+}
+function normState(){ if (!LIST_PAGES.includes(S.page) || !allowed()) S.list = 'data'; }
+function updateAll(){ normState(); renderFrame(); renderBoxes(); updatePrompt(); stageBar(); syncControls(); }
+
+document.getElementById('presets').innerHTML = PRESETS.map((p,i)=>`<button data-i="${i}">${p[0]}</button>`).join('');
+document.getElementById('presets').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; Object.assign(S, DEFAULTS, PRESETS[+b.dataset.i][1]); updateAll(); });
+document.querySelectorAll('.seg').forEach(seg=>{
+  seg.innerHTML = SEGS[seg.dataset.key].map(([v,l])=>`<button data-v="${v}">${l}</button>`).join('');
+  seg.addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b||b.disabled) return; S[seg.dataset.key]=b.dataset.v; updateAll(); });
+});
+document.querySelectorAll('[data-flag]').forEach(i=>i.addEventListener('change', ()=>{ S[i.dataset.flag]=i.checked; updateAll(); }));
+document.getElementById('notes').addEventListener('input', updatePrompt);
+document.getElementById('copy').addEventListener('click', async e=>{
+  const txt = document.getElementById('prompt').textContent;
+  try { await navigator.clipboard.writeText(txt); } catch { const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  e.target.textContent='انتسخ ✓'; setTimeout(()=>e.target.textContent='انسخ وابعتلي ياه',1400);
+});
+new ResizeObserver(fit).observe(document.getElementById('viewport'));
+updateAll();
+</script>
+</body>
+</html>

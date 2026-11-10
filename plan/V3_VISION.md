@@ -30,6 +30,7 @@ The client said ESMS will likely be used beyond Syria: AKF offices in other coun
 - **Where data lives:** one central server or one per country (some countries require data to stay inside them). Shapes the whole structure.
 - **Languages:** the interface becomes multilingual in v2.5 (see the v2.5 notes when written). Translating content (impact questions, indicators, categories — data, not interface text) is a data-model topic for v3.
 - **Branding:** stay close to AKF's own look; exports branded per office ("AKF Syria" today).
+- **Project location (owner, 2026-11-10):** in v2.5 the location stays free text. Grouping projects by place (for example by governorate) may be needed later. Fixed lists of governorates or villages do not travel across countries, so the owner's idea is to pick the place on a map and store coordinates, either in ESMS itself or through the global platform. Decide with the v3 structure (map provider, offline use, how places roll up per country). No grouping by sector is expected.
 
 ### Activities inside a project (owner, 2026-11-10)
 In v3 a project will hold **activities**. An activity is a mini-project: the project keeps its own tools, and each activity inside it goes through all the tools too (screening, assessment, Tools 3–5); users open an activity and work in it like in a project. A structural change for v3 (data model, workflow, permissions, exports); not in v2.5. The v2.5 design keeps room for it (design for variation, see [V2_5_CONCEPT.md](V2_5_CONCEPT.md)).

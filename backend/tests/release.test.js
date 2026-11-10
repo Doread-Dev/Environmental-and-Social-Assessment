@@ -12,10 +12,10 @@ const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", ".
 const read = (file) => fs.readFileSync(path.join(repo, file), "utf8");
 const versionOf = (app) => JSON.parse(read(`${app}/package.json`)).version;
 
-describe("release version 2.0.0", () => {
+describe("release version 2.0.1", () => {
   it("is the version of backend, frontend and e2e", () => {
-    expect(["backend", "frontend", "e2e"].map(versionOf)).toEqual(["2.0.0", "2.0.0", "2.0.0"]);
-    expect(releaseVersion(repo)).toBe("2.0.0");
+    expect(["backend", "frontend", "e2e"].map(versionOf)).toEqual(["2.0.1", "2.0.1", "2.0.1"]);
+    expect(releaseVersion(repo)).toBe("2.0.1");
   });
 
   it("matches the lockfiles", () => {

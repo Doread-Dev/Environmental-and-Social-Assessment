@@ -197,10 +197,52 @@ describe('Settings → Users (D21, D22)', () => {
     renderSection()
     await screen.findByText('Sara Field')
 
-    fireEvent.click(within(row('Admin One')).getByRole('button', { name: /Deactivate/ }))
+    fireEvent.click(within(row('Sara Field')).getByRole('button', { name: /Deactivate/ }))
     confirmIn('Deactivate')
 
     expect(await screen.findByText('Cannot deactivate the last active admin')).toBeInTheDocument()
+  })
+
+  it('the own row has no reset or deactivate; other rows keep them (v2.0.1)', async () => {
+    renderSection()
+    await screen.findByText('Sara Field')
+
+    const own = within(row('Admin One'))
+    expect(own.getByRole('button', { name: 'Edit Admin One' })).toBeInTheDocument()
+    expect(own.queryByRole('button', { name: /Reset password/ })).not.toBeInTheDocument()
+    expect(own.queryByRole('button', { name: /Deactivate/ })).not.toBeInTheDocument()
+
+    const other = within(row('Sara Field'))
+    expect(other.getByRole('button', { name: 'Reset password of Sara Field' })).toBeInTheDocument()
+    expect(other.getByRole('button', { name: 'Deactivate Sara Field' })).toBeInTheDocument()
+  })
+
+  it('editing the own account: the role is read-only, the name can change (v2.0.1)', async () => {
+    api.put.mockImplementation(() => ok({}))
+    renderSection()
+    await screen.findByText('Sara Field')
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Admin One' }))
+
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByLabelText(/^Role/)).toBeDisabled()
+    expect(within(dialog).getByText('You cannot change your own role')).toBeInTheDocument()
+    fireEvent.change(within(dialog).getByLabelText(/^Name/), { target: { value: 'Admin 1' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: /Save Changes/ }))
+
+    await waitFor(() =>
+      expect(api.put).toHaveBeenCalledWith('/users/a1', {
+        name: 'Admin 1',
+        role: 'admin',
+        job_title: null,
+      })
+    )
+  })
+
+  it("another user's form keeps the role editable", async () => {
+    renderSection()
+    await screen.findByText('Sara Field')
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Sara Field' }))
+    expect(within(screen.getByRole('dialog')).getByLabelText(/^Role/)).not.toBeDisabled()
   })
 })
 

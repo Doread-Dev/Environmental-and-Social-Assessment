@@ -12,7 +12,7 @@ describe("GET /health", () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ success: true, message: "Server is running", version });
-    expect(version).toBe("2.0.0");
+    expect(version).toBe("2.0.1");
   });
 });
 

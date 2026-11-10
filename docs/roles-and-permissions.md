@@ -103,6 +103,8 @@ project membership behind it. Details in [architecture](architecture.md#request-
   does not remove it); login only requires a value.
 - Users are never deleted, only deactivated (D4). A deactivated user cannot sign in (403 "Account is
   deactivated", only after a correct password) and existing tokens answer 401 on the next request.
-  The last **active** admin can be neither deactivated nor given another role (409).
+  The last **active** admin can be neither deactivated nor given another role (409). An admin cannot
+  reset the password of, deactivate or change the role of their **own** account in Settings → Users
+  (409, v2.0.1): the own password changes in the profile.
 - Changing your own password does not end your other sessions (tokens stay valid until they
   expire, `JWT_EXPIRES_IN`, default 12 h).

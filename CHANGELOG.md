@@ -5,6 +5,25 @@ All notable changes to ESMS. Versions follow `MAJOR.MINOR.PATCH`; the version is
 bottom of the user menu, and the release archive carries it in its name
 (`esms-<version>-<date>-<commit>.zip`).
 
+## 2.0.1 — 2026-11-10
+
+A fix release on top of 2.0.0.
+
+### Fixed
+
+- **An admin could lock themselves out.** Settings → Users let an admin reset their own password.
+  The account was then marked "must change password", so the app moved to the change-password
+  page before the one-time password could be shown, and the only admin could no longer sign in.
+  Now an admin can't reset their own password, deactivate their own account or change their own
+  role from Settings → Users. The backend answers 409, the buttons are not shown on the admin's
+  own row, and the role is read-only in their own form. Their own password changes in the profile
+  (**Change password**). Another admin's account works as before. Tests:
+  `backend/tests/users.test.js`, `frontend/src/components/settings/UsersManagementSection.test.jsx`.
+
+### Known limits
+
+Those of 2.0.0 below.
+
 ## 2.0.0 — 2026-11-09
 
 The finished v2 (D77): the rework of the first version in phases 0–12a and 14

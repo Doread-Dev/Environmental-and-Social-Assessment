@@ -358,13 +358,14 @@ function sidebar(){
   if (S.person!=='read') h += `<div class="sec">Organisation</div>${ni('org','GHG emissions')}${ni('layers','Environmental data')}`;
   const adm = ADMIN_PAGES.filter(([k])=>ALLOWED[k](c));
   if (adm.length) h += `<div style="margin-top:auto;border-top:1px solid var(--w-ln);padding-top:8px">${ni('admin','Administration',false)}${isAdm?`<div class="nsub">${adm.map(([k,l])=>`<a class="${k===S.page?'on':''}">${l}</a>`).join('')}</div>`:''}</div>`;
+  h += adm.length ? `<a class="ni muted" style="">${ic('back')}<span>Collapse</span></a>` : `<a class="ni muted" style="margin-top:auto;">${ic('back')}<span>Collapse</span></a>`;
   return `<nav class="side">${h}</nav>`;
 }
 function spine(){
   const st = [['ok','✓','Screening','Approved'],['cur','2','Assessment','Draft'],['lock','3','Management activities',''],['lock','4','Mitigation plan',''],['lock','5','Monitoring','']];
   let h = `<a class="ni muted">${ic('back')}<span>All projects</span></a><div class="unit"><div class="unit-kind">Project</div><div class="unit-name">School rehabilitation – Aleppo</div><div class="unit-meta">ESMS-024 <span class="chip ac">In progress</span></div></div>`;
   h += `${ni('grid','Overview')}<div class="sec">Workflow</div>` + st.map(([k,d,n,l])=>`<a class="step st-${k}"><span class="dot">${d}</span><span>${n}</span><span class="sl">${l}</span></a>`).join('');
-  h += `<div class="sec">Project</div>${ni('doc','Documents',true)}${ni('doc','SEMP plan')}${ni('people','Stakeholder awareness')}`;
+  h += `<div class="sec">Project</div>${ni('doc','Documents',true)}${ni('doc','SEMP plan')}${ni('people','Stakeholder awareness')}<a class="ni" style="opacity:.55;border:1px dashed #c3c8cf">${ic('layers')}<span>Activities</span><span style="margin-inline-start:auto;font-size:9.5px;border:1px solid var(--w-ln);border-radius:4px;padding:0 5px">v3</span></a>`;
   return `<nav class="side">${h}</nav>`;
 }
 
@@ -527,13 +528,13 @@ function newProjectPage(){
 
 /* ---------- Administration: Users ---------- */
 const USERS = [
- ['Omar K.','omar.k@akf.org','Environmental Specialist',['ac|Specialist · whole organisation'],'ok|Active','Today'],
- ['Rana H.','rana.h@akf.org','Environmental Focal Point',['|Focal Point · 4 projects'],'ok|Active','Today'],
- ['Huda M.','huda.m@akf.org','Program Manager',['ac|Programme Manager · whole organisation'],'ok|Active','3 days ago'],
- ['Sami D.','sami.d@akf.org','Project Manager',['|Project Manager · 2 projects'],'ok|Active','Yesterday'],
+ ['Omar K.','omar.k@akdn.org','Environmental Specialist',['ac|Environmental Specialist · whole organisation'],'ok|Active','Today'],
+ ['Rana H.','rana.h@akdn.org','Environmental Focal Point',['|Focal Point · 4 projects'],'ok|Active','Today'],
+ ['Huda M.','huda.m@akdn.org','Program Manager',['ac|Program Manager · whole organisation'],'ok|Active','3 days ago'],
+ ['Sami D.','sami.d@akdn.org','Project Manager',['|Project Manager · 2 projects'],'ok|Active','Yesterday'],
  ['Partner NGO – Hama','contact@partner.org','External',['|Reader · 2 projects'],'warn|Must change password','Never'],
- ['Lina S.','lina.s@akf.org','Environmental Focal Point',[],'warn|No access yet','Never'],
- ['Admin (you)','admin@akf.org','IT Officer',['ac|Administrator · whole organisation'],'ok|Active','Now'],
+ ['Lina S.','lina.s@akdn.org','Environmental Focal Point',[],'warn|No access yet','Never'],
+ ['Admin (you)','admin@akdn.org','IT Officer',['ac|Administrator · whole organisation'],'ok|Active','Now'],
 ];
 function usersPage(){
   let h = pageHead({title:'Users', count:USERS.length, meta:'People who can sign in. Accounts are deactivated, never deleted.', acts:`<span class="btn pr">${ic('plus')}Add user</span>`});
@@ -548,7 +549,7 @@ function usersPage(){
 }
 function userPanel(){
   const a = (role, where, by) => `<div class="row" style="align-items:flex-start"><div class="grow"><div style="font-weight:600">${role}</div><div class="sub">${where}</div><div class="sub">${by}</div></div><span class="btn icon">${ic('more')}</span></div>`;
-  return `<aside class="panel"><div class="phd"><span class="avatar">R</span><div style="line-height:1.2"><div>Rana H.</div><div class="sub" style="font-weight:400">rana.h@akf.org · Environmental Focal Point</div></div><span class="hsp"></span>${ic('close')}</div><div class="pbd">
+  return `<aside class="panel"><div class="phd"><span class="avatar">R</span><div style="line-height:1.2"><div>Rana H.</div><div class="sub" style="font-weight:400">rana.h@akdn.org · Environmental Focal Point</div></div><span class="hsp"></span>${ic('close')}</div><div class="pbd">
     <div class="tabs2"><span>Details</span><span class="on">Access</span><span>Security</span></div>
     <div class="card" style="padding:4px 12px">${a('Focal Point','School rehabilitation – Aleppo, Water network – Hama, Health centre – Idlib','Given by Omar K. · 2 Sep')}${a('Focal Point','Road repair – Latakia','Automatic · created the project · today')}</div>
     <span class="btn" style="margin-top:10px">${ic('plus')}Add access</span>
@@ -557,7 +558,7 @@ function userPanel(){
 }
 
 /* ---------- Administration: Roles & permissions ---------- */
-const ROLES = [['Administrator',1],['Environmental Specialist',2],['Programme Manager',2],['Project Manager',4],['Focal Point',9],['Reader',6]];
+const ROLES = [['Administrator',1],['Environmental Specialist',2],['Program Manager',2],['Project Manager',4],['Focal Point',9],['Reader',6]];
 const PERMS = [
  ['Projects',[['View the projects in their access',[1,1,1,1,1,1]],['Create projects',[1,1,1,1,1,0]],['Edit project details',[1,1,1,1,1,0]],['Archive and restore projects',[1,1,0,0,0,0]],['Delete projects that are not approved',[1,1,0,0,0,0]]]],
  ['Workflow tools',[['Fill in and submit the tools',[1,1,1,1,1,0]],['Approve or return Screening and Assessment',[1,1,'c',0,0,0]],['Export to Excel',[1,1,1,1,1,1]],['Upload and delete project documents',[1,1,1,1,1,0]]]],
@@ -568,7 +569,7 @@ function rolesPage(){
   let h = pageHead({title:'Roles & permissions', count:ROLES.length, meta:'A role is a named set of permissions. Who has a role, and on which projects, is set in Access.', acts:`<span class="btn">${ic('plus')}New role</span>`});
   const cb = v => v==='L' ? `<span title="Locked: someone must always be able to manage users and roles" style="color:var(--w-mu)">${ic('lock')}</span>` : `<span class="cb ${v?'on':''} ${v==='c'?'chg':''}"></span>`;
   if (ph()){
-    h += `<div class="tbar"><span class="fchip set" style="flex:1;justify-content:space-between">Role: Programme Manager · 2 people ${ic('chev')}</span></div>`;
+    h += `<div class="tbar"><span class="fchip set" style="flex:1;justify-content:space-between">Role: Program Manager · 2 people ${ic('chev')}</span></div>`;
     for (const [g,ps] of PERMS) h += `<div class="qhead">${g}</div><div class="card" style="padding:2px 12px;margin-bottom:10px">${ps.map(([n,v,o])=>`<div class="row"><div class="grow">${n}${o?'<span class="tag">organisation only</span>':''}</div>${cb(v[2])}</div>`).join('')}</div>`;
     return h;
   }
@@ -591,7 +592,7 @@ function rolePanel(){
 /* ---------- Administration: Access ---------- */
 const ASSIGN = [
  ['Omar K.','Environmental Specialist','org','Admin · 1 Sep'],
- ['Huda M.','Programme Manager','org','Admin · 1 Sep'],
+ ['Huda M.','Program Manager','org','Admin · 1 Sep'],
  ['Rana H.','Focal Point','School rehabilitation – Aleppo, Water network – Hama, Health centre – Idlib','Omar K. · 2 Sep'],
  ['Rana H.','Focal Point','Road repair – Latakia','Automatic · created the project · today'],
  ['Sami D.','Project Manager','School rehabilitation – Aleppo, Bakery support – Homs','Omar K. · 5 Sep'],
@@ -671,7 +672,7 @@ const PAGES = {projects:projectsPage, library:libraryPage, documents:documentsPa
 const PANELS = {library:uploadPanel, users:userPanel, roles:rolePanel, access:accessPanel, log:logPanel};
 function saveBar(){
   if (!allowed()) return '';
-  if (S.page==='roles') return `<div class="savebar"><span class="grow">● 1 unsaved change · Programme Manager: approve or return</span><span class="btn">Discard</span><span class="btn pr">Save</span></div>`;
+  if (S.page==='roles') return `<div class="savebar"><span class="grow">● 1 unsaved change · Program Manager: approve or return</span><span class="btn">Discard</span><span class="btn pr">Save</span></div>`;
   if (S.page==='newproject') return `<div class="savebar"><span class="grow">Next: the project opens on its overview, with “Start screening”.</span><span class="btn">Cancel</span><span class="btn pr">Create project</span></div>`;
   return '';
 }

@@ -16,7 +16,7 @@
 - **Look:** close to AKF's own look and colours, but our own system. ESMS links to AKF's global platform; it does not become part of it.
 - **The four locked modules** (SEMP Plan, Stakeholder Awareness, GHG Emissions, Environmental Data Collection) are built in v2.5, **after** the design system and all existing pages are rebuilt, as the test of how well the design system supports building something new.
 - **In-app notifications** in v2.5 (something waits for your review, your submission was approved or rejected), with a place in the shell. Email only if the Syria server can send mail (a question for IT); it can be added later on the same events.
-- **Help:** placement decided in the shell step (the sidebar item felt wrong to the owner; the floating button seemed fine but is not settled). Note: the Help guide and the Guidance panel (library documents for a page) are both "help with this page" for the user.
+- **Help:** decided in the shell step (see "App shell"): the header "?" opens a side panel "Help with this page" (the guide section and the library guidance for the page), with a link to the full guide. No floating button, no sidebar item.
 
 ## Users and tasks (inferred; the owner confirmed 1–4 and 6–7)
 No access to real users yet (the system is new to them), so priorities are inferred and checked with the owner.
@@ -79,7 +79,7 @@ Applies to any option:
 - **RTL:** the whole shell mirrors from logical CSS properties; no separate design.
 
 ## Screens follow permissions, not role names (owner clarification, 2026-11-10)
-Reviewing and editing are not separate kinds of people. The Environmental Specialist, the admin and the Programme Manager mainly review and approve, but they also edit at times. So every screen is built from **what this person may do** (their assignments) **and the item's state**, never from a role label:
+Reviewing and editing are not separate kinds of people. The Environmental Specialist, the admin and the Program Manager mainly review and approve, but they also edit at times. So every screen is built from **what this person may do** (their assignments) **and the item's state**, never from a role label:
 - anyone allowed to edit an item sees the editing surface, the save bar and "Submit" while it is a draft;
 - anyone allowed to approve sees "Approve / Return" once it is submitted;
 - one person can have both, and then sees both, each at the right state;
@@ -98,7 +98,8 @@ Every page is built from a small set of page patterns (design-system layer 3), s
 | **Collection list** (one table look: search, filters, sort, paging, empty/loading/error, row actions) | Projects (with an "Archived" tab), Library, project Documents, Notifications, Users, Access, Activity log, Deleted items; Roles & permissions is a matrix on the same frame |
 | **Form** (page for a long form, side panel for a short one) | New project / Edit details (page), user, role, assignment, library document (side panels) |
 | **Reader** | Help guide, PDF viewer |
-| **Auth** | Sign in, forced password change (v3: organisation sign-in) |
+| **Auth** | Sign in, forced password change, the "session ended" dialog (v3: organisation sign-in) |
+| **System** | Not found, server error (with a reference code), offline bar; "no access" page |
 | **Organisation report** (built last in v2.5) | GHG Emissions, Environmental Data Collection |
 
 New in v2.5: Notifications page, Administration (Users, Roles & permissions, Access, Activity log, Deleted items), "People on this project" on the overview, the personal page (profile, password, language, theme, my access, read only).
@@ -171,7 +172,7 @@ The person who creates a project does not choose its team (they may be a Focal P
   - one matrix, with permissions as rows (grouped: Projects, Workflow tools, Library, Administration, each a plain sentence) and roles as columns with their people count;
   - click to change, with a save bar;
   - "organisation only" marks permissions that work only when the role is given for the whole organisation;
-  - the six v2 roles become editable starting roles: the Programme Manager gets "approve or return" (owner: they review and approve) and the Reader keeps Export (owner);
+  - the six v2 roles become editable starting roles: the Program Manager gets "approve or return" (owner: they review and approve) and the Reader keeps Export (owner);
   - the Administrator's "Manage users" and "Manage roles" are locked, so nobody locks everyone out;
   - "New role" in a side panel (name, description, start from an existing role);
   - on a phone: pick a role, see its permissions as a list.
@@ -237,11 +238,11 @@ The person who creates a project does not choose its team (they may be a Focal P
   - long tables stay tables (not cards).
 
 ## Open questions
-- None open right now. (Closed on 2026-11-10: Programme Manager also edits; monitoring has gaps, not dates; the project team is set by admin / specialist; deleted items kept 30 days; location and component stay free text; passwords at least 12 characters; sessions end after 8 idle hours.)
+- None open right now. (Closed on 2026-11-10: Program Manager also edits; monitoring has gaps, not dates; the project team is set by admin / specialist; deleted items kept 30 days; location and component stay free text; passwords at least 12 characters; sessions end after 8 idle hours.)
 
 ## Next steps
-1. Close the open questions above.
+1. Close the open questions above. **Done.**
 2. App shell: sidebar, header, project navigation, context slot, Help — options compared with the owner on screen (playground), decision with reasons. **Done: option 1 agreed (see "App shell" above).**
-3. Page by page: priorities and layout. **Proposed for every page group** (core pages, lists and Administration, account / sign-in / readers / system pages), each in a playground under [design/](design/), with phone views and the tablet rule; waiting for the owner's review of the last group.
+3. Page by page: priorities and layout. **Done (owner approved all groups, 2026-11-10):** shell, core pages, lists and Administration, account / sign-in / readers / system pages, each in a playground under [design/](design/), with phone views and the tablet rail. A consistency pass over the four playgrounds and these notes followed the same day: where they differed, these notes win.
 4. Design system: foundations → components → patterns.
 5. Record the outcome as decisions (DECISIONS.md), write the v2.5 phase files, and rename the "phase 13" references in CLAUDE.md and plan/ in the same change.

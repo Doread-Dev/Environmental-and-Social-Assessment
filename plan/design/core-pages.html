@@ -304,6 +304,7 @@ function sidebar(){
     let h = `<a class="ni on">${ic('home')}<span>Home</span></a><a class="ni">${ic('proj')}<span>Projects</span></a>`;
     if (S.person!=='read') h += `<a class="ni">${ic('lib')}<span>Library</span></a><div class="sec">Organisation</div><a class="ni">${ic('org')}<span>GHG emissions</span></a><a class="ni">${ic('layers')}<span>Environmental data</span></a>`;
     if (S.person==='both') h += `<div style="margin-top:auto;border-top:1px solid var(--w-ln);padding-top:8px"><a class="ni">${ic('admin')}<span>Administration</span></a></div>`;
+    h += S.person==='both' ? `<a class="ni muted" style="">${ic('back')}<span>Collapse</span></a>` : `<a class="ni muted" style="margin-top:auto;">${ic('back')}<span>Collapse</span></a>`;
     return `<nav class="side">${h}</nav>`;
   }
   const st = stepStates();
@@ -314,7 +315,7 @@ function sidebar(){
     h += `<a class="step st-${k} ${on && n!=='2'?'on':''}"><span class="dot">${k==='ok'?'✓':n}</span><span>${TOOLNAME[n]}</span><span class="sl">${l}</span></a>`;
     if (n==='2' && on) h += `<div class="subs"><a>Context</a><a>Methods &amp; consultation</a><a class="on">Scoring</a><a>Summary &amp; submit</a></div>`;
   }
-  h += `<div class="sec">Project</div><a class="ni">${ic('doc')}<span>Documents</span></a><a class="ni">${ic('doc')}<span>SEMP plan</span></a><a class="ni">${ic('people')}<span>Stakeholder awareness</span></a>`;
+  h += `<div class="sec">Project</div><a class="ni">${ic('doc')}<span>Documents</span></a><a class="ni">${ic('doc')}<span>SEMP plan</span></a><a class="ni">${ic('people')}<span>Stakeholder awareness</span></a><a class="ni" style="opacity:.55;border:1px dashed #c3c8cf">${ic('layers')}<span>Activities</span><span style="margin-inline-start:auto;font-size:9.5px;border:1px solid var(--w-ln);border-radius:4px;padding:0 5px">v3</span></a>`;
   return `<nav class="side">${h}</nav>`;
 }
 
@@ -468,7 +469,7 @@ function overviewPage(){
   if (c.edit) h += `<div class="next"><div class="grow"><div class="sub">Next step</div><b>Finish the assessment scoring (19 of 31), then submit it for review</b></div><span class="btn">Continue</span></div>`;
   h += `<div class="grid2"><div class="stack"><div class="card"><h3>Recent activity</h3>${['Rana H. saved Assessment · Scoring|today 10:42','Omar K. approved Screening|12 Sep','Rana H. submitted Screening|10 Sep'].map(x=>{const [a,b]=x.split('|');return `<div class="row"><div class="grow">${a}</div><span class="sub">${b}</span></div>`}).join('')}</div>
     <div class="card"><h3><span class="grow">Documents</span><span class="btn ghost">Open ${ic('arrow')}</span></h3><div class="row"><div class="grow">Screening</div><span class="sub">3 files</span></div><div class="row"><div class="grow">Assessment</div><span class="sub">1 file</span></div></div></div>
-    <div class="stack"><div class="card"><h3><span class="grow">People on this project</span>${c.approve?'<span class="btn ghost">Manage access</span>':''}</h3>${['Rana H.|Focal point','Sami D.|Project manager','Omar K.|Reviewer (whole organisation)','Partner NGO|Reader, own projects'].map(x=>{const [a,b]=x.split('|');return `<div class="row"><span class="avatar">${a[0]}</span><div class="grow"><div>${a}</div><div class="sub">${b}</div></div></div>`}).join('')}<div class="sub" style="margin-top:6px">${c.approve?'Only people allowed to manage access add or change the team.':'The team is set by an administrator or the specialist.'}</div></div></div></div>`;
+    <div class="stack"><div class="card"><h3><span class="grow">People on this project</span>${c.approve?'<span class="btn ghost">Manage access</span>':''}</h3>${['Rana H.|Focal Point','Sami D.|Project Manager','Omar K.|Environmental Specialist · whole organisation','Partner NGO – Hama|Reader'].map(x=>{const [a,b]=x.split('|');return `<div class="row"><span class="avatar">${a[0]}</span><div class="grow"><div>${a}</div><div class="sub">${b}</div></div></div>`}).join('')}<div class="sub" style="margin-top:6px">${c.approve?'Only people allowed to manage access add or change the team.':'The team is set by an administrator or the specialist.'}</div></div></div></div>`;
   return h;
 }
 

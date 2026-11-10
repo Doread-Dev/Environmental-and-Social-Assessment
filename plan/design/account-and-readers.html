@@ -348,6 +348,7 @@ function sidebar(active){
   let h = ni('home','Home','الرئيسية') + ni('proj','Projects','المشاريع') + (S.person!=='read' ? ni('lib','Library','المكتبة',active==='lib') : '');
   if (S.person!=='read') h += `<div class="sec">${t('Organisation','المؤسسة')}</div>${ni('org','GHG emissions','انبعاثات الغازات')}${ni('layers','Environmental data','البيانات البيئية')}`;
   if (can().manageAccess) h += `<div style="margin-top:auto;border-top:1px solid var(--w-ln);padding-top:8px">${ni('admin','Administration','الإدارة')}</div>`;
+  h += `<a class="ni muted" style="${can().manageAccess?'':'margin-top:auto'}">${ic('back')}<span>${t('Collapse','تصغير')}</span></a>`;
   return `<nav class="side">${h}</nav>`;
 }
 function shell(inner, {active, after='', banner='', overlay='', page=true}={}){
@@ -378,7 +379,7 @@ function signinPage(){
   }[v];
   return authFrame(`<div class="auth-card">${brand()}<h1>${t('Sign in','تسجيل الدخول')}</h1><div class="sub" style="margin-bottom:16px">${t('Use the email and password your administrator gave you.','استخدم البريد الإلكتروني وكلمة المرور من مسؤول النظام.')}</div>
     ${msg?`<div class="errbox">${ic('alert')}<span>${msg}</span></div>`:''}
-    ${field(t('Email','البريد الإلكتروني'), `<div class="inp" dir="ltr" style="text-align:start">rana.h@akf.org</div>`)}
+    ${field(t('Email','البريد الإلكتروني'), `<div class="inp" dir="ltr" style="text-align:start">rana.h@akdn.org</div>`)}
     ${field(t('Password','كلمة المرور'), `<div class="inp pw ${v==='wrong'?'err':''}"><span>${v==='normal'?'':'••••••••••'}</span>${ic('eye')}</div>`)}
     <span class="btn pr wide ${v==='locked'?'off':''}">${t('Sign in','دخول')}</span>
     <div class="sub" style="margin-top:14px">${t('Forgot your password? Your administrator can give you a temporary one.','نسيت كلمة المرور؟ يستطيع مسؤول النظام إعطاءك كلمة مؤقتة.')}</div></div>`);
@@ -399,7 +400,7 @@ function toolBackground(){
 function sessionPage(){
   const dlg = `<div class="overlay"><div class="dialog"><div class="ib" style="background:var(--w-bg);margin-bottom:10px">${ic('lock')}</div><h2>${t('Your session has ended','انتهت جلستك')}</h2>
     <div class="sub" style="margin-bottom:14px">${t('For your security you were signed out after 8 hours without activity. Sign in again to carry on: your 3 unsaved changes are still on this page.','لحمايتك تم تسجيل خروجك بعد ٨ ساعات دون نشاط. سجّل الدخول مجدداً للمتابعة: تغييراتك الثلاثة غير المحفوظة ما زالت في الصفحة.')}</div>
-    ${field(t('Email','البريد الإلكتروني'), `<div class="inp" dir="ltr" style="color:var(--w-mu);background:var(--w-bg)">rana.h@akf.org</div>`)}${field(t('Password','كلمة المرور'), pwInp(0))}
+    ${field(t('Email','البريد الإلكتروني'), `<div class="inp" dir="ltr" style="color:var(--w-mu);background:var(--w-bg)">rana.h@akdn.org</div>`)}${field(t('Password','كلمة المرور'), pwInp(0))}
     <span class="btn pr wide">${t('Sign in and continue','دخول ومتابعة')}</span><div style="text-align:center;margin-top:8px"><span class="btn ghost">${t('Sign out instead','تسجيل الخروج بدلاً من ذلك')}</span></div></div></div>`;
   return shell(toolBackground(), {after:`<div class="savebar"><span class="grow">● 3 unsaved changes</span><span class="btn">Discard</span><span class="btn pr">Save</span></div>`, overlay:dlg});
 }
@@ -413,14 +414,14 @@ const MY_ACCESS = {
 };
 function accountPage(){
   const sec = (id, en, ar, body) => `<div class="card" id="s-${id}" style="margin-bottom:14px;padding:16px 18px"><h3 style="font-size:14px">${t(en,ar)}</h3>${body}</div>`;
-  const kv = `<div class="kv" style="grid-template-columns:120px 1fr;margin:0"><span>${t('Name','الاسم')}</span><div>Rana H.</div><span>${t('Email','البريد الإلكتروني')}</span><div dir="ltr" style="text-align:start">rana.h@akf.org</div><span>${t('Job title','المسمّى الوظيفي')}</span><div>Environmental Focal Point</div></div><div class="sub" style="margin-top:10px">${t('Your administrator keeps these up to date.','يحدّث مسؤول النظام هذه المعلومات.')}</div>`;
+  const kv = `<div class="kv" style="grid-template-columns:120px 1fr;margin:0"><span>${t('Name','الاسم')}</span><div>Rana H.</div><span>${t('Email','البريد الإلكتروني')}</span><div dir="ltr" style="text-align:start">rana.h@akdn.org</div><span>${t('Job title','المسمّى الوظيفي')}</span><div>Environmental Focal Point</div></div><div class="sub" style="margin-top:10px">${t('Your administrator keeps these up to date.','يحدّث مسؤول النظام هذه المعلومات.')}</div>`;
   const prefs = `<div class="fsec"><label>${t('Language','اللغة')}</label>${langSwitch()}</div><div class="fsec"><label>${t('Theme','المظهر')}</label><span class="segw"><span class="on">${t('Light','فاتح')}</span><span>${t('Dark','داكن')}</span><span>${t('Match my device','مثل جهازي')}</span></span></div>
     <div class="sub">${t('Dates show as 10 Nov 2026. Saved to your account at once, so they follow you on any device.','تظهر التواريخ هكذا: ١٠ تشرين الثاني ٢٠٢٦. تُحفظ في حسابك فوراً وتتبعك على أي جهاز.')}</div>`;
   const pw = `<div class="fgrid" style="display:grid;grid-template-columns:${S.device==='phone'?'1fr':'1fr 1fr'};gap:0 14px">${field(t('Current password','كلمة المرور الحالية'), pwInp(9))}<div></div>${field(t('New password','كلمة المرور الجديدة'), pwInp(0), `<div class="hint" style="font-size:11.5px;color:var(--w-mu);margin-top:4px">${t('At least 12 characters; not a common password.','١٢ حرفاً على الأقل، وليست كلمة شائعة.')}</div>`)}${field(t('Repeat the new password','أعد كتابة كلمة المرور'), pwInp(0))}</div><span class="btn">${t('Change password','تغيير كلمة المرور')}</span>`;
   const acc = MY_ACCESS[S.person].map(([r,,w])=>`<div class="row"><span class="ib soft" style="width:28px;height:28px;background:var(--w-bg);border-radius:6px">${ic('lock')}</span><div class="grow"><div style="font-weight:600">${r}</div><div class="sub">${w}</div></div></div>`).join('') + `<div class="sub" style="margin-top:8px">${t('To change your access, ask an administrator or the Environmental Specialist.','لتغيير صلاحياتك، تواصل مع مسؤول النظام أو الأخصائي البيئي.')}</div>`;
   const body = sec('profile','Profile','الملف الشخصي',kv) + sec('prefs','Preferences','التفضيلات',prefs) + sec('pw','Password','كلمة المرور',pw) + sec('access','My access','صلاحياتي',acc);
   const nav = `<nav class="secnav">${[['Profile','الملف الشخصي'],['Preferences','التفضيلات'],['Password','كلمة المرور'],['My access','صلاحياتي']].map(([e,a],i)=>`<a class="${i===1?'on':''}">${t(e,a)}</a>`).join('')}</nav>`;
-  const head = `<div class="ph"><div><div class="tt"><span class="avatar" style="width:40px;height:40px;font-size:15px">R</span><div><h1>${t('My account','حسابي')}</h1><div class="meta">Rana H. · rana.h@akf.org</div></div></div></div></div>`;
+  const head = `<div class="ph"><div><div class="tt"><span class="avatar" style="width:40px;height:40px;font-size:15px">R</span><div><h1>${t('My account','حسابي')}</h1><div class="meta">Rana H. · rana.h@akdn.org</div></div></div></div></div>`;
   return shell(head + (S.device==='laptop' ? `<div class="two"><div>${nav}</div><div style="max-width:720px">${body}</div></div>` : body));
 }
 

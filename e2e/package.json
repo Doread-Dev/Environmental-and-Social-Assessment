@@ -1,7 +1,7 @@
 {
   "name": "esms-e2e",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "End-to-end tests (Playwright, Chromium) of the golden flows against the production-style single process",
   "type": "module",
   "scripts": {

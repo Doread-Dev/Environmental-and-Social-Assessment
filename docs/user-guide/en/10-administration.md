@@ -76,6 +76,9 @@ ESMS always keeps at least one active administrator. It refuses to deactivate th
 administrator ("Cannot deactivate the last active admin") or to give them another role ("Cannot
 change the role of the last active admin"). Create a second administrator first.
 
+Your own account has no reset or deactivate button in the list, and its role cannot be changed.
+Change your own password in your profile, under **Change password**.
+
 Keep two administrator accounts at all times, so that one can reset the other's password. An
 administrator who forgets their password asks another administrator to reset it. If there is no
 other administrator, IT can reset it on the server (see the install guides in `deploy/`).

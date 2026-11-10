@@ -330,6 +330,70 @@ describe("deactivate / reactivate (D4)", () => {
   });
 });
 
+describe("an admin's own account (v2.0.1)", () => {
+  // Another active admin exists, so only the self rule can refuse.
+  const asAdminWithAnother = async () => {
+    const { user, password } = await createUser("admin");
+    const { token } = (await login(user.email, password)).body.data;
+    await createUser("admin");
+    return { user, token, password };
+  };
+
+  it("cannot reset their own password here (409): no change is forced, the password still works", async () => {
+    const { user, token, password } = await asAdminWithAnother();
+    const res = await request(app)
+      .post(`/api/v1/users/${user._id}/reset-password`)
+      .set(auth(token));
+    expect(res.status).toBe(409);
+    expect(res.body.error).toMatch(/cannot reset your own password here/);
+    const stored = await User.findById(user._id);
+    expect(stored.must_change_password).toBe(false);
+    expect((await login(user.email, password)).status).toBe(200);
+  });
+
+  it("cannot deactivate their own account (409)", async () => {
+    const { user, token } = await asAdminWithAnother();
+    const res = await request(app).patch(`/api/v1/users/${user._id}/deactivate`).set(auth(token));
+    expect(res.status).toBe(409);
+    expect(res.body.error).toBe("You cannot deactivate your own account");
+    expect((await User.findById(user._id)).is_active).toBe(true);
+  });
+
+  it("cannot change their own role (409), but can edit their own name", async () => {
+    const { user, token } = await asAdminWithAnother();
+    const role = await request(app)
+      .put(`/api/v1/users/${user._id}`)
+      .set(auth(token))
+      .send({ role: "viewer" });
+    expect(role.status).toBe(409);
+    expect(role.body.error).toBe("You cannot change your own role");
+    expect((await User.findById(user._id)).role).toBe("admin");
+
+    const name = await request(app)
+      .put(`/api/v1/users/${user._id}`)
+      .set(auth(token))
+      .send({ name: "Renamed Admin", role: "admin" });
+    expect(name.status).toBe(200);
+    expect(name.body.data.name).toBe("Renamed Admin");
+  });
+
+  it("can still reset, deactivate and change the role of another admin", async () => {
+    const { token } = await loginAs("admin");
+    const { user: other } = await createUser("admin");
+    const reset = await request(app)
+      .post(`/api/v1/users/${other._id}/reset-password`)
+      .set(auth(token));
+    expect(reset.status).toBe(200);
+    const role = await request(app)
+      .put(`/api/v1/users/${other._id}`)
+      .set(auth(token))
+      .send({ role: "viewer" });
+    expect(role.status).toBe(200);
+    const off = await request(app).patch(`/api/v1/users/${other._id}/deactivate`).set(auth(token));
+    expect(off.status).toBe(200);
+  });
+});
+
 describe("POST /api/v1/users/:id/reset-password (D22)", () => {
   it("the temporary password works, the old one stops, and a change is forced", async () => {
     const { token } = await loginAs("admin");

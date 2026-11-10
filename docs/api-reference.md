@@ -44,10 +44,10 @@ There is no register or logout endpoint (logout is client-side).
 |---|---|---|
 | `GET /users` | — | Admin: every account incl. inactive (`job_title` populated). Others: active users only, `_id, name, job_title, is_active` (pickers). |
 | `POST /users` | `manage_users` | `{ name, email, role, job_title? }` → `201 { user, temporary_password }` (12 characters, shown once; `must_change_password` set). Duplicate email → 409. Logged `user.create`. |
-| `PUT /users/:id` | `manage_users` | `{ name?, role?, job_title? }` (at least one; email is fixed; `job_title: null` clears; unknown job title → 400). Logged `user.role_change` when the role changes. |
-| `PATCH /users/:id/deactivate` | `manage_users` | The last active admin → 409. Logged. |
+| `PUT /users/:id` | `manage_users` | `{ name?, role?, job_title? }` (at least one; email is fixed; `job_title: null` clears; unknown job title → 400). The last active admin's role, or one's own role → 409. Logged `user.role_change` when the role changes. |
+| `PATCH /users/:id/deactivate` | `manage_users` | The last active admin, or one's own account → 409. Logged. |
 | `PATCH /users/:id/reactivate` | `manage_users` | Logged. |
-| `POST /users/:id/reset-password` | `manage_users` | → `{ user, temporary_password }`, sets `must_change_password`. Logged `user.reset_password`. |
+| `POST /users/:id/reset-password` | `manage_users` | → `{ user, temporary_password }`, sets `must_change_password`. One's own account → 409 (the own password changes with `PUT /auth/password`). Logged `user.reset_password`. |
 
 ## Projects (`projects.routes.js`)
 

@@ -17,7 +17,12 @@ const initialValues = (user) => ({
   job_title: user?.job_title?._id ?? user?.job_title ?? '',
 })
 
-export function UserFormModal({ user, onClose, onSubmit, isSaving }) {
+/**
+ * @param {Object} props
+ * @param {boolean} [props.isSelf] - Editing the signed-in admin's own account: the role is
+ *   read-only (the backend refuses a change of one's own role, v2.0.1)
+ */
+export function UserFormModal({ user, isSelf = false, onClose, onSubmit, isSaving }) {
   const isEdit = !!user
   const { jobTitles } = useLookups()
   const [values, setValues] = useState(() => initialValues(user))
@@ -96,7 +101,8 @@ export function UserFormModal({ user, onClose, onSubmit, isSaving }) {
           options={ROLE_OPTIONS}
           placeholder={null}
           required
-          disabled={isSaving}
+          helperText={isSelf ? 'You cannot change your own role' : undefined}
+          disabled={isSelf || isSaving}
         />
         <Select
           label="Job title"

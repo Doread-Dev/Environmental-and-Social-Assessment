@@ -71,7 +71,7 @@ describe('Header', () => {
 
     expect(screen.queryByText(/^ESMS v/)).toBeNull()
     fireEvent.click(await screen.findByRole('button', { name: /Rana Haddad/ }))
-    expect(screen.getByText('ESMS v2.0.0')).toBeInTheDocument()
+    expect(screen.getByText('ESMS v2.0.1')).toBeInTheDocument()
   })
 
   it('shows Settings to users who may open it', async () => {

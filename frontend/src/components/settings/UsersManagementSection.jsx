@@ -291,19 +291,25 @@ export function UsersManagementSection() {
                             onClick={() => setForm({ user })}
                             disabled={isSaving}
                           />
-                          <ActionButton
-                            icon="lock_reset"
-                            label={`Reset password of ${user.name}`}
-                            onClick={() => handleResetPassword(user)}
-                            disabled={isSaving}
-                          />
-                          <ActionButton
-                            icon={user.is_active ? 'person_off' : 'person_check'}
-                            label={`${user.is_active ? 'Deactivate' : 'Reactivate'} ${user.name}`}
-                            onClick={() => handleToggleActive(user)}
-                            disabled={isSaving}
-                            danger={user.is_active}
-                          />
+                          {/* The own account: password in the profile, no self deactivation
+                              (v2.0.1; the backend refuses both with 409) */}
+                          {user._id !== currentUser?._id && (
+                            <>
+                              <ActionButton
+                                icon="lock_reset"
+                                label={`Reset password of ${user.name}`}
+                                onClick={() => handleResetPassword(user)}
+                                disabled={isSaving}
+                              />
+                              <ActionButton
+                                icon={user.is_active ? 'person_off' : 'person_check'}
+                                label={`${user.is_active ? 'Deactivate' : 'Reactivate'} ${user.name}`}
+                                onClick={() => handleToggleActive(user)}
+                                disabled={isSaving}
+                                danger={user.is_active}
+                              />
+                            </>
+                          )}
                         </div>
                       </Table.Cell>
                     </Table.Row>
@@ -348,6 +354,7 @@ export function UsersManagementSection() {
       {form && (
         <UserFormModal
           user={form.user}
+          isSelf={!!form.user && form.user._id === currentUser?._id}
           onClose={() => setForm(null)}
           onSubmit={handleSubmit}
           isSaving={isSaving}

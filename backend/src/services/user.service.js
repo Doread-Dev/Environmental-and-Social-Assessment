@@ -43,6 +43,13 @@ const assertNotLastActiveAdmin = async (user, message) => {
   if (others === 0) throw new ApiError(409, message);
 };
 
+// An admin cannot reset, deactivate or change the role of their own account here (v2.0.1): a
+// self reset forced a password change before the one-time password could be shown and locked the
+// only admin out. The own password changes in the profile (PUT /auth/password).
+const assertNotSelf = (user, actor, message) => {
+  if (actor && String(user._id) === String(actor._id)) throw new ApiError(409, message);
+};
+
 const populated = (user) => user.populate("job_title");
 
 // Audit log (D65): the account acted on, by its copied name; never a password.
@@ -79,6 +86,7 @@ const updateUser = async (id, { job_title: jobTitle, ...fields }, actor) => {
   const oldRole = user.role;
   if (fields.role && fields.role !== oldRole) {
     await assertNotLastActiveAdmin(user, "Cannot change the role of the last active admin");
+    assertNotSelf(user, actor, "You cannot change your own role");
   }
   Object.assign(user, fields);
   if (jobTitle !== undefined) user.job_title = await resolveJobTitle(jobTitle);
@@ -98,7 +106,10 @@ const updateUser = async (id, { job_title: jobTitle, ...fields }, actor) => {
 // Deactivated users cannot log in and their tokens stop working on the next request (D4).
 const setActive = async (id, active, actor) => {
   const user = await findUser(id);
-  if (!active) await assertNotLastActiveAdmin(user, "Cannot deactivate the last active admin");
+  if (!active) {
+    await assertNotLastActiveAdmin(user, "Cannot deactivate the last active admin");
+    assertNotSelf(user, actor, "You cannot deactivate your own account");
+  }
   user.is_active = active;
   await atomic(async () => {
     await user.save();
@@ -114,6 +125,11 @@ const setActive = async (id, active, actor) => {
 // Until then the account's existing tokens only reach /auth/me and /auth/password.
 const resetPassword = async (id, actor) => {
   const user = await findUser(id);
+  assertNotSelf(
+    user,
+    actor,
+    "You cannot reset your own password here. Change it in your profile (Change password)."
+  );
   const temporaryPassword = generateTemporaryPassword();
   user.password = temporaryPassword;
   user.must_change_password = true;

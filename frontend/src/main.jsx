@@ -1,22 +1,23 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { SpeedInsights } from '@vercel/speed-insights/react'
-import { ThemeProvider, AuthProvider, LookupProvider } from '@/contexts'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { ThemeProvider, AuthProvider } from '@/contexts'
 import { ToastProvider } from '@/components/ui'
+import { queryClient } from '@/services/queryClient'
 import App from './App.jsx'
+import './fonts'
 import './index.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <AuthProvider>
-      <LookupProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
         <ThemeProvider>
           <ToastProvider>
             <App />
-            <SpeedInsights />
           </ToastProvider>
         </ThemeProvider>
-      </LookupProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   </StrictMode>
 )

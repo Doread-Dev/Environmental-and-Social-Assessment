@@ -84,7 +84,9 @@ function Pagination({
           )}
           aria-label="First page"
         >
-          <span className="material-symbols-outlined text-lg">first_page</span>
+          <span className="material-symbols-outlined text-lg" aria-hidden="true">
+            first_page
+          </span>
         </button>
       )}
 
@@ -100,7 +102,9 @@ function Pagination({
         )}
         aria-label="Previous page"
       >
-        <span className="material-symbols-outlined text-lg">chevron_left</span>
+        <span className="material-symbols-outlined text-lg" aria-hidden="true">
+          chevron_left
+        </span>
       </button>
 
       {/* Page numbers */}
@@ -143,7 +147,9 @@ function Pagination({
         )}
         aria-label="Next page"
       >
-        <span className="material-symbols-outlined text-lg">chevron_right</span>
+        <span className="material-symbols-outlined text-lg" aria-hidden="true">
+          chevron_right
+        </span>
       </button>
 
       {/* Last page */}
@@ -159,7 +165,9 @@ function Pagination({
           )}
           aria-label="Last page"
         >
-          <span className="material-symbols-outlined text-lg">last_page</span>
+          <span className="material-symbols-outlined text-lg" aria-hidden="true">
+            last_page
+          </span>
         </button>
       )}
     </nav>

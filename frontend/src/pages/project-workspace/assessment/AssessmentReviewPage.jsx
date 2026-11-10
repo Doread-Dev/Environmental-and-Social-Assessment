@@ -1,14 +1,28 @@
 /**
  * AssessmentReviewPage
- * صفحة مراجعة واعتماد التقييم
- * مطابق للتصميم الأصلي حرفياً
+ * Assessment review and approval page
  */
 
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useCallback } from 'react'
+import { useExportHandler } from '@/components/export'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAssessment, useScreening, useProjectContext } from '@/hooks'
-import { useLookups, useAuth, ROLE_LABELS, IMPACT_LEVEL_CONFIG } from '@/contexts'
-import { Button, Textarea, useToast } from '@/components/ui'
+import { useAuth } from '@/contexts'
+import { ReviewDecisionDialog } from '@/components/review'
+import { getReviewer, positionOf } from '@/utils/reviewer'
+import { useLookups } from '@/hooks'
+import { IMPACT_LEVEL_CONFIG } from '@/utils/impactLevels'
+import {
+  Button,
+  EmptyState,
+  Input,
+  LoadingState,
+  StatusBadge,
+  Textarea,
+  useToast,
+  PAGE_TITLE,
+  PAGE_DESCRIPTION,
+} from '@/components/ui'
 import { cn } from '@/utils/cn'
 import { formatDateRange } from '@/utils/formatters'
 import { getCategoryHighestLevel } from '@/utils/impactCalculations'
@@ -16,9 +30,9 @@ import { assessmentMethods, consultationMethods } from '@/utils/assessmentMethod
 export default function AssessmentReviewPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
-  const { project } = useProjectContext()
+  const { project, workflow, can } = useProjectContext()
   const { categoriesWithQuestions, isLoading: lookupsLoading } = useLookups()
-  const { user, canApprove } = useAuth()
+  const { user } = useAuth()
   const { screening } = useScreening(projectId)
   const {
     assessment,
@@ -33,42 +47,49 @@ export default function AssessmentReviewPage() {
 
   const toast = useToast()
   const [recommendations, setRecommendations] = useState(assessment?.recommendations || '')
+  // Approve and reject ask first, in the same dialog as the screening (D74 6)
+  const [decision, setDecision] = useState(null)
   const [showRejectInput, setShowRejectInput] = useState(false)
   const [rejectReasonInput, setRejectReasonInput] = useState('')
 
   // Export handler - must be defined before any conditional returns
   const handleExport = useCallback(async () => {
     try {
-      const { exportAssessmentToExcel } = await import('@/utils/excelExport')
-      await exportAssessmentToExcel(
-        project,
-        screening,
-        assessment,
-        methods,
-        consultations,
-        impactScores,
-        categoriesWithQuestions
+      const { exportTool, exportStatus } = await import('@/utils/excelExport')
+      const fileName = await exportTool(
+        'tool2',
+        {
+          project,
+          screening,
+          assessment,
+          methods,
+          consultations,
+          impactScores,
+          categoriesWithQuestions,
+        },
+        exportStatus(workflow, 'tool2', assessment)
       )
-      toast.success('Excel file downloaded successfully!')
+      toast.success(`Downloaded ${fileName}`)
     } catch (error) {
       console.error('Export error:', error)
       toast.error('Failed to export Excel file')
     }
-  }, [project, screening, assessment, methods, consultations, impactScores, categoriesWithQuestions, toast])
+  }, [
+    project,
+    screening,
+    assessment,
+    methods,
+    consultations,
+    impactScores,
+    categoriesWithQuestions,
+    workflow,
+    toast,
+  ])
 
-  // Expose export handler to parent layout via custom event
-  useEffect(() => {
-    const status = assessment?.status || 'draft'
-    if (status === 'submitted' || status === 'approved' || status === 'rejected') {
-      const handleExportEvent = () => {
-        handleExport()
-      }
-      window.addEventListener('assessment-export', handleExportEvent)
-      return () => {
-        window.removeEventListener('assessment-export', handleExportEvent)
-      }
-    }
-  }, [assessment?.status, handleExport])
+  // The header's Export Excel: answered once the review is loaded and past draft (the button
+  // stays disabled until then, phase 12a)
+  const exportable = ['submitted', 'approved', 'rejected'].includes(assessment?.status)
+  useExportHandler('assessment-export', handleExport, !isLoading && !lookupsLoading && exportable)
 
   // Calculate total score from impactScores directly (real-time calculation)
   const totalScore = useMemo(() => {
@@ -127,37 +148,25 @@ export default function AssessmentReviewPage() {
 
   const officer =
     assessment?.officer && typeof assessment.officer === 'object' ? assessment.officer : null
-  const approver =
-    assessment?.approved_by && typeof assessment.approved_by === 'object'
-      ? assessment.approved_by
-      : null
-  const rejector =
-    assessment?.reject_by && typeof assessment.reject_by === 'object' ? assessment.reject_by : null
+  // Reviewer from the record or its status history (D16)
+  const approver = getReviewer(assessment, 'approved')
+  const rejector = getReviewer(assessment, 'rejected')
 
   if (isLoading || lookupsLoading) {
-    return (
-      <div className="flex w-full items-center justify-center py-20">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading review...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState message="Loading review..." />
   }
 
   if (!assessment) {
     return (
-      <div className="max-w-4xl mx-auto p-8">
-        <div className="bg-white dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark p-8 text-center">
-          <p className="text-text-secondary">No assessment found</p>
-          <Button
-            onClick={() => navigate(`/app/projects/${projectId}/assessment`)}
-            className="mt-4"
-          >
+      <EmptyState
+        icon="assignment"
+        title="No assessment found"
+        action={
+          <Button onClick={() => navigate(`/app/projects/${projectId}/assessment`)}>
             Go to Assessment Gateway
           </Button>
-        </div>
-      </div>
+        }
+      />
     )
   }
 
@@ -167,9 +176,10 @@ export default function AssessmentReviewPage() {
       return
     }
     const result = await approveAssessment(recommendations)
-    if (result.success) {
-      // Stay on the same page to show approved status
-    }
+    // Stay on the same page to show the approved status. A failure says why (it was silent
+    // before phase 10a); an expired session has its own dialog (D73).
+    if (result.success) toast.success('Assessment approved.')
+    else if (!result.handled) toast.error(result.error || 'Failed to approve the assessment.')
   }
 
   const handleRejectClick = () => {
@@ -182,6 +192,9 @@ export default function AssessmentReviewPage() {
       setShowRejectInput(false)
       setRejectReasonInput('')
       // Stay on the same page to show rejected status
+      toast.success('Assessment rejected.')
+    } else if (!result.handled) {
+      toast.error(result.error || 'Failed to reject the assessment.')
     }
   }
 
@@ -198,33 +211,8 @@ export default function AssessmentReviewPage() {
     navigate(`/app/projects/${projectId}/semp`)
   }
 
-  const canApproveAssessment = canApprove && assessment?.status === 'submitted'
-
-  // Status badge config
-  const statusConfig = {
-    draft: {
-      label: 'Draft',
-      className:
-        'bg-gray-50/50 text-text-main dark:bg-white/5 dark:text-gray-300 border-border-default dark:border-border-dark',
-    },
-    submitted: {
-      label: 'Pending Approval',
-      className:
-        'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 border-amber-200 dark:border-amber-800',
-    },
-    approved: {
-      label: 'Approved',
-      className:
-        'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200 border-green-200 dark:border-green-800',
-    },
-    rejected: {
-      label: 'Rejected',
-      className:
-        'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200 border-red-200 dark:border-red-800',
-    },
-  }
-
-  const status = statusConfig[assessment.status] || statusConfig.draft
+  // Allowed actions from the backend: specialist/admin, submitted, project not archived (D35)
+  const canApproveAssessment = can('assessment.approve')
 
   // Get method labels
   const getMethodLabel = (methodType) => {
@@ -241,28 +229,20 @@ export default function AssessmentReviewPage() {
   return (
     <div className="p-4 md:p-8 max-w-[1000px] mx-auto">
       {/* Main Card */}
-      <div className="bg-white dark:bg-[#1a2e22] shadow-sm rounded-xl min-h-full flex flex-col border border-border-default dark:border-border-dark overflow-hidden mb-10">
+      <div className="bg-surface dark:bg-surface-dark shadow-sm rounded-xl min-h-full flex flex-col border border-border-default dark:border-border-dark overflow-hidden mb-10">
         {/* Header */}
         <header className="p-8 pb-6 border-b border-border-default dark:border-border-dark">
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
             <div className="flex flex-col gap-2">
-              <h1 className="text-text-main dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-tight">
-                Environmental Assessment
-              </h1>
-              <p className="text-text-secondary text-lg font-normal">Review & Approval Stage</p>
+              <h1 className={PAGE_TITLE}>Environmental Assessment</h1>
+              <p className={PAGE_DESCRIPTION}>Review & Approval Stage</p>
             </div>
             <div className="flex flex-col items-end gap-2">
-              <span
-                className={cn(
-                  'inline-flex items-center justify-center px-4 py-1.5 rounded-full text-sm font-bold border',
-                  status.className
-                )}
-              >
-                {assessment.status === 'submitted' && (
-                  <span className="size-2 rounded-full bg-amber-500 mr-2 animate-pulse"></span>
-                )}
-                {status.label}
-              </span>
+              <StatusBadge
+                status={assessment.status || 'draft'}
+                label={assessment.status === 'submitted' ? 'Pending Approval' : undefined}
+                size="lg"
+              />
             </div>
           </div>
         </header>
@@ -270,7 +250,9 @@ export default function AssessmentReviewPage() {
         {/* Project & Officer Information */}
         <section className="p-8 border-b border-border-default dark:border-border-dark">
           <h3 className="text-text-main dark:text-white text-lg font-bold mb-4 flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">badge</span>
+            <span className="material-symbols-outlined text-primary" aria-hidden="true">
+              badge
+            </span>
             Project & Officer Information
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
@@ -287,9 +269,7 @@ export default function AssessmentReviewPage() {
                 Officer Position
               </p>
               <p className="text-text-main dark:text-gray-200 text-sm font-medium">
-                {officer?.job_title?.title_name ||
-                  (officer?.role ? ROLE_LABELS[officer.role] : null) ||
-                  'N/A'}
+                {positionOf(officer) || 'N/A'}
               </p>
             </div>
             <div className="flex flex-col gap-1">
@@ -332,9 +312,11 @@ export default function AssessmentReviewPage() {
         </section>
 
         {/* Project Description */}
-        <section className="p-8 border-b border-border-default dark:border-border-dark bg-gray-50/50 dark:bg-white/5">
+        <section className="p-8 border-b border-border-default dark:border-border-dark bg-background dark:bg-white/5">
           <h3 className="text-text-main dark:text-white text-lg font-bold mb-6 flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">info</span>
+            <span className="material-symbols-outlined text-primary" aria-hidden="true">
+              info
+            </span>
             Project Description
           </h3>
           <div className="space-y-6">
@@ -372,7 +354,9 @@ export default function AssessmentReviewPage() {
         {/* Methods & Consultation */}
         <section className="p-8 border-b border-border-default dark:border-border-dark">
           <h3 className="text-text-main dark:text-white text-lg font-bold mb-6 flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">groups</span>
+            <span className="material-symbols-outlined text-primary" aria-hidden="true">
+              groups
+            </span>
             Methods & Consultation
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -389,6 +373,7 @@ export default function AssessmentReviewPage() {
                         <span
                           className="material-symbols-outlined text-primary"
                           style={{ fontVariationSettings: "'FILL' 1" }}
+                          aria-hidden="true"
                         >
                           check_box
                         </span>
@@ -396,7 +381,7 @@ export default function AssessmentReviewPage() {
                       </div>
                       {method.details && (
                         <input
-                          className="ml-9 w-[calc(100%-2.25rem)] bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded px-3 py-1.5 text-xs text-text-main dark:text-gray-200 focus:outline-none cursor-default"
+                          className="ml-9 w-[calc(100%-2.25rem)] bg-background dark:bg-white/5 border border-border-default dark:border-border-dark rounded px-3 py-1.5 text-xs text-text-main dark:text-gray-200 focus:outline-none cursor-default"
                           readOnly
                           type="text"
                           value={method.details}
@@ -423,6 +408,7 @@ export default function AssessmentReviewPage() {
                         <span
                           className="material-symbols-outlined text-primary"
                           style={{ fontVariationSettings: "'FILL' 1" }}
+                          aria-hidden="true"
                         >
                           check_box
                         </span>
@@ -432,7 +418,7 @@ export default function AssessmentReviewPage() {
                       </div>
                       {consultation.participants && (
                         <input
-                          className="ml-9 w-[calc(100%-2.25rem)] bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded px-3 py-1.5 text-xs text-text-main dark:text-gray-200 focus:outline-none cursor-default"
+                          className="ml-9 w-[calc(100%-2.25rem)] bg-background dark:bg-white/5 border border-border-default dark:border-border-dark rounded px-3 py-1.5 text-xs text-text-main dark:text-gray-200 focus:outline-none cursor-default"
                           readOnly
                           type="text"
                           value={consultation.participants}
@@ -452,10 +438,12 @@ export default function AssessmentReviewPage() {
         <section className="p-8 border-b border-border-default dark:border-border-dark">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-text-main dark:text-white text-lg font-bold flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">analytics</span>
+              <span className="material-symbols-outlined text-primary" aria-hidden="true">
+                analytics
+              </span>
               Detailed Impact Assessment
             </h3>
-            <span className="text-xs text-text-secondary bg-gray-50 dark:bg-white/5 px-3 py-1 rounded-full border border-border-default dark:border-border-dark">
+            <span className="text-xs text-text-secondary bg-background dark:bg-white/5 px-3 py-1 rounded-full border border-border-default dark:border-border-dark">
               Read Only Mode
             </span>
           </div>
@@ -478,15 +466,15 @@ export default function AssessmentReviewPage() {
                   className="mb-8 border border-border-default dark:border-border-dark rounded-lg overflow-hidden"
                 >
                   {/* Category Header */}
-                  <div className="bg-gray-50/50 dark:bg-white/5 px-4 py-3 flex justify-between items-center border-b border-border-default dark:border-border-dark">
+                  <div className="bg-background dark:bg-white/5 px-4 py-3 flex justify-between items-center border-b border-border-default dark:border-border-dark">
                     <h4 className="font-bold text-text-main dark:text-white text-sm">
                       {category.code}. {category.name}
                     </h4>
                     <span
                       className={cn(
                         'text-xs font-bold px-2 py-0.5 rounded border',
-                        config?.bgClass || 'bg-gray-200 dark:bg-white/5',
-                        config?.textClass || 'text-gray-700 dark:text-gray-300',
+                        config?.bgClass || 'bg-border-default dark:bg-white/5',
+                        config?.textClass || 'text-text-main dark:text-gray-300',
                         config?.textClass?.includes('yellow') &&
                           'border-yellow-200 dark:border-yellow-900/40',
                         config?.textClass?.includes('orange') &&
@@ -501,7 +489,7 @@ export default function AssessmentReviewPage() {
 
                   {/* Questions */}
                   {allNegligibleOrNA ? (
-                    <div className="p-4 bg-white dark:bg-[#1a2e22] text-center text-sm text-text-secondary italic">
+                    <div className="p-4 bg-surface dark:bg-surface-dark text-center text-sm text-text-secondary italic">
                       All questions marked as Negligible or Not Applicable. No issues identified.
                     </div>
                   ) : (
@@ -518,8 +506,8 @@ export default function AssessmentReviewPage() {
                             className={cn(
                               'grid grid-cols-1 md:grid-cols-[1fr_150px_1fr] gap-4 p-4',
                               qIdx % 2 === 0
-                                ? 'bg-white dark:bg-[#1a2e22]'
-                                : 'bg-gray-50/50 dark:bg-white/5'
+                                ? 'bg-surface dark:bg-surface-dark'
+                                : 'bg-background dark:bg-white/5'
                             )}
                           >
                             <p className="text-sm text-text-main dark:text-gray-200">
@@ -530,8 +518,9 @@ export default function AssessmentReviewPage() {
                                 <span
                                   className={cn(
                                     'inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium',
-                                    scoreConfig?.bgClass || 'bg-gray-100 dark:bg-white/5',
-                                    scoreConfig?.textClass || 'text-gray-600 dark:text-gray-400'
+                                    scoreConfig?.bgClass || 'bg-background dark:bg-white/5',
+                                    scoreConfig?.textClass ||
+                                      'text-text-secondary dark:text-gray-400'
                                   )}
                                 >
                                   {scoreConfig?.label || questionScore.level}
@@ -555,45 +544,45 @@ export default function AssessmentReviewPage() {
         </section>
 
         {/* Overall Assessment Results */}
-        <section className="p-8 bg-gray-50/50 dark:bg-white/5 border-b border-border-default dark:border-border-dark">
+        <section className="p-8 bg-background dark:bg-white/5 border-b border-border-default dark:border-border-dark">
           <h3 className="text-text-main dark:text-white text-lg font-bold mb-6 text-center">
             Overall Assessment Results
           </h3>
           <div className="flex flex-col md:flex-row justify-center items-stretch gap-6">
             {/* Total Project Score */}
-            <div className="bg-white dark:bg-[#1a2e22] rounded-xl p-6 shadow-sm border border-border-default dark:border-border-dark flex-1 flex flex-col items-center justify-start text-center max-w-sm">
+            <div className="bg-surface dark:bg-surface-dark rounded-xl p-6 shadow-sm border border-border-default dark:border-border-dark flex-1 flex flex-col items-center justify-start text-center max-w-sm">
               <p className="text-text-secondary text-xs font-bold uppercase tracking-wider mb-2">
                 Total Project Score
               </p>
-              <div className="w-full space-y-2.5 bg-gray-50/50 dark:bg-white/5 p-4 rounded-lg">
+              <div className="w-full space-y-2.5 bg-background dark:bg-white/5 p-4 rounded-lg">
                 {/* Not Applicable */}
                 <div className="flex justify-between items-center text-xs pt-1">
-                  <span className="text-gray-600 dark:text-gray-500 font-medium">
+                  <span className="text-text-secondary dark:text-gray-500 font-medium">
                     Not Applicable
                   </span>
                   <span className="font-bold text-text-main dark:text-white">
                     {totalScore.not_applicable} pts
                   </span>
                 </div>
-                <div className="w-full h-1.5 bg-gray-200 dark:bg-border-dark rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-border-default dark:bg-border-dark rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gray-300 dark:bg-gray-600"
+                    className="h-full bg-text-disabled dark:bg-white/20"
                     style={{ width: `${notApplicablePercent}%` }}
                   ></div>
                 </div>
 
                 {/* Negligible Impact */}
                 <div className="flex justify-between items-center text-xs pt-1">
-                  <span className="text-gray-700 dark:text-gray-400 font-medium">
+                  <span className="text-text-main dark:text-gray-400 font-medium">
                     Negligible Impact
                   </span>
                   <span className="font-bold text-text-main dark:text-white">
                     {totalScore.negligible} pts
                   </span>
                 </div>
-                <div className="w-full h-1.5 bg-gray-200 dark:bg-border-dark rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-border-default dark:bg-border-dark rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gray-400"
+                    className="h-full bg-text-disabled"
                     style={{ width: `${negligiblePercent}%` }}
                   ></div>
                 </div>
@@ -605,7 +594,7 @@ export default function AssessmentReviewPage() {
                     {totalScore.low} pts
                   </span>
                 </div>
-                <div className="w-full h-1.5 bg-gray-200 dark:bg-border-dark rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-border-default dark:bg-border-dark rounded-full overflow-hidden">
                   <div className="h-full bg-green-400" style={{ width: `${lowPercent}%` }}></div>
                 </div>
 
@@ -618,7 +607,7 @@ export default function AssessmentReviewPage() {
                     {totalScore.medium} pts
                   </span>
                 </div>
-                <div className="w-full h-1.5 bg-gray-200 dark:bg-border-dark rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-border-default dark:bg-border-dark rounded-full overflow-hidden">
                   <div
                     className="h-full bg-orange-400"
                     style={{ width: `${mediumPercent}%` }}
@@ -632,14 +621,14 @@ export default function AssessmentReviewPage() {
                     {totalScore.high} pts
                   </span>
                 </div>
-                <div className="w-full h-1.5 bg-gray-200 dark:bg-border-dark rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-border-default dark:bg-border-dark rounded-full overflow-hidden">
                   <div className="h-full bg-red-500" style={{ width: `${highPercent}%` }}></div>
                 </div>
               </div>
             </div>
 
             {/* Total Project Impact */}
-            <div className="bg-white dark:bg-[#1a2e22] rounded-xl p-6 shadow-sm border border-border-default dark:border-border-dark flex-1 flex flex-col items-center justify-center text-center max-w-sm relative overflow-hidden">
+            <div className="bg-surface dark:bg-surface-dark rounded-xl p-6 shadow-sm border border-border-default dark:border-border-dark flex-1 flex flex-col items-center justify-center text-center max-w-sm relative overflow-hidden">
               <div
                 className={cn(
                   'absolute top-0 left-0 w-full h-1.5',
@@ -649,7 +638,7 @@ export default function AssessmentReviewPage() {
                       ? 'bg-orange-500'
                       : calculatedTotalImpact === 'low'
                         ? 'bg-green-400'
-                        : 'bg-gray-400'
+                        : 'bg-text-disabled'
                 )}
               ></div>
               <p className="text-text-secondary text-xs font-bold uppercase tracking-wider mb-4">
@@ -657,14 +646,14 @@ export default function AssessmentReviewPage() {
               </p>
               <div
                 className={cn(
-                  'text-4xl font-black mb-3 tracking-tight',
+                  'text-4xl font-bold mb-3 tracking-tight',
                   calculatedTotalImpact === 'high'
                     ? 'text-red-600 dark:text-red-400'
                     : calculatedTotalImpact === 'medium'
                       ? 'text-orange-600 dark:text-orange-400'
                       : calculatedTotalImpact === 'low'
                         ? 'text-green-600 dark:text-green-400'
-                        : 'text-gray-600 dark:text-gray-400'
+                        : 'text-text-secondary dark:text-gray-400'
                 )}
               >
                 {calculatedTotalImpact?.toUpperCase() || 'N/A'}
@@ -683,7 +672,10 @@ export default function AssessmentReviewPage() {
             {assessment.potential_negative_impact && (
               <div className="p-5 rounded-lg border border-red-100 bg-red-50/50 dark:bg-red-900/10 dark:border-red-900/30">
                 <h4 className="text-red-800 dark:text-red-200 font-bold mb-3 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-red-600 dark:text-red-400">
+                  <span
+                    className="material-symbols-outlined text-red-600 dark:text-red-400"
+                    aria-hidden="true"
+                  >
                     warning
                   </span>
                   Potential Negative Impacts
@@ -698,7 +690,10 @@ export default function AssessmentReviewPage() {
             {assessment.potential_positive_impact && (
               <div className="p-5 rounded-lg border border-green-100 bg-green-50/50 dark:bg-green-900/10 dark:border-green-900/30">
                 <h4 className="text-green-800 dark:text-green-200 font-bold mb-3 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-green-600 dark:text-green-400">
+                  <span
+                    className="material-symbols-outlined text-green-600 dark:text-green-400"
+                    aria-hidden="true"
+                  >
                     eco
                   </span>
                   Potential Positive Impacts
@@ -712,10 +707,12 @@ export default function AssessmentReviewPage() {
         </section>
 
         {/* Approval & Recommendations */}
-        <section className="p-8 bg-gray-50/50 dark:bg-white/5">
-          <div className="bg-white dark:bg-[#1a2e22] rounded-xl border border-border-default dark:border-border-dark shadow-sm p-6 md:p-8">
+        <section className="p-8 bg-background dark:bg-white/5">
+          <div className="bg-surface dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark shadow-sm p-6 md:p-8">
             <h3 className="text-text-main dark:text-white text-xl font-bold mb-6 flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">verified_user</span>
+              <span className="material-symbols-outlined text-primary" aria-hidden="true">
+                verified_user
+              </span>
               Approval & Recommendations
             </h3>
 
@@ -726,26 +723,24 @@ export default function AssessmentReviewPage() {
                   <label className="text-text-secondary text-xs font-bold uppercase tracking-wider">
                     Approved By
                   </label>
-                  <input
-                    className="w-full bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
+                  <Input
                     readOnly
                     type="text"
+                    aria-label="Approved By"
                     value={approver.name}
+                    inputClassName="font-medium"
                   />
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-text-secondary text-xs font-bold uppercase tracking-wider">
                     Position
                   </label>
-                  <input
-                    className="w-full bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
+                  <Input
                     readOnly
                     type="text"
-                    value={
-                      approver.job_title?.title_name ||
-                      (approver.role ? ROLE_LABELS[approver.role] : null) ||
-                      'N/A'
-                    }
+                    aria-label="Position"
+                    value={approver.position || 'N/A'}
+                    inputClassName="font-medium"
                   />
                 </div>
               </div>
@@ -758,26 +753,24 @@ export default function AssessmentReviewPage() {
                     <label className="text-text-secondary text-xs font-bold uppercase tracking-wider">
                       Rejected By
                     </label>
-                    <input
-                      className="w-full bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
+                    <Input
                       readOnly
                       type="text"
+                      aria-label="Rejected By"
                       value={rejector?.name || 'N/A'}
+                      inputClassName="font-medium"
                     />
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="text-text-secondary text-xs font-bold uppercase tracking-wider">
                       Position
                     </label>
-                    <input
-                      className="w-full bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
+                    <Input
                       readOnly
                       type="text"
-                      value={
-                        rejector?.job_title?.title_name ||
-                        (rejector?.role ? ROLE_LABELS[rejector.role] : null) ||
-                        'N/A'
-                      }
+                      aria-label="Position"
+                      value={rejector?.position || 'N/A'}
+                      inputClassName="font-medium"
                     />
                   </div>
                 </div>
@@ -786,21 +779,25 @@ export default function AssessmentReviewPage() {
                     <p className="text-sm font-semibold text-red-800 dark:text-red-300 mb-2">
                       Reason for Rejection:
                     </p>
-                    <p className="text-sm text-red-700 dark:text-red-400 whitespace-pre-wrap">
+                    <p
+                      dir="auto"
+                      className="text-sm text-red-700 dark:text-red-400 whitespace-pre-wrap"
+                    >
                       {assessment.reject_reason}
                     </p>
                   </div>
                 )}
-                <div className="flex justify-end gap-4 pt-4 border-t border-border-default dark:border-border-dark">
-                  <button
-                    type="button"
-                    onClick={handleEdit}
-                    className="px-6 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-bold text-sm shadow-md transition-colors flex items-center gap-2"
-                  >
-                    <span className="material-symbols-outlined text-lg">edit</span>
-                    Edit Assessment
-                  </button>
-                </div>
+                {/* Only users who may edit (allowed_actions), as on the screening (phase 12a) */}
+                {can('assessment.edit') && (
+                  <div className="flex justify-end gap-4 pt-4 border-t border-border-default dark:border-border-dark">
+                    <Button variant="primary" type="button" onClick={handleEdit}>
+                      <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                        edit
+                      </span>
+                      Edit Assessment
+                    </Button>
+                  </div>
+                )}
               </>
             )}
 
@@ -812,26 +809,24 @@ export default function AssessmentReviewPage() {
                     <label className="text-text-secondary text-xs font-bold uppercase tracking-wider">
                       Approved By
                     </label>
-                    <input
-                      className="w-full bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
+                    <Input
                       readOnly
                       type="text"
+                      aria-label="Approved By"
                       value={user?.name || 'N/A'}
+                      inputClassName="font-medium"
                     />
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="text-text-secondary text-xs font-bold uppercase tracking-wider">
                       Position
                     </label>
-                    <input
-                      className="w-full bg-gray-50/50 dark:bg-white/5 border border-border-default dark:border-border-dark rounded-lg px-4 py-2.5 text-text-main dark:text-white text-sm focus:outline-none cursor-not-allowed font-medium"
+                    <Input
                       readOnly
                       type="text"
-                      value={
-                        user?.job_title?.title_name ||
-                        (user?.role ? ROLE_LABELS[user.role] : null) ||
-                        'N/A'
-                      }
+                      aria-label="Position"
+                      value={positionOf(user) || 'N/A'}
+                      inputClassName="font-medium"
                     />
                   </div>
                 </div>
@@ -860,7 +855,9 @@ export default function AssessmentReviewPage() {
                   />
                   {!recommendations.trim() && (
                     <p className="text-xs text-red-500 flex items-center gap-1">
-                      <span className="material-symbols-outlined text-sm">error</span>
+                      <span className="material-symbols-outlined text-sm" aria-hidden="true">
+                        error
+                      </span>
                       Recommendations are required to approve the assessment
                     </p>
                   )}
@@ -884,24 +881,30 @@ export default function AssessmentReviewPage() {
                       </p>
                     </div>
                     <div className="flex gap-3">
-                      <button
+                      <Button
+                        variant="secondary"
                         type="button"
                         onClick={handleCancelReject}
                         disabled={isSaving}
-                        className="flex-1 px-6 py-2.5 rounded-lg border border-border-default dark:border-border-dark hover:bg-gray-50/50 dark:hover:bg-white/5 text-text-main dark:text-white font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="flex-1"
                       >
-                        <span className="material-symbols-outlined text-lg">close</span>
+                        <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                          close
+                        </span>
                         Cancel
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="danger"
                         type="button"
-                        onClick={handleConfirmReject}
+                        onClick={() => setDecision('reject')}
                         disabled={isSaving}
-                        className="flex-1 px-6 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-md transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1"
                       >
-                        <span className="material-symbols-outlined text-lg">check</span>
+                        <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                          check
+                        </span>
                         {isSaving ? 'Rejecting...' : 'Confirm Rejection'}
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -909,25 +912,42 @@ export default function AssessmentReviewPage() {
                 {/* Action Buttons */}
                 {!showRejectInput && (
                   <div className="flex flex-col-reverse md:flex-row items-center justify-end gap-4 pt-4 border-border-default dark:border-border-dark">
-                    <button
+                    <Button
+                      variant="danger"
                       type="button"
                       onClick={handleRejectClick}
                       disabled={isSaving}
-                      className="px-6 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-md transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <span className="material-symbols-outlined text-lg">close</span>
+                      <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                        close
+                      </span>
                       Reject
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="primary"
                       type="button"
-                      onClick={handleApprove}
+                      onClick={() => setDecision('approve')}
                       disabled={isSaving || !recommendations.trim()}
-                      className="px-6 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-bold text-sm shadow-md transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <span className="material-symbols-outlined text-lg">verified</span>
+                      <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                        verified
+                      </span>
                       {isSaving ? 'Processing...' : 'Approve & Complete Assessment'}
-                    </button>
+                    </Button>
                   </div>
+                )}
+                {decision && (
+                  <ReviewDecisionDialog
+                    decision={decision}
+                    tool="assessment"
+                    isLoading={isSaving}
+                    onClose={() => setDecision(null)}
+                    onConfirm={async () => {
+                      if (decision === 'approve') await handleApprove()
+                      else await handleConfirmReject()
+                      setDecision(null)
+                    }}
+                  />
                 )}
               </>
             )}
@@ -940,19 +960,17 @@ export default function AssessmentReviewPage() {
                     <p className="text-sm font-semibold text-text-main dark:text-white mb-2">
                       Recommendations:
                     </p>
-                    <p className="text-sm text-text-secondary whitespace-pre-wrap">
+                    <p dir="auto" className="text-sm text-text-secondary whitespace-pre-wrap">
                       {assessment.recommendations}
                     </p>
                   </div>
                 )}
-                <button
-                  type="button"
-                  onClick={handleProceedToSemp}
-                  className="px-6 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-bold text-sm shadow-md transition-colors flex items-center gap-2"
-                >
+                <Button variant="primary" type="button" onClick={handleProceedToSemp}>
                   Proceed to SEMP
-                  <span className="material-symbols-outlined text-lg">arrow_forward</span>
-                </button>
+                  <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                    arrow_forward
+                  </span>
+                </Button>
               </div>
             )}
           </div>

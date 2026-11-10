@@ -2,11 +2,9 @@
  * Toast Component
  * Displays temporary notification messages
  */
-import { useState, useEffect, useCallback, createContext, useContext } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { cn } from '@/utils/cn'
-
-// Toast Context
-const ToastContext = createContext(undefined)
+import { ToastContext } from './useToast'
 
 /**
  * Toast variants configuration
@@ -61,25 +59,32 @@ function ToastItem({ id, message, variant = 'info', onClose }) {
       className={cn(
         'flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg',
         'animate-in slide-in-from-top-5 fade-in duration-300',
-        'min-w-[300px] max-w-[400px]',
+        'w-full sm:w-auto sm:min-w-[300px] sm:max-w-[400px]',
         config.bgClass,
         config.borderClass
       )}
-      role="alert"
+      role={variant === 'error' ? 'alert' : 'status'}
     >
-      <span className={cn('material-symbols-outlined text-xl', config.iconClass)}>
+      <span
+        className={cn('material-symbols-outlined text-xl', config.iconClass)}
+        aria-hidden="true"
+      >
         {config.icon}
       </span>
       <p className={cn('flex-1 text-sm font-medium', config.textClass)}>{message}</p>
       <button
+        type="button"
         onClick={() => onClose(id)}
         className={cn(
           'p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors',
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-current',
           config.textClass
         )}
         aria-label="Dismiss"
       >
-        <span className="material-symbols-outlined text-lg">close</span>
+        <span className="material-symbols-outlined text-lg" aria-hidden="true">
+          close
+        </span>
       </button>
     </div>
   )
@@ -92,7 +97,7 @@ function ToastContainer({ toasts, removeToast }) {
   if (toasts.length === 0) return null
 
   return (
-    <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2">
+    <div className="fixed top-4 left-4 right-4 sm:left-auto z-[9999] flex flex-col items-end gap-2">
       {toasts.map((toast) => (
         <ToastItem
           key={toast.id}
@@ -122,13 +127,14 @@ export function ToastProvider({ children }) {
     setToasts((prev) => prev.filter((toast) => toast.id !== id))
   }, [])
 
-  const toast = useCallback(
-    {
+  // Stable object: consumers can list `toast` in effect dependencies
+  const toast = useMemo(
+    () => ({
       success: (message) => addToast(message, 'success'),
       error: (message) => addToast(message, 'error'),
       warning: (message) => addToast(message, 'warning'),
       info: (message) => addToast(message, 'info'),
-    },
+    }),
     [addToast]
   )
 
@@ -138,20 +144,6 @@ export function ToastProvider({ children }) {
       <ToastContainer toasts={toasts} removeToast={removeToast} />
     </ToastContext.Provider>
   )
-}
-
-/**
- * Hook to use toast notifications
- * @returns {{ success: Function, error: Function, warning: Function, info: Function }}
- */
-export function useToast() {
-  const context = useContext(ToastContext)
-
-  if (context === undefined) {
-    throw new Error('useToast must be used within a ToastProvider')
-  }
-
-  return context
 }
 
 export default ToastProvider

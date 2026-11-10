@@ -1,15 +1,16 @@
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@/components/ui'
-import { ScreeningCategoryBadge, ProjectStatusBadge } from './index'
+import { ScreeningCategoryBadge } from './index'
+import { StatusBadge } from '@/components/ui'
 import { cn } from '@/utils'
 import { getProjectRoute } from '@/routes/routes.config'
 
 /**
- * ProjectListItem - عنصر قائمة المشروع في لوحة التحكم
+ * ProjectListItem - a project in the dashboard list
  *
  * @param {Object} props
- * @param {Object} props.project - بيانات المشروع
- * @param {Function} props.onClick - دالة النقر (اختياري)
+ * @param {Object} props.project - The project
+ * @param {Function} props.onClick - Click handler (optional)
  *
  * @example
  * <ProjectListItem project={project} />
@@ -25,8 +26,8 @@ function ProjectListItem({ project, onClick, className, ...props }) {
     }
   }
 
-  // projectStatus is pre-computed by useProjects
-  const projectStatus = project.projectStatus || 'draft'
+  // Overall status computed by the backend (D30)
+  const projectStatus = project.workflow?.status || 'draft'
   const categoryCode = project.screening?.category_code
 
   return (
@@ -46,10 +47,12 @@ function ProjectListItem({ project, onClick, className, ...props }) {
             <Icon name={project.icon || 'folder'} className="text-lg" />
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-text-main dark:text-white">
+            <h4 dir="auto" className="text-sm font-semibold text-text-main dark:text-white">
               {project.title}
             </h4>
-            <p className="text-xs text-text-secondary">{project.location}</p>
+            <p dir="auto" className="text-xs text-text-secondary">
+              {project.location}
+            </p>
           </div>
         </div>
         <Icon
@@ -58,7 +61,7 @@ function ProjectListItem({ project, onClick, className, ...props }) {
         />
       </div>
       <div className="flex gap-2 mt-2 ml-10">
-        <ProjectStatusBadge status={projectStatus} size="sm" />
+        <StatusBadge status={projectStatus} size="sm" />
         {categoryCode && <ScreeningCategoryBadge category={categoryCode} size="sm" showLabel />}
       </div>
     </li>

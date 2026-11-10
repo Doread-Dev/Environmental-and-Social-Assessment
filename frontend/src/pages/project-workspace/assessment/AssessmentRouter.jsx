@@ -1,49 +1,57 @@
 /**
  * AssessmentRouter
- * مكون توجيه ذكي لصفحات التقييم
+ * Picks the assessment page for the assessment's state
  */
 
 import { useParams } from 'react-router-dom'
-import { useAssessment, useScreening } from '@/hooks'
+import { useAssessment, useProjectContext } from '@/hooks'
+import { isStepLocked } from '@/utils/workflowSteps'
 import AssessmentGatewayPage from './AssessmentGatewayPage'
 import AssessmentReviewPage from './AssessmentReviewPage'
+import { ErrorState, LoadingState } from '@/components/ui'
 
 /**
  * Assessment Workflow Flow:
  *
- * 1. /assessment → AssessmentRouter يفحص الحالة:
- *    - screening.status !== 'approved' → يعرض رسالة "Complete Screening First"
- *    - لا يوجد assessment → AssessmentGatewayPage
- *    - status = 'draft' → AssessmentGatewayPage (يعرض Continue button)
- *    - status = 'submitted' أو 'rejected' أو 'approved' → AssessmentReviewPage
+ * 1. /assessment → AssessmentRouter checks the state:
+ *    - screening.status !== 'approved' → shows "Complete Screening First"
+ *    - no assessment → AssessmentGatewayPage
+ *    - status = 'draft' → AssessmentGatewayPage (with the Continue button)
+ *    - status = 'submitted', 'rejected' or 'approved' → AssessmentReviewPage
  *
  * 2. /assessment/metadata → AssessmentMetadataPage
  * 3. /assessment/methods → AssessmentMethodsPage
  * 4. /assessment/scoring → AssessmentScoringPage
- * 5. /assessment/review → AssessmentReviewPage (للعرض/الموافقة)
+ * 5. /assessment/review → AssessmentReviewPage (view / approve)
  */
 export default function AssessmentRouter() {
   const { projectId } = useParams()
-  const { screening, isLoading: screeningLoading } = useScreening(projectId)
-  const { assessment, isLoading: assessmentLoading } = useAssessment(projectId)
+  const { workflow } = useProjectContext()
+  const { assessment, isLoading, loadError, refetch } = useAssessment(projectId)
 
-  if (screeningLoading || assessmentLoading) {
+  // A failed read is shown here, before the pages below mount the same query (a new observer of
+  // a failed query refetches it, which would loop between this router and the page)
+  if (loadError) {
     return (
-      <div className="flex w-full items-center justify-center py-20">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading assessment...</p>
-        </div>
-      </div>
+      <ErrorState title="Failed to load the assessment" message={loadError} onRetry={refetch} />
     )
   }
 
-  // التحقق من اكتمال Screening
-  if (screening?.status !== 'approved') {
+  if (isLoading) {
+    return <LoadingState message="Loading assessment..." />
+  }
+
+  // Tool 2 stays locked until the screening is approved (backend workflow)
+  if (isStepLocked(workflow, 'assessment')) {
     return (
       <div className="max-w-4xl mx-auto p-8">
-        <div className="bg-white dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark p-8 text-center">
-          <span className="material-symbols-outlined text-6xl text-gray-400 mb-4">lock</span>
+        <div className="bg-surface dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark p-8 text-center">
+          <span
+            className="material-symbols-outlined text-6xl text-text-disabled mb-4"
+            aria-hidden="true"
+          >
+            lock
+          </span>
           <h2 className="text-2xl font-bold text-text-main dark:text-white mb-2">
             Complete Screening First
           </h2>
@@ -56,7 +64,7 @@ export default function AssessmentRouter() {
     )
   }
 
-  // تحديد الصفحة المناسبة
+  // Which page to show
   if (!assessment || !assessment._id) {
     return <AssessmentGatewayPage />
   }
@@ -69,6 +77,6 @@ export default function AssessmentRouter() {
     return <AssessmentReviewPage />
   }
 
-  // draft - يعرض Gateway للمتابعة
+  // draft: the gateway, to continue
   return <AssessmentGatewayPage />
 }

@@ -1,9 +1,16 @@
 import { useState, useMemo } from 'react'
 import { NavLink, useParams, useNavigate, useLocation } from 'react-router-dom'
 import { cn } from '@/utils'
-import { useTheme, useAuth, ROLE_LABELS, USER_ROLES } from '@/contexts'
-import { PROJECT_WORKFLOW_NAV, PROJECT_SECONDARY_NAV, ROUTES } from '@/routes/routes.config'
+import { isStepDone, isStepLocked as isWorkflowStepLocked } from '@/utils/workflowSteps'
+import { useTheme, useAuth, useConfirmLeave, ROLE_LABELS } from '@/contexts'
+import {
+  PROJECT_WORKFLOW_NAV,
+  PROJECT_SECONDARY_NAV,
+  ROUTES,
+  V3_LOCKED_LOCATIONS,
+} from '@/routes/routes.config'
 import { Avatar, Tooltip } from '@/components/ui'
+import { V3LockedSection } from './V3LockedNav'
 
 /**
  * ProjectSidebar Component
@@ -18,26 +25,30 @@ function ProjectSidebar({ project, className }) {
   const navigate = useNavigate()
   const location = useLocation()
   const { isDark, toggleTheme } = useTheme()
-  const { user, logout } = useAuth()
+  const { user, logout, canAccessSettings } = useAuth()
+  // Signing out of a page with unsaved changes asks Save / Discard / Stay first (D61)
+  const confirmLeave = useConfirmLeave()
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
   // User menu items (filtered by role)
   const userMenuItems = useMemo(() => {
     const items = []
-    
-    // Settings - only for Environmental Specialist
-    if (user?.role === USER_ROLES.ENVIRONMENTAL_SPECIALIST) {
+
+    items.push({ id: 'profile', label: 'Profile', icon: 'person' })
+    items.push({ id: 'help', label: 'Help', icon: 'help' })
+    // Settings: user management (admin) and project deletion (specialist / admin)
+    if (canAccessSettings) {
       items.push({ id: 'settings', label: 'Settings', icon: 'settings' })
-      items.push({ id: 'divider', type: 'divider' })
     }
-    
+    items.push({ id: 'divider', type: 'divider' })
+
     items.push({ id: 'theme', label: 'Theme', icon: 'dark_mode', type: 'theme-toggle' })
     items.push({ id: 'divider2', type: 'divider' })
     items.push({ id: 'logout', label: 'Sign Out', icon: 'logout' })
-    
+
     return items
-  }, [user?.role])
+  }, [canAccessSettings])
 
   // Get project data (use title or name, prefer title)
   const projectTitle = project?.title || project?.name || 'Unknown Project'
@@ -47,9 +58,11 @@ function ProjectSidebar({ project, className }) {
   const userRoleLabel = user?.role ? ROLE_LABELS[user.role] || user.role : ''
 
   const handleLogout = () => {
-    logout()
     setIsUserMenuOpen(false)
-    navigate(ROUTES.LOGIN, { replace: true })
+    confirmLeave(() => {
+      logout()
+      navigate(ROUTES.LOGIN, { replace: true })
+    })
   }
 
   // Check if a nav item is active
@@ -70,44 +83,19 @@ function ProjectSidebar({ project, className }) {
   // Auto-expand items with active children (no manual toggle needed)
   // Expansion happens automatically when a child is active
 
-  const getStepStatus = (stepId) => project?.workflow?.[stepId]?.status
+  // Step state comes from the backend workflow (D30)
+  const isStepCompleted = (stepId) => isStepDone(project?.workflow, stepId)
 
-  const isApproved = (status) => status === 'approved'
-  const isCompleted = (status) => status === 'completed'
-
-  // Check if a step is completed
-  const isStepCompleted = (stepId) => {
-    const status = getStepStatus(stepId)
-    return isApproved(status) || isCompleted(status)
-  }
-
-  // Step Locking Logic (Sequential Tools)
-  // Screening → Assessment → SEMP → Monitoring
+  // Screening → Assessment → SEMP → Monitoring: the backend marks steps not open yet as locked
   const isStepLocked = (stepId) => {
     if (!project) return stepId !== 'overview'
-
-    const screeningApproved = isApproved(getStepStatus('screening'))
-    const assessmentApproved = isApproved(getStepStatus('assessment'))
-    const sempCompleted = isCompleted(getStepStatus('semp'))
-
-    switch (stepId) {
-      case 'screening':
-        return false
-      case 'assessment':
-        return !screeningApproved
-      case 'semp':
-        return !screeningApproved || !assessmentApproved
-      case 'monitoring':
-        return !screeningApproved || !assessmentApproved || !sempCompleted
-      default:
-        return false
-    }
+    return isWorkflowStepLocked(project.workflow, stepId)
   }
 
   // Render expandable nav item
   const renderExpandableItem = (item) => {
-    // Annex & Attachments should never be locked
-    const isLocked = item.id !== 'annex' && isStepLocked(item.id)
+    // Annex is never locked
+    const isLocked = item.id !== 'documents' && isStepLocked(item.id)
     const isCompleted = isStepCompleted(item.id)
     const hasActive = hasActiveChild(item.children)
     const isParentActive = isNavActive(item.path)
@@ -121,11 +109,13 @@ function ProjectSidebar({ project, className }) {
           className={cn(
             'flex items-center gap-3',
             'px-3 py-2 rounded-lg',
-            'text-text-disabled dark:text-gray-600',
+            'text-text-disabled dark:text-gray-500',
             'cursor-not-allowed opacity-75'
           )}
         >
-          <span className="material-symbols-outlined text-[20px]">lock</span>
+          <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+            lock
+          </span>
           <span className="text-sm font-medium">{item.label}</span>
         </div>
       )
@@ -163,6 +153,7 @@ function ProjectSidebar({ project, className }) {
                 'material-symbols-outlined',
                 (isCompleted || isParentActive) && 'text-primary'
               )}
+              aria-hidden="true"
             >
               {item.id === 'screening'
                 ? isCompleted
@@ -263,7 +254,9 @@ function ProjectSidebar({ project, className }) {
               'transition-all'
             )}
           >
-            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+            <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+              arrow_back
+            </span>
           </div>
           <span>Back to Dashboard</span>
         </button>
@@ -282,8 +275,14 @@ function ProjectSidebar({ project, className }) {
 
           <div className="flex flex-col gap-1.5 relative z-10">
             {/* Project Title with Tooltip for long names */}
-            <Tooltip content={projectTitle} position="right" delay={300}>
+            <Tooltip
+              content={projectTitle}
+              position="right"
+              delay={300}
+              triggerClassName="flex w-full min-w-0"
+            >
               <h2
+                dir="auto"
                 className="text-sm font-bold text-text-main dark:text-white leading-tight truncate"
                 title={projectTitle}
               >
@@ -291,8 +290,10 @@ function ProjectSidebar({ project, className }) {
               </h2>
             </Tooltip>
             <div className="flex items-center gap-1.5 text-xs text-text-secondary dark:text-gray-400">
-              <span className="material-symbols-outlined text-[14px]">location_on</span>
-              <span className="truncate" title={projectLocation}>
+              <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
+                location_on
+              </span>
+              <span dir="auto" className="truncate" title={projectLocation}>
                 {projectLocation}
               </span>
             </div>
@@ -317,7 +318,11 @@ function ProjectSidebar({ project, className }) {
             )
           }
         >
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
+          <span
+            className="material-symbols-outlined"
+            style={{ fontVariationSettings: "'FILL' 1" }}
+            aria-hidden="true"
+          >
             dashboard
           </span>
           <span>Project Overview</span>
@@ -349,11 +354,13 @@ function ProjectSidebar({ project, className }) {
                 className={cn(
                   'flex items-center gap-3',
                   'px-3 py-2 rounded-lg',
-                  'text-text-disabled dark:text-gray-600',
+                  'text-text-disabled dark:text-gray-500',
                   'cursor-not-allowed opacity-75'
                 )}
               >
-                <span className="material-symbols-outlined text-[20px]">lock</span>
+                <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                  lock
+                </span>
                 <span className="text-sm font-medium">{item.label}</span>
               </div>
             )
@@ -390,6 +397,7 @@ function ProjectSidebar({ project, className }) {
                   isCompleted && 'text-primary',
                   isActive && 'text-primary'
                 )}
+                aria-hidden="true"
               >
                 {getIcon()}
               </span>
@@ -403,7 +411,7 @@ function ProjectSidebar({ project, className }) {
 
         {/* Secondary Navigation */}
         {PROJECT_SECONDARY_NAV.map((item) => {
-          // Render expandable items (only Annex & Attachments)
+          // Render expandable items
           if (item.children) {
             return renderExpandableItem(item)
           }
@@ -425,13 +433,19 @@ function ProjectSidebar({ project, className }) {
                 )
               }
             >
-              <span className="material-symbols-outlined text-[20px] text-text-secondary group-hover:text-text-main dark:group-hover:text-gray-300">
+              <span
+                className="material-symbols-outlined text-[20px] text-text-secondary group-hover:text-text-main dark:group-hover:text-gray-300"
+                aria-hidden="true"
+              >
                 {item.icon}
               </span>
               <span>{item.label}</span>
             </NavLink>
           )
         })}
+
+        {/* v3 modules, locked (D48, D70) */}
+        <V3LockedSection location={V3_LOCKED_LOCATIONS.PROJECT_SUPPORT} className="mt-5" />
       </div>
 
       {/* Footer - User Info */}
@@ -446,11 +460,7 @@ function ProjectSidebar({ project, className }) {
               'transition-colors'
             )}
           >
-            <Avatar
-              alt={userName}
-              size="sm"
-              
-            />
+            <Avatar alt={userName} size="sm" />
             <div className="flex flex-col min-w-0 flex-1 text-left">
               <span className="text-sm font-bold text-text-main dark:text-white truncate">
                 {userName}
@@ -464,6 +474,7 @@ function ProjectSidebar({ project, className }) {
                 'material-symbols-outlined text-text-secondary text-lg transition-transform',
                 isUserMenuOpen && 'rotate-180'
               )}
+              aria-hidden="true"
             >
               expand_more
             </span>
@@ -515,7 +526,10 @@ function ProjectSidebar({ project, className }) {
                         )}
                       >
                         <div className="flex items-center gap-3">
-                          <span className="material-symbols-outlined text-[20px]">
+                          <span
+                            className="material-symbols-outlined text-[20px]"
+                            aria-hidden="true"
+                          >
                             {isDark ? 'light_mode' : 'dark_mode'}
                           </span>
                           <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
@@ -533,6 +547,8 @@ function ProjectSidebar({ project, className }) {
                       onClick={() => {
                         setIsUserMenuOpen(false)
                         // Handle action
+                        if (item.id === 'profile') navigate(ROUTES.PROFILE)
+                        if (item.id === 'help') navigate(ROUTES.HELP)
                         if (item.id === 'settings') {
                           navigate(ROUTES.SETTINGS)
                         }
@@ -550,7 +566,9 @@ function ProjectSidebar({ project, className }) {
                         item.id === 'logout' && 'text-error hover:text-error'
                       )}
                     >
-                      <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+                      <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                        {item.icon}
+                      </span>
                       {item.label}
                     </button>
                   )

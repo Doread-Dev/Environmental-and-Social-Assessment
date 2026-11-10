@@ -1,9 +1,11 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/utils'
-import { useTheme, useAuth, ROLE_LABELS, USER_ROLES } from '@/contexts'
+import { useTheme, useAuth, useConfirmLeave, ROLE_LABELS } from '@/contexts'
 import { Avatar } from '@/components/ui'
 import { ROUTES } from '@/routes/routes.config'
+import BrandLogo from './BrandLogo'
+import { APP_VERSION } from '@/utils/appVersion'
 
 /**
  * Header Component
@@ -16,7 +18,9 @@ import { ROUTES } from '@/routes/routes.config'
  */
 function Header({ onMenuClick, showMobileMenu = true, className }) {
   const { isDark, toggleTheme } = useTheme()
-  const { user, logout } = useAuth()
+  const { user, logout, canAccessSettings } = useAuth()
+  // Signing out of a page with unsaved changes asks Save / Discard / Stay first (D61)
+  const confirmLeave = useConfirmLeave()
   const navigate = useNavigate()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
@@ -26,26 +30,30 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
   // User menu items (filtered by role)
   const userMenuItems = useMemo(() => {
     const items = []
-    
-    // Settings - only for Environmental Specialist
-    if (user?.role === USER_ROLES.ENVIRONMENTAL_SPECIALIST) {
+
+    items.push({ id: 'profile', label: 'Profile', icon: 'person' })
+    // Settings: user management (admin) and project deletion (specialist / admin)
+    if (canAccessSettings) {
       items.push({ id: 'settings', label: 'Settings', icon: 'settings' })
-      items.push({ id: 'divider', type: 'divider' })
     }
-    
+    items.push({ id: 'divider', type: 'divider' })
+
     items.push({ id: 'logout', label: 'Sign Out', icon: 'logout' })
-    
+
     return items
-  }, [user?.role])
+  }, [canAccessSettings])
 
   const handleLogout = () => {
-    logout()
     setIsUserMenuOpen(false)
-    navigate(ROUTES.LOGIN, { replace: true })
+    confirmLeave(() => {
+      logout()
+      navigate(ROUTES.LOGIN, { replace: true })
+    })
   }
 
   return (
     <header
+      data-print="hide"
       className={cn(
         'h-16 shrink-0',
         'bg-surface dark:bg-surface-dark',
@@ -71,17 +79,14 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
             )}
             aria-label="Toggle menu"
           >
-            <span className="material-symbols-outlined">menu</span>
+            <span className="material-symbols-outlined" aria-hidden="true">
+              menu
+            </span>
           </button>
         )}
 
         {/* Mobile Logo */}
-        <div className="flex items-center gap-3 lg:hidden">
-          <div className="flex items-center justify-center size-8 rounded-xl bg-primary text-white">
-            <span className="material-symbols-outlined text-xl">eco</span>
-          </div>
-          <h2 className="text-lg font-bold text-text-main dark:text-white tracking-tight">ESMS</h2>
-        </div>
+        <BrandLogo size="sm" showSubtitle={false} className="lg:hidden" />
       </div>
 
       {/* Right Section - Actions & User */}
@@ -98,7 +103,9 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
           )}
           aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
         >
-          <span className="material-symbols-outlined">{isDark ? 'light_mode' : 'dark_mode'}</span>
+          <span className="material-symbols-outlined" aria-hidden="true">
+            {isDark ? 'light_mode' : 'dark_mode'}
+          </span>
         </button>
 
         {/* Divider */}
@@ -125,11 +132,7 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
             </div>
 
             {/* Avatar */}
-            <Avatar
-              alt={userName}
-              size="md"
-              className="ring-2 ring-white dark:ring-surface-dark"
-            />
+            <Avatar alt={userName} size="md" className="ring-2 ring-white dark:ring-surface-dark" />
           </button>
 
           {/* User Dropdown Menu */}
@@ -151,9 +154,7 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
               >
                 {/* User Info in Menu */}
                 <div className="px-4 py-3 border-b border-border-default dark:border-border-dark sm:hidden">
-                  <p className="text-sm font-semibold text-text-main dark:text-white">
-                    {userName}
-                  </p>
+                  <p className="text-sm font-semibold text-text-main dark:text-white">{userName}</p>
                   <p className="text-xs text-text-secondary dark:text-gray-400 mt-0.5">
                     {userRoleLabel}
                   </p>
@@ -174,6 +175,7 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
                       key={item.id}
                       onClick={() => {
                         setIsUserMenuOpen(false)
+                        if (item.id === 'profile') navigate(ROUTES.PROFILE)
                         if (item.id === 'settings') {
                           navigate(ROUTES.SETTINGS)
                         }
@@ -191,11 +193,17 @@ function Header({ onMenuClick, showMobileMenu = true, className }) {
                         item.id === 'logout' && 'text-error hover:text-error'
                       )}
                     >
-                      <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+                      <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                        {item.icon}
+                      </span>
                       {item.label}
                     </button>
                   )
                 })}
+                {/* Which build runs (D77), for IT */}
+                <p className="px-4 pt-2 pb-1 text-xs text-text-secondary dark:text-gray-400">
+                  ESMS v{APP_VERSION}
+                </p>
               </div>
             </>
           )}

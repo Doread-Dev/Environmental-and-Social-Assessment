@@ -1,6 +1,8 @@
 /**
  * MetadataInfoSection Component
- * قسم معلومات المشروع والمسؤول (read-only)
+ * Project and officer details (read-only). When someone other than the recorded officer opens the
+ * assessment, the officer is shown struck through with the current user next to it: submitting
+ * makes the submitter the officer (backend utils/statusTransition.js).
  */
 
 import { cn } from '@/utils/cn'
@@ -10,9 +12,10 @@ import { Badge } from '@/components/ui'
 
 /**
  * @param {Object} props
- * @param {Object} props.officer - بيانات المسؤول
- * @param {Object} props.project - بيانات المشروع
- * @param {string} props.screeningCategory - فئة الفرز
+ * @param {Object} props.officer - the recorded officer
+ * @param {Object} props.currentUser - the signed-in user
+ * @param {Object} props.project - the project
+ * @param {string} props.screeningCategory - the screening category (A–F)
  */
 export default function MetadataInfoSection({
   officer,
@@ -24,19 +27,19 @@ export default function MetadataInfoSection({
 }) {
   const officerName = officer?.name || 'N/A'
   const officerRoleLabel = officer?.role ? ROLE_LABELS[officer.role] : null
-  const officerPosition = officer?.job_title?.title_name || officer?.position || officerRoleLabel || 'N/A'
+  const officerPosition =
+    officer?.job_title?.title_name || officer?.position || officerRoleLabel || 'N/A'
 
   const currentName = currentUser?.name || 'N/A'
   const currentRoleLabel = currentUser?.role ? ROLE_LABELS[currentUser.role] : null
   const currentPosition =
     currentUser?.job_title?.title_name || currentUser?.position || currentRoleLabel || 'N/A'
 
-  const showReassignHint =
-    officer?._id && currentUser?._id && officer._id !== currentUser._id
+  const showReassignHint = officer?._id && currentUser?._id && officer._id !== currentUser._id
   return (
     <div
       className={cn(
-        'bg-gray-50 dark:bg-white/5 border-b border-border-color dark:border-white/10 p-6 md:p-8',
+        'bg-background dark:bg-white/5 border-b border-border-color dark:border-white/10 p-6 md:p-8',
         className
       )}
       {...props}
@@ -51,8 +54,7 @@ export default function MetadataInfoSection({
             <div className="flex flex-col">
               <span className="text-text-secondary line-through">{officerName}</span>
               <span className="text-text-main dark:text-white font-medium">
-                {currentName}{' '}
-                <span className="text-text-secondary text-xs">(في حال الحفظ)</span>
+                {currentName} <span className="text-text-secondary text-xs">(on submit)</span>
               </span>
             </div>
           ) : (
@@ -67,8 +69,7 @@ export default function MetadataInfoSection({
             <div className="flex flex-col">
               <span className="text-text-secondary line-through">{officerPosition}</span>
               <span className="text-text-main dark:text-white font-medium">
-                {currentPosition}{' '}
-                <span className="text-text-secondary text-xs">(في حال الحفظ)</span>
+                {currentPosition} <span className="text-text-secondary text-xs">(on submit)</span>
               </span>
             </div>
           ) : (

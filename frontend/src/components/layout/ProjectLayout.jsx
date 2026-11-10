@@ -1,12 +1,17 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { Outlet, useParams, useLocation, useNavigate } from 'react-router-dom'
 import { cn } from '@/utils'
-import { projectService } from '@/services/projectService'
-import { extractErrorMessage } from '@/services/api'
 import { ROUTES } from '@/routes/routes.config'
-import { useWorkflow } from '@/hooks'
+import { useWorkspace } from '@/hooks'
+import { useSaveConflict } from '@/contexts'
+import { GuidanceButton, useCurrentPlace } from '@/components/library'
+import { requestExport, useExportReady } from '@/components/export'
 import ProjectSidebar from './ProjectSidebar'
 import MobileMenu from './MobileMenu'
+import { FloatingHelpButton } from '@/components/help'
+import BrandLogo from './BrandLogo'
+import { ArchivedNotice } from '@/components/project'
+import { Button, ErrorState, LoadingState } from '@/components/ui'
 
 /**
  * ProjectLayout Component
@@ -19,17 +24,25 @@ function ProjectLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [project, setProject] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
 
-  // Get workflow data from hook (derives from actual entities)
+  // Project, workflow state and allowed actions: one shared query (D31, D33). A refetch after a
+  // save keeps the old data on screen, so the page is never replaced by the spinner below.
   const {
+    project,
     workflow,
     screening,
     assessment,
-    isLoading: workflowLoading,
-  } = useWorkflow(projectId)
+    counts,
+    allowedActions,
+    can,
+    isLoading,
+    error,
+    refetch,
+  } = useWorkspace(projectId)
+  const { reloadKey } = useSaveConflict()
+  const canExport = can('export')
+  // The place of the current page (route handle), for its Guidance button (D64 c)
+  const place = useCurrentPlace()
 
   // Check if we're on screening page and get screening status for Export button
   const isScreeningPage = location.pathname.includes('/screening')
@@ -46,41 +59,23 @@ function ProjectLayout() {
     (assessment.status === 'submitted' || assessment.status === 'approved')
 
   const isMonitoringDataEntryPage = location.pathname.includes('/monitoring/data-entry')
-  const showExportButton = showScreeningExport || showAssessmentExport || isMonitoringDataEntryPage
+  // Viewers never export (D28a)
+  const showExportButton =
+    canExport && (showScreeningExport || showAssessmentExport || isMonitoringDataEntryPage)
 
-  const handleExportClick = () => {
-    if (isScreeningPage) {
-      // Trigger export event that ScreeningSummaryPage listens to
-      window.dispatchEvent(new CustomEvent('screening-export'))
-    } else if (isAssessmentPage) {
-      // Trigger export event that AssessmentReviewPage listens to
-      window.dispatchEvent(new CustomEvent('assessment-export'))
-    } else if (isMonitoringDataEntryPage) {
-      window.dispatchEvent(new CustomEvent('monitoring-export'))
-    }
-  }
+  // The page that answers the export (ScreeningSummaryPage, AssessmentReviewPage,
+  // MonitoringDataEntryPage); the button is disabled until it is ready (phase 12a)
+  const exportEvent = isScreeningPage
+    ? 'screening-export'
+    : isAssessmentPage
+      ? 'assessment-export'
+      : isMonitoringDataEntryPage
+        ? 'monitoring-export'
+        : null
+  const exportReady = useExportReady(exportEvent)
+  const handleExportClick = () => requestExport(exportEvent)
 
-  const fetchProject = useCallback(async () => {
-    if (!projectId) return
-    setIsLoading(true)
-    setError(null)
-    try {
-      const projectData = await projectService.getById(projectId)
-      setProject(projectData)
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      console.error('Failed to load project:', errorMessage)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [projectId])
-
-  useEffect(() => {
-    fetchProject()
-  }, [fetchProject])
-
-  // Enhanced project with workflow (memoized)
+  // Project with its workflow state, summaries and allowed actions (sidebar, mobile menu, pages)
   const enhancedProject = useMemo(() => {
     if (!project) return null
     return {
@@ -88,8 +83,9 @@ function ProjectLayout() {
       workflow,
       screening,
       assessment,
+      allowed_actions: allowedActions,
     }
-  }, [project, workflow, screening, assessment])
+  }, [project, workflow, screening, assessment, allowedActions])
 
   const handleMenuToggle = useCallback(() => {
     setIsMobileMenuOpen((prev) => !prev)
@@ -99,49 +95,26 @@ function ProjectLayout() {
     setIsMobileMenuOpen(false)
   }, [])
 
-  // Error state
-  if (error) {
+  // Error state (a failed background refetch keeps the loaded project on screen)
+  if (error && !project) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background dark:bg-background-dark">
-        <div className="flex flex-col items-center gap-4 max-w-md text-center p-8">
-          <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-            <span className="material-symbols-outlined text-3xl text-red-600 dark:text-red-400">
-              error
-            </span>
-          </div>
-          <h2 className="text-xl font-bold text-text-main dark:text-white">
-            Failed to Load Project
-          </h2>
-          <p className="text-text-secondary dark:text-gray-400">{error}</p>
-          <div className="flex gap-3 mt-2">
-            <button
-              onClick={() => navigate(ROUTES.PROJECTS)}
-              className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-main dark:hover:text-white transition-colors"
-            >
-              Back to Projects
-            </button>
-            <button
-              onClick={() => fetchProject()}
-              className="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary-hover text-white rounded-lg transition-colors"
-            >
-              Try Again
-            </button>
-          </div>
-        </div>
-      </div>
+      <ErrorState
+        variant="screen"
+        title="Failed to Load Project"
+        message={error}
+        onRetry={refetch}
+        actions={
+          <Button variant="secondary" size="sm" onClick={() => navigate(ROUTES.PROJECTS)}>
+            Back to Projects
+          </Button>
+        }
+      />
     )
   }
 
-  // Loading state (project loading or workflow loading)
-  if (isLoading || (project && workflowLoading)) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-background dark:bg-background-dark">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading project...</p>
-        </div>
-      </div>
-    )
+  // Loading state (first load only)
+  if (isLoading || !enhancedProject) {
+    return <LoadingState message="Loading project..." variant="screen" />
   }
 
   return (
@@ -166,7 +139,7 @@ function ProjectLayout() {
             'bg-surface dark:bg-surface-dark',
             'border-b border-border-default dark:border-border-dark',
             'flex items-center justify-between',
-            'px-6 lg:px-10'
+            'px-4 sm:px-6 lg:px-10'
           )}
         >
           {/* Left Section - Mobile Menu Button & Logo */}
@@ -174,45 +147,40 @@ function ProjectLayout() {
             {/* Mobile Menu Button */}
             <div className="lg:hidden">
               <button
+                type="button"
                 onClick={handleMenuToggle}
-                className="text-text-main dark:text-white"
+                className="flex p-1 rounded-lg text-text-main dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                 aria-label="Toggle menu"
               >
-                <span className="material-symbols-outlined">menu</span>
+                <span className="material-symbols-outlined" aria-hidden="true">
+                  menu
+                </span>
               </button>
             </div>
 
             {/* Logo & Title */}
-            <div className="flex items-center gap-3 px-2">
-              <div className="flex items-center justify-center size-10 rounded-xl bg-primary text-white">
-                <span className="material-symbols-outlined text-2xl">eco</span>
-              </div>
-              <div className="flex flex-col">
-                <h1 className="text-lg font-bold leading-tight text-text-main dark:text-white">
-                  ESMS System
-                </h1>
-              </div>
-            </div>
+            <BrandLogo size="md" className="sm:px-2" textClassName="hidden sm:flex" />
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-6">
-            {/* Export Excel Button - Only show on Screening Summary page when status is submitted */}
+          <div className="flex items-center gap-3 sm:gap-6">
+            <GuidanceButton place={place} />
+            {/* Export Excel: screening / assessment once submitted, monitoring data entry */}
             {showExportButton && (
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={handleExportClick}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors shadow-sm"
+                disabled={!exportReady}
+                leftIcon={
+                  <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                    download
+                  </span>
+                }
               >
-                <span className="material-symbols-outlined text-[18px]">download</span>
                 Export Excel
-              </button>
+              </Button>
             )}
-            <button
-              className="text-text-secondary hover:text-text-main dark:hover:text-white transition-colors"
-              aria-label="Help"
-            >
-              <span className="material-symbols-outlined">help</span>
-            </button>
           </div>
         </header>
 
@@ -221,15 +189,20 @@ function ProjectLayout() {
           className={cn(
             'flex-1 overflow-y-auto',
             'p-4 sm:p-6 lg:p-8',
+            // Room under the content for the floating Help button
+            'pb-24 sm:pb-24 lg:pb-24',
             'bg-background dark:bg-background-dark',
             'scroll-smooth'
           )}
         >
           <div className="max-w-7xl mx-auto">
-            <Outlet context={{ project: enhancedProject, setProject, workflow }} />
+            <ArchivedNotice project={enhancedProject} className="mb-6" />
+            {/* After a stale-save Reload (D62) the page mounts again from the fresh data */}
+            <Outlet key={reloadKey} context={{ project: enhancedProject, workflow, counts, can }} />
           </div>
         </main>
       </div>
+      <FloatingHelpButton />
     </div>
   )
 }

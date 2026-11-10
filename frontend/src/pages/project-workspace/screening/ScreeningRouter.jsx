@@ -1,37 +1,37 @@
 /**
  * ScreeningRouter Component
- * يوجه المستخدم للصفحة المناسبة حسب حالة Screening
+ * Picks the screening page for the screening's state
  *
- * المنطق:
- * - لا يوجد screening أو draft → ScreeningFormPage
- * - submitted → ScreeningSummaryPage (مع Approve/Reject)
- * - rejected → ScreeningSummaryPage (مع Edit button)
- * - approved → ScreeningSummaryPage (مع Print button)
+ * Rules:
+ * - no screening, or draft → ScreeningFormPage
+ * - submitted → ScreeningSummaryPage (with Approve / Reject)
+ * - rejected → ScreeningSummaryPage (with Edit Screening)
+ * - approved → ScreeningSummaryPage (with Print)
  */
 
 import { useParams, useSearchParams } from 'react-router-dom'
 import { useScreening } from '@/hooks'
 import ScreeningFormPage from './ScreeningFormPage'
 import ScreeningSummaryPage from './ScreeningSummaryPage'
+import { ErrorState, LoadingState } from '@/components/ui'
 
 function ScreeningRouter() {
   const { projectId } = useParams()
   const [searchParams] = useSearchParams()
-  const { screening, isLoading } = useScreening(projectId)
+  const { screening, isLoading, loadError, refetch } = useScreening(projectId)
 
   // Check if we're in edit mode (from rejected status)
   const isEditMode = searchParams.get('edit') === 'true'
 
+  // A failed read is shown here, before the pages below mount the same query (a new observer of
+  // a failed query refetches it, which would loop between this router and the page)
+  if (loadError) {
+    return <ErrorState title="Failed to load the screening" message={loadError} onRetry={refetch} />
+  }
+
   // Show loading state
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState message="Loading..." />
   }
 
   // Determine which page to show based on status

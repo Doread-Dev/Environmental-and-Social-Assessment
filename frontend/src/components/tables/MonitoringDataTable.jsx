@@ -1,19 +1,19 @@
 /**
  * MonitoringDataTable Component
- * جدول بيانات المراقبة (مطابق لـ MASTER_PLAN)
+ * Monitoring data table (indicators of one category)
  */
 
 import IndicatorDataRow from '@/components/monitoring/IndicatorDataRow'
 
 /**
  * @param {Object} props
- * @param {Array} props.data - بيانات المؤشرات مع السجلات [{indicator, record}]
- * @param {Function} props.onUpdateScore - تحديث قيمة ربع سنوية (recordId, quarter, value) => void
- * @param {Function} props.onUpdateField - تحديث حقل (recordId, field, value) => void
- * @param {boolean} [props.isEditable] - قابل للتعديل
- * @param {string} [props.categoryCode] - كود الفئة
- * @param {string} [props.categoryName] - اسم الفئة
- * @param {Array} [props.users] - قائمة المستخدمين للعمود Responsibility
+ * @param {Array} props.data - Indicators with their records [{indicator, record}]
+ * @param {Function} props.onUpdateScore - Sets a quarter's value (recordId, quarter, value) => void
+ * @param {Function} props.onUpdateField - Sets a field (recordId, field, value) => void
+ * @param {boolean} [props.isEditable] - Editable
+ * @param {string} [props.categoryCode] - Category code
+ * @param {string} [props.categoryName] - Category name
+ * @param {Array} [props.users] - Users for the Responsibility column
  */
 function MonitoringDataTable({
   data = [],
@@ -26,9 +26,12 @@ function MonitoringDataTable({
 }) {
   if (data.length === 0) {
     return (
-      <div className="bg-white dark:bg-[#152a1d] rounded-xl shadow-sm border border-border-default dark:border-border-dark p-8">
+      <div className="bg-surface dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark p-8">
         <div className="text-center">
-          <span className="material-symbols-outlined text-5xl text-text-secondary dark:text-gray-500 mb-3 block">
+          <span
+            className="material-symbols-outlined text-5xl text-text-secondary dark:text-gray-500 mb-3 block"
+            aria-hidden="true"
+          >
             inventory_2
           </span>
           <p className="text-text-secondary dark:text-gray-400">
@@ -40,10 +43,10 @@ function MonitoringDataTable({
   }
 
   return (
-    <div className="bg-white dark:bg-[#152a1d] rounded-b-xl rounded-t-none shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
+    <div className="bg-surface dark:bg-card-dark rounded-b-xl rounded-t-none shadow-sm border border-border-default dark:border-border-dark overflow-hidden">
       {/* Header */}
       {(categoryCode || categoryName) && (
-        <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-gray-50/50 dark:bg-white/5">
+        <div className="px-6 py-4 border-b border-border-default dark:border-border-dark bg-background dark:bg-white/5">
           <div className="flex items-center gap-3">
             {categoryCode && (
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary font-bold text-sm">
@@ -59,8 +62,8 @@ function MonitoringDataTable({
       <div className="monitoring-table-container w-full">
         <table className="w-full monitoring-table">
           <thead>
-            <tr className="bg-gray-50/50 dark:bg-white/5 border-b border-border-default dark:border-border-dark">
-              <th className="sticky left-0 z-30 px-4 py-3 text-left text-xs font-bold text-text-main dark:text-white uppercase tracking-wider bg-gray-50/50 dark:bg-white/5 min-w-[280px]">
+            <tr className="bg-background dark:bg-white/5 border-b border-border-default dark:border-border-dark">
+              <th className="sticky left-0 z-30 px-4 py-3 text-left text-xs font-bold text-text-main dark:text-white uppercase tracking-wider bg-background dark:bg-white/5 min-w-[280px]">
                 Indicator Definition
               </th>
               <th className="px-4 py-3 text-left text-xs font-bold text-text-main dark:text-white uppercase tracking-wider min-w-[160px]">
@@ -104,25 +107,25 @@ function MonitoringDataTable({
               const indicatorId = item.indicator._id || item.indicator.id
 
               return (
-              <IndicatorDataRow
+                <IndicatorDataRow
                   key={indicatorId}
-                indicator={item.indicator}
-                record={item.record}
-                categoryCode={item.indicator.categoryCode || item.indicator.code}
-                questionNumber={index + 1}
-                onUpdateScore={(quarter, value) => {
-                  if (onUpdateScore) {
-                    onUpdateScore(item.record._id, quarter, value, indicatorId)
-                  }
-                }}
-                onUpdateField={(field, value) => {
-                  if (onUpdateField) {
-                    onUpdateField(item.record._id, field, value, indicatorId)
-                  }
-                }}
-                isEditable={isEditable}
-                users={users}
-              />
+                  indicator={item.indicator}
+                  record={item.record}
+                  categoryCode={item.indicator.categoryCode || item.indicator.code}
+                  questionNumber={index + 1}
+                  onUpdateScore={(quarter, value) => {
+                    if (onUpdateScore) {
+                      onUpdateScore(item.record._id, quarter, value, indicatorId)
+                    }
+                  }}
+                  onUpdateField={(field, value) => {
+                    if (onUpdateField) {
+                      onUpdateField(item.record._id, field, value, indicatorId)
+                    }
+                  }}
+                  isEditable={isEditable}
+                  users={users}
+                />
               )
             })}
           </tbody>

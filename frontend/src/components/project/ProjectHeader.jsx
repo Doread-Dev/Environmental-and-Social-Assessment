@@ -1,18 +1,26 @@
 /**
  * ProjectHeader Component
- * رأس المشروع مع معلومات أساسية
- * مطابق للتصميم الأصلي حرفياً
+ * Project header with the main details
  *
  * Features:
- * - عنوان المشروع مع badge الحالة في نفس السطر
- * - الموقع والتاريخ مع bullet separator
- * - أعضاء الفريق (Avatars) مع ring-2
- * - زر Edit Project
+ * - project title with the status badge on the same line
+ * - location and dates with a bullet separator
+ * - Edit Project button
  */
 
-import { useEffect, useState } from 'react'
-import { Alert, Badge, Button, Icon, Input, Modal, Textarea } from '@/components/ui'
-import { formatDateFull } from '@/utils/formatters'
+import { useState } from 'react'
+import { useUnsavedChanges } from '@/contexts'
+import {
+  Alert,
+  Button,
+  Icon,
+  Input,
+  Modal,
+  PAGE_TITLE,
+  StatusBadge,
+  Textarea,
+} from '@/components/ui'
+import { formatDate } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
 import { validateProjectForm } from '@/utils/validators'
 
@@ -28,19 +36,30 @@ const normalizeDateInput = (value) => {
 
 /**
  * @param {Object} props
- * @param {Object} props.project - بيانات المشروع
- * @param {boolean} props.showEditButton - عرض زر التعديل (default: true)
- * @param {Function} props.onEdit - callback عند النقر على التعديل
+ * @param {Object} props.project - The project
+ * @param {string} [props.status] - Overall workflow status (workflow.status) shown as a badge
+ * @param {boolean} props.showEditButton - Show the edit button (default: true)
+ * @param {Function} props.onEdit - Called with the changes on save
  */
-function ProjectHeader({ project, showEditButton = true, onEdit, className, ...props }) {
+const FORM_FIELDS = ['title', 'location', 'startDate', 'endDate', 'description']
+const EMPTY_FORM = { title: '', location: '', startDate: '', endDate: '', description: '' }
+
+// The edit form as the project is now
+const formFromProject = (project) => ({
+  title: project.title || project.name || '',
+  location: project.location || '',
+  startDate: normalizeDateInput(project.start_date || project.startDate || ''),
+  endDate: normalizeDateInput(project.end_date || project.endDate || ''),
+  description: project.project_component || project.description || '',
+})
+
+function ProjectHeader({ project, status, showEditButton = true, onEdit, className, ...props }) {
   const [isEditOpen, setIsEditOpen] = useState(false)
-  const [formData, setFormData] = useState({
-    title: '',
-    location: '',
-    startDate: '',
-    endDate: '',
-    description: '',
-  })
+  const [formData, setFormData] = useState(EMPTY_FORM)
+  // The form and the project version when the dialog opened (D62): a refresh of the project in
+  // the background never replaces what is being typed, and a change by someone else meanwhile
+  // is caught at save (409)
+  const [opened, setOpened] = useState({ form: EMPTY_FORM, version: null })
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [generalError, setGeneralError] = useState('')
@@ -48,24 +67,70 @@ function ProjectHeader({ project, showEditButton = true, onEdit, className, ...p
   const location = project?.location || ''
   const startDate = project?.start_date || project?.startDate || ''
   const endDate = project?.end_date || project?.endDate || ''
-  const description = project?.project_component || project?.description || ''
 
   // Format dates
-  const dateRange =
-    startDate && endDate ? `${formatDateFull(startDate)} – ${formatDateFull(endDate)}` : ''
+  const dateRange = startDate && endDate ? `${formatDate(startDate)} – ${formatDate(endDate)}` : ''
 
-  useEffect(() => {
-    if (!isEditOpen || !project) return
-    setFormData({
-      title: project.title || project.name || '',
-      location: project.location || '',
-      startDate: normalizeDateInput(startDate),
-      endDate: normalizeDateInput(endDate),
-      description,
-    })
+  const isDirty = isEditOpen && FORM_FIELDS.some((field) => formData[field] !== opened.form[field])
+
+  const openEdit = () => {
+    const form = formFromProject(project)
+    setFormData(form)
+    setOpened({ form, version: project.updatedAt })
     setErrors({})
     setGeneralError('')
-  }, [description, isEditOpen, project, startDate, endDate])
+    setIsEditOpen(true)
+  }
+
+  // Validate and save; also the shared guard's "Save" when leaving with the dialog open (D61)
+  const saveEdit = async () => {
+    setGeneralError('')
+
+    const validation = validateProjectForm({
+      title: formData.title,
+      location: formData.location,
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      description: formData.description,
+    })
+
+    if (!validation.valid) {
+      setErrors(validation.errors)
+      return { success: false }
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const payload = {
+        title: formData.title.trim(),
+        location: formData.location.trim(),
+        start_date: formData.startDate,
+        end_date: formData.endDate,
+        project_component: formData.description.trim(),
+        version: opened.version,
+      }
+
+      if (onEdit) {
+        const result = await onEdit(payload)
+        if (result && result.success === false) {
+          // A stale save or an expired session is shown by its own dialog (D73)
+          if (!result.handled) setGeneralError(result.error || 'Failed to update project.')
+          return result
+        }
+      }
+
+      setIsEditOpen(false)
+      return { success: true }
+    } catch {
+      setGeneralError('An error occurred while updating the project. Please try again.')
+      return { success: false }
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  useUnsavedChanges(isDirty, saveEdit)
 
   // Early return after hooks
   if (!project) return null
@@ -84,65 +149,10 @@ function ProjectHeader({ project, showEditButton = true, onEdit, className, ...p
     setIsEditOpen(false)
   }
 
-  const handleSave = async (e) => {
+  const handleSave = (e) => {
     e.preventDefault()
-    setGeneralError('')
-
-    const validation = validateProjectForm({
-      title: formData.title,
-      location: formData.location,
-      startDate: formData.startDate,
-      endDate: formData.endDate,
-      description: formData.description,
-    })
-
-    if (!validation.valid) {
-      setErrors(validation.errors)
-      return
-    }
-
-    setIsSubmitting(true)
-
-    try {
-      const payload = {
-        title: formData.title.trim(),
-        location: formData.location.trim(),
-        start_date: formData.startDate,
-        end_date: formData.endDate,
-        project_component: formData.description.trim(),
-      }
-
-      if (onEdit) {
-        const result = await onEdit(payload)
-        if (result && result.success === false) {
-          setGeneralError(result.error || 'Failed to update project.')
-          return
-        }
-      }
-
-      setIsEditOpen(false)
-    } catch {
-      setGeneralError('An error occurred while updating the project. Please try again.')
-    } finally {
-      setIsSubmitting(false)
-    }
+    saveEdit()
   }
-
-  // Mock team members (في الإنتاج سيأتي من API)
-  const _teamMembers = [
-    {
-      name: 'Sarah Jenkins',
-      avatar: null,
-    },
-    {
-      name: 'Ahmed Hassan',
-      avatar: null,
-    },
-    {
-      name: 'Maria Santos',
-      avatar: null,
-    },
-  ]
 
   return (
     <div
@@ -156,36 +166,35 @@ function ProjectHeader({ project, showEditButton = true, onEdit, className, ...p
       <div className="flex flex-col gap-2">
         {/* Title with Badge */}
         <div className="flex items-center gap-3 flex-wrap">
-          <h1 className="text-3xl font-bold text-text-main dark:text-white">
+          <h1 dir="auto" className={PAGE_TITLE}>
             {project.title || project.name}
           </h1>
           {project._id && (
-            <span className="text-xs text-text-secondary dark:text-gray-400 font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+            <span className="text-xs text-text-secondary dark:text-gray-400 font-mono bg-background dark:bg-white/10 px-2 py-1 rounded">
               ID: {project._id}
             </span>
           )}
-          <Badge
-            variant="success"
-            size="sm"
-            className="bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800"
-          >
-            Active
-          </Badge>
+          {/* Archived projects say so; otherwise the overall workflow status (D30) */}
+          <StatusBadge size="sm" status={project.archived ? 'archived' : status || 'draft'} />
         </div>
 
         {/* Location and Date */}
         <div className="flex items-center gap-4 text-text-secondary dark:text-gray-400 text-sm">
           {location && (
             <span className="flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[18px]">location_on</span>
-              {location}
+              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                location_on
+              </span>
+              <span dir="auto">{location}</span>
             </span>
           )}
           {dateRange && (
             <>
               <span className="w-1 h-1 bg-border-default dark:bg-border-dark rounded-full"></span>
               <span className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[18px]">calendar_month</span>
+                <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                  calendar_month
+                </span>
                 {dateRange}
               </span>
             </>
@@ -197,12 +206,9 @@ function ProjectHeader({ project, showEditButton = true, onEdit, className, ...p
       <div className="flex items-center gap-4">
         {/* Edit Button */}
         {showEditButton && (
-          <button
-            onClick={() => setIsEditOpen(true)}
-            className="bg-white dark:bg-surface-dark border border-border-default dark:border-border-dark hover:bg-gray-50/50 dark:hover:bg-white/5 text-text-main dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-          >
+          <Button variant="secondary" onClick={openEdit}>
             Edit Project
-          </button>
+          </Button>
         )}
       </div>
 

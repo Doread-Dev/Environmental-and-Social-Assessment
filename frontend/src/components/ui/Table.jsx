@@ -90,7 +90,7 @@ function TableHead({ className, children, sortable, sortDirection, onSort, ...pr
       <div className="flex items-center gap-2">
         {children}
         {sortable && (
-          <span className="material-symbols-outlined text-base text-text-muted">
+          <span className="material-symbols-outlined text-base text-text-muted" aria-hidden="true">
             {sortDirection === 'asc'
               ? 'arrow_upward'
               : sortDirection === 'desc'
@@ -131,7 +131,9 @@ function TableEmpty({ message = 'No data available', className, ...props }) {
     <tr>
       <td colSpan="100%" className={cn('py-12 text-center', className)} {...props}>
         <div className="flex flex-col items-center gap-2 text-text-muted dark:text-gray-500">
-          <span className="material-symbols-outlined text-4xl">inbox</span>
+          <span className="material-symbols-outlined text-4xl" aria-hidden="true">
+            inbox
+          </span>
           <p>{message}</p>
         </div>
       </td>

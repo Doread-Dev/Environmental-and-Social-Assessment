@@ -13,4 +13,3 @@ const impactQuestionSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("ImpactQuestion", impactQuestionSchema);
-

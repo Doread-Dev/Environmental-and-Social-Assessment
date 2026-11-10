@@ -1,41 +1,55 @@
 import { forwardRef, useId } from 'react'
 import { cn } from '@/utils/cn'
+import {
+  CONTROL_SIZES,
+  ERROR_TEXT_CLASSES,
+  HELPER_TEXT_CLASSES,
+  LABEL_CLASSES,
+  controlClasses,
+} from './formControl'
 
 /**
- * Select dropdown component
+ * The one select box of the app (D71): a native `<select>` (keyboard and screen readers work as
+ * usual) with the shared form-control look. Use it for every select — filters, pickers, table
+ * cells — never a raw `<select>` (a guard test fails on one).
  *
  * @param {Object} props
- * @param {string} props.label - Select label
- * @param {Array<{value: string, label: string, disabled?: boolean}>} props.options - Options array
- * @param {string} props.placeholder - Placeholder text
- * @param {string} props.error - Error message
- * @param {string} props.helperText - Helper text
- * @param {'sm'|'md'|'lg'} props.size - Select size
+ * @param {string} [props.label] - Visible label (otherwise pass `aria-label`)
+ * @param {Array<{value: string, label: string, disabled?: boolean}>} [props.options] - Options;
+ *   or pass `<option>` / `<optgroup>` children instead
+ * @param {string} [props.placeholder] - First option with value "" (e.g. "All places",
+ *   "Select..."); none by default
+ * @param {boolean} [props.placeholderDisabled] - The placeholder cannot be picked again
+ * @param {string} [props.error] - Error message
+ * @param {string} [props.helperText] - Helper text
+ * @param {'sm'|'md'|'lg'} [props.size] - Height and text size (md = Button md)
+ * @param {'default'|'cell'} [props.variant] - `cell`: borderless inside a table cell
+ * @param {string} [props.className] - Classes of the wrapper
+ * @param {string} [props.selectClassName] - Classes of the `<select>`
  *
  * @example
- * <Select
- *   label="Risk Category"
- *   options={[
- *     { value: 'a', label: 'Category A - High Risk' },
- *     { value: 'b', label: 'Category B - Medium Risk' },
- *   ]}
- *   placeholder="Select a category"
- * />
+ * <Select label="Role" options={ROLE_OPTIONS} value={role} onChange={(e) => setRole(e.target.value)} />
+ * <Select aria-label="Place filter" placeholder="All places" value={place} onChange={...}>
+ *   <optgroup label="Project workflow">…</optgroup>
+ * </Select>
  */
 const Select = forwardRef(
   (
     {
       label,
-      options = [],
-      placeholder = 'Select an option',
+      options,
+      placeholder,
+      placeholderDisabled = false,
       error,
       helperText,
       size = 'md',
+      variant = 'default',
       required = false,
       disabled = false,
       className,
       selectClassName,
       id: propId,
+      children,
       ...props
     },
     ref
@@ -43,83 +57,79 @@ const Select = forwardRef(
     const generatedId = useId()
     const id = propId || generatedId
     const errorId = `${id}-error`
-
-    const sizes = {
-      sm: 'h-9 text-sm pl-3 pr-8',
-      md: 'h-11 text-base pl-4 pr-10',
-      lg: 'h-12 text-base pl-4 pr-10',
-    }
+    const helperId = `${id}-helper`
+    const isCell = variant === 'cell'
 
     return (
       <div className={cn('flex flex-col gap-1.5', className)}>
-        {/* Label */}
         {label && (
-          <label
-            htmlFor={id}
-            className={cn(
-              'text-sm font-semibold',
-              'text-text-main dark:text-gray-200',
-              disabled && 'opacity-50'
-            )}
-          >
+          <label htmlFor={id} className={cn(LABEL_CLASSES, disabled && 'opacity-50')}>
             {label}
             {required && <span className="text-error ml-1">*</span>}
           </label>
         )}
 
-        {/* Select wrapper */}
-        <div className="relative">
+        <div className="relative group">
           <select
             ref={ref}
             id={id}
             disabled={disabled}
-            aria-invalid={!!error}
-            aria-describedby={error ? errorId : undefined}
+            aria-required={required || undefined}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? errorId : helperText ? helperId : undefined}
             className={cn(
-              'w-full rounded-lg appearance-none',
-              'border bg-white dark:bg-black/20',
-              'text-text-main dark:text-white',
-              'transition-all duration-200',
-              'focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary',
-              'cursor-pointer',
-              sizes[size],
-              error
-                ? 'border-error focus:border-error focus:ring-error/20'
-                : 'border-input-border dark:border-input-border-dark',
-              disabled && 'opacity-50 cursor-not-allowed',
+              controlClasses({ variant, error: !!error }),
+              'appearance-none cursor-pointer truncate',
+              isCell ? 'py-1 pl-2 pr-7 text-sm' : cn(CONTROL_SIZES[size], 'pl-3 pr-9'),
               selectClassName
             )}
             {...props}
           >
-            {placeholder && (
-              <option value="" disabled>
+            {placeholder != null && (
+              <option value="" disabled={placeholderDisabled}>
                 {placeholder}
               </option>
             )}
-            {options.map((option) => (
-              <option key={option.value} value={option.value} disabled={option.disabled}>
-                {option.label}
-              </option>
-            ))}
+            {options
+              ? options.map((option) => (
+                  <option key={option.value} value={option.value} disabled={option.disabled}>
+                    {option.label}
+                  </option>
+                ))
+              : children}
           </select>
 
-          {/* Dropdown arrow */}
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted dark:text-gray-500">
-            <span className="material-symbols-outlined text-xl">expand_more</span>
+          <span
+            className={cn(
+              'absolute top-1/2 -translate-y-1/2 pointer-events-none flex',
+              'text-text-secondary dark:text-gray-400',
+              isCell ? 'right-1.5 opacity-60 group-hover:opacity-100' : 'right-2.5',
+              disabled && 'opacity-50'
+            )}
+            aria-hidden="true"
+          >
+            <span
+              className={cn('material-symbols-outlined', isCell ? 'text-lg' : 'text-xl')}
+              aria-hidden="true"
+            >
+              expand_more
+            </span>
           </span>
         </div>
 
-        {/* Error message */}
         {error && (
-          <p id={errorId} className="text-sm text-error flex items-center gap-1">
-            <span className="material-symbols-outlined text-base">error</span>
+          <p id={errorId} className={ERROR_TEXT_CLASSES}>
+            <span className="material-symbols-outlined text-base" aria-hidden="true">
+              error
+            </span>
             {error}
           </p>
         )}
 
-        {/* Helper text */}
         {!error && helperText && (
-          <p className="text-sm text-text-secondary dark:text-gray-400">{helperText}</p>
+          <p id={helperId} className={HELPER_TEXT_CLASSES}>
+            {helperText}
+          </p>
         )}
       </div>
     )

@@ -1,0 +1,12 @@
+# One backup run (deploy/linux/backup.sh). Started daily by esms-backup.timer.
+# Logs: journalctl -u esms-backup
+[Unit]
+Description=ESMS daily backup (database + uploads)
+After=mongod.service
+Wants=mongod.service
+
+[Service]
+Type=oneshot
+User=esms
+Group=esms
+ExecStart=/opt/esms/deploy/linux/backup.sh

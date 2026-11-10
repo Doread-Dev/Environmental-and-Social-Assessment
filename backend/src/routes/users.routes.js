@@ -1,22 +1,20 @@
 const express = require("express");
 const controller = require("../controllers/user.controller");
-const { auth, requireRole } = require("../middlewares/auth");
+const validate = require("../middlewares/validate");
+const { requirePermission } = require("../middlewares/auth");
+const { createUserSchema, updateUserSchema } = require("../validators/user.validator");
 
 const router = express.Router();
 
-// Allow all roles including viewer (viewer can list users)
-router.get(
-  "/",
-  auth,
-  requireRole(
-    "environmental_specialist",
-    "program_manager",
-    "project_manager",
-    "environmental_focal_point",
-    "viewer"
-  ),
-  controller.getAll
-);
+// Every signed-in role: admins get every account, others the active users for the pickers.
+router.get("/", controller.getAll);
+
+// User management is admin only (D21).
+const manage = requirePermission("manage_users");
+router.post("/", manage, validate(createUserSchema), controller.create);
+router.put("/:id", manage, validate(updateUserSchema), controller.update);
+router.patch("/:id/deactivate", manage, controller.deactivate);
+router.patch("/:id/reactivate", manage, controller.reactivate);
+router.post("/:id/reset-password", manage, controller.resetPassword);
 
 module.exports = router;
-

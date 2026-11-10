@@ -1,0 +1,5 @@
+node_modules/
+# Frontend build, uploads and run files of the E2E server (scripts/build-frontend.mjs, start-server.mjs)
+.build/
+test-results/
+playwright-report/

@@ -1,16 +1,16 @@
 /**
  * MonitoringCategoryCard Component
- * بطاقة تلخيص فئة المراقبة
+ * Summary card of one monitoring category
  */
 
 import { cn } from '@/utils/cn'
 
 /**
  * @param {Object} props
- * @param {string} props.code - كود الفئة (A,B,C,...)
- * @param {string} props.name - اسم الفئة
- * @param {string} [props.rankingKey] - مستوى التصنيف (low/medium/high/etc.)
- * @param {string} [props.rankingLabel] - نص التصنيف المعروض
+ * @param {string} props.code - Category code (A, B, C, …)
+ * @param {string} props.name - Category name
+ * @param {string} [props.rankingKey] - Ranking level (low / medium / high / …)
+ * @param {string} [props.rankingLabel] - Ranking text shown
  */
 function MonitoringCategoryCard({
   code,
@@ -35,14 +35,14 @@ function MonitoringCategoryCard({
       dot: 'bg-green-500',
     },
     negligible: {
-      bg: 'bg-gray-100 dark:bg-white/5',
-      text: 'text-gray-700 dark:text-gray-400',
-      dot: 'bg-gray-400',
+      bg: 'bg-background dark:bg-white/5',
+      text: 'text-text-main dark:text-gray-400',
+      dot: 'bg-text-disabled',
     },
     not_applicable: {
-      bg: 'bg-gray-100 dark:bg-white/5',
-      text: 'text-gray-700 dark:text-gray-400',
-      dot: 'bg-gray-400',
+      bg: 'bg-background dark:bg-white/5',
+      text: 'text-text-main dark:text-gray-400',
+      dot: 'bg-text-disabled',
     },
   }
 
@@ -64,8 +64,8 @@ function MonitoringCategoryCard({
       className={cn(
         'flex flex-col justify-between p-5 rounded-xl border border-border-default dark:border-border-dark transition-shadow h-full',
         isInactive
-          ? 'bg-gray-50/50 dark:bg-background-dark opacity-75'
-          : 'bg-white dark:bg-[#152a1d]'
+          ? 'bg-background dark:bg-background-dark opacity-75'
+          : 'bg-surface dark:bg-card-dark'
       )}
     >
       <div>
@@ -74,16 +74,20 @@ function MonitoringCategoryCard({
             className={cn(
               'p-2 rounded-lg',
               isInactive
-                ? 'bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400'
+                ? 'bg-background dark:bg-white/5 text-text-secondary dark:text-gray-400'
                 : 'bg-primary/10 text-primary'
             )}
           >
-            <span className="material-symbols-outlined">{icon}</span>
+            <span className="material-symbols-outlined" aria-hidden="true">
+              {icon}
+            </span>
           </div>
           <h4
             className={cn(
               'text-base font-bold',
-              isInactive ? 'text-gray-600 dark:text-gray-300' : 'text-text-main dark:text-white'
+              isInactive
+                ? 'text-text-secondary dark:text-gray-300'
+                : 'text-text-main dark:text-white'
             )}
           >
             {name}

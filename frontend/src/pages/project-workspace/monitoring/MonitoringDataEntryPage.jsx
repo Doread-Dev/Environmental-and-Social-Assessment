@@ -1,16 +1,29 @@
 /**
  * MonitoringDataEntryPage
  * Tool 5 - Monitoring Data Entry
- * صفحة إدخال بيانات المراقبة
  */
 
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
-import { useMonitoring, useAssessment, useScreening, useProjectContext } from '@/hooks'
-import { useLookups, useAuth } from '@/contexts'
+import { useQueryClient } from '@tanstack/react-query'
+import { useMonitoring, useProjectContext, useLookups, useUsers } from '@/hooks'
+import { assessmentQuery } from '@/hooks/useAssessment'
+import { useUnsavedChanges } from '@/contexts'
+import { queryKeys } from '@/services/queryKeys'
+import { UnsavedExportDialog, useExportHandler } from '@/components/export'
+import { isStepLocked } from '@/utils/workflowSteps'
 import { MonitoringDataTable } from '@/components/tables'
-import { Alert, useToast } from '@/components/ui'
+import {
+  Alert,
+  useToast,
+  LoadingState,
+  PAGE_TITLE,
+  PAGE_DESCRIPTION,
+  Button,
+} from '@/components/ui'
 import { cn } from '@/utils/cn'
+import { ROUTES, getProjectRoute } from '@/routes/routes.config'
+
 export default function MonitoringDataEntryPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
@@ -22,14 +35,13 @@ export default function MonitoringDataEntryPage() {
     categoriesWithIndicators,
     isLoading: lookupsLoading,
     IMPACT_LEVEL_CONFIG,
-    activeUsers,
   } = useLookups()
-  const { canEdit } = useAuth()
-  const { assessment, isLoading: isAssessmentLoading } = useAssessment(projectId)
-  const { screening } = useScreening(projectId)
-  const { project } = useProjectContext()
-  const isApproved = assessment?.status === 'approved'
-  const isLocked = !isApproved
+  const { activeUsers } = useUsers()
+  const queryClient = useQueryClient()
+  // Lock and permissions from the backend workflow (workspace, D30/D35)
+  const { project, workflow, can } = useProjectContext()
+  const isLocked = isStepLocked(workflow, 'monitoring')
+  const canEdit = can('monitoring.edit')
 
   const {
     getCategoryData,
@@ -39,7 +51,6 @@ export default function MonitoringDataEntryPage() {
     isLoading,
     isSaving,
     error,
-    records,
   } = useMonitoring(projectId)
 
   const [expandedCategories, setExpandedCategories] = useState(
@@ -47,6 +58,9 @@ export default function MonitoringDataEntryPage() {
   )
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [justSaved, setJustSaved] = useState(false)
+  // Export with unsaved values: save first (D74 3)
+  const [confirmUnsavedExport, setConfirmUnsavedExport] = useState(false)
+  const [isSavingForExport, setIsSavingForExport] = useState(false)
   const categoryIconMap = {
     A: {
       icon: 'air',
@@ -64,10 +78,13 @@ export default function MonitoringDataEntryPage() {
       icon: 'delete',
       className: 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400',
     },
-    E: { icon: 'speed', className: 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400' },
+    E: {
+      icon: 'speed',
+      className: 'bg-background dark:bg-white/5 text-text-secondary dark:text-gray-400',
+    },
     F: {
       icon: 'science',
-      className: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400',
+      className: 'bg-primary-soft dark:bg-primary/20 text-primary dark:text-green-300',
     },
     J: {
       icon: 'forest',
@@ -75,7 +92,7 @@ export default function MonitoringDataEntryPage() {
     },
     H: {
       icon: 'landscape',
-      className: 'bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400',
+      className: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
     },
   }
 
@@ -98,44 +115,59 @@ export default function MonitoringDataEntryPage() {
       setHasUnsavedChanges(false)
       setJustSaved(true)
     }
+    return result
   }
 
-  const handleBack = () => {
-    if (hasUnsavedChanges) {
-      if (!window.confirm('You have unsaved changes. Are you sure you want to leave?')) {
-        return
-      }
-    }
-    navigate(`/app/projects/${projectId}/monitoring`)
-  }
+  // Leaving with unsaved values (Cancel, sidebar, browser Back, refresh) asks Save / Discard /
+  // Stay in the shared in-app dialog (D61); window.confirm was suppressed by embedded browsers.
+  useUnsavedChanges(canEdit && hasUnsavedChanges, handleSave)
 
-  const handleExport = useCallback(async () => {
+  const handleBack = () => navigate(getProjectRoute(projectId, ROUTES.MONITORING))
+
+  // The file always holds what is saved (D74 3): the cached records and the current status
+  const exportSaved = useCallback(async () => {
     try {
-      const { exportMonitoringToExcel } = await import('@/utils/excelExport')
-      await exportMonitoringToExcel(
-        project,
-        screening,
-        assessment,
-        records,
-        categoriesWithIndicators,
-        IMPACT_LEVEL_CONFIG
+      const { exportTool, exportStatus } = await import('@/utils/excelExport')
+      // The full assessment (officer) is only needed here: loaded on export, then cached
+      const { assessment } = await queryClient.ensureQueryData(assessmentQuery(projectId))
+      const records = queryClient.getQueryData(queryKeys.monitoring(projectId))?.records ?? []
+      const current = queryClient.getQueryData(queryKeys.workspace(projectId))?.workflow
+      const fileName = await exportTool(
+        'tool5',
+        {
+          project,
+          screening: project.screening,
+          assessment,
+          records,
+          categoriesWithIndicators,
+        },
+        exportStatus(current ?? workflow, 'tool5')
       )
-      toast.success('Excel file downloaded successfully!')
+      toast.success(`Downloaded ${fileName}`)
     } catch (error) {
       console.error('Export error:', error)
       toast.error('Failed to export Excel file')
     }
-  }, [project, screening, assessment, records, categoriesWithIndicators, IMPACT_LEVEL_CONFIG, toast])
+  }, [project, projectId, queryClient, categoriesWithIndicators, workflow, toast])
 
-  useEffect(() => {
-    const handleExportEvent = () => {
-      handleExport()
-    }
-    window.addEventListener('monitoring-export', handleExportEvent)
-    return () => {
-      window.removeEventListener('monitoring-export', handleExportEvent)
-    }
-  }, [handleExport])
+  // The header's Export, once the records are loaded: with unsaved values, ask to save first
+  useExportHandler(
+    'monitoring-export',
+    () => {
+      if (canEdit && hasUnsavedChanges) setConfirmUnsavedExport(true)
+      else exportSaved()
+    },
+    !isLoading && !lookupsLoading
+  )
+
+  // "Save and export": a failed save (its error, or the stale dialog) exports nothing
+  const saveAndExport = async () => {
+    setIsSavingForExport(true)
+    const result = await handleSave()
+    setIsSavingForExport(false)
+    setConfirmUnsavedExport(false)
+    if (result.success) await exportSaved()
+  }
 
   const getSaveButtonContent = () => {
     if (isSaving) {
@@ -149,17 +181,8 @@ export default function MonitoringDataEntryPage() {
 
   const saveBtn = getSaveButtonContent()
 
-  if (isLoading || isAssessmentLoading || lookupsLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">
-            Loading monitoring data...
-          </p>
-        </div>
-      </div>
-    )
+  if (isLoading || lookupsLoading) {
+    return <LoadingState message="Loading monitoring data..." />
   }
 
   return (
@@ -168,44 +191,38 @@ export default function MonitoringDataEntryPage() {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-border-default dark:border-border-dark pb-6">
           <div>
-            <h1 className="text-text-main dark:text-white text-3xl font-black leading-tight tracking-tight">
-              Monitoring Data Entry
-            </h1>
-            <p className="text-primary text-base font-normal mt-1">
+            <h1 className={PAGE_TITLE}>Monitoring Data Entry</h1>
+            <p className={PAGE_DESCRIPTION}>
               Enter and review cumulative environmental and social monitoring data over time.
             </p>
           </div>
           <div className="gap-2 flex items-center justify-center">
-            <button
-              type="button"
-              onClick={handleBack}
-              className="flex items-center justify-center gap-2 rounded-lg h-10 px-4 bg-white dark:bg-surface-dark border border-border-default dark:border-border-dark hover:bg-gray-50/50 dark:hover:bg-white/3 text-text-main dark:text-white text-sm font-bold transition-all shadow-sm"
-            >
-              <span className="material-symbols-outlined text-lg">arrow_back</span>
-              <span>Cancel</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={isLocked || isSaving || (justSaved && !hasUnsavedChanges)}
-              className={cn(
-                'flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-5 gap-2 text-sm font-bold leading-normal tracking-[0.015em] shadow-md transition-all transform',
-                isLocked
-                  ? 'bg-primary/50 cursor-not-allowed'
-                  : isSaving
-                    ? 'bg-primary/70 cursor-wait'
-                    : justSaved && !hasUnsavedChanges
-                      ? 'bg-green-600 hover:bg-green-700 text-white border border-transparent'
-                      : 'bg-primary hover:bg-green-500 text-primary-content'
-              )}
-            >
-              {saveBtn.spinner ? (
-                <span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <span className="material-symbols-outlined text-lg">{saveBtn.icon}</span>
-              )}
-              <span className="truncate">{saveBtn.text}</span>
-            </button>
+            {/* Read-only (viewer): nothing to cancel, so no Cancel button (phase 12a) */}
+            {canEdit && (
+              <Button variant="secondary" type="button" onClick={handleBack}>
+                <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                  arrow_back
+                </span>
+                <span>Cancel</span>
+              </Button>
+            )}
+            {canEdit && (
+              <Button
+                variant="primary"
+                onClick={handleSave}
+                disabled={isLocked || isSaving || (justSaved && !hasUnsavedChanges)}
+                isLoading={isSaving}
+                leftIcon={
+                  saveBtn.icon ? (
+                    <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                      {saveBtn.icon}
+                    </span>
+                  ) : undefined
+                }
+              >
+                {saveBtn.text}
+              </Button>
+            )}
           </div>
         </div>
 
@@ -220,22 +237,24 @@ export default function MonitoringDataEntryPage() {
         {isLocked && (
           <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800 rounded-xl p-6 flex flex-col sm:flex-row items-center gap-4">
             <div className="size-12 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center shrink-0 text-orange-600 dark:text-orange-400">
-              <span className="material-symbols-outlined text-2xl">lock</span>
+              <span className="material-symbols-outlined text-2xl" aria-hidden="true">
+                lock
+              </span>
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+              <h3 className="text-lg font-bold text-text-main dark:text-white mb-1">
                 Monitoring Locked
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
-                You must complete and get approval for the{' '}
-                <strong>Environmental Assessment (Tool 2)</strong> before entering monitoring data.
+              <p className="text-text-secondary dark:text-gray-400 text-sm">
+                You must complete <strong>Management Activities (Tool 3)</strong> and the{' '}
+                <strong>Mitigation Plan (Tool 4)</strong> before entering monitoring data.
               </p>
             </div>
             <button
-              onClick={() => navigate(`/app/projects/${projectId}/assessment`)}
+              onClick={() => navigate(getProjectRoute(projectId, ROUTES.SEMP))}
               className="sm:ml-auto px-4 py-2 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700 transition-colors whitespace-nowrap"
             >
-              Go to Assessment
+              Go to SEMP
             </button>
           </div>
         )}
@@ -258,19 +277,19 @@ export default function MonitoringDataEntryPage() {
               })
               .filter(Boolean)
               .filter((level) => level.key !== 'not_applicable')
-            const defaultRanking =
-              IMPACT_LEVEL_CONFIG.not_applicable &&
-              { ...IMPACT_LEVEL_CONFIG.not_applicable, key: 'not_applicable' }
-            const currentRanking =
-              rankingLevels.sort((a, b) => b.value - a.value)[0] ||
-              defaultRanking ||
-              { key: 'not_applicable', label: 'N/A', value: -1 }
+            const defaultRanking = IMPACT_LEVEL_CONFIG.not_applicable && {
+              ...IMPACT_LEVEL_CONFIG.not_applicable,
+              key: 'not_applicable',
+            }
+            const currentRanking = rankingLevels.sort((a, b) => b.value - a.value)[0] ||
+              defaultRanking || { key: 'not_applicable', label: 'N/A', value: -1 }
             const rankingStyles = {
-              negligible: 'bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-400',
+              negligible: 'bg-background dark:bg-white/5 text-text-main dark:text-gray-400',
               low: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
               medium: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300',
               high: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
-              not_applicable: 'bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400',
+              not_applicable:
+                'bg-background dark:bg-white/5 text-text-secondary dark:text-gray-400',
             }
             const iconConfig = categoryIconMap[category.code] || {
               icon: 'analytics',
@@ -280,13 +299,13 @@ export default function MonitoringDataEntryPage() {
             return (
               <div
                 key={category.code}
-                className="bg-white dark:bg-[#152a1d] rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden"
+                className="bg-surface dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark overflow-hidden"
               >
                 {/* Accordion Header */}
                 <button
                   type="button"
                   onClick={() => toggleCategory(category.code)}
-                  className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors"
+                  className="w-full px-6 py-4 flex items-center justify-between hover:bg-background dark:hover:bg-white/5 transition-colors"
                 >
                   <div className="flex items-center gap-4">
                     <div
@@ -295,7 +314,9 @@ export default function MonitoringDataEntryPage() {
                         iconConfig.className
                       )}
                     >
-                      <span className="material-symbols-outlined">{iconConfig.icon}</span>
+                      <span className="material-symbols-outlined" aria-hidden="true">
+                        {iconConfig.icon}
+                      </span>
                     </div>
                     <div className="text-left">
                       <h2 className="text-lg font-bold text-text-main dark:text-white">
@@ -321,6 +342,7 @@ export default function MonitoringDataEntryPage() {
                       'material-symbols-outlined text-2xl text-text-secondary dark:text-gray-400 transition-transform',
                       isExpanded && 'rotate-180'
                     )}
+                    aria-hidden="true"
                   >
                     expand_more
                   </span>
@@ -353,6 +375,14 @@ export default function MonitoringDataEntryPage() {
           })}
         </section>
       </div>
+
+      {confirmUnsavedExport && (
+        <UnsavedExportDialog
+          isSaving={isSavingForExport}
+          onSaveAndExport={saveAndExport}
+          onClose={() => setConfirmUnsavedExport(false)}
+        />
+      )}
     </div>
   )
 }

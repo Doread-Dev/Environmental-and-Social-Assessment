@@ -1,23 +1,23 @@
 /**
  * ProjectCTACard Component
- * بطاقة الدعوة للإجراء (Next Step CTA)
- * مطابق للتصميم الأصلي حرفياً
+ * Next-step card (call to action)
  *
  * Features:
- * - خلفية متدرجة (gradient)
- * - تأثير ضبابي في الزاوية اليمنى العلوية
- * - زر أخضر مع shadow-lg shadow-primary/30
+ * - gradient background
+ * - soft glow in the top right corner
+ * - green button with shadow-lg shadow-primary/30
  */
 
 import { cn } from '@/utils/cn'
+import { Button } from '@/components/ui'
 
 /**
  * @param {Object} props
- * @param {string} props.title - عنوان الإجراء
- * @param {string} props.description - وصف الإجراء
- * @param {string} props.buttonText - نص الزر
- * @param {string} props.buttonIcon - أيقونة الزر
- * @param {Function} props.onClick - callback عند النقر
+ * @param {string} props.title - Action title
+ * @param {string} props.description - Action description
+ * @param {string} props.buttonText - Button text
+ * @param {string} props.buttonIcon - Button icon
+ * @param {Function} props.onClick - Called on click
  */
 function ProjectCTACard({
   title,
@@ -31,7 +31,7 @@ function ProjectCTACard({
   return (
     <div
       className={cn(
-        'bg-gradient-to-r from-white to-[#f0fdf4] dark:from-surface-dark dark:to-[#0f2e1b] rounded-xl shadow-md border border-primary/20 p-6 flex items-center justify-between relative overflow-hidden group',
+        'bg-gradient-to-r from-white to-primary-soft dark:from-surface-dark dark:to-background-dark rounded-xl shadow-md border border-primary/20 p-6 flex items-center justify-between relative overflow-hidden group',
         className
       )}
       {...props}
@@ -47,13 +47,12 @@ function ProjectCTACard({
 
       {/* Button */}
       <div className="relative z-10">
-        <button
-          onClick={onClick}
-          className="bg-primary hover:bg-primary-hover text-white font-bold py-3 px-6 rounded-lg shadow-lg shadow-primary/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2"
-        >
+        <Button variant="primary" size="lg" onClick={onClick}>
           <span>{buttonText}</span>
-          <span className="material-symbols-outlined text-[20px]">{buttonIcon}</span>
-        </button>
+          <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+            {buttonIcon}
+          </span>
+        </Button>
       </div>
     </div>
   )

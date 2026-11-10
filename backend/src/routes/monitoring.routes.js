@@ -1,44 +1,16 @@
 const express = require("express");
 const controller = require("../controllers/monitoring.controller");
-const validate = require("../middlewares/validate");
-const {
-  createMonitoringSchema,
-  updateMonitoringSchema,
-  updateQuarterSchema,
-} = require("../validators/monitoring.validator");
-const { auth, requireRole } = require("../middlewares/auth");
+const projectAccess = require("../middlewares/projectAccess");
+const MonitoringRecord = require("../models/monitoringRecord.model");
 
 const router = express.Router();
 
-router.get("/", controller.getAll);
-router.get("/project/:projectId", controller.getByProject);
-router.get("/:id", controller.getOne);
-router.post(
-  "/",
-  auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
-  validate(createMonitoringSchema),
-  controller.create
-);
-router.put(
+// Records are saved with PUT /projects/:id/monitoring (D32).
+router.get("/project/:projectId", projectAccess.fromParam("projectId"), controller.getByProject);
+router.get(
   "/:id",
-  auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
-  validate(updateMonitoringSchema),
-  controller.update
-);
-router.patch(
-  "/:id/quarter/:q",
-  auth,
-  requireRole(
-    "environmental_specialist",
-    "program_manager",
-    "project_manager",
-    "environmental_focal_point"
-  ),
-  validate(updateQuarterSchema),
-  controller.updateQuarter
+  projectAccess.fromRecord(MonitoringRecord, "id", "Monitoring record not found"),
+  controller.getOne
 );
 
 module.exports = router;
-

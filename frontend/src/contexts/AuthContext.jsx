@@ -1,89 +1,74 @@
 /**
  * Authentication Context
  * Provides auth state and methods throughout the application
+ *
+ * What the user may do comes from the backend (D35): GET /auth/me returns the role's
+ * `permissions`; per-project `allowed_actions` (workspace, project list) add the workflow state.
+ * The frontend keeps no role lists of its own.
  */
-import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { authService } from '@/services/authService'
-import { extractErrorMessage } from '@/services/api'
+import { extractErrorMessage, setSessionExpiredHandler } from '@/services/api'
+import { queryKeys } from '@/services/queryKeys'
+import { AuthContext } from './useAuth'
+import { USER_ROLES, ROLE_LABELS } from '@/utils/roles'
 
-/**
- * User roles constant for permission checks
- */
-export const USER_ROLES = {
-  ENVIRONMENTAL_SPECIALIST: 'environmental_specialist',
-  PROGRAM_MANAGER: 'program_manager',
-  PROJECT_MANAGER: 'project_manager',
-  ENVIRONMENTAL_FOCAL_POINT: 'environmental_focal_point',
-  VIEWER: 'viewer',
+const NO_PERMISSIONS = []
+
+// Stored session, dropped when the token has expired.
+function readStoredAuth() {
+  if (!authService.getToken() || !authService.getUser()) return { user: null, token: null }
+  if (!authService.isTokenValid()) {
+    authService.logout()
+    return { user: null, token: null }
+  }
+  return { user: authService.getUser(), token: authService.getToken() }
 }
-
-/**
- * Role hierarchy for permission comparisons
- * Higher index = more permissions
- */
-const ROLE_HIERARCHY = [
-  USER_ROLES.VIEWER,
-  USER_ROLES.ENVIRONMENTAL_FOCAL_POINT,
-  USER_ROLES.PROJECT_MANAGER,
-  USER_ROLES.PROGRAM_MANAGER,
-  USER_ROLES.ENVIRONMENTAL_SPECIALIST,
-]
-
-/**
- * Role display names
- */
-export const ROLE_LABELS = {
-  environmental_specialist: 'Environmental Specialist',
-  program_manager: 'Program Manager',
-  project_manager: 'Project Manager',
-  environmental_focal_point: 'Environmental Focal Point',
-  viewer: 'Viewer',
-}
-
-// Create context
-const AuthContext = createContext(undefined)
 
 /**
  * AuthProvider Component
- * Wraps the application to provide auth state
+ * Wraps the application to provide auth state (needs a QueryClientProvider above it)
  */
 export function AuthProvider({ children }) {
-  // Core auth state
-  const [user, setUser] = useState(() => authService.getUser())
-  const [token, setToken] = useState(() => authService.getToken())
-  const [isLoading, setIsLoading] = useState(true)
+  const queryClient = useQueryClient()
+  const [session, setSession] = useState(readStoredAuth)
+  const [isLoggingIn, setIsLoggingIn] = useState(false)
   const [error, setError] = useState(null)
+  // The token stopped working while this user was signed in (D73): the sign-in dialog is open
+  // over the page; nothing is unmounted, so typed input stays.
+  const [sessionExpired, setSessionExpired] = useState(false)
 
-  // Derived state
-  const isAuthenticated = useMemo(() => !!token && !!user, [token, user])
+  const isAuthenticated = !!session.token && !!session.user
 
-  /**
-   * Initialize auth state on mount
-   * Validates stored token and clears if expired
-   */
+  const meQuery = useQuery({
+    queryKey: queryKeys.me,
+    queryFn: authService.me,
+    enabled: isAuthenticated,
+    staleTime: Infinity,
+  })
+
+  const user = meQuery.data?.user ?? session.user
+  const permissions = meQuery.data?.permissions ?? NO_PERMISSIONS
+  const passwordRules = meQuery.data?.password_rules ?? null
+  // Allowed file types and size, to check a file before uploading it (D47)
+  const uploadRules = meQuery.data?.upload_rules ?? null
+  // Set by an admin reset or on a new account (D22): the app shows only the change-password screen
+  const mustChangePassword = !!user?.must_change_password
+  // Wait for the permissions once per session so guards and buttons don't flicker.
+  const isLoading = isLoggingIn || (isAuthenticated && meQuery.isPending)
+
+  // A 401 while a user is loaded opens the sign-in dialog instead of leaving the page (D73). With
+  // no user loaded (first load, bad token) api.js still goes to the login page.
+  const userLoaded = isAuthenticated && !!meQuery.data
   useEffect(() => {
-    const initializeAuth = () => {
-      const storedToken = authService.getToken()
-      const storedUser = authService.getUser()
-
-      if (storedToken && storedUser) {
-        // Validate token hasn't expired
-        if (authService.isTokenValid()) {
-          setToken(storedToken)
-          setUser(storedUser)
-        } else {
-          // Token expired, clear auth state
-          authService.logout()
-          setToken(null)
-          setUser(null)
-        }
-      }
-
-      setIsLoading(false)
-    }
-
-    initializeAuth()
-  }, [])
+    if (!userLoaded) return undefined
+    setSessionExpiredHandler(() => {
+      setSessionExpired(true)
+      return true
+    })
+    return () => setSessionExpiredHandler(null)
+  }, [userLoaded])
 
   /**
    * Login user
@@ -92,35 +77,73 @@ export function AuthProvider({ children }) {
    * @returns {Promise<{success: boolean, error?: string}>}
    */
   const login = useCallback(async (email, password) => {
-    setIsLoading(true)
+    setIsLoggingIn(true)
     setError(null)
 
     try {
       const { user: userData, token: authToken } = await authService.login(email, password)
-
-      setUser(userData)
-      setToken(authToken)
-
+      setSession({ user: userData, token: authToken })
       return { success: true }
     } catch (err) {
       const errorMessage = extractErrorMessage(err)
       setError(errorMessage)
       return { success: false, error: errorMessage }
     } finally {
-      setIsLoading(false)
+      setIsLoggingIn(false)
     }
   }, [])
 
   /**
    * Logout user
-   * Clears all auth state and storage
+   * Clears all auth state, storage and cached data (the next user must not see it)
    */
   const logout = useCallback(() => {
     authService.logout()
-    setUser(null)
-    setToken(null)
+    setSession({ user: null, token: null })
     setError(null)
-  }, [])
+    setSessionExpired(false)
+    queryClient.clear()
+  }, [queryClient])
+
+  /**
+   * Sign in again after the session expired, as the same user, without leaving the page (D73).
+   * The page and what was typed stay; writes are not retried (the user presses Save again);
+   * reads that failed meanwhile are fetched again.
+   * @param {string} password
+   * @returns {Promise<{success: boolean, error?: string}>}
+   */
+  const reauthenticate = useCallback(
+    async (password) => {
+      const email = (meQuery.data?.user ?? session.user)?.email
+      try {
+        const { user: userData, token: authToken } = await authService.login(email, password)
+        setSession({ user: userData, token: authToken })
+        setSessionExpired(false)
+        queryClient.invalidateQueries({ queryKey: queryKeys.me })
+        queryClient.refetchQueries({ predicate: (query) => query.state.status === 'error' })
+        return { success: true }
+      } catch (err) {
+        return { success: false, error: extractErrorMessage(err) }
+      }
+    },
+    [meQuery.data, session.user, queryClient]
+  )
+
+  /**
+   * Change own password (D23). Puts the fresh user/permissions into the cache, which also lifts a
+   * forced change (D22). Throws the API error so the form can show it.
+   * @param {string} currentPassword
+   * @param {string} newPassword
+   */
+  const changePassword = useCallback(
+    async (currentPassword, newPassword) => {
+      const data = await authService.changePassword(currentPassword, newPassword)
+      queryClient.setQueryData(queryKeys.me, data)
+      setSession((prev) => ({ ...prev, user: data.user }))
+      return data
+    },
+    [queryClient]
+  )
 
   /**
    * Clear any auth errors
@@ -130,128 +153,47 @@ export function AuthProvider({ children }) {
   }, [])
 
   /**
-   * Check if user has a specific role
-   * @param {string} role - Role to check
+   * Does the user's role have this permission (from GET /auth/me)?
+   * @param {string} permission - e.g. 'edit', 'approve', 'export', 'manage_users'
    * @returns {boolean}
    */
-  const hasRole = useCallback(
-    (role) => {
-      return user?.role === role
-    },
-    [user]
-  )
-
-  /**
-   * Check if user has any of the specified roles
-   * @param {string[]} roles - Array of roles to check
-   * @returns {boolean}
-   */
-  const hasAnyRole = useCallback(
-    (roles) => {
-      return roles.includes(user?.role)
-    },
-    [user]
-  )
-
-  /**
-   * Check if user has at least the specified role level
-   * Based on role hierarchy
-   * @param {string} minimumRole - Minimum role required
-   * @returns {boolean}
-   */
-  const hasMinimumRole = useCallback(
-    (minimumRole) => {
-      if (!user?.role) return false
-
-      const userRoleIndex = ROLE_HIERARCHY.indexOf(user.role)
-      const minimumRoleIndex = ROLE_HIERARCHY.indexOf(minimumRole)
-
-      return userRoleIndex >= minimumRoleIndex
-    },
-    [user]
-  )
-
-  /**
-   * Permission helper: Can user edit/create content?
-   * Backend allows: env_spec, program_mgr, project_mgr, environmental_focal_point for create/update.
-   */
-  const canEdit = useMemo(() => {
-    return hasAnyRole([
-      USER_ROLES.ENVIRONMENTAL_SPECIALIST,
-      USER_ROLES.PROGRAM_MANAGER,
-      USER_ROLES.PROJECT_MANAGER,
-      USER_ROLES.ENVIRONMENTAL_FOCAL_POINT,
-    ])
-  }, [hasAnyRole])
-
-  /**
-   * Permission helper: Can user approve/reject submissions?
-   * Backend allows environmental_specialist only for approve/reject.
-   */
-  const canApprove = useMemo(() => {
-    return hasRole(USER_ROLES.ENVIRONMENTAL_SPECIALIST)
-  }, [hasRole])
-
-  /**
-   * Permission helper: Can user manage users (create/edit)?
-   */
-  const canManageUsers = useMemo(() => {
-    return hasRole(USER_ROLES.ENVIRONMENTAL_SPECIALIST)
-  }, [hasRole])
-
-  /**
-   * Permission helper: Can user list users (GET /users)?
-   * Backend allows all authenticated roles including viewer.
-   */
-  const canListUsers = useMemo(() => isAuthenticated, [isAuthenticated])
-
-  /**
-   * Permission helper: Can user delete a project?
-   * Backend allows environmental_specialist only for DELETE /projects.
-   */
-  const canDeleteProject = useMemo(() => {
-    return hasRole(USER_ROLES.ENVIRONMENTAL_SPECIALIST)
-  }, [hasRole])
-
-  /**
-   * Permission helper: Can user update monitoring data?
-   */
-  const canUpdateMonitoring = useMemo(() => {
-    return hasAnyRole([
-      USER_ROLES.ENVIRONMENTAL_SPECIALIST,
-      USER_ROLES.PROGRAM_MANAGER,
-      USER_ROLES.PROJECT_MANAGER,
-      USER_ROLES.ENVIRONMENTAL_FOCAL_POINT,
-    ])
-  }, [hasAnyRole])
+  const can = useCallback((permission) => permissions.includes(permission), [permissions])
 
   // Context value
   const value = useMemo(
     () => ({
       // State
       user,
-      token,
+      token: session.token,
       isAuthenticated,
       isLoading,
       error,
+      permissions,
+      passwordRules,
+      uploadRules,
+      mustChangePassword,
+      sessionExpired,
 
       // Actions
       login,
       logout,
+      reauthenticate,
+      changePassword,
       clearError,
 
-      // Role checks
-      hasRole,
-      hasAnyRole,
-      hasMinimumRole,
-
       // Permission helpers
-      canEdit,
-      canApprove,
-      canManageUsers,
-      canListUsers,
-      canDeleteProject,
-      canUpdateMonitoring,
+      can,
+      canCreateProject: can('create_project'),
+      canEdit: can('edit'),
+      canExport: can('export'),
+      canApprove: can('approve'),
+      canManageUsers: can('manage_users'),
+      canDeleteProject: can('delete_project'),
+      canReadAuditLog: can('read_audit_log'),
+      // Upload, edit, replace and delete reference library documents (D64 b)
+      canManageLibrary: can('manage_library'),
+      // Settings holds user management (admin) and project deletion (specialist/admin)
+      canAccessSettings: can('manage_users') || can('delete_project'),
 
       // Constants
       USER_ROLES,
@@ -259,41 +201,23 @@ export function AuthProvider({ children }) {
     }),
     [
       user,
-      token,
+      session.token,
       isAuthenticated,
       isLoading,
       error,
+      permissions,
+      passwordRules,
+      uploadRules,
+      mustChangePassword,
+      sessionExpired,
       login,
       logout,
+      reauthenticate,
+      changePassword,
       clearError,
-      hasRole,
-      hasAnyRole,
-      hasMinimumRole,
-      canEdit,
-      canApprove,
-      canManageUsers,
-      canListUsers,
-      canDeleteProject,
-      canUpdateMonitoring,
+      can,
     ]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
-
-/**
- * Custom hook to use auth context
- * @returns {Object} Auth context value
- * @throws {Error} If used outside of AuthProvider
- */
-export function useAuth() {
-  const context = useContext(AuthContext)
-
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-
-  return context
-}
-
-export default AuthContext

@@ -1,23 +1,46 @@
 /**
  * AssessmentScoringPage
- * صفحة تسجيل تأثيرات التقييم البيئي
+ * Assessment impact scoring page
  */
 
 import { useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useAssessment } from '@/hooks'
-import { useLookups } from '@/contexts'
-import { calculateTotalScore, calculateTotalImpact } from '@/utils/impactCalculations'
+import { useAssessment, useProjectContext } from '@/hooks'
+import { useLookups } from '@/hooks'
+import { useUnsavedChanges } from '@/contexts'
+import {
+  calculateTotalScore,
+  calculateTotalImpact,
+  changedQuestionsSummary,
+} from '@/utils/impactCalculations'
+import { assessmentSubmitError } from '@/utils/validators'
 import {
   ImpactCategoryAccordion,
   TotalScoreCard,
   TotalImpactCard,
   ImpactSummarySection,
 } from '@/components/assessment'
-import { Button, LoadingSpinner, StickyFooter, Modal, useToast } from '@/components/ui'
+import {
+  Button,
+  LoadingSpinner,
+  StickyFooter,
+  Modal,
+  useToast,
+  LoadingState,
+  PageHeader,
+} from '@/components/ui'
+
+// Scores (by question) and the two impact texts as one comparable string
+function snapshot(scores, negativeImpact, positiveImpact) {
+  const ordered = Object.keys(scores)
+    .sort()
+    .map((question) => [question, scores[question]?.level ?? '', scores[question]?.note ?? ''])
+  return JSON.stringify([ordered, negativeImpact, positiveImpact])
+}
 
 export default function AssessmentScoringPage() {
   const { projectId } = useParams()
+  const { can } = useProjectContext()
   const navigate = useNavigate()
   const { categoriesWithQuestions, isLoading: lookupsLoading } = useLookups()
   const {
@@ -46,6 +69,8 @@ export default function AssessmentScoringPage() {
   const [negativeImpact, setNegativeImpact] = useState('')
   const [positiveImpact, setPositiveImpact] = useState('')
   const [showSubmitModal, setShowSubmitModal] = useState(false)
+  // Scores and impacts as loaded (or last saved): leaving with anything else asks first (D61)
+  const [baseline, setBaseline] = useState(null)
   const toast = useToast()
 
   // Update state when assessment data loads
@@ -68,19 +93,33 @@ export default function AssessmentScoringPage() {
           }
         })
         setScores(scoreMap)
+        setBaseline(
+          snapshot(
+            scoreMap,
+            assessment.potential_negative_impact || '',
+            assessment.potential_positive_impact || ''
+          )
+        )
       } else {
-        // Auto-fill all questions with N/A for new assessment
+        // Same default as the backend: every question starts as Negligible (D54)
         const allQuestions = categoriesWithQuestions.flatMap((cat) =>
           cat.questions.map((q) => q.id)
         )
         const defaultScores = {}
         allQuestions.forEach((questionId) => {
           defaultScores[questionId] = {
-            level: 'not_applicable',
+            level: 'negligible',
             note: '',
           }
         })
         setScores(defaultScores)
+        setBaseline(
+          snapshot(
+            defaultScores,
+            assessment.potential_negative_impact || '',
+            assessment.potential_positive_impact || ''
+          )
+        )
       }
     }
   }, [assessment, impactScores, isLoading, categoriesWithQuestions])
@@ -124,14 +163,21 @@ export default function AssessmentScoringPage() {
     return categoriesWithQuestions.flatMap((cat) => cat.questions.map((q) => q.id))
   }, [categoriesWithQuestions])
 
+  const readOnly = !can('assessment.edit')
+  const isDirty =
+    !readOnly && baseline !== null && snapshot(scores, negativeImpact, positiveImpact) !== baseline
+  // "Saved" after a successful draft save until the next change, as in Tools 3–5 (phase 12a)
+  const [justSaved, setJustSaved] = useState(false)
+  const showSaved = justSaved && !isDirty
+
   const handleSaveDraft = async () => {
     if (!assessment?._id) {
       toast.warning('Please complete and save the metadata step first.')
-      return
+      return { success: false }
     }
     if (!allQuestionIds.length) {
       toast.warning('Scoring questions are still loading. Please try again.')
-      return
+      return { success: false }
     }
 
     const finalScores = allQuestionIds.map((questionId) => {
@@ -141,34 +187,44 @@ export default function AssessmentScoringPage() {
       }
       return {
         question: questionId,
-        level: 'not_applicable',
+        level: 'negligible',
         note: '',
       }
     })
 
     const result = await saveImpactScoresDraft(finalScores, negativeImpact, positiveImpact)
-    if (!result.success) {
+    if (result.success) {
+      setBaseline(snapshot(scores, negativeImpact, positiveImpact))
+      setJustSaved(true)
+    } else if (!result.handled) {
+      // A stale save or an expired session is shown by its own dialog (D73)
       toast.error(result.error || 'Failed to save draft. Please try again.')
     }
+    return result
   }
+
+  // Leaving with changes asks Save / Discard / Stay (D61); "Save" saves the draft.
+  const { navigateAway } = useUnsavedChanges(isDirty, handleSaveDraft)
 
   const handleSubmit = async () => {
     if (!assessment?._id) {
       toast.warning('Please complete and save the metadata step first.')
       return
     }
+    // The metadata a submit needs (D74 2), worded like the backend's answer
+    const metadataError = assessmentSubmitError(assessment)
+    if (metadataError) {
+      toast.error(metadataError)
+      return
+    }
     // Validate potential impacts are required
     const validationErrors = {}
     if (!negativeImpact?.trim()) {
       validationErrors.negativeImpact = 'Potential negative impact is required'
-    } else if (negativeImpact.trim().length < 20) {
-      validationErrors.negativeImpact = 'Please provide at least 20 characters'
     }
 
     if (!positiveImpact?.trim()) {
       validationErrors.positiveImpact = 'Potential positive impact is required'
-    } else if (positiveImpact.trim().length < 20) {
-      validationErrors.positiveImpact = 'Please provide at least 20 characters'
     }
 
     if (Object.keys(validationErrors).length > 0) {
@@ -185,7 +241,7 @@ export default function AssessmentScoringPage() {
       setShowSubmitModal(false)
       return
     }
-    // Auto-fill unanswered questions with 'not_applicable'
+    // Unanswered questions keep the backend default, Negligible (D54)
     const finalScores = allQuestionIds.map((questionId) => {
       const existingScore = scoresArray.find((s) => s.question === questionId)
       if (existingScore && existingScore.level) {
@@ -194,22 +250,23 @@ export default function AssessmentScoringPage() {
       // Auto-fill with N/A
       return {
         question: questionId,
-        level: 'not_applicable',
+        level: 'negligible',
         note: '',
       }
     })
 
     const result = await saveImpactScores(finalScores, negativeImpact, positiveImpact)
     if (!result.success) {
-      toast.error(result.error || 'Failed to save scores. Please try again.')
+      if (!result.handled) toast.error(result.error || 'Failed to save scores. Please try again.')
       setShowSubmitModal(false)
       return
     }
+    setBaseline(snapshot(scores, negativeImpact, positiveImpact))
 
     const submitResult = await submitAssessment()
     if (submitResult.success) {
-      navigate(`/app/projects/${projectId}/assessment/review`)
-    } else {
+      navigateAway(`/app/projects/${projectId}/assessment/review`)
+    } else if (!submitResult.handled) {
       toast.error(submitResult.error || 'Failed to submit assessment. Please try again.')
     }
     setShowSubmitModal(false)
@@ -219,32 +276,17 @@ export default function AssessmentScoringPage() {
     navigate(`/app/projects/${projectId}/assessment/methods`)
   }
 
-  // Allow editing when rejected or draft, but not when approved or submitted
-  // When rejected, user should be able to edit (rejected is not submitted, so it's editable)
-  const readOnly = assessment?.status === 'approved' || assessment?.status === 'submitted'
-
   if (isLoading || lookupsLoading) {
-    return (
-      <div className="flex w-full items-center justify-center py-20">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading scoring...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState message="Loading scoring..." />
   }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-text-main dark:text-white">
-          Environmental Impact Assessment Scoring
-        </h1>
-        <p className="text-text-secondary mt-1">
-          Evaluate and score environmental impacts across 8 categories (50 questions total)
-        </p>
-      </div>
+      <PageHeader
+        className="mb-8"
+        title="Environmental Impact Assessment Scoring"
+        description="Evaluate and score environmental impacts across 8 categories (50 questions total)"
+      />
 
       {/* Impact Categories */}
       <div className="space-y-4 mb-6">
@@ -262,7 +304,7 @@ export default function AssessmentScoringPage() {
       </div>
 
       {/* Total Score & Impact Cards */}
-      <div className="bg-white dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark shadow-sm p-6 flex flex-col lg:flex-row gap-8 items-stretch mb-6">
+      <div className="bg-surface dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark shadow-sm p-6 flex flex-col lg:flex-row gap-8 items-stretch mb-6">
         <TotalScoreCard scores={totalScore} />
         <div className="w-px bg-border-default dark:bg-border-dark hidden lg:block"></div>
         <TotalImpactCard impact={totalImpact} />
@@ -288,37 +330,40 @@ export default function AssessmentScoringPage() {
 
       {/* Sticky Footer */}
       <StickyFooter>
-        <button
-          onClick={handleBack}
-          disabled={isSaving}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border-default dark:border-border-dark text-text-main dark:text-white font-medium hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <span className="material-symbols-outlined text-sm">arrow_back</span>
+        <Button variant="secondary" onClick={handleBack} disabled={isSaving}>
+          <span className="material-symbols-outlined text-sm" aria-hidden="true">
+            arrow_back
+          </span>
           Back
-        </button>
+        </Button>
         <div className="flex items-center gap-3">
-          <button
+          <Button
+            variant="secondary"
             onClick={handleSaveDraft}
-            disabled={isSaving || readOnly}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border-default dark:border-border-dark text-text-main dark:text-white font-medium hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isSaving || readOnly || showSaved}
           >
             {isSaving ? (
               <>
                 <LoadingSpinner size="sm" />
                 Saving...
               </>
+            ) : showSaved ? (
+              <>
+                <span className="material-symbols-outlined text-sm" aria-hidden="true">
+                  check
+                </span>
+                Saved
+              </>
             ) : (
               <>
-                <span className="material-symbols-outlined text-sm">save</span>
+                <span className="material-symbols-outlined text-sm" aria-hidden="true">
+                  save
+                </span>
                 Save as Draft
               </>
             )}
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={isSaving || readOnly}
-            className="flex items-center justify-center gap-2 rounded-lg h-10 px-5 bg-primary text-white text-sm font-bold hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-          >
+          </Button>
+          <Button variant="primary" onClick={handleSubmit} disabled={isSaving || readOnly}>
             {isSaving ? (
               <>
                 <LoadingSpinner size="sm" />
@@ -326,11 +371,13 @@ export default function AssessmentScoringPage() {
               </>
             ) : (
               <>
-                <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                  check_circle
+                </span>
                 <span>Submit Assessment</span>
               </>
             )}
-          </button>
+          </Button>
         </div>
       </StickyFooter>
 
@@ -339,8 +386,8 @@ export default function AssessmentScoringPage() {
         isOpen={showSubmitModal}
         onClose={() => setShowSubmitModal(false)}
         title="Confirm Submission"
-        description="Are you sure you want to submit the assessment?"
-        sub_description="*Editing will not be possible after submission unless the screening is rejected by an administrator."
+        description={`${changedQuestionsSummary(allQuestionIds, scoresArray)} Submit the assessment?`}
+        sub_description="*Editing will not be possible after submission unless the assessment is rejected by a reviewer."
       >
         <Modal.Footer>
           <Button variant="outline" onClick={() => setShowSubmitModal(false)} disabled={isSaving}>

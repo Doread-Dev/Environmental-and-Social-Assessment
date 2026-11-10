@@ -4,93 +4,67 @@ const validate = require("../middlewares/validate");
 const {
   createAssessmentSchema,
   updateAssessmentSchema,
-  addMethodSchema,
   replaceMethodsSchema,
-  addConsultationSchema,
   replaceConsultationsSchema,
   addScoresSchema,
   approveAssessmentSchema,
   rejectAssessmentSchema,
 } = require("../validators/assessment.validator");
-const { auth, requireRole } = require("../middlewares/auth");
+const { submitSchema } = require("../validators/version.validator");
+const { requirePermission } = require("../middlewares/auth");
+const projectAccess = require("../middlewares/projectAccess");
+const Assessment = require("../models/assessment.model");
 
 const router = express.Router();
+const assessment = projectAccess.fromRecord(Assessment, "id", "Assessment not found");
+const edit = requirePermission("assessment.edit");
 
-router.get("/", controller.getAll);
-router.get("/:id", controller.getOne);
-router.get("/project/:projectId", controller.getByProject);
+router.get("/:id", assessment, controller.getOne);
+// The assessment with methods, consultations and scores embedded (D63 c); null = not started.
+router.get("/project/:projectId", projectAccess.fromParam("projectId"), controller.getByProject);
 router.post(
   "/",
-  auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
+  requirePermission("assessment.create"),
   validate(createAssessmentSchema),
+  projectAccess.fromBody("project"),
   controller.create
 );
-router.put(
-  "/:id",
-  auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
-  validate(updateAssessmentSchema),
-  controller.update
-);
-router.post(
-  "/:id/methods",
-  auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
-  validate(addMethodSchema),
-  controller.addMethod
-);
-router.get("/:id/methods", controller.getMethods);
+router.put("/:id", edit, validate(updateAssessmentSchema), assessment, controller.update);
 router.put(
   "/:id/methods",
-  auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
+  edit,
   validate(replaceMethodsSchema),
+  assessment,
   controller.replaceMethods
 );
-router.post(
-  "/:id/consultations",
-  auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
-  validate(addConsultationSchema),
-  controller.addConsultation
-);
-router.get("/:id/consultations", controller.getConsultations);
 router.put(
   "/:id/consultations",
-  auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
+  edit,
   validate(replaceConsultationsSchema),
+  assessment,
   controller.replaceConsultations
 );
-router.post(
-  "/:id/scores",
-  auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
-  validate(addScoresSchema),
-  controller.addScores
-);
-router.get("/:id/scores", controller.getScores);
+router.post("/:id/scores", edit, validate(addScoresSchema), assessment, controller.addScores);
 router.patch(
-  "/:id/calculate",
-  auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
-  controller.calculate
+  "/:id/submit",
+  requirePermission("assessment.submit"),
+  validate(submitSchema),
+  assessment,
+  controller.submit
 );
 router.patch(
   "/:id/approve",
-  auth,
-  requireRole("environmental_specialist"),
+  requirePermission("assessment.approve"),
   validate(approveAssessmentSchema),
+  assessment,
   controller.approve
 );
 router.patch(
   "/:id/reject",
-  auth,
-  requireRole("environmental_specialist"),
+  requirePermission("assessment.reject"),
   validate(rejectAssessmentSchema),
+  assessment,
   controller.reject
 );
 
 module.exports = router;
-

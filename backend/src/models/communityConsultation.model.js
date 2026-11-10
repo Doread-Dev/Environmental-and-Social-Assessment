@@ -14,4 +14,3 @@ const communityConsultationSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("CommunityConsultation", communityConsultationSchema);
-

@@ -1,437 +1,185 @@
 /**
  * useMonitoring Hook
- * Manages monitoring data (Tool 5)
+ * Monitoring data (Tool 5): the saved records are a cached query; edits stay local (one per
+ * indicator) until Save, which sends the changed records in one request (D32). The save carries
+ * the table revision the edits started from (D62): a save by someone else meanwhile → 409.
  */
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { monitoringService } from '@/services/monitoringService'
 import { extractErrorMessage } from '@/services/api'
-import { useLookups } from '@/contexts'
+import { queryKeys } from '@/services/queryKeys'
+import { useLookups } from './useLookups'
+import { useProjectSave } from './useProjectSave'
+import { responsibleFields } from '@/utils/responsible'
+
+const NO_RECORDS = []
+const NO_EDITS = {}
+// No local edits; `version` = the revision the first edit started from
+const CLEAN = { edits: NO_EDITS, version: undefined }
+const PLACEHOLDER = 'placeholder_'
+
+const idOf = (value) => (value && typeof value === 'object' ? value._id : value)
+
+// A record that does not exist yet for this indicator (created on Save when edited)
+const emptyRecord = (projectId, indicatorId) => ({
+  _id: `${PLACEHOLDER}${indicatorId}`,
+  project: projectId,
+  indicator: indicatorId,
+  scores: { baseline: '', Q1: '', Q2: '', Q3: '', Q4: '' },
+  total: '',
+  final_assessment: '',
+  ranking: null,
+  responsible: null,
+  responsible_text: '',
+  note: '',
+  isNew: true,
+})
+
+// A record as the bulk endpoint takes it (upserted by indicator)
+const toPayloadRecord = (record) => ({
+  indicator: idOf(record.indicator),
+  scores: record.scores || { baseline: '', Q1: '', Q2: '', Q3: '', Q4: '' },
+  total: record.total || '',
+  final_assessment: record.final_assessment || '',
+  ranking: record.ranking || null, // empty until picked (D69)
+  note: record.note || '',
+  ...responsibleFields(record),
+})
 
 /**
  * Hook for managing monitoring data
  * @param {string} projectId - Project ID
  */
 export function useMonitoring(projectId) {
-  const {
-    impactCategories,
-    categoriesWithIndicators,
-    isLoading: lookupsLoading,
-  } = useLookups()
-  const [records, setRecords] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-  const [error, setError] = useState(null)
+  const { impactCategories, categoriesWithIndicators, isLoading: lookupsLoading } = useLookups()
+  const query = useQuery({
+    queryKey: queryKeys.monitoring(projectId),
+    queryFn: () => monitoringService.getByProject(projectId),
+    enabled: !!projectId,
+    // Not behind local edits: a change by someone else is caught at save (409, D62)
+    refetchOnReconnect: false,
+  })
+  const savedRecords = query.data?.records ?? NO_RECORDS
+  const savedVersion = query.data?.version
+  // Local edits by indicator id, and the revision they started from
+  const [local, setLocal] = useState(CLEAN)
+  const { edits } = local
+  const { save, isSaving, error, setError, queryClient } = useProjectSave(
+    projectId,
+    queryKeys.monitoring(projectId)
+  )
+
+  const savedByIndicator = useMemo(
+    () => new Map(savedRecords.map((record) => [idOf(record.indicator), record])),
+    [savedRecords]
+  )
+
+  // Saved records with the local edits applied, plus edited records not saved yet
+  const records = useMemo(() => {
+    const merged = savedRecords.map((record) => edits[idOf(record.indicator)] ?? record)
+    const added = Object.entries(edits)
+      .filter(([indicatorId]) => !savedByIndicator.has(indicatorId))
+      .map(([, record]) => record)
+    return [...merged, ...added]
+  }, [savedRecords, savedByIndicator, edits])
 
   // Build lookup map: indicator ID → record
-  const recordMap = useMemo(() => {
-    return new Map(records.map((record) => {
-      // Handle both populated and non-populated indicator field
-      const indicatorId = typeof record.indicator === 'object'
-        ? record.indicator._id
-        : record.indicator
-      return [indicatorId, record]
-    }))
-  }, [records])
+  const recordMap = useMemo(
+    () => new Map(records.map((record) => [idOf(record.indicator), record])),
+    [records]
+  )
 
-  const loadData = useCallback(async () => {
-    if (!projectId) return
-    setIsLoading(true)
-    setError(null)
-    try {
-      const data = await monitoringService.getByProject(projectId)
-      setRecords(data)
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      console.error('Failed to load monitoring data:', errorMessage)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [projectId])
+  // The indicator a change is for: given, from a placeholder id, or from the saved record
+  const indicatorOf = useCallback(
+    (recordId, indicatorId) => {
+      if (indicatorId) return indicatorId
+      if (typeof recordId === 'string' && recordId.startsWith(PLACEHOLDER)) {
+        return recordId.slice(PLACEHOLDER.length)
+      }
+      return idOf(records.find((record) => record._id === recordId)?.indicator)
+    },
+    [records]
+  )
 
-  const refetch = useCallback(() => {
-    loadData()
-  }, [loadData])
-
-  useEffect(() => {
-    if (!projectId) return
-    loadData()
-  }, [projectId, loadData])
+  const editRecord = useCallback(
+    (recordId, indicatorId, change) => {
+      const id = indicatorOf(recordId, indicatorId)
+      if (!id || !projectId) return
+      setError(null)
+      setLocal((prev) => {
+        const base = prev.edits[id] ?? savedByIndicator.get(id) ?? emptyRecord(projectId, id)
+        return {
+          version: prev.edits === NO_EDITS ? savedVersion : prev.version,
+          edits: { ...prev.edits, [id]: { ...change(base), _dirty: true } },
+        }
+      })
+    },
+    [indicatorOf, projectId, savedByIndicator, savedVersion, setError]
+  )
 
   /**
-   * Update a quarter score
-   * Only updates local state - no API calls until Save button is clicked
+   * Update a quarter score (local only - sent on Save)
    */
   const updateQuarterScore = useCallback(
-    (recordId, quarter, value, indicatorId) => {
-      setError(null)
-
-      // Check if recordId is a placeholder (starts with "placeholder_")
-      const isPlaceholder = typeof recordId === 'string' && recordId.startsWith('placeholder_')
-      
-      // If placeholder, extract indicatorId from recordId or use provided indicatorId
-      const actualIndicatorId = isPlaceholder 
-        ? (indicatorId || recordId.replace('placeholder_', ''))
-        : null
-
-      // Check if this is an existing record (not a placeholder)
-      const existing = !isPlaceholder ? records.find((r) => r._id === recordId) : null
-
-      if (existing) {
-        // Update local state immediately
-        setRecords((prev) =>
-          prev.map((record) => {
-            if (record._id === recordId) {
-              return {
-                ...record,
-                scores: {
-                  ...record.scores,
-                  [quarter]: value,
-                },
-                _dirty: true,
-              }
-            }
-            return record
-          })
-        )
-      } else if (actualIndicatorId && projectId) {
-        // No existing record - create local placeholder record (no API call)
-        setRecords((prev) => {
-          // Check if placeholder already exists
-          const existingPlaceholder = prev.find(
-            (r) => r._id === `placeholder_${actualIndicatorId}`
-          )
-          if (existingPlaceholder) {
-            return prev.map((record) => {
-              if (record._id === `placeholder_${actualIndicatorId}`) {
-                return {
-                  ...record,
-                  scores: {
-                    ...record.scores,
-                    [quarter]: value,
-                  },
-                  _dirty: true,
-                }
-              }
-              return record
-            })
-          }
-          
-          // Create new placeholder record
-          return [
-            ...prev,
-            {
-              _id: `placeholder_${actualIndicatorId}`,
-              project: projectId,
-              indicator: actualIndicatorId,
-              scores: {
-                baseline: '',
-                Q1: '',
-                Q2: '',
-                Q3: '',
-                Q4: '',
-                [quarter]: value,
-              },
-              total: '',
-              final_assessment: '',
-              ranking: null,
-              responsible: null,
-              note: '',
-              isNew: true,
-              _dirty: true,
-            },
-          ]
-        })
-      }
-    },
-    [projectId, records]
+    (recordId, quarter, value, indicatorId) =>
+      editRecord(recordId, indicatorId, (record) => ({
+        ...record,
+        scores: { ...record.scores, [quarter]: value },
+      })),
+    [editRecord]
   )
 
   /**
-   * Update a field on a monitoring record
-   * Only updates local state - no API calls until Save button is clicked
+   * Update a field on a monitoring record (local only - sent on Save)
    */
   const updateRecordField = useCallback(
-    (recordId, field, value, indicatorId) => {
-      setError(null)
-
-      // Check if recordId is a placeholder (starts with "placeholder_")
-      const isPlaceholder = typeof recordId === 'string' && recordId.startsWith('placeholder_')
-      
-      // If placeholder, extract indicatorId from recordId or use provided indicatorId
-      const actualIndicatorId = isPlaceholder 
-        ? (indicatorId || recordId.replace('placeholder_', ''))
-        : null
-
-      // Check if this is an existing record (not a placeholder)
-      const existing = !isPlaceholder ? records.find((r) => r._id === recordId) : null
-
-      if (existing) {
-        // Update local state
-        setRecords((prev) =>
-          prev.map((record) => {
-            if (record._id === recordId) {
-              return {
-                ...record,
-                [field]: value,
-                _dirty: true,
-              }
-            }
-            return record
-          })
-        )
-      } else if (actualIndicatorId && projectId) {
-        // No existing record - create local placeholder record (no API call)
-        setRecords((prev) => {
-          // Check if placeholder already exists
-          const existingPlaceholder = prev.find(
-            (r) => r._id === `placeholder_${actualIndicatorId}`
-          )
-          if (existingPlaceholder) {
-            return prev.map((record) => {
-              if (record._id === `placeholder_${actualIndicatorId}`) {
-                return {
-                  ...record,
-                  [field]: value,
-                  _dirty: true,
-                }
-              }
-              return record
-            })
-          }
-          
-          // Create new placeholder record
-          return [
-            ...prev,
-            {
-              _id: `placeholder_${actualIndicatorId}`,
-              project: projectId,
-              indicator: actualIndicatorId,
-              scores: { baseline: '', Q1: '', Q2: '', Q3: '', Q4: '' },
-              total: '',
-              final_assessment: '',
-              ranking: null,
-              responsible: null,
-              note: '',
-              [field]: value,
-              isNew: true,
-              _dirty: true,
-            },
-          ]
-        })
-      }
-    },
-    [projectId, records]
+    (recordId, field, value, indicatorId) =>
+      editRecord(recordId, indicatorId, (record) => ({ ...record, [field]: value })),
+    [editRecord]
   )
 
   /**
-   * Add a new record for an indicator (local only - no API call)
-   */
-  const addRecord = useCallback(
-    (indicatorId) => {
-      setError(null)
-      const newRecord = {
-        _id: `placeholder_${indicatorId}`,
-        project: projectId,
-        indicator: indicatorId,
-        scores: { baseline: '', Q1: '', Q2: '', Q3: '', Q4: '' },
-        total: '',
-        final_assessment: '',
-        ranking: null,
-        responsible: null,
-        note: '',
-        isNew: true,
-        _dirty: true,
-      }
-      setRecords((prev) => [...prev, newRecord])
-      return newRecord
-    },
-    [projectId]
-  )
-
-  /**
-   * Save all records to API
-   * Only creates/updates records that have been modified (dirty or placeholders)
-   * Uses lazy creation strategy - only creates records when data is entered
+   * Save the changed records in one request
    */
   const saveAllRecords = useCallback(async () => {
-    setIsSaving(true)
-    setError(null)
-    try {
-      // Separate records into: placeholders (new), dirty (modified), and unchanged
-      const placeholderRecords = records.filter((r) => r._id?.startsWith('placeholder_'))
-      const dirtyRecords = records.filter(
-        (r) => r._dirty && !r._id?.startsWith('placeholder_') && !r.isNew
-      )
-
-      // Create new records from placeholders
-      const createPromises = placeholderRecords.map(async (record) => {
-        const indicatorId =
-          typeof record.indicator === 'object' ? record.indicator._id : record.indicator
-
-        if (!indicatorId) {
-          console.error('Cannot create monitoring record: missing indicator ID', record)
-          return null
-        }
-
-        const payload = {
-          project: projectId,
-          indicator: indicatorId,
-          scores: record.scores || { baseline: '', Q1: '', Q2: '', Q3: '', Q4: '' },
-          total: record.total || '',
-          final_assessment: record.final_assessment || '',
-          ranking: record.ranking || 'not_applicable',
-          responsible:
-            record.responsible && typeof record.responsible === 'object'
-              ? record.responsible._id
-              : record.responsible && record.responsible !== null && record.responsible !== ''
-                ? record.responsible
-                : undefined,
-          note: record.note || '',
-        }
-
-        return monitoringService.create(payload).catch((err) => {
-          console.error(`Failed to create monitoring record for indicator ${indicatorId}:`, err)
-          throw err
-        })
-      })
-
-      // Update dirty records
-      const updatePromises = dirtyRecords.map(async (record) => {
-        const { _dirty, ...data } = record
-
-        // Extract IDs from populated fields
-        const recordProjectId =
-          typeof data.project === 'object' ? data.project._id : data.project || projectId
-        const recordIndicatorId =
-          typeof data.indicator === 'object' ? data.indicator._id : data.indicator
-
-        // Validate required fields
-        if (!recordProjectId || !recordIndicatorId) {
-          console.error('Cannot update monitoring record: missing project or indicator', {
-            recordId: record._id,
-            recordProjectId,
-            recordIndicatorId,
-            data,
-          })
-          return null
-        }
-
-        // Full update for all users (including EFP)
-        const payload = {
-          project: recordProjectId,
-          indicator: recordIndicatorId,
-          scores: data.scores || { baseline: '', Q1: '', Q2: '', Q3: '', Q4: '' },
-          total: data.total || '',
-          final_assessment: data.final_assessment || '',
-          ranking: data.ranking || 'not_applicable',
-          responsible:
-            typeof data.responsible === 'object' && data.responsible !== null
-              ? data.responsible._id
-              : data.responsible &&
-                  data.responsible !== null &&
-                  data.responsible !== '' &&
-                  typeof data.responsible === 'string'
-                ? data.responsible
-                : undefined,
-          note: data.note || '',
-        }
-
-        return monitoringService.update(record._id, payload).catch((err) => {
-          console.error(`Failed to update record ${record._id}:`, err)
-          throw err
-        })
-      })
-
-      // Execute all operations in parallel
-      // Use allSettled to handle partial failures gracefully
-      const allPromises = [...createPromises, ...updatePromises]
-      const results = await Promise.allSettled(allPromises)
-
-      // Check for failures
-      const failures = results.filter((r) => r.status === 'rejected')
-      if (failures.length > 0) {
-        const errorMessages = failures.map((f) => f.reason?.message || String(f.reason)).join('; ')
-        throw new Error(`Failed to save some records: ${errorMessages}`)
-      }
-
-      // Filter out null results (skipped records) and extract values
-      const validResults = results
-        .filter((r) => r.status === 'fulfilled' && r.value !== null)
-        .map((r) => r.value)
-
-      // Reload all records from API to get fresh data with populated fields
-      // This ensures consistency and removes dirty flags
-      const updatedRecords = await monitoringService.getByProject(projectId)
-      setRecords(updatedRecords)
-
-      // Dispatch event to notify workflow hook to refetch monitoring data
-      window.dispatchEvent(
-        new CustomEvent('monitoring-data-updated', {
-          detail: { projectId },
-        })
-      )
-
-      return { success: true }
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      console.error('Failed to save monitoring records:', errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setIsSaving(false)
-    }
-  }, [records, projectId])
+    const changed = Object.values(edits)
+    if (changed.length === 0) return { success: true }
+    const result = await save(
+      () => monitoringService.save(projectId, changed.map(toPayloadRecord), local.version),
+      (saved) => queryClient.setQueryData(queryKeys.monitoring(projectId), saved)
+    )
+    if (result.success) setLocal(CLEAN)
+    return result
+  }, [edits, local.version, save, projectId, queryClient])
 
   /**
    * Get monitoring data for a specific category
    * @param {string} categoryCode - Category code
    * @returns {Array} Array of { indicator, record } objects
    */
-  const getCategoryDataInternal = useCallback(
+  const getCategoryData = useCallback(
     (categoryCode) => {
       const category = categoriesWithIndicators.find(
         (cat) => cat.code === categoryCode || cat.id === categoryCode
       )
-      const indicators = category?.indicators || []
-
-      return indicators
-        .filter((indicator) => {
-          // Only include indicators with valid IDs
-          const indicatorId = indicator._id || indicator.id
-          return indicatorId && indicatorId !== 'undefined' && indicatorId !== 'null'
-        })
-        .map((indicator) => {
-          // Use _id (MongoDB ObjectId) as primary, fallback to id for compatibility
-          const indicatorId = indicator._id || indicator.id
-          const record = recordMap.get(indicatorId)
-          return {
-            indicator,
-            record: record || {
-              _id: `placeholder_${indicatorId}`,
-              project: projectId,
-              indicator: indicatorId,
-              scores: { baseline: '', Q1: '', Q2: '', Q3: '', Q4: '' },
-              total: '',
-              final_assessment: '',
-              ranking: null,
-              responsible: null,
-              note: '',
-              isNew: true,
-            },
-          }
-        })
+      return (category?.indicators || [])
+        .filter((indicator) => indicator._id)
+        .map((indicator) => ({
+          indicator,
+          record: recordMap.get(indicator._id) || emptyRecord(projectId, indicator._id),
+        }))
     },
     [categoriesWithIndicators, projectId, recordMap]
   )
 
   /**
-   * Get statistics for all categories
+   * Get statistics for all categories (display only: how many indicators have data)
    */
   const getAllCategoryStats = useCallback(() => {
     const isRecordComplete = (record) => {
       if (!record || record.isNew) return false
-      if (record.ranking && record.ranking !== 'not_applicable') return true
+      if (record.ranking) return true // only set when the user picked one (D69)
       return Boolean(
         record.scores?.baseline ||
         record.scores?.Q1 ||
@@ -445,7 +193,7 @@ export function useMonitoring(projectId) {
     }
 
     return impactCategories.map((category) => {
-      const data = getCategoryDataInternal(category.code)
+      const data = getCategoryData(category.code)
       const completedCount = data.filter((d) => isRecordComplete(d.record)).length
       const totalCount = data.length
 
@@ -464,25 +212,17 @@ export function useMonitoring(projectId) {
         },
       }
     })
-  }, [impactCategories, getCategoryDataInternal])
-
-  /**
-   * Get category data (public API)
-   */
-  const getCategoryData = useCallback(
-    (categoryCode) => getCategoryDataInternal(categoryCode),
-    [getCategoryDataInternal]
-  )
+  }, [impactCategories, getCategoryData])
 
   return {
     records,
-    isLoading: isLoading || lookupsLoading,
+    isLoading: (!!projectId && query.isPending) || lookupsLoading,
     isSaving,
-    error,
-    refetch,
+    hasChanges: edits !== NO_EDITS,
+    error: error ?? (query.error ? extractErrorMessage(query.error) : null),
+    refetch: query.refetch,
     updateQuarterScore,
     updateRecordField,
-    addRecord,
     saveAllRecords,
     getAllCategoryStats,
     getCategoryData,

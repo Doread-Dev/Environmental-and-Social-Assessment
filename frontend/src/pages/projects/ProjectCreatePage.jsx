@@ -1,17 +1,31 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Breadcrumb, Card, Input, Textarea, Button, Alert, Icon } from '@/components/ui'
+import { useQueryClient } from '@tanstack/react-query'
+import {
+  Breadcrumb,
+  Card,
+  Input,
+  Textarea,
+  Button,
+  Alert,
+  Icon,
+  PAGE_TITLE,
+  PAGE_DESCRIPTION,
+} from '@/components/ui'
 import { validateProjectForm } from '@/utils/validators'
 import { projectService } from '@/services/projectService'
 import { extractErrorMessage } from '@/services/api'
+import { queryKeys } from '@/services/queryKeys'
 import { ROUTES, getProjectRoute } from '@/routes/routes.config'
+import { useUnsavedChanges } from '@/contexts'
 
 /**
- * ProjectCreatePage - صفحة إنشاء مشروع جديد
+ * ProjectCreatePage - create a new project
  * Layout: MainLayout
  */
 function ProjectCreatePage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   // State
   const [formData, setFormData] = useState({
@@ -24,6 +38,9 @@ function ProjectCreatePage() {
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [generalError, setGeneralError] = useState('')
+  // A second submit while one runs (double click, Enter twice) creates nothing (one project)
+  const creating = useRef(null)
+  const isDirty = Object.values(formData).some((value) => value.trim() !== '')
 
   // Handlers
   const handleChange = (field) => (e) => {
@@ -41,8 +58,18 @@ function ProjectCreatePage() {
     navigate(ROUTES.PROJECTS)
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  // Validate and create; returns the new project. Also the shared guard's "Save" when leaving
+  // with a filled form (D61): the user then goes where they were heading.
+  const create = () => {
+    if (!creating.current) {
+      creating.current = createProject().finally(() => {
+        creating.current = null
+      })
+    }
+    return creating.current
+  }
+
+  const createProject = async () => {
     setGeneralError('')
 
     // Validation
@@ -56,7 +83,7 @@ function ProjectCreatePage() {
 
     if (!validation.valid) {
       setErrors(validation.errors)
-      return
+      return { success: false }
     }
 
     setIsSubmitting(true)
@@ -71,15 +98,28 @@ function ProjectCreatePage() {
       }
 
       const newProject = await projectService.create(projectData)
-
-      navigate(getProjectRoute(newProject._id, ROUTES.PROJECT_OVERVIEW))
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects })
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard })
+      return { success: true, data: newProject }
     } catch (err) {
+      // An expired session opens the sign-in dialog; the message says the form is kept (D73)
       const errorMessage = extractErrorMessage(err)
       setGeneralError(
         errorMessage || 'An error occurred while creating the project. Please try again.'
       )
+      return { success: false, error: errorMessage }
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const { navigateAway } = useUnsavedChanges(isDirty, create)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    const result = await create()
+    if (result.success) {
+      navigateAway(getProjectRoute(result.data._id, ROUTES.PROJECT_OVERVIEW))
     }
   }
 
@@ -98,10 +138,8 @@ function ProjectCreatePage() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="text-text-main dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-tight">
-            Create New Project
-          </h1>
-          <p className="text-text-secondary dark:text-gray-400 text-base font-normal">
+          <h1 className={PAGE_TITLE}>Create New Project</h1>
+          <p className={PAGE_DESCRIPTION}>
             Enter the initial details to register the project in the ESMS.
           </p>
         </div>

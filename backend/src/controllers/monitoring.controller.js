@@ -1,34 +1,18 @@
 const asyncHandler = require("../utils/asyncHandler");
 const service = require("../services/monitoring.service");
 
-exports.getAll = asyncHandler(async (req, res) => {
-  const data = await service.listMonitoring();
-  res.json({ success: true, data });
-});
-
 exports.getOne = asyncHandler(async (req, res) => {
   const data = await service.getMonitoringRecord(req.params.id);
   res.json({ success: true, data });
 });
 
+// The records in `data`, the table's revision next to it in `version` (D62).
 exports.getByProject = asyncHandler(async (req, res) => {
-  const data = await service.getByProject(req.params.projectId);
-  res.json({ success: true, data });
+  const { records, version } = await service.getByProject(req.params.projectId);
+  res.json({ success: true, data: records, version });
 });
 
-exports.create = asyncHandler(async (req, res) => {
-  const data = await service.createRecord(req.body);
-  res.status(201).json({ success: true, data });
+exports.upsertForProject = asyncHandler(async (req, res) => {
+  const { records, version } = await service.upsertForProject(req.params.id, req.body);
+  res.json({ success: true, data: records, version });
 });
-
-exports.update = asyncHandler(async (req, res) => {
-  const data = await service.updateRecord(req.params.id, req.body);
-  res.json({ success: true, data });
-});
-
-exports.updateQuarter = asyncHandler(async (req, res) => {
-  const { q } = req.params;
-  const data = await service.updateQuarter(req.params.id, q, req.body.value);
-  res.json({ success: true, data });
-});
-

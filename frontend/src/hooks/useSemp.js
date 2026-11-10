@@ -1,472 +1,173 @@
 /**
- * useSemp Hook
- * Manages SEMP state (Management Activities + Mitigation Plans)
+ * SEMP table hooks: Management Activities (Tool 3) and Mitigation Plan (Tool 4)
+ *
+ * The saved table is a cached query; edits stay local until Save, which sends the whole table in
+ * one request (D32): rows with `_id` are updated, new rows created, rows removed here deleted.
+ * The save carries the table revision the edits started from (D62): if someone else saved the
+ * table meanwhile, the backend answers 409 and nothing is overwritten (no merge).
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { sempService } from '@/services/sempService'
 import { extractErrorMessage } from '@/services/api'
+import { queryKeys } from '@/services/queryKeys'
+import { responsibleFields } from '@/utils/responsible'
+import { useProjectSave } from './useProjectSave'
 
-/**
- * Normalize data payload for API requests
- * Converts populated objects to ID strings
- * @param {Object} row - Data row
- * @returns {Object} Normalized payload
- */
-function normalizePayload(row) {
-  const payload = { ...row }
+const NO_ROWS = []
+const NOT_LOADED = { rows: NO_ROWS, version: undefined }
 
-  // Normalize project to ID string
-  if (payload.project && typeof payload.project === 'object') {
-    payload.project = payload.project._id || payload.project_id || payload.project
-  }
-
-  // Normalize responsible to ID string
-  // If responsible is empty/null/undefined, remove it from payload (don't send it to backend)
-  // Backend expects either a valid ObjectId string or the field to be omitted (not null/empty)
-  if (payload.responsible) {
-    // If it's an object (populated from API), extract the ID
-    if (typeof payload.responsible === 'object') {
-      const responsibleId = payload.responsible._id || payload.responsible
-      // Only keep it if it's a valid non-empty string
-      if (responsibleId && responsibleId !== '' && responsibleId !== null) {
-        payload.responsible = responsibleId
-      } else {
-        delete payload.responsible
-      }
-    } else if (typeof payload.responsible === 'string') {
-      // If it's already a string, check if it's valid
-      if (payload.responsible === '' || payload.responsible === null) {
-        delete payload.responsible
-      }
-    }
-  } else {
-    // If responsible is null, undefined, or empty string, remove it from payload
-    delete payload.responsible
-  }
-
-  return payload
+// A table row as the bulk endpoint takes it: ids instead of populated objects, no local flags,
+// no temporary id on new rows.
+function toPayloadRow(row) {
+  const { _id, _isNew, project: _project, responsible: _responsible, ...fields } = row
+  return { ...fields, ...(!_isNew && { _id }), ...responsibleFields(row) }
 }
 
 /**
- * Normalize API response data for frontend use
- * Converts populated objects to ID strings
- * @param {Array} items - Array of items from API
- * @returns {Array} Normalized items
+ * @param {Object} config
+ * @param {string} config.projectId
+ * @param {Array} config.queryKey
+ * @param {Function} config.load - (projectId) => Promise<{ rows, version }>
+ * @param {Function} config.saveAll - (projectId, rows, version) => Promise<{ rows, version }>
+ * @param {string} config.requiredField - Field every row must fill
+ * @param {string} config.requiredLabel - Its label in the error message
  */
-function normalizeApiResponse(items) {
-  return items.map((item) => ({
-    ...item,
-    project:
-      item.project && typeof item.project === 'object'
-        ? item.project._id || item.project_id || item.project
-        : item.project,
-    responsible:
-      item.responsible && typeof item.responsible === 'object'
-        ? item.responsible // Keep full object for display/export
-        : item.responsible,
-  }))
-}
+function useEditableTable({ projectId, queryKey, load, saveAll, requiredField, requiredLabel }) {
+  const query = useQuery({
+    queryKey,
+    queryFn: () => load(projectId),
+    enabled: !!projectId,
+    // Not behind local edits: a change by someone else is caught at save (409, D62)
+    refetchOnReconnect: false,
+  })
+  const saved = query.data ?? NOT_LOADED
+  const savedRows = saved.rows ?? NO_ROWS
+  // Local edits and the revision they started from; null = nothing changed since the last load
+  // or save
+  const [draft, setDraft] = useState(null)
+  const rows = draft?.rows ?? savedRows
+  const { save, fail, isSaving, error, setError, queryClient } = useProjectSave(projectId, queryKey)
 
-/**
- * Hook for managing SEMP state
- * @param {string} projectId - Project ID
- */
-export function useSemp(projectId) {
-  const [managementActivities, setManagementActivities] = useState([])
-  const [mitigationPlans, setMitigationPlans] = useState([])
-  const [managementDeletedIds, setManagementDeletedIds] = useState([])
-  const [mitigationDeletedIds, setMitigationDeletedIds] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-  const [error, setError] = useState(null)
-
-  const loadData = useCallback(async () => {
-    if (!projectId) return
-    setIsLoading(true)
-    setError(null)
-    try {
-      const [activities, plans] = await Promise.all([
-        sempService.getManagementActivities(projectId),
-        sempService.getMitigationPlans(projectId),
-      ])
-      setManagementActivities(normalizeApiResponse(activities))
-      setMitigationPlans(normalizeApiResponse(plans))
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      console.error('Failed to load SEMP data:', errorMessage)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [projectId])
-
-  const refetch = useCallback(() => {
-    loadData()
-  }, [loadData])
-
-  useEffect(() => {
-    if (!projectId) return
-    let cancelled = false
-    loadData().finally(() => {})
-    return () => {
-      cancelled = true
-    }
-  }, [projectId, loadData])
-
-  // ==========================================
-  // Management Activities (Tool 3)
-  // ==========================================
+  const edit = useCallback(
+    (change) =>
+      setDraft((prev) => ({
+        version: prev ? prev.version : saved.version,
+        rows: change(prev ? prev.rows : savedRows),
+      })),
+    [saved.version, savedRows]
+  )
 
   /**
-   * Add a new management activity row (local only)
-   * لا يتم الإرسال للباك حتى يتم الضغط على زر الحفظ
+   * Add a new row (local only — sent on Save)
    */
-  const addManagementActivity = useCallback(() => {
-    const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2)}`
+  const addRow = useCallback(() => {
     const newRow = {
-      _id: tempId,
+      _id: `temp_${Date.now()}_${Math.random().toString(36).slice(2)}`,
       _isNew: true,
-      project: projectId,
-      serial_number: managementActivities.length + 1,
-      activity_description: '',
+      serial_number: rows.length + 1,
+      [requiredField]: '',
     }
-    setManagementActivities((prev) => [...prev, newRow])
+    edit((prev) => [...prev, newRow])
     return newRow
-  }, [projectId, managementActivities.length])
+  }, [rows.length, requiredField, edit])
 
   /**
-   * Update a management activity field
-   * Updates local state immediately, API call on save
-   * @param {string} rowId - Activity ID
-   * @param {string} field - Field name
-   * @param {any} value - New value
+   * Update a field of a row (local only)
    */
-  const updateManagementActivity = useCallback((rowId, field, value) => {
-    // Clear error when user starts editing
-    setError(null)
-    setManagementActivities((prev) =>
-      prev.map((row) =>
-        row._id === rowId
-          ? { ...row, [field]: value, _dirty: true, updatedAt: new Date().toISOString() }
-          : row
+  const updateRow = useCallback(
+    (rowId, field, value) => {
+      setError(null)
+      edit((prev) => prev.map((row) => (row._id === rowId ? { ...row, [field]: value } : row)))
+    },
+    [edit, setError]
+  )
+
+  /**
+   * Remove a row (local only) and renumber the rest
+   */
+  const deleteRow = useCallback(
+    (rowId) =>
+      edit((prev) =>
+        prev
+          .filter((row) => row._id !== rowId)
+          .map((row, index) => ({ ...row, serial_number: index + 1 }))
+      ),
+    [edit]
+  )
+
+  /**
+   * Save the whole table in one request
+   */
+  const saveRows = useCallback(async () => {
+    const incomplete = rows.filter((row) => !row[requiredField]?.trim()).length
+    if (incomplete > 0) {
+      return fail(
+        `Please fill in "${requiredLabel}" for all rows before saving. ${incomplete} row(s) are incomplete.`
       )
+    }
+    const version = draft ? draft.version : saved.version
+    const result = await save(
+      () => saveAll(projectId, rows.map(toPayloadRow), version),
+      (table) => queryClient.setQueryData(queryKey, table)
     )
-  }, [])
-
-  /**
-   * Delete a management activity (local delete, deferred API)
-   * @param {string} rowId - Activity ID
-   */
-  const deleteManagementActivity = useCallback((rowId) => {
-    setManagementActivities((prev) => {
-      const target = prev.find((row) => row._id === rowId)
-
-      // إذا كان الصف موجوداً مسبقاً في الباك، نضيفه لقائمة المحذوفين
-      if (target && !target._isNew) {
-        setManagementDeletedIds((ids) =>
-          ids.includes(rowId) ? ids : [...ids, rowId]
-        )
-      }
-
-      const filtered = prev.filter((row) => row._id !== rowId)
-      // إعادة ترقيم الصفوف ووضع علامة dirty للصفوف المعدلة
-      return filtered.map((row, index) => {
-        const newSerialNumber = index + 1
-        // إذا تغير serial_number، نضع علامة dirty
-        if (row.serial_number !== newSerialNumber && !row._isNew) {
-          return { ...row, serial_number: newSerialNumber, _dirty: true }
-        }
-        return { ...row, serial_number: newSerialNumber }
-      })
-    })
-  }, [])
-
-  /**
-   * Save all management activities changes to API
-   * - ينشئ الصفوف الجديدة
-   * - يحدّث الصفوف المعدَّلة
-   * - يحذف الصفوف التي تم حذفها في الواجهة
-   */
-  const saveManagementActivities = useCallback(async () => {
-    setIsSaving(true)
-    setError(null)
-    try {
-      const newRows = managementActivities.filter((row) => row._isNew)
-      const dirtyRows = managementActivities.filter((row) => row._dirty && !row._isNew)
-
-      // Validate: Check if any new rows are missing required fields
-      const invalidNewRows = newRows.filter(
-        (row) => !row.activity_description || !row.activity_description.trim()
-      )
-      if (invalidNewRows.length > 0) {
-        const message = `Please fill in "Activity Description" for all new rows before saving. ${invalidNewRows.length} row(s) are incomplete.`
-        setError(message)
-        return { success: false, error: message }
-      }
-
-      // Validate: Check if any dirty rows are missing required fields
-      const invalidDirtyRows = dirtyRows.filter(
-        (row) => !row.activity_description || !row.activity_description.trim()
-      )
-      if (invalidDirtyRows.length > 0) {
-        const message = `Please fill in "Activity Description" for all modified rows before saving. ${invalidDirtyRows.length} row(s) are incomplete.`
-        setError(message)
-        return { success: false, error: message }
-      }
-
-      // Execute delete operations in parallel
-      const deletePromises = managementDeletedIds.map((id) =>
-        sempService.deleteManagementActivity(id).catch((err) => {
-          console.error(`Failed to delete activity ${id}:`, err)
-          throw err
-        })
-      )
-
-      // Execute create operations in parallel
-      const createPromises = newRows.map((row) => {
-        const { _isNew, _dirty, _id, ...rest } = row
-        const payload = normalizePayload(rest)
-        return sempService.createManagementActivity(payload).catch((err) => {
-          console.error(`Failed to create activity:`, err)
-          throw err
-        })
-      })
-
-      // Execute update operations in parallel
-      const updatePromises = dirtyRows.map((row) => {
-        const { _dirty, ...rest } = row
-        const payload = normalizePayload(rest)
-        return sempService.updateManagementActivity(row._id, payload).catch((err) => {
-          console.error(`Failed to update activity ${row._id}:`, err)
-          throw err
-        })
-      })
-
-      // Execute all operations in parallel
-      await Promise.all([...deletePromises, ...createPromises, ...updatePromises])
-
-      // إعادة تحميل البيانات من الـ API لضمان التزامن وإزالة الفلاگز
-      const activities = await sempService.getManagementActivities(projectId)
-      setManagementActivities(normalizeApiResponse(activities))
-      setManagementDeletedIds([])
-
-      return { success: true }
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setIsSaving(false)
-    }
-  }, [managementActivities, managementDeletedIds, projectId])
-
-  // ==========================================
-  // Mitigation Plans (Tool 4)
-  // ==========================================
-
-  /**
-   * Add a new mitigation plan row (local only)
-   * لا يتم الإرسال للباك حتى يتم الضغط على زر الحفظ
-   */
-  const addMitigationPlan = useCallback(() => {
-    const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2)}`
-    const newRow = {
-      _id: tempId,
-      _isNew: true,
-      project: projectId,
-      serial_number: mitigationPlans.length + 1,
-      output_description: '',
-    }
-    setMitigationPlans((prev) => [...prev, newRow])
-    return newRow
-  }, [projectId, mitigationPlans.length])
-
-  /**
-   * Update a mitigation plan field
-   * Updates local state immediately, API call on save
-   * @param {string} rowId - Plan ID
-   * @param {string} field - Field name
-   * @param {any} value - New value
-   */
-  const updateMitigationPlan = useCallback((rowId, field, value) => {
-    // Clear error when user starts editing
-    setError(null)
-    setMitigationPlans((prev) =>
-      prev.map((row) =>
-        row._id === rowId
-          ? { ...row, [field]: value, _dirty: true, updatedAt: new Date().toISOString() }
-          : row
-      )
-    )
-  }, [])
-
-  /**
-   * Delete a mitigation plan (local delete, deferred API)
-   * @param {string} rowId - Plan ID
-   */
-  const deleteMitigationPlan = useCallback((rowId) => {
-    setMitigationPlans((prev) => {
-      const target = prev.find((row) => row._id === rowId)
-
-      if (target && !target._isNew) {
-        setMitigationDeletedIds((ids) =>
-          ids.includes(rowId) ? ids : [...ids, rowId]
-        )
-      }
-
-      const filtered = prev.filter((row) => row._id !== rowId)
-      // إعادة ترقيم الصفوف ووضع علامة dirty للصفوف المعدلة
-      return filtered.map((row, index) => {
-        const newSerialNumber = index + 1
-        // إذا تغير serial_number، نضع علامة dirty
-        if (row.serial_number !== newSerialNumber && !row._isNew) {
-          return { ...row, serial_number: newSerialNumber, _dirty: true }
-        }
-        return { ...row, serial_number: newSerialNumber }
-      })
-    })
-  }, [])
-
-  /**
-   * Save all mitigation plans changes to API
-   * - ينشئ الصفوف الجديدة
-   * - يحدّث الصفوف المعدَّلة
-   * - يحذف الصفوف التي تم حذفها في الواجهة
-   */
-  const saveMitigationPlans = useCallback(async () => {
-    setIsSaving(true)
-    setError(null)
-    try {
-      const newRows = mitigationPlans.filter((row) => row._isNew)
-      const dirtyRows = mitigationPlans.filter((row) => row._dirty && !row._isNew)
-
-      // Validate: Check if any new rows are missing required fields
-      const invalidNewRows = newRows.filter(
-        (row) => !row.output_description || !row.output_description.trim()
-      )
-      if (invalidNewRows.length > 0) {
-        const message = `Please fill in "Output Description" for all new rows before saving. ${invalidNewRows.length} row(s) are incomplete.`
-        setError(message)
-        return { success: false, error: message }
-      }
-
-      // Validate: Check if any dirty rows are missing required fields
-      const invalidDirtyRows = dirtyRows.filter(
-        (row) => !row.output_description || !row.output_description.trim()
-      )
-      if (invalidDirtyRows.length > 0) {
-        const message = `Please fill in "Output Description" for all modified rows before saving. ${invalidDirtyRows.length} row(s) are incomplete.`
-        setError(message)
-        return { success: false, error: message }
-      }
-
-      // Execute delete operations in parallel
-      const deletePromises = mitigationDeletedIds.map((id) =>
-        sempService.deleteMitigationPlan(id).catch((err) => {
-          console.error(`Failed to delete plan ${id}:`, err)
-          throw err
-        })
-      )
-
-      // Execute create operations in parallel
-      const createPromises = newRows.map((row) => {
-        const { _isNew, _dirty, _id, ...rest } = row
-        const payload = normalizePayload(rest)
-        return sempService.createMitigationPlan(payload).catch((err) => {
-          console.error(`Failed to create plan:`, err)
-          throw err
-        })
-      })
-
-      // Execute update operations in parallel
-      const updatePromises = dirtyRows.map((row) => {
-        const { _dirty, ...rest } = row
-        const payload = normalizePayload(rest)
-        return sempService.updateMitigationPlan(row._id, payload).catch((err) => {
-          console.error(`Failed to update plan ${row._id}:`, err)
-          throw err
-        })
-      })
-
-      // Execute all operations in parallel
-      await Promise.all([...deletePromises, ...createPromises, ...updatePromises])
-
-      // إعادة تحميل البيانات من الـ API لضمان التزامن وإزالة الفلاگز
-      const plans = await sempService.getMitigationPlans(projectId)
-      setMitigationPlans(normalizeApiResponse(plans))
-      setMitigationDeletedIds([])
-
-      return { success: true }
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setIsSaving(false)
-    }
-  }, [mitigationPlans, mitigationDeletedIds, projectId])
-
-  // ==========================================
-  // Status Calculations
-  // ==========================================
-
-  /**
-   * Get Tool 3 (Management Activities) status
-   */
-  const getTool3Status = useCallback(() => {
-    if (managementActivities.length === 0) return 'not_started'
-    const hasEmptyRows = managementActivities.some((row) => !row.activity_description?.trim())
-    if (hasEmptyRows) return 'in_progress'
-    return 'completed'
-  }, [managementActivities])
-
-  /**
-   * Get Tool 4 (Mitigation Plans) status
-   */
-  const getTool4Status = useCallback(() => {
-    if (mitigationPlans.length === 0) return 'not_started'
-    const hasEmptyRows = mitigationPlans.some((row) => !row.output_description?.trim())
-    if (hasEmptyRows) return 'in_progress'
-    return 'completed'
-  }, [mitigationPlans])
-
-  /**
-   * Get overall SEMP status
-   */
-  const getSempStatus = useCallback(() => {
-    const tool3 = getTool3Status()
-    const tool4 = getTool4Status()
-
-    if (tool3 === 'not_started' && tool4 === 'not_started') return 'pending'
-    if (tool3 === 'completed' && tool4 === 'completed') return 'completed'
-    return 'in_progress'
-  }, [getTool3Status, getTool4Status])
+    if (result.success) setDraft(null)
+    return result
+  }, [
+    rows,
+    requiredField,
+    requiredLabel,
+    fail,
+    save,
+    saveAll,
+    projectId,
+    queryClient,
+    queryKey,
+    draft,
+    saved.version,
+  ])
 
   return {
-    // Data
-    managementActivities,
-    mitigationPlans,
-    isLoading,
+    rows,
+    isLoading: !!projectId && query.isPending,
     isSaving,
-    error,
-    refetch,
-
-    // Management Activities Actions
-    addManagementActivity,
-    updateManagementActivity,
-    deleteManagementActivity,
-    saveManagementActivities,
-
-    // Mitigation Plans Actions
-    addMitigationPlan,
-    updateMitigationPlan,
-    deleteMitigationPlan,
-    saveMitigationPlans,
-
-    // Status
-    getTool3Status,
-    getTool4Status,
-    getSempStatus,
+    hasChanges: draft !== null,
+    error: error ?? (query.error ? extractErrorMessage(query.error) : null),
+    refetch: query.refetch,
+    addRow,
+    updateRow,
+    deleteRow,
+    saveRows,
   }
+}
+
+/**
+ * Tool 3 table
+ * @param {string} projectId
+ */
+export function useManagementActivities(projectId) {
+  return useEditableTable({
+    projectId,
+    queryKey: queryKeys.management(projectId),
+    load: sempService.getManagementActivities,
+    saveAll: sempService.saveManagementActivities,
+    requiredField: 'activity_description',
+    requiredLabel: 'Activity Description',
+  })
+}
+
+/**
+ * Tool 4 table
+ * @param {string} projectId
+ */
+export function useMitigationPlans(projectId) {
+  return useEditableTable({
+    projectId,
+    queryKey: queryKeys.mitigation(projectId),
+    load: sempService.getMitigationPlans,
+    saveAll: sempService.saveMitigationPlans,
+    requiredField: 'output_description',
+    requiredLabel: 'Output Description',
+  })
 }

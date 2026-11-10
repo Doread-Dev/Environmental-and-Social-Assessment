@@ -1,0 +1,203 @@
+# Runs on every PR and every push to main/Development.
+# npm test picks up every *.test.js(x) file on its own, so new tests need no change here.
+# Add a job or step only for a new kind of check (the E2E job came with phase 12).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, Development]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      mongo:
+        # MongoDB 8.x exits on start on Linux kernels 6.19 to 7.0.13 (SERVER-121912 / SERVER-125742),
+        # and the GitHub runner kernels (ubuntu-24.04 and 26.04, Nov 2026) are in that range.
+        # 7.0 is not affected. Move to the local version (8.3) once the runner kernels are fixed.
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      MONGODB_URI_TEST: mongodb://localhost:27017/esms_test
+      # Standalone MongoDB: the code runs without transactions (transactions.test.js checks it).
+      EXPECT_TRANSACTIONS: "false"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - name: Tests with coverage
+        run: npm run test:coverage
+      - name: Coverage summary
+        if: ${{ !cancelled() && hashFiles('backend/coverage/coverage-summary.json') != '' }}
+        run: node ../.github/scripts/coverage-summary.js Backend coverage/coverage-summary.json >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() && hashFiles('backend/coverage/index.html') != '' }}
+        with:
+          name: backend-coverage
+          path: backend/coverage/
+          retention-days: 14
+
+  # The server runs MongoDB as a single-node replica set (phase 11), so critical actions with their
+  # audit entry and the Tools 3-5 bulk saves run in transactions. This job runs the whole backend
+  # suite on such a replica set (the transaction path) and the backup/restore test with the real
+  # MongoDB Database Tools; the job above keeps the standalone path tested.
+  backend-replica-set:
+    name: Backend (replica set)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      MONGODB_URI_TEST: mongodb://localhost:27017/esms_test?replicaSet=rs0
+      EXPECT_TRANSACTIONS: "true"
+      MONGODB_TOOLS_DIR: ${{ github.workspace }}/mongodb-tools/bin
+    steps:
+      - uses: actions/checkout@v7
+      - name: MongoDB 7.0 as a single-node replica set
+        # 7.0 for the same kernel reason as the Backend job. A service container cannot take the
+        # --replSet option, so it is started here.
+        run: |
+          docker run -d --name mongo -p 27017:27017 mongo:7.0 --replSet rs0 --bind_ip_all
+          for i in $(seq 1 30); do
+            docker exec mongo mongosh --quiet --eval 'db.runCommand({ ping: 1 })' && break
+            sleep 2
+          done
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - name: Initiate the replica set (scripts/init-replica-set.js, as on the server)
+        run: node scripts/init-replica-set.js && node scripts/init-replica-set.js --check
+        env:
+          MONGODB_URI: mongodb://localhost:27017/esms_test
+      - name: MongoDB Database Tools (mongodump, mongorestore)
+        working-directory: ${{ github.workspace }}
+        run: |
+          curl -fsSL -o tools.tgz https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2404-x86_64-100.20.1.tgz
+          echo "20f43dcaa37f5a4841ac5a91da685a488a5ebbd81113c018e25a6b544cc350ea  tools.tgz" | sha256sum -c -
+          mkdir mongodb-tools && tar -xzf tools.tgz -C mongodb-tools --strip-components=1
+          mongodb-tools/bin/mongodump --version
+      - name: Tests on the replica set
+        run: npm test
+
+  # Phase 12 (D39, D76 2): the golden flows end to end in Chromium, against the production shape —
+  # the frontend built with an empty VITE_API_URL and served by `node src/server.js` with
+  # NODE_ENV=production (backend installed without dev dependencies), MongoDB as a single-node
+  # replica set. e2e/scripts/start-server.mjs drops and seeds esms_e2e_test before the server starts.
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    env:
+      E2E_MONGODB_URI: mongodb://localhost:27017/esms_e2e_test?replicaSet=rs0
+    steps:
+      - uses: actions/checkout@v7
+      - name: MongoDB 7.0 as a single-node replica set
+        # Same image and kernel reason as the Backend jobs.
+        run: |
+          docker run -d --name mongo -p 27017:27017 mongo:7.0 --replSet rs0 --bind_ip_all
+          for i in $(seq 1 30); do
+            docker exec mongo mongosh --quiet --eval 'db.runCommand({ ping: 1 })' && break
+            sleep 2
+          done
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+            e2e/package-lock.json
+      - name: Install (backend production dependencies, frontend, e2e)
+        run: |
+          npm ci --omit=dev --prefix backend
+          npm ci --prefix frontend
+          npm ci --prefix e2e
+      - name: Initiate the replica set (scripts/init-replica-set.js, as on the server)
+        working-directory: backend
+        run: node scripts/init-replica-set.js && node scripts/init-replica-set.js --check
+        env:
+          MONGODB_URI: mongodb://localhost:27017/esms_e2e_test
+      - name: Lint and Prettier (e2e)
+        working-directory: e2e
+        run: npm run lint && npm run format:check
+      - name: Chromium for Playwright
+        working-directory: e2e
+        run: npx playwright install --with-deps --no-shell chromium
+      - name: E2E (build the frontend, then every flow)
+        working-directory: e2e
+        run: npm test
+      - uses: actions/upload-artifact@v7
+        if: ${{ failure() }}
+        with:
+          name: playwright-report
+          path: |
+            e2e/playwright-report/
+            e2e/test-results/
+          retention-days: 14
+
+  deploy-scripts:
+    name: Deploy scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Bash syntax and shellcheck (deploy/linux)
+        run: |
+          for f in deploy/linux/*.sh; do bash -n "$f"; done
+          shellcheck deploy/linux/*.sh
+      - name: Release build script parses
+        run: node --check deploy/build-release.mjs
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - name: Tests with coverage
+        run: npm run test:coverage
+      - name: Coverage summary
+        if: ${{ !cancelled() && hashFiles('frontend/coverage/coverage-summary.json') != '' }}
+        run: node ../.github/scripts/coverage-summary.js Frontend coverage/coverage-summary.json >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() && hashFiles('frontend/coverage/index.html') != '' }}
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/
+          retention-days: 14
+      - run: npm run build

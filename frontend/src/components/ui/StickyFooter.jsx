@@ -1,9 +1,9 @@
 /**
  * StickyFooter Component
- * Footer ملتصق بالأسفل يعمل مع ProjectLayout
+ * Footer fixed to the bottom, for pages in ProjectLayout
  *
- * يستخدم CSS Variable (--sidebar-width) لتحديد المسافة من اليسار تلقائياً
- * مما يجعله يحترم عرض السايد بار بدون hardcoding
+ * Its left offset comes from the CSS variable --sidebar-width, so it follows the sidebar width
+ * without a hardcoded value
  *
  * Usage:
  * <StickyFooter>
@@ -12,14 +12,31 @@
  * </StickyFooter>
  */
 
+import { useEffect } from 'react'
 import { cn } from '@/utils/cn'
+
+// Footers on screen: while there is one, the floating Help button (components/help) sits above it
+let shown = 0
+const FOOTER_HEIGHT = '5rem'
+
+function useLiftFloatingHelp() {
+  useEffect(() => {
+    shown += 1
+    document.documentElement.style.setProperty('--floating-help-bottom', FOOTER_HEIGHT)
+    return () => {
+      shown -= 1
+      if (shown === 0) document.documentElement.style.removeProperty('--floating-help-bottom')
+    }
+  }, [])
+}
 
 /**
  * @param {Object} props
- * @param {React.ReactNode} props.children - محتوى الـ Footer
- * @param {string} props.className - classes إضافية
+ * @param {React.ReactNode} props.children - Footer content
+ * @param {string} props.className - Extra classes
  */
 export default function StickyFooter({ children, className, ...props }) {
+  useLiftFloatingHelp()
   return (
     <div
       className={cn(

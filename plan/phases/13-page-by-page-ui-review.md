@@ -1,0 +1,97 @@
+# Phase 13 — Page-by-page UI/UX review
+
+> **Moved to v3 (D77 2, 2026-11-08).** v2.0.0 ships without this phase. This file stays as the starting list for the v3 UI work (linked from [V3_VISION.md](../V3_VISION.md)); UI/UX issues found from now on are still written here (D72 c). The small visible fixes a user meets on day one were done in [phase 12a](12a-release-readiness.md) and moved out of the list below.
+
+**D79 (owner, 2026-11-09): a UI/UX design from scratch, not a polish.** In v3 this phase designs the whole interface as if it were rebuilt, in full detail:
+- **information architecture:** how the app is divided into areas and pages, and what lives where;
+- **navigation:** sidebar, header, project navigation, where Help lives;
+- **the layout of every page:** the order and priority of its elements;
+- **actions:** where buttons go and how they are grouped;
+- **the design system itself:** tokens, components, states, motion, down to hover.
+
+The current layout is **not** a base to keep: every placement comes from a deliberate study (user priorities per role and per task), not from where things happen to be today. The phase may be split into several phases; its exact scope and order are discussed in detail with the owner **before** it starts. The goal below (from D72) and the issue list are inputs to that study.
+
+**Goal (before D79):** every screen looks finished, consistent and behaves well, so the version ships clean — enterprise-grade QA/UX is release scope (D72). Phase 10 unified what is shared across the app (components, tokens, type scale, states); this phase walks **every element of every screen, one by one, UI and UX**, and cleans what is left.
+
+**Owner's aim (D76 4, 2026-11-06; to be refined in this phase's own concept talk):** this is the **design-system phase**. The owner wants a full design system and enterprise-grade UI/UX, down to hover states and the smallest details, plus front-end performance. The v3 restructure must be able to reuse that UI and design system as it is. Phase 12 wrote no design-system doc: today's style rules sit in `docs/` in a short section marked "replaced by the design system of phase 13"; this phase replaces that section.
+
+**Decisions:** D79, D71, D72, D76 4 (+ D43, D49, the style rules in `docs/` — today's rules, replaced by this phase's design system).
+
+**Fed by every phase (D72):** each phase writes the UI/UX issues it finds below, under its screen, instead of fixing them on the side.
+
+**Depends on:** 12 (now v3 work, D77).
+
+## Method
+1. **Inventory:** list every screen (each route, plus its modals, side panels and empty/locked/archived/read-only variants) at the bottom of this file.
+2. **Walk each screen** the way phase 10a walks the unhappy paths: light and dark mode, desktop and mobile (375 px), each role that sees it (admin, specialist, editor, viewer). Record an issue list per screen.
+   - **Test data:** not only the demo project. Create a project for each state the screen can show (screening draft / submitted / rejected / approved; assessment not started / in progress / submitted / rejected / approved; SEMP empty / partly described / complete; monitoring empty / baseline only / quarters filled; archived) and walk the screen on each.
+3. **Agree the list with the owner** before fixing.
+4. **Fix**, using the shared components from phase 10 (no new one-off styles), with a test for each fix (D39).
+
+## UX scope (owner, D72)
+- **Unsaved changes:** every page with editable input warns, in an in-app dialog (never the browser's), when the user leaves after editing without saving — sidebar or any in-app link, Back, the browser's Back, refresh and tab close. If phase 10a built the shared guard, check that every edit page uses it (screening, assessment metadata / methods / scoring / review, Tools 3 and 4, Tool 5, project create/edit, user form, library form); list any page that does not.
+- **No `window.confirm` / `alert` / `prompt` anywhere:** every confirm, approve, reject, delete, archive, restore, purge and submit happens inside the page as the app's own card or `ConfirmDialog`. Audit all of them and record where each one lives (the style guard already fails on a new `window.confirm`, `alert` or `prompt`).
+- **Repeated areas unified across the tools:** the same thing must look and behave the same in Tool 1–5. For each area, list the tools it appears in and the differences, then unify on one shared component:
+  - the review / approval card and the approve / reject section (reason input, buttons, states);
+  - the reviewer block: Approved By / Rejected By, Position, date, recommendations / reject reason;
+  - the status header (title, tool label, status badge, dates);
+  - the submit bar / sticky footer (Back, Save, Submit; disabled and loading states);
+  - the save and export buttons (place, label, icon, "Saved" feedback, export availability);
+  - the Guidance button, the locked / read-only / archived notices, empty tables.
+- **Select boxes:** decide with the owner whether to replace the native look with a designed select / listbox (accessible: keyboard, screen reader, focus; dark mode; long option lists, groups, search where useful). Phase 10's single `Select` (`components/ui/Select.jsx`) is the base, so the change happens in one place.
+- **Tables (owner):**
+  - **Tool-specific tables keep their own layout:** the Tools 3/4 editable grid, the monitoring quarters table, the assessment scoring table.
+  - **General tables share one look and one visual identity:** project list, Settings → Users, Settings → Projects, activity log, library, project documents, dashboard lists.
+  - **Check each table for:** size and density (row height, padding, font size); column widths and overflow on mobile (horizontal scroll, what stays visible); header style; sorting and filtering and where their controls sit; pagination; empty, loading and error rows; row actions (placement, icons, confirmation); conflicts between tables (the same thing behaving differently).
+  - **Method:** list every table below, mark it general or tool-specific, and converge the general ones on the shared `Table` component and the phase 10 controls (`Select`, `Input`, `Pagination`, `Button`, `StatusBadge`, `EmptyState` / `LoadingState` / `ErrorState`, `ConfirmDialog`).
+- **Every element:** labels, help texts, placeholders, error messages (wording, `extractErrorMessage`), tab order and focus, hover/active/disabled states, truncation of long text (titles, names, Arabic text right-to-left), numbers and dates, icons, spacing and alignment, scroll areas, print views.
+
+## Tests
+- Every fix from the agreed issue list has a test next to the code it changes (D39).
+- Unsaved-changes guard: one test per edit page (screening, assessment metadata / methods / scoring / review, Tools 3 and 4, Tool 5, project create/edit, user form, library form): after an edit, an in-app link and the browser Back open the app dialog (Save / Discard / Stay); without an edit they do not.
+- Style guard (`src/test/styleGuard.test.js`): `window.confirm` allow-list empty; `alert` / `prompt` stay rejected.
+- Repeated areas: each unified area (review card, approve/reject section, reviewer block, status header, submit bar, save/export buttons) has a component test, and each tool page renders that shared component (one assertion per tool).
+- General tables: each renders through the shared `Table` and shows the shared empty, loading and error states (one test per table); row actions that change data ask in `ConfirmDialog`.
+- Arabic text: displayed user text (project title, location, descriptions) carries `dir="auto"` (test on the project list, the project header and one tool page).
+- Select box: if the owner picks a designed select / listbox, its tests cover keyboard (arrows, Enter, Escape, type-ahead), screen-reader roles, disabled options, groups and dark-mode classes.
+
+## Done when
+- [ ] Every item under Tests has a test (file names listed in Result).
+- [ ] Every screen walked in light/dark and desktop/mobile; issue list closed or explicitly deferred by the owner.
+- [ ] Lint 0 errors, Prettier clean, build OK; coverage floors raised.
+
+## Issue list (per screen)
+
+Items found during phase 10 that are page-specific (not shared) are listed here so this phase starts from them.
+
+### From phase 10 (page-specific, not fixed there)
+- **Page wrappers:** several pages inside `ProjectLayout` add their own outer padding/max-width (SEMP overview, Documents, Monitoring overview/data entry, Assessment review), so their gutters differ from the other pages.
+- **Headers:** the document-style headers (Screening summary, Assessment review) and the Tools 3/4 and Monitoring headers use the shared title classes but not `PageHeader`; decide per page.
+- **Assessment gateway:** the "cut off at the top when scrolling" report could not be reproduced with the demo project (its assessment is approved, so the router shows the review); the double padding was removed. **Check it on a new project created for this, whose screening is approved and assessment not started** (and one in progress), with the owner.
+- **Small text:** `text-[10px]` / `text-[11px]` labels remain (workflow bar labels, responsible user/external switch, step numbers).
+- **Raw buttons left by design:** sidebar/nav items, icon buttons, radio-style cards (risk category), table row actions — check each for size and focus ring.
+- **Settings → Users:** the name column wraps ("Check Admin (you)") at medium widths.
+- **Monitoring overview:** its "Export" button and the category cards still have their own styles.
+- **Dashboard metric cards:** coloured icon tiles (blue/orange/red) — confirm with the owner against the AKF palette.
+- **Login / change password:** check the type scale after `PAGE_TITLE` in both themes.
+- **Phase 10a (D72 c, UI/UX only; behaviour was fixed there):**
+  - **Tools 3/4 grid (`components/semp/EditableCell.jsx`):** a very long cell (3,000+ characters) makes its row hundreds of pixels tall (no clamp or expand); the editable cells have no accessible name. (Arabic direction fixed in phase 12a.)
+  - **Assessment metadata / methods for a viewer or a locked assessment:** "Save and Continue" is disabled and there is no other forward button (only the sidebar).
+  - **New dialogs of phase 10a** (unsaved changes, stale save, session expired) use the shared `Modal`/`Button`/`Input`; check their wording, focus order and layout in both themes and at 375 px with the owner.
+  - **Error boxes:** Tools 3/4 still draw their own red error box (raw red classes) instead of `Alert`.
+- **Mobile and tablet navigation:** the Tools 3/4 menu and the done state of the expandable tools were fixed in phase 12a (test per layout). Still to walk: the menu on **every project page at 375 px and 768 px** with the owner (current-page highlight, the assessment sub-steps).
+- **Phase 12a (D72 c; found while doing the release fixes, not fixed there):**
+  - **Project create:** the location hint says "Specific location allows for automated GIS risk overlay later." — no such feature exists; reword or drop it.
+  - **Tools 3/4 on desktop:** the full-width layout has no project navigation on wide screens either (only the page's Back button); the phone/tablet menu is hidden from `lg` up.
+  - **Tools 3/4 mobile menu:** its backdrop (`z-40`) sits below the sticky SEMP header (`z-50`), so tapping the header does not close the menu.
+- **Owner's review of PR #29 (phase 14, 2026-11-09; examples of the problem D79 answers):**
+  - **Project overview:** the full-width Project workbook bar pushes every other overview card down; the overview has no thought-out order of priorities.
+  - **Main sidebar:** a Help item (first seen on the dashboard) feels out of place.
+  - **Floating Help button (bottom-right):** acceptable for now, probably not the best solution.
+  - **In general:** buttons and pages feel scattered, with no study behind their placement.
+- **Phase 14 (D72 c; found while checking the floating Help button, not fixed there):**
+  - **Save bar at 375 px (`components/ui/StickyFooter.jsx`):** on the assessment metadata page the right button is cut off ("Save and Co…"); the bar does not wrap or shorten its labels on a phone.
+- **Phase 11 (D72 c):** no new UI/UX issue found in the production-build check (login, dashboard, library, PDF viewer, light and dark). (The icon font subset was done in phase 12a.)
+
+## Follow-ups after the server is live
+- **Remove Vercel (D75 2):** once the internal server runs, delete `frontend/vercel.json` and the Vercel project, and drop the Vercel notes in `CLAUDE.md` and `deploy/README.md`. Small change: the app already calls its own origin when `VITE_API_URL` is not set.

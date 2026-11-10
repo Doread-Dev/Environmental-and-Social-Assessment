@@ -1,7 +1,3 @@
-/**
- * Files Components Barrel Export
- */
-
-export { default as FileCategoryAccordion } from './FileCategoryAccordion'
-export { default as FileListTable } from './FileListTable'
-export { default as FileRowActions } from './FileRowActions'
+// Files shared by the reference library and project documents (D64)
+export { PdfViewer } from './PdfViewer'
+export { ConfirmDeleteModal } from './ConfirmDeleteModal'

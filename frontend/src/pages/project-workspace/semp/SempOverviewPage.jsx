@@ -5,14 +5,21 @@
  */
 
 import { useNavigate, useParams } from 'react-router-dom'
-import { useSemp, useAssessment } from '@/hooks'
-import { SempToolCard, SempCTABanner } from '@/components/semp'
+import { useProjectContext } from '@/hooks'
+import { isStepLocked } from '@/utils/workflowSteps'
+import { SempToolCard } from '@/components/semp'
+import { V3LockedSection } from '@/components/layout/V3LockedNav'
+import { V3_LOCKED_LOCATIONS } from '@/routes/routes.config'
+import { PAGE_TITLE, PAGE_DESCRIPTION } from '@/components/ui'
 
 export default function SempOverviewPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
-  const { getTool3Status, getTool4Status, isLoading } = useSemp(projectId)
-  const { assessment } = useAssessment(projectId)
+  // Tool 3 / Tool 4 status and the lock come from the backend workflow (workspace, D30)
+  const { workflow, can } = useProjectContext()
+  // Viewers open the tools to look, never "Start" or "Edit" (D35)
+  const viewLabel = can('semp.edit') ? undefined : 'View Tool →'
+  const semp = workflow.steps.semp
 
   // Navigate handlers
   const handleNavigate = (path) => {
@@ -20,23 +27,9 @@ export default function SempOverviewPage() {
     navigate(`/app/projects/${projectId}/semp/${path}`)
   }
 
-  // Check locks
-  const isApproved = assessment?.status === 'approved'
-  const isLocked = !isApproved
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading SEMP data...</p>
-        </div>
-      </div>
-    )
-  }
-
-  const tool3Status = getTool3Status()
-  const tool4Status = getTool4Status()
+  const isLocked = isStepLocked(workflow, 'semp')
+  const tool3Status = semp.management_activities.status
+  const tool4Status = semp.mitigation_plans.status
 
   return (
     <div className="flex-1 overflow-y-auto bg-background dark:bg-background-dark p-6 md:p-10 lg:p-12">
@@ -44,12 +37,8 @@ export default function SempOverviewPage() {
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4 border-b border-border-default dark:border-border-dark pb-6">
           <div className="flex flex-col gap-2">
-            <h1 className="text-text-main dark:text-white text-3xl md:text-4xl font-black tracking-tight font-display">
-              Environmental & Social Management Plan
-            </h1>
-            <p className="text-text-secondary dark:text-gray-400 text-lg font-normal">
-              Management, mitigation, and monitoring actions
-            </p>
+            <h1 className={PAGE_TITLE}>Environmental & Social Management Plan</h1>
+            <p className={PAGE_DESCRIPTION}>Management, mitigation, and monitoring actions</p>
           </div>
         </div>
 
@@ -57,11 +46,15 @@ export default function SempOverviewPage() {
         {isLocked && (
           <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800 rounded-xl p-6 flex flex-col sm:flex-row items-center gap-4 mb-2">
             <div className="size-12 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center shrink-0 text-orange-600 dark:text-orange-400">
-              <span className="material-symbols-outlined text-2xl">lock</span>
+              <span className="material-symbols-outlined text-2xl" aria-hidden="true">
+                lock
+              </span>
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Tools Locked</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
+              <h3 className="text-lg font-bold text-text-main dark:text-white mb-1">
+                Tools Locked
+              </h3>
+              <p className="text-text-secondary dark:text-gray-400 text-sm">
                 You must complete and get approval for the{' '}
                 <strong>Environmental Assessment (Tool 2)</strong> before starting the management
                 plans.
@@ -85,7 +78,9 @@ export default function SempOverviewPage() {
           }
         >
           <h2 className="text-lg font-bold text-text-main dark:text-white flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">handyman</span>
+            <span className="material-symbols-outlined text-primary" aria-hidden="true">
+              handyman
+            </span>
             Management Tools
           </h2>
 
@@ -97,6 +92,7 @@ export default function SempOverviewPage() {
               description="Plan general environmental and social management activities for the project lifecycle, including stakeholder engagement and capacity building."
               status={tool3Status}
               onAction={() => handleNavigate('activities')}
+              actionLabel={viewLabel}
               pulse={!isLocked && tool3Status === 'not_started'}
             />
 
@@ -107,19 +103,17 @@ export default function SempOverviewPage() {
               description="Develop specific mitigation measures for identified risks. This plan is mandatory for projects with Moderate or High impact levels."
               status={tool4Status}
               onAction={() => handleNavigate('mitigation')}
+              actionLabel={viewLabel}
               pulse={!isLocked && tool4Status === 'not_started' && tool3Status !== 'not_started'}
             />
           </div>
         </section>
-        {/* CTA Banner Area */}
-        {!isLocked && (
-          <div className="mt-auto pt-6">
-            <SempCTABanner
-              title="Develop the Social and Environmental Management Plan (SEMP)"
-              description="Outline management activities and mitigation measures based on assessment findings. High-risk impacts require immediate action planning and prioritization."
-            />
-          </div>
-        )}
+        {/* SEMP Plan, locked until v3 (D46, D48, D59, D70) */}
+        <V3LockedSection
+          location={V3_LOCKED_LOCATIONS.SEMP_OVERVIEW}
+          variant="card"
+          className="mt-auto pt-6"
+        />
       </div>
     </div>
   )

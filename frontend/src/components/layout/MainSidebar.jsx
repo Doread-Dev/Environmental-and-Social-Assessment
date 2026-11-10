@@ -1,7 +1,10 @@
 import { NavLink } from 'react-router-dom'
 import { cn } from '@/utils'
 import { MAIN_NAV_ITEMS } from '@/routes/routes.config'
-import { useAuth, USER_ROLES } from '@/contexts'
+import { useAuth } from '@/contexts'
+import BrandLogo from './BrandLogo'
+import { V3LockedSection } from './V3LockedNav'
+import { V3_LOCKED_LOCATIONS } from '@/routes/routes.config'
 
 /**
  * MainSidebar Component
@@ -11,11 +14,11 @@ import { useAuth, USER_ROLES } from '@/contexts'
  * @param {string} props.className - Additional CSS classes
  */
 function MainSidebar({ className }) {
-  const { user } = useAuth()
-  const canAccessSettings = user?.role === USER_ROLES.ENVIRONMENTAL_SPECIALIST
+  const { canAccessSettings } = useAuth()
 
   return (
     <aside
+      data-print="hide"
       className={cn(
         'w-[280px] lg:w-[300px]',
         'hidden lg:flex flex-col',
@@ -26,18 +29,8 @@ function MainSidebar({ className }) {
       )}
     >
       {/* Logo Section */}
-      <div className="p-6">
-        <div className="flex items-center gap-3 px-2">
-          <div className="flex items-center justify-center size-10 rounded-xl bg-primary text-white shadow-primary">
-            <span className="material-symbols-outlined text-2xl">eco</span>
-          </div>
-          <div className="flex flex-col">
-            <h1 className="text-lg font-bold leading-tight text-text-main dark:text-white">
-              ESMS System
-            </h1>
-            <p className="text-text-secondary text-xs font-medium">Internal Portal</p>
-          </div>
-        </div>
+      <div className="px-6 pt-6 pb-5">
+        <BrandLogo size="lg" className="px-1" />
       </div>
 
       {/* Navigation */}
@@ -59,11 +52,16 @@ function MainSidebar({ className }) {
                 )
               }
             >
-              <span className="material-symbols-outlined">{item.icon}</span>
+              <span className="material-symbols-outlined" aria-hidden="true">
+                {item.icon}
+              </span>
               {item.label}
             </NavLink>
           ))}
         </div>
+
+        {/* v3 modules, locked (D48, D70) */}
+        <V3LockedSection location={V3_LOCKED_LOCATIONS.ORGANIZATION} className="mt-6" />
       </nav>
 
       {/* Footer Section - Settings (Environmental Specialist only) */}
@@ -83,7 +81,9 @@ function MainSidebar({ className }) {
               )
             }
           >
-            <span className="material-symbols-outlined">settings</span>
+            <span className="material-symbols-outlined" aria-hidden="true">
+              settings
+            </span>
             Settings
           </NavLink>
         </div>

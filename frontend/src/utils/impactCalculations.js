@@ -1,22 +1,22 @@
 /**
  * Impact Calculations Utilities
- * دوال حساب التأثير الموحدة
- * ⚠️ متوافقة مع backend/documents/editPlan3.md
+ * Shared impact calculations
+ * The same rules as the backend (services/assessment.service.js recalculates the totals)
  */
 
 /**
- * Priority Levels (من الأعلى إلى الأدنى)
+ * Priority levels (highest first)
  */
 export const PRIORITY_LEVELS = ['high', 'medium', 'low', 'negligible', 'not_applicable']
 
 /**
- * حساب التأثير الإجمالي باستخدام خوارزمية الأولوية
+ * Total impact by priority
  *
- * القاعدة: إذا وُجد أي سؤال بمستوى high، يعتبر المشروع High impact
- * بغض النظر عن العدد
+ * Rule: if any question is high, the project is High impact,
+ * however many there are
  *
- * @param {Object} totalScore - كائن يحتوي على عدد كل مستوى
- * @returns {string} - أعلى مستوى موجود
+ * @param {Object} totalScore - Count per level
+ * @returns {string} - The highest level present
  *
  * @example
  * calculateTotalImpact({ high: 3, medium: 15, low: 20, negligible: 10, not_applicable: 2 })
@@ -35,11 +35,11 @@ export function calculateTotalImpact(totalScore) {
 }
 
 /**
- * حساب أعلى مستوى تأثير في فئة معينة
+ * The highest impact level in one category
  *
- * @param {Array} scores - قائمة النتائج
- * @param {Array} categoryQuestions - أسئلة الفئة
- * @returns {string} - أعلى مستوى موجود في الفئة
+ * @param {Array} scores - The scores
+ * @param {Array} categoryQuestions - The category's questions
+ * @returns {string} - The highest level in the category
  */
 export function getCategoryHighestLevel(scores, categoryQuestions) {
   const categoryScore = {
@@ -65,10 +65,10 @@ export function getCategoryHighestLevel(scores, categoryQuestions) {
 }
 
 /**
- * حساب النتيجة الإجمالية من قائمة النتائج
+ * The total score from the list of scores
  *
- * @param {Array} scores - قائمة النتائج
- * @returns {Object} - كائن يحتوي على عدد كل مستوى
+ * @param {Array} scores - The scores
+ * @returns {Object} - Count per level
  */
 export function calculateTotalScore(scores) {
   const total = {
@@ -90,4 +90,23 @@ export function calculateTotalScore(scores) {
   })
 
   return total
+}
+
+/**
+ * Tool 2 submit confirmation (D67 c): how many questions differ from the Negligible default
+ * (D54). Submit is never blocked by it.
+ * @param {string[]} questionIds - Every question
+ * @param {Array<{question: string, level: string}>} scores
+ * @returns {string} e.g. "You changed 7 of 50; the other 43 stay Negligible."
+ */
+export function changedQuestionsSummary(questionIds, scores) {
+  const levels = new Map(scores.map((score) => [score.question, score.level]))
+  const total = questionIds.length
+  const changed = questionIds.filter(
+    (id) => (levels.get(id) || 'negligible') !== 'negligible'
+  ).length
+  if (changed === 0)
+    return `You changed none of the ${total} questions; all ${total} stay Negligible.`
+  if (changed === total) return `You changed all ${total} questions; none stays Negligible.`
+  return `You changed ${changed} of ${total}; the other ${total - changed} stay Negligible.`
 }

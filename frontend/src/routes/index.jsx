@@ -2,32 +2,24 @@ import { lazy, Suspense } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { ROUTES } from './routes.config'
 import ProtectedRoute from './ProtectedRoute'
-import MonitoringRouteGuard from './MonitoringRouteGuard'
-import SempRouteGuard from './SempRouteGuard'
-import AssessmentRouteGuard from './AssessmentRouteGuard'
+import WorkflowRouteGuard from './WorkflowRouteGuard'
 import SettingsRouteGuard from './SettingsRouteGuard'
+import PermissionRouteGuard from './PermissionRouteGuard'
+import AppShell from './AppShell'
 
 // Layouts - Keep these eager loaded as they're always needed
 import AuthLayout from '@/components/layout/AuthLayout'
 import MainLayout from '@/components/layout/MainLayout'
 import ProjectLayout from '@/components/layout/ProjectLayout'
 import SempFullWidthLayout from '@/components/layout/SempFullWidthLayout'
-
-// Loading Fallback Component
-const PageLoader = () => (
-  <div className="min-h-[400px] flex items-center justify-center">
-    <div className="flex flex-col items-center gap-4">
-      <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      <p className="text-text-secondary dark:text-gray-400 text-sm">Loading...</p>
-    </div>
-  </div>
-)
+import { LoadingState } from '@/components/ui'
+import NotFoundPage from '@/pages/NotFoundPage'
 
 // Lazy wrapper helper
 const lazyLoad = (importFn) => {
   const LazyComponent = lazy(importFn)
   return (
-    <Suspense fallback={<PageLoader />}>
+    <Suspense fallback={<LoadingState />}>
       <LazyComponent />
     </Suspense>
   )
@@ -83,38 +75,33 @@ const MonitoringDataEntryPage = lazy(
   () => import('@/pages/project-workspace/monitoring/MonitoringDataEntryPage')
 )
 
-// Files & Annex Pages
-const ProjectFilesPage = lazy(() => import('@/pages/project-workspace/annex/ProjectFilesPage'))
-const AnnexOverviewPage = lazy(() => import('@/pages/project-workspace/annex/AnnexOverviewPage'))
+// Project documents (D64 d)
+const ProjectDocumentsPage = lazy(
+  () => import('@/pages/project-workspace/documents/ProjectDocumentsPage')
+)
+
+// Reference library (D64 b)
+const LibraryPage = lazy(() => import('@/pages/library/LibraryPage'))
 
 // Settings Pages
 const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'))
+const ActivityLogPage = lazy(() => import('@/pages/settings/ActivityLogPage'))
 
-// Not Found Page (inline - small component)
-const NotFoundPage = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background dark:bg-background-dark">
-    <div className="text-center">
-      <h1 className="text-6xl font-bold text-primary mb-4">404</h1>
-      <p className="text-xl text-text-main dark:text-white mb-2">Page Not Found</p>
-      <p className="text-text-secondary dark:text-gray-400 mb-6">
-        The page you're looking for doesn't exist.
-      </p>
-      <a
-        href={ROUTES.DASHBOARD}
-        className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-hover text-white font-medium rounded-lg transition-colors"
-      >
-        <span className="material-symbols-outlined">home</span>
-        Back to Dashboard
-      </a>
-    </div>
-  </div>
-)
+// Profile Page (own password, D23)
+const ProfilePage = lazy(() => import('@/pages/profile/ProfilePage'))
+
+// The user guide (phase 14, D78): its own chunk, with the Markdown renderer
+const HelpPage = lazy(() => import('@/pages/help/HelpPage'))
 
 /**
  * Application Router Configuration
- * All pages are lazy loaded for optimal performance
+ * All pages are lazy loaded for optimal performance.
+ *
+ * A route with `handle: { place }` is that place's page (backend config/places.js, D64): the layout
+ * header shows its Guidance button (components/library/GuidanceButton). A new tool's page adds its
+ * place key here.
  */
-export const router = createBrowserRouter([
+export const appRoutes = [
   // ==========================================
   // Auth Routes (Public)
   // ==========================================
@@ -124,6 +111,11 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.LOGIN,
         element: lazyLoad(() => import('@/pages/auth/LoginPage')),
+      },
+      {
+        // Forced password change (D22): signed in only, checked by the page itself
+        path: ROUTES.CHANGE_PASSWORD,
+        element: lazyLoad(() => import('@/pages/auth/ChangePasswordPage')),
       },
     ],
   },
@@ -147,7 +139,7 @@ export const router = createBrowserRouter([
       {
         path: 'dashboard',
         element: (
-          <Suspense fallback={<PageLoader />}>
+          <Suspense fallback={<LoadingState />}>
             <DashboardPage />
           </Suspense>
         ),
@@ -155,7 +147,7 @@ export const router = createBrowserRouter([
       {
         path: 'projects',
         element: (
-          <Suspense fallback={<PageLoader />}>
+          <Suspense fallback={<LoadingState />}>
             <ProjectListPage />
           </Suspense>
         ),
@@ -163,8 +155,32 @@ export const router = createBrowserRouter([
       {
         path: 'projects/new',
         element: (
-          <Suspense fallback={<PageLoader />}>
+          <Suspense fallback={<LoadingState />}>
             <ProjectCreatePage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'library',
+        element: (
+          <Suspense fallback={<LoadingState />}>
+            <LibraryPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'profile',
+        element: (
+          <Suspense fallback={<LoadingState />}>
+            <ProfilePage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'help',
+        element: (
+          <Suspense fallback={<LoadingState />}>
+            <HelpPage />
           </Suspense>
         ),
       },
@@ -175,10 +191,27 @@ export const router = createBrowserRouter([
           {
             index: true,
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <SettingsPage />
               </Suspense>
             ),
+          },
+          {
+            // Critical-actions log (D65): admin only
+            path: 'activity-log',
+            element: (
+              <PermissionRouteGuard permission="read_audit_log" redirectTo={ROUTES.SETTINGS} />
+            ),
+            children: [
+              {
+                index: true,
+                element: (
+                  <Suspense fallback={<LoadingState />}>
+                    <ActivityLogPage />
+                  </Suspense>
+                ),
+              },
+            ],
           },
         ],
       },
@@ -204,7 +237,7 @@ export const router = createBrowserRouter([
       {
         path: 'overview',
         element: (
-          <Suspense fallback={<PageLoader />}>
+          <Suspense fallback={<LoadingState />}>
             <ProjectOverviewPage />
           </Suspense>
         ),
@@ -213,16 +246,18 @@ export const router = createBrowserRouter([
       // Screening (Tool 1)
       {
         path: 'screening',
+        handle: { place: 'screening' },
         element: (
-          <Suspense fallback={<PageLoader />}>
+          <Suspense fallback={<LoadingState />}>
             <ScreeningRouter />
           </Suspense>
         ),
       },
       {
         path: 'screening/summary',
+        handle: { place: 'screening' },
         element: (
-          <Suspense fallback={<PageLoader />}>
+          <Suspense fallback={<LoadingState />}>
             <ScreeningSummaryPage />
           </Suspense>
         ),
@@ -231,12 +266,13 @@ export const router = createBrowserRouter([
       // Assessment (Tool 2)
       {
         path: 'assessment',
-        element: <AssessmentRouteGuard />,
+        handle: { place: 'assessment' },
+        element: <WorkflowRouteGuard step="assessment" />,
         children: [
           {
             index: true,
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <AssessmentRouter />
               </Suspense>
             ),
@@ -244,7 +280,7 @@ export const router = createBrowserRouter([
           {
             path: 'metadata',
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <AssessmentMetadataPage />
               </Suspense>
             ),
@@ -252,7 +288,7 @@ export const router = createBrowserRouter([
           {
             path: 'methods',
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <AssessmentMethodsPage />
               </Suspense>
             ),
@@ -260,7 +296,7 @@ export const router = createBrowserRouter([
           {
             path: 'scoring',
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <AssessmentScoringPage />
               </Suspense>
             ),
@@ -268,7 +304,7 @@ export const router = createBrowserRouter([
           {
             path: 'review',
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <AssessmentReviewPage />
               </Suspense>
             ),
@@ -279,12 +315,12 @@ export const router = createBrowserRouter([
       // SEMP (Overview remains in Project Layout)
       {
         path: 'semp',
-        element: <SempRouteGuard />,
+        element: <WorkflowRouteGuard step="semp" />,
         children: [
           {
             index: true,
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <SempOverviewPage />
               </Suspense>
             ),
@@ -295,12 +331,13 @@ export const router = createBrowserRouter([
       // Monitoring (Tool 5)
       {
         path: 'monitoring',
-        element: <MonitoringRouteGuard />,
+        handle: { place: 'monitoring' },
+        element: <WorkflowRouteGuard step="monitoring" />,
         children: [
           {
             index: true,
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <MonitoringOverviewPage />
               </Suspense>
             ),
@@ -308,7 +345,7 @@ export const router = createBrowserRouter([
           {
             path: 'data-entry',
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <MonitoringDataEntryPage />
               </Suspense>
             ),
@@ -316,20 +353,12 @@ export const router = createBrowserRouter([
         ],
       },
 
-      // Files & Annex
+      // Project documents (D64 d)
       {
-        path: 'files',
+        path: 'documents',
         element: (
-          <Suspense fallback={<PageLoader />}>
-            <ProjectFilesPage />
-          </Suspense>
-        ),
-      },
-      {
-        path: 'annex',
-        element: (
-          <Suspense fallback={<PageLoader />}>
-            <AnnexOverviewPage />
+          <Suspense fallback={<LoadingState />}>
+            <ProjectDocumentsPage />
           </Suspense>
         ),
       },
@@ -343,7 +372,7 @@ export const router = createBrowserRouter([
     path: '/app/projects/:projectId/semp',
     element: (
       <ProtectedRoute>
-        <SempRouteGuard />
+        <WorkflowRouteGuard step="semp" />
       </ProtectedRoute>
     ),
     children: [
@@ -352,16 +381,18 @@ export const router = createBrowserRouter([
         children: [
           {
             path: 'activities',
+            handle: { place: 'management' },
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <ManagementActivitiesPage />
               </Suspense>
             ),
           },
           {
             path: 'mitigation',
+            handle: { place: 'mitigation' },
             element: (
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<LoadingState />}>
                 <MitigationPlanPage />
               </Suspense>
             ),
@@ -386,6 +417,9 @@ export const router = createBrowserRouter([
     path: '*',
     element: <NotFoundPage />,
   },
-])
+]
+
+// One root route around every page: the shared unsaved-changes guard (AppShell).
+export const router = createBrowserRouter([{ element: <AppShell />, children: appRoutes }])
 
 export default router

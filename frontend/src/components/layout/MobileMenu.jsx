@@ -1,14 +1,18 @@
 import { useEffect, useState, useMemo } from 'react'
 import { NavLink, useLocation, useParams, useNavigate } from 'react-router-dom'
 import { cn } from '@/utils'
-import { useTheme, useAuth, ROLE_LABELS, USER_ROLES } from '@/contexts'
+import { isStepDone, isStepLocked as isWorkflowStepLocked } from '@/utils/workflowSteps'
+import { useTheme, useAuth, useConfirmLeave, ROLE_LABELS } from '@/contexts'
 import {
   MAIN_NAV_ITEMS,
   PROJECT_WORKFLOW_NAV,
   PROJECT_SECONDARY_NAV,
   ROUTES,
+  V3_LOCKED_LOCATIONS,
 } from '@/routes/routes.config'
 import { Avatar, Tooltip } from '@/components/ui'
+import BrandLogo from './BrandLogo'
+import { V3LockedSection } from './V3LockedNav'
 
 /**
  * MobileMenu Component
@@ -25,25 +29,30 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
   const { projectId } = useParams()
   const navigate = useNavigate()
   const { isDark, toggleTheme } = useTheme()
-  const { user, logout } = useAuth()
+  const { user, logout, canAccessSettings } = useAuth()
+  // Signing out of a page with unsaved changes asks Save / Discard / Stay first (D61)
+  const confirmLeave = useConfirmLeave()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
   // User menu items (filtered by role)
   const userMenuItems = useMemo(() => {
     const items = []
-    
-    // Settings - only for Environmental Specialist
-    if (user?.role === USER_ROLES.ENVIRONMENTAL_SPECIALIST) {
+
+    items.push({ id: 'profile', label: 'Profile', icon: 'person' })
+    // The main navigation (with Help) is not shown inside a project
+    if (variant === 'project') items.push({ id: 'help', label: 'Help', icon: 'help' })
+    // Settings: user management (admin) and project deletion (specialist / admin)
+    if (canAccessSettings) {
       items.push({ id: 'settings', label: 'Settings', icon: 'settings' })
-      items.push({ id: 'divider', type: 'divider' })
     }
-    
+    items.push({ id: 'divider', type: 'divider' })
+
     items.push({ id: 'theme', label: 'Theme', icon: 'dark_mode', type: 'theme-toggle' })
     items.push({ id: 'divider2', type: 'divider' })
     items.push({ id: 'logout', label: 'Sign Out', icon: 'logout' })
-    
+
     return items
-  }, [user?.role])
+  }, [canAccessSettings, variant])
 
   // Close menu on route change
   useEffect(() => {
@@ -99,31 +108,13 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
   // Auto-expand items with active children (no manual toggle needed)
   // Expansion happens automatically when a child is active
 
-  const getStepStatus = (stepId) => project?.workflow?.[stepId]?.status
-  const isApproved = (status) => status === 'approved'
-  const isCompleted = (status) => status === 'completed'
+  // Step state comes from the backend workflow (D30)
+  const isStepCompleted = (stepId) => isStepDone(project?.workflow, stepId)
 
-  // Step Locking Logic (Sequential Tools)
-  // Screening → Assessment → SEMP → Monitoring
+  // Screening → Assessment → SEMP → Monitoring: the backend marks steps not open yet as locked
   const isStepLocked = (stepId) => {
     if (!project) return stepId !== 'overview'
-
-    const screeningApproved = isApproved(getStepStatus('screening'))
-    const assessmentApproved = isApproved(getStepStatus('assessment'))
-    const sempCompleted = isCompleted(getStepStatus('semp'))
-
-    switch (stepId) {
-      case 'screening':
-        return false
-      case 'assessment':
-        return !screeningApproved
-      case 'semp':
-        return !screeningApproved || !assessmentApproved
-      case 'monitoring':
-        return !screeningApproved || !assessmentApproved || !sempCompleted
-      default:
-        return false
-    }
+    return isWorkflowStepLocked(project.workflow, stepId)
   }
 
   // Get project data (use title or name, prefer title)
@@ -134,10 +125,12 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
   const userRoleLabel = user?.role ? ROLE_LABELS[user.role] || user.role : ''
 
   const handleLogout = () => {
-    logout()
     setIsUserMenuOpen(false)
     onClose()
-    navigate(ROUTES.LOGIN, { replace: true })
+    confirmLeave(() => {
+      logout()
+      navigate(ROUTES.LOGIN, { replace: true })
+    })
   }
 
   // Render expandable nav item (for project variant)
@@ -148,7 +141,9 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
     const isParentActive = isNavActive(item.path)
     // Only expand when a child is active (manual navigation to child pages)
     const isExpanded = hasActive
-    const isLocked = item.id !== 'annex' && isStepLocked(item.id)
+    const isLocked = item.id !== 'documents' && isStepLocked(item.id)
+    // Done like the desktop sidebar: a check instead of the tool icon (phase 12a)
+    const isCompleted = isStepCompleted(item.id)
 
     return (
       <div key={item.id}>
@@ -159,11 +154,13 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
               'flex items-center gap-3',
               'px-4 py-3 rounded-lg',
               'text-base font-medium',
-              'text-text-disabled dark:text-gray-600',
+              'text-text-disabled dark:text-gray-500',
               'cursor-not-allowed opacity-75'
             )}
           >
-            <span className="material-symbols-outlined">lock</span>
+            <span className="material-symbols-outlined" aria-hidden="true">
+              lock
+            </span>
             {item.label}
           </div>
         ) : (
@@ -179,7 +176,12 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                 : 'text-text-secondary hover:text-text-main hover:bg-background dark:hover:bg-background-dark'
             )}
           >
-            <span className="material-symbols-outlined">{item.icon}</span>
+            <span
+              className={cn('material-symbols-outlined', isCompleted && 'text-primary')}
+              aria-hidden="true"
+            >
+              {isCompleted ? 'check_circle' : item.icon}
+            </span>
             {item.label}
           </NavLink>
         )}
@@ -255,14 +257,17 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
       <div
         className={cn(
           'fixed inset-y-0 left-0 z-50 lg:hidden',
-          'w-[280px] max-w-[85vw]',
+          'w-[280px] max-w-[85vw] overflow-hidden',
           'bg-surface dark:bg-surface-dark',
           'shadow-2xl',
-          'transform transition-transform duration-300 ease-out',
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+          'transform transition-[transform,visibility] duration-300 ease-out',
+          // Closed: off-screen AND invisible, so nothing bleeds into the page and keyboard /
+          // screen-reader users cannot reach the hidden links
+          isOpen ? 'translate-x-0 visible' : '-translate-x-full invisible'
         )}
         role="dialog"
         aria-modal="true"
+        aria-hidden={!isOpen}
         aria-label="Mobile navigation"
       >
         <div className="flex flex-col h-full">
@@ -277,22 +282,14 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                 }}
                 className="flex items-center gap-2 text-sm font-medium text-text-secondary hover:text-text-main dark:hover:text-white transition-colors"
               >
-                <span className="material-symbols-outlined text-lg">arrow_back</span>
+                <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                  arrow_back
+                </span>
                 Back to Dashboard
               </button>
             ) : (
               // Main variant: Show Logo
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center size-10 rounded-xl bg-primary text-white">
-                  <span className="material-symbols-outlined text-2xl">eco</span>
-                </div>
-                <div className="flex flex-col">
-                  <h1 className="text-lg font-bold leading-tight text-text-main dark:text-white">
-                    ESMS
-                  </h1>
-                  <p className="text-text-secondary text-xs font-medium">Internal Portal</p>
-                </div>
-              </div>
+              <BrandLogo size="md" />
             )}
 
             <button
@@ -306,7 +303,9 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
               )}
               aria-label="Close menu"
             >
-              <span className="material-symbols-outlined">close</span>
+              <span className="material-symbols-outlined" aria-hidden="true">
+                close
+              </span>
             </button>
           </div>
 
@@ -315,8 +314,14 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
             <div className="px-4 py-3 border-b border-border-default dark:border-border-dark">
               <div className="bg-background dark:bg-background-dark rounded-lg p-3">
                 {/* Project Title with Tooltip for long names */}
-                <Tooltip content={projectTitle} position="bottom" delay={300}>
+                <Tooltip
+                  content={projectTitle}
+                  position="bottom"
+                  delay={300}
+                  triggerClassName="flex w-full min-w-0"
+                >
                   <h2
+                    dir="auto"
                     className="text-sm font-bold text-text-main dark:text-white truncate"
                     title={projectTitle}
                   >
@@ -324,6 +329,7 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                   </h2>
                 </Tooltip>
                 <p
+                  dir="auto"
                   className="text-xs text-text-secondary dark:text-gray-400 mt-1 truncate"
                   title={projectLocation}
                 >
@@ -338,26 +344,37 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
             <div className="flex flex-col gap-1">
               {variant === 'main' ? (
                 // Main navigation
-                MAIN_NAV_ITEMS.map((item) => (
-                  <NavLink
-                    key={item.id}
-                    to={item.path}
-                    className={({ isActive }) =>
-                      cn(
-                        'flex items-center gap-3',
-                        'px-4 py-3 rounded-lg',
-                        'text-base font-medium',
-                        'transition-colors',
-                        isActive
-                          ? 'bg-primary/10 text-primary'
-                          : 'text-text-secondary hover:text-text-main hover:bg-background dark:hover:bg-background-dark'
-                      )
-                    }
-                  >
-                    <span className="material-symbols-outlined">{item.icon}</span>
-                    {item.label}
-                  </NavLink>
-                ))
+                <>
+                  {MAIN_NAV_ITEMS.map((item) => (
+                    <NavLink
+                      key={item.id}
+                      to={item.path}
+                      className={({ isActive }) =>
+                        cn(
+                          'flex items-center gap-3',
+                          'px-4 py-3 rounded-lg',
+                          'text-base font-medium',
+                          'transition-colors',
+                          isActive
+                            ? 'bg-primary/10 text-primary'
+                            : 'text-text-secondary hover:text-text-main hover:bg-background dark:hover:bg-background-dark'
+                        )
+                      }
+                    >
+                      <span className="material-symbols-outlined" aria-hidden="true">
+                        {item.icon}
+                      </span>
+                      {item.label}
+                    </NavLink>
+                  ))}
+
+                  {/* v3 modules, locked (D48, D70) */}
+                  <V3LockedSection
+                    location={V3_LOCKED_LOCATIONS.ORGANIZATION}
+                    className="mt-6"
+                    headingClassName="px-4"
+                  />
+                </>
               ) : (
                 // Project navigation
                 <>
@@ -376,7 +393,9 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                       )
                     }
                   >
-                    <span className="material-symbols-outlined">dashboard</span>
+                    <span className="material-symbols-outlined" aria-hidden="true">
+                      dashboard
+                    </span>
                     Project Overview
                   </NavLink>
 
@@ -395,9 +414,7 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                       const isLocked = isStepLocked(item.id)
 
                       // Check if step is completed (for project variant)
-                      const isCompleted =
-                        project?.workflow?.[item.id]?.status === 'approved' ||
-                        project?.workflow?.[item.id]?.status === 'completed'
+                      const isCompleted = isStepCompleted(item.id)
 
                       // Determine icon for Screening (Tool 1)
                       // If screening is not completed → use 'description' (document icon)
@@ -418,11 +435,13 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                               'flex items-center gap-3',
                               'px-4 py-3 rounded-lg',
                               'text-base font-medium',
-                              'text-text-disabled dark:text-gray-600',
+                              'text-text-disabled dark:text-gray-500',
                               'cursor-not-allowed opacity-75'
                             )}
                           >
-                            <span className="material-symbols-outlined">lock</span>
+                            <span className="material-symbols-outlined" aria-hidden="true">
+                              lock
+                            </span>
                             {item.label}
                           </div>
                         )
@@ -448,6 +467,7 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                               isCompleted && 'text-primary',
                               isActive && 'text-primary'
                             )}
+                            aria-hidden="true"
                           >
                             {getIcon()}
                           </span>
@@ -462,8 +482,8 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
 
                   {/* Secondary Navigation */}
                   {PROJECT_SECONDARY_NAV.map((item) => {
-                    // Only Annex & Attachments should be expandable
-                    if (item.children && item.id === 'annex') {
+                    // A plain link unless it has children
+                    if (item.children) {
                       return renderExpandableItem(item)
                     }
 
@@ -483,11 +503,20 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                           )
                         }
                       >
-                        <span className="material-symbols-outlined">{item.icon}</span>
+                        <span className="material-symbols-outlined" aria-hidden="true">
+                          {item.icon}
+                        </span>
                         {item.label}
                       </NavLink>
                     )
                   })}
+
+                  {/* v3 modules, locked (D48, D70) */}
+                  <V3LockedSection
+                    location={V3_LOCKED_LOCATIONS.PROJECT_SUPPORT}
+                    className="mt-4"
+                    headingClassName="px-4"
+                  />
                 </>
               )}
             </div>
@@ -507,11 +536,7 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                       'transition-colors'
                     )}
                   >
-                    <Avatar
-                      alt={userName}
-                      size="sm"
-                      
-                    />
+                    <Avatar alt={userName} size="sm" />
                     <div className="flex flex-col min-w-0 flex-1 text-left">
                       <span className="text-sm font-bold text-text-main dark:text-white truncate">
                         {userName}
@@ -525,6 +550,7 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                         'material-symbols-outlined text-text-secondary text-lg transition-transform',
                         isUserMenuOpen && 'rotate-180'
                       )}
+                      aria-hidden="true"
                     >
                       expand_more
                     </span>
@@ -579,7 +605,10 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                                 )}
                               >
                                 <div className="flex items-center gap-3">
-                                  <span className="material-symbols-outlined text-[20px]">
+                                  <span
+                                    className="material-symbols-outlined text-[20px]"
+                                    aria-hidden="true"
+                                  >
                                     {isDark ? 'light_mode' : 'dark_mode'}
                                   </span>
                                   <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
@@ -597,12 +626,20 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                               onClick={() => {
                                 setIsUserMenuOpen(false)
                                 // Handle action
+                                if (item.id === 'profile') {
+                                  navigate(ROUTES.PROFILE)
+                                  onClose()
+                                }
+                                if (item.id === 'help') {
+                                  navigate(ROUTES.HELP)
+                                  onClose()
+                                }
                                 if (item.id === 'settings') {
                                   navigate(ROUTES.SETTINGS)
                                   onClose()
                                 }
-                              if (item.id === 'logout') {
-                                handleLogout()
+                                if (item.id === 'logout') {
+                                  handleLogout()
                                 }
                               }}
                               className={cn(
@@ -615,7 +652,10 @@ function MobileMenu({ isOpen, onClose, variant = 'main', project }) {
                                 item.id === 'logout' && 'text-error hover:text-error'
                               )}
                             >
-                              <span className="material-symbols-outlined text-[20px]">
+                              <span
+                                className="material-symbols-outlined text-[20px]"
+                                aria-hidden="true"
+                              >
                                 {item.icon}
                               </span>
                               {item.label}

@@ -1,0 +1,29 @@
+{
+  "name": "esms-e2e",
+  "private": true,
+  "version": "2.0.0",
+  "description": "End-to-end tests (Playwright, Chromium) of the golden flows against the production-style single process",
+  "type": "module",
+  "scripts": {
+    "test": "node scripts/build-frontend.mjs && playwright test",
+    "test:nobuild": "playwright test",
+    "build:frontend": "node scripts/build-frontend.mjs",
+    "report": "playwright show-report",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.65.0",
+    "eslint": "10.14.0",
+    "eslint-config-prettier": "10.1.8",
+    "exceljs": "4.4.0",
+    "globals": "17.14.0",
+    "prettier": "3.9.10"
+  },
+  "engines": {
+    "node": "26.x"
+  }
+}

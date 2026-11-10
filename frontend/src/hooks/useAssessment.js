@@ -1,366 +1,241 @@
 /**
  * useAssessment Hook
- * إدارة حالة التقييم البيئي
+ * State of the environmental assessment (Tool 2)
+ *
+ * Tool 2 of a project: the assessment with its methods, consultations and impact scores in one
+ * cached query, and its writes (mutations). Each write refreshes the project's workflow state.
+ *
+ * Every content write carries the version the page shows (D62): the assessment's `updatedAt` in
+ * the cache when the request starts. Methods, consultations and scores answer the whole
+ * assessment, so the next write (e.g. consultations after methods, submit after scores) sends the
+ * version the previous one left.
  */
 
-import { useState, useEffect, useCallback } from 'react'
-import { useLookups, useAuth } from '@/contexts'
+import { useCallback } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { assessmentService } from '@/services'
 import { extractErrorMessage } from '@/services/api'
+import { queryKeys } from '@/services/queryKeys'
+import { useProjectSave } from './useProjectSave'
+
+const NOT_STARTED = { assessment: null, methods: [], consultations: [], impactScores: [] }
+
+// Scores reference their question by id in the UI
+function normalizeImpactScores(scores) {
+  if (!Array.isArray(scores)) return []
+  return scores.map((score) => ({
+    ...score,
+    question:
+      score?.question && typeof score.question === 'object' ? score.question._id : score.question,
+  }))
+}
+
+// The backend embeds methods, consultations and scores in the project read and in the create
+// response (D63 c): one request for Tool 2.
+function splitAssessment(data) {
+  if (!data) return NOT_STARTED
+  const { methods, consultations, scores, ...assessment } = data
+  return {
+    assessment,
+    methods: methods ?? [],
+    consultations: consultations ?? [],
+    impactScores: normalizeImpactScores(scores),
+  }
+}
+
+async function loadAssessment(projectId) {
+  return splitAssessment(await assessmentService.getByProject(projectId))
+}
 
 /**
- * Hook لإدارة حالة التقييم
- * @param {string} projectId - معرف المشروع
+ * Query options of a project's assessment, for loading it outside the hook (e.g. on export)
+ * @param {string} projectId
+ */
+export const assessmentQuery = (projectId) => ({
+  queryKey: queryKeys.assessment(projectId),
+  queryFn: () => loadAssessment(projectId),
+  // Not behind an open form: a change by someone else is caught at save (409, D62)
+  refetchOnReconnect: false,
+})
+
+/**
+ * The assessment of a project and its actions
+ * @param {string} projectId - Project id
  */
 export function useAssessment(projectId) {
-  const { categoriesWithQuestions, isLoading: lookupsLoading } = useLookups()
-  const { user } = useAuth()
-  const [assessment, setAssessment] = useState(null)
-  const [methods, setMethods] = useState([])
-  const [consultations, setConsultations] = useState([])
-  const [impactScores, setImpactScores] = useState([])
-  const normalizeImpactScores = useCallback((scores) => {
-    if (!Array.isArray(scores)) return []
-    return scores.map((score) => ({
-      ...score,
-      question:
-        score?.question && typeof score.question === 'object'
-          ? score.question._id
-          : score.question,
-    }))
-  }, [])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-  const [error, setError] = useState(null)
+  const query = useQuery({ ...assessmentQuery(projectId), enabled: !!projectId })
+  const { assessment, methods, consultations, impactScores } = query.data ?? NOT_STARTED
+  const assessmentId = assessment?._id
+  const { save, fail, isSaving, error, queryClient } = useProjectSave(
+    projectId,
+    queryKeys.assessment(projectId)
+  )
 
-  const loadData = useCallback(async () => {
-    if (!projectId) return
-    setIsLoading(true)
-    setError(null)
-    try {
-      const data = await assessmentService.getByProject(projectId)
-      if (!data) {
-        setAssessment(null)
-        setMethods([])
-        setConsultations([])
-        setImpactScores([])
-        return
-      }
-      setAssessment(data)
-      const [methodsResult, consultationsResult, scoresResult] = await Promise.allSettled([
-        assessmentService.getMethods(data._id),
-        assessmentService.getConsultations(data._id),
-        assessmentService.getScores(data._id),
-      ])
-      setMethods(methodsResult.status === 'fulfilled' ? methodsResult.value : [])
-      setConsultations(
-        consultationsResult.status === 'fulfilled' ? consultationsResult.value : []
-      )
-      setImpactScores(
-        scoresResult.status === 'fulfilled' ? normalizeImpactScores(scoresResult.value) : []
-      )
-    } catch (err) {
-      setError(extractErrorMessage(err))
-    } finally {
-      setIsLoading(false)
-    }
-  }, [projectId, normalizeImpactScores])
+  // Merge a write's result into the cached query
+  const store = useCallback(
+    (changes) =>
+      queryClient.setQueryData(queryKeys.assessment(projectId), (prev) => ({
+        ...(prev ?? NOT_STARTED),
+        ...changes,
+      })),
+    [queryClient, projectId]
+  )
+  const storeAssessment = useCallback((data) => store({ assessment: data }), [store])
+  // A write that answers the whole assessment (methods, consultations, scores)
+  const storeAll = useCallback((data) => store(splitAssessment(data)), [store])
 
-  const refetch = useCallback(() => {
-    loadData()
-  }, [loadData])
-
-  useEffect(() => {
-    if (!projectId) return
-    loadData()
-  }, [projectId, user?._id, loadData])
+  // Every content write needs the record (the gateway creates it first). `request` gets the id
+  // and the version the page shows, read when the request starts (D62).
+  const withAssessment = useCallback(
+    (request, onSaved) =>
+      assessmentId
+        ? save(
+            () =>
+              request(
+                assessmentId,
+                queryClient.getQueryData(queryKeys.assessment(projectId))?.assessment?.updatedAt
+              ),
+            onSaved
+          )
+        : Promise.resolve(fail('Assessment record not found.')),
+    [assessmentId, save, fail, queryClient, projectId]
+  )
 
   /**
-   * بدء تقييم جديد
-   * ينشئ assessment حقيقي في الباك إند
+   * Starts a new assessment
+   * Creates it in the backend
    */
-  const startAssessment = useCallback(async () => {
-    setIsSaving(true)
-    setError(null)
-    try {
-      if (assessment?._id) {
-        return { success: true, data: assessment }
-      }
-
-      if (!user?._id) {
-        const message = 'User ID is required to start assessment.'
-        setError(message)
-        return { success: false, error: message }
-      }
-
-      // Create assessment in backend
-      // Note: officer is set automatically by backend from req.user._id
-      // project_activity and description are required, so we use placeholders
-      const newAssessment = await assessmentService.create({
-        project: projectId,
-        project_activity: '(To be filled)',
-        description: '(To be filled)',
-        status: 'draft',
-      })
-
-      setAssessment(newAssessment)
-      setMethods([])
-      setConsultations([])
-      setImpactScores([])
-      return { success: true, data: newAssessment }
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setIsSaving(false)
-    }
-  }, [assessment?._id, projectId, user?._id])
+  const startAssessment = useCallback(() => {
+    if (assessment) return Promise.resolve({ success: true, data: assessment })
+    // Every input starts empty: nothing is prefilled and no placeholder is saved (D69). The
+    // backend sets the officer and creates all scores as Negligible (D54); project activity
+    // and description are required at submit.
+    return save(
+      () => assessmentService.create({ project: projectId }),
+      (created) => store(splitAssessment(created))
+    ).then((result) =>
+      result.success ? { ...result, data: splitAssessment(result.data).assessment } : result
+    )
+  }, [assessment, projectId, save, store])
 
   /**
-   * حفظ البيانات الوصفية (Metadata)
+   * Saves the metadata
    */
-  const saveMetadata = useCallback(async (data) => {
-    setIsSaving(true)
-    try {
-      if (!projectId) {
-        const message = 'Missing project id.'
-        setError(message)
-        return { success: false, error: message }
+  const saveMetadata = useCallback(
+    (data) => {
+      if (!projectId) return Promise.resolve(fail('Missing project id.'))
+      if (!assessmentId) {
+        return save(
+          () => assessmentService.create({ project: projectId, ...data }),
+          (created) => store(splitAssessment(created))
+        )
       }
-
-      if (!assessment?._id) {
-        const created = await assessmentService.create({
-          project: projectId,
-          status: 'draft',
-          ...data,
-        })
-        setAssessment(created)
-        return { success: true, data: created }
-      }
-
-      const updated = await assessmentService.update(assessment._id, data)
-      setAssessment(updated)
-      return { success: true, data: updated }
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setIsSaving(false)
-    }
-  }, [assessment?._id, projectId])
+      return withAssessment(
+        (id, version) => assessmentService.update(id, { ...data, version }),
+        storeAssessment
+      )
+    },
+    [projectId, assessmentId, save, fail, store, withAssessment, storeAssessment]
+  )
 
   /**
-   * حفظ طرق التقييم (AssessmentMethod)
-   * @param {Array} newMethods - طرق التقييم البيئي
+   * Saves the assessment methods (AssessmentMethod)
+   * @param {Array} newMethods - The assessment methods
    * Structure: [{ method_type, details }]
    */
-  const saveMethods = useCallback(async (newMethods) => {
-    setIsSaving(true)
-    try {
-      if (!assessment?._id) {
-        const message = 'Assessment record not found.'
-        setError(message)
-        return { success: false, error: message }
-      }
-      const updatedMethods = await assessmentService.setMethods(assessment._id, newMethods)
-      setMethods(updatedMethods)
-      return { success: true, data: updatedMethods }
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setIsSaving(false)
-    }
-  }, [assessment?._id])
+  const saveMethods = useCallback(
+    (newMethods) =>
+      withAssessment(
+        (id, version) => assessmentService.setMethods(id, newMethods, version),
+        storeAll
+      ),
+    [withAssessment, storeAll]
+  )
 
   /**
-   * حفظ الاستشارات المجتمعية (CommunityConsultation)
-   * @param {Array} newConsultations - الاستشارات المجتمعية
-   * Structure متوافق مع communityConsultation.model.js:
+   * Saves the community consultations (CommunityConsultation)
+   * @param {Array} newConsultations - The community consultations
+   * Shape as in communityConsultation.model.js:
    * [{ type, participants, notes }]
    */
-  const saveConsultations = useCallback(async (newConsultations) => {
-    setIsSaving(true)
-    try {
-      if (!assessment?._id) {
-        const message = 'Assessment record not found.'
-        setError(message)
-        return { success: false, error: message }
-      }
-      const updatedConsultations = await assessmentService.setConsultations(
-        assessment._id,
-        newConsultations
-      )
-      setConsultations(updatedConsultations)
-      return { success: true, data: updatedConsultations }
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setIsSaving(false)
-    }
-  }, [assessment?._id])
+  const saveConsultations = useCallback(
+    (newConsultations) =>
+      withAssessment(
+        (id, version) => assessmentService.setConsultations(id, newConsultations, version),
+        storeAll
+      ),
+    [withAssessment, storeAll]
+  )
 
   /**
-   * دالة داخلية مشتركة لحفظ النتائج
-   * @private
+   * Saves the impact scores (draft, and before submit)
+   * The backend recalculates the totals on every score change, so the assessment returned by
+   * the update below already carries them. The update sends the version the scores left (D62).
    */
-  const saveScoresInternal = useCallback(async (scores, negativeImpact, positiveImpact) => {
-    if (!assessment?._id) {
-      const message = 'Assessment record not found.'
-      setError(message)
-      return { success: false, error: message }
-    }
-
-    const savedScores = await assessmentService.addScores(assessment._id, scores)
-    setImpactScores(normalizeImpactScores(savedScores))
-
-    const updated = await assessmentService.update(assessment._id, {
-      potential_negative_impact: negativeImpact,
-      potential_positive_impact: positiveImpact,
-    })
-
-    setAssessment(updated)
-
-    // Try to calculate, but don't fail if calculation fails
-    try {
-      const calculated = await assessmentService.calculate(assessment._id)
-      setAssessment(calculated)
-      return { success: true, data: calculated }
-    } catch {
-      return { success: true, data: updated }
-    }
-  }, [assessment?._id, normalizeImpactScores])
+  const saveImpactScores = useCallback(
+    (scores, negativeImpact, positiveImpact) =>
+      withAssessment(
+        async (id, version) => {
+          const scored = await assessmentService.addScores(id, scores, version)
+          storeAll(scored)
+          const updated = await assessmentService.update(id, {
+            potential_negative_impact: negativeImpact,
+            potential_positive_impact: positiveImpact,
+            version: scored.updatedAt,
+          })
+          return { scored, updated }
+        },
+        ({ updated }) => storeAssessment(updated)
+      ).then((result) => (result.success ? { ...result, data: result.data.updated } : result)),
+    [withAssessment, storeAll, storeAssessment]
+  )
 
   /**
-   * حفظ نتائج التأثير كمسودة (Draft)
-   * يحفظ النتائج بدون تغيير الحالة
+   * Submits the assessment for approval
    */
-  const saveImpactScoresDraft = useCallback(async (scores, negativeImpact, positiveImpact) => {
-    setIsSaving(true)
-    setError(null)
-    try {
-      return await saveScoresInternal(scores, negativeImpact, positiveImpact)
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setIsSaving(false)
-    }
-  }, [saveScoresInternal])
+  const submitAssessment = useCallback(
+    () => withAssessment((id, version) => assessmentService.submit(id, version), storeAssessment),
+    [withAssessment, storeAssessment]
+  )
 
   /**
-   * حفظ نتائج التأثير
-   * للاستخدام عند Submit
+   * Approves the assessment
    */
-  const saveImpactScores = useCallback(async (scores, negativeImpact, positiveImpact) => {
-    setIsSaving(true)
-    setError(null)
-    try {
-      return await saveScoresInternal(scores, negativeImpact, positiveImpact)
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setIsSaving(false)
-    }
-  }, [saveScoresInternal])
+  const approveAssessment = useCallback(
+    (recommendations) =>
+      withAssessment((id) => assessmentService.approve(id, recommendations), storeAssessment),
+    [withAssessment, storeAssessment]
+  )
 
   /**
-   * إرسال التقييم للموافقة
+   * Rejects the assessment
    */
-  const submitAssessment = useCallback(async () => {
-    setIsSaving(true)
-    try {
-      if (!assessment?._id) {
-        const message = 'Assessment record not found.'
-        setError(message)
-        return { success: false, error: message }
-      }
-      const updated = await assessmentService.update(assessment._id, { status: 'submitted' })
-      setAssessment(updated)
-      return { success: true, data: updated }
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setIsSaving(false)
-    }
-  }, [assessment?._id])
-
-  /**
-   * الموافقة على التقييم
-   */
-  const approveAssessment = useCallback(async (recommendations) => {
-    setIsSaving(true)
-    try {
-      if (!assessment?._id) {
-        const message = 'Assessment record not found.'
-        setError(message)
-        return { success: false, error: message }
-      }
-      const updated = await assessmentService.approve(assessment._id, recommendations)
-      setAssessment(updated)
-      return { success: true, data: updated }
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setIsSaving(false)
-    }
-  }, [assessment?._id])
-
-  /**
-   * رفض التقييم
-   */
-  const rejectAssessment = useCallback(async (rejectReason) => {
-    setIsSaving(true)
-    try {
-      if (!assessment?._id) {
-        const message = 'Assessment record not found.'
-        setError(message)
-        return { success: false, error: message }
-      }
-      const updated = await assessmentService.reject(
-        assessment._id,
-        rejectReason === undefined ? '' : rejectReason
-      )
-      setAssessment(updated)
-      return { success: true, data: updated }
-    } catch (err) {
-      const errorMessage = extractErrorMessage(err)
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
-    } finally {
-      setIsSaving(false)
-    }
-  }, [assessment?._id])
+  const rejectAssessment = useCallback(
+    (rejectReason) =>
+      withAssessment(
+        (id) => assessmentService.reject(id, rejectReason === undefined ? '' : rejectReason),
+        storeAssessment
+      ),
+    [withAssessment, storeAssessment]
+  )
 
   return {
     assessment,
     methods,
     consultations,
     impactScores,
-    categoriesWithQuestions,
-    lookupsLoading,
-    isLoading,
+    isLoading: !!projectId && query.isPending,
     isSaving,
-    error,
-    refetch,
+    error: error ?? (query.error ? extractErrorMessage(query.error) : null),
+    // The assessment could not be read at all (not a failed save, not a failed background refresh)
+    loadError: query.error && query.data === undefined ? extractErrorMessage(query.error) : null,
+    refetch: query.refetch,
     startAssessment,
     saveMetadata,
     saveMethods,
     saveConsultations,
     saveImpactScores,
-    saveImpactScoresDraft,
+    saveImpactScoresDraft: saveImpactScores,
     submitAssessment,
     approveAssessment,
     rejectAssessment,

@@ -7,41 +7,50 @@ const {
   approveScreeningSchema,
   rejectScreeningSchema,
 } = require("../validators/screening.validator");
-const { auth, requireRole } = require("../middlewares/auth");
+const { submitSchema } = require("../validators/version.validator");
+const { requirePermission } = require("../middlewares/auth");
+const projectAccess = require("../middlewares/projectAccess");
+const Screening = require("../models/screening.model");
 
 const router = express.Router();
+const screening = projectAccess.fromRecord(Screening, "id", "Screening not found");
 
-router.get("/", controller.getAll);
-router.get("/:id", controller.getOne);
-router.get("/project/:projectId", controller.getByProject);
+router.get("/:id", screening, controller.getOne);
+router.get("/project/:projectId", projectAccess.fromParam("projectId"), controller.getByProject);
 router.post(
   "/",
-  auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
+  requirePermission("screening.create"),
   validate(createScreeningSchema),
+  projectAccess.fromBody("project"),
   controller.create
 );
 router.put(
   "/:id",
-  auth,
-  requireRole("environmental_specialist", "program_manager", "project_manager", "environmental_focal_point"),
+  requirePermission("screening.edit"),
   validate(updateScreeningSchema),
+  screening,
   controller.update
 );
 router.patch(
+  "/:id/submit",
+  requirePermission("screening.submit"),
+  validate(submitSchema),
+  screening,
+  controller.submit
+);
+router.patch(
   "/:id/approve",
-  auth,
-  requireRole("environmental_specialist"),
+  requirePermission("screening.approve"),
   validate(approveScreeningSchema),
+  screening,
   controller.approve
 );
 router.patch(
   "/:id/reject",
-  auth,
-  requireRole("environmental_specialist"),
+  requirePermission("screening.reject"),
   validate(rejectScreeningSchema),
+  screening,
   controller.reject
 );
 
 module.exports = router;
-

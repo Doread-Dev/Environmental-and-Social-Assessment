@@ -1,21 +1,22 @@
 /**
  * IndicatorDataRow Component
- * صف واحد للمؤشر مع حقول قابلة للتعديل
+ * One indicator row with editable fields
  */
 
 import RankingSelect from './RankingSelect'
 import ResponsibleSelect from '@/components/semp/ResponsibleSelect'
+import { Input, Textarea } from '@/components/ui'
 
 /**
  * @param {Object} props
- * @param {Object} props.indicator - بيانات المؤشر
- * @param {Object} props.record - سجل المراقبة
- * @param {string} [props.categoryCode] - كود الفئة للمؤشر
- * @param {number} [props.questionNumber] - رقم السؤال داخل الفئة
- * @param {Function} props.onUpdateScore - تحديث قيمة ربع سنوية (quarter, value) => void
- * @param {Function} props.onUpdateField - تحديث حقل (field, value) => void
- * @param {boolean} [props.isEditable] - قابل للتعديل
- * @param {Array} [props.users] - قائمة المستخدمين للعمود Responsibility
+ * @param {Object} props.indicator - The indicator
+ * @param {Object} props.record - The monitoring record
+ * @param {string} [props.categoryCode] - The indicator's category code
+ * @param {number} [props.questionNumber] - Question number within the category
+ * @param {Function} props.onUpdateScore - Sets a quarter's value (quarter, value) => void
+ * @param {Function} props.onUpdateField - Sets a field (field, value) => void
+ * @param {boolean} [props.isEditable] - Editable
+ * @param {Array} [props.users] - Users for the Responsibility column
  */
 function IndicatorDataRow({
   indicator,
@@ -42,9 +43,9 @@ function IndicatorDataRow({
   }
 
   return (
-    <tr className="group border-b border-border-default dark:border-border-dark hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
+    <tr className="group border-b border-border-default dark:border-border-dark hover:bg-background dark:hover:bg-white/5 transition-colors">
       {/* Indicator Name */}
-      <td className="sticky left-0 z-20 px-4 py-3 text-sm text-text-main dark:text-white font-medium whitespace-normal min-w-[280px] max-w-[360px] bg-white dark:bg-[#152a1d] group-hover:bg-white dark:group-hover:bg-[#152a1d]">
+      <td className="sticky left-0 z-20 px-4 py-3 text-sm text-text-main dark:text-white font-medium whitespace-normal min-w-[280px] max-w-[360px] bg-surface dark:bg-card-dark group-hover:bg-white dark:group-hover:bg-card-dark">
         <div className="flex flex-col gap-1">
           <p className="font-medium">{indicator.name}</p>
           {indicator.definition && (
@@ -62,12 +63,14 @@ function IndicatorDataRow({
       {quarters.map((quarter) => (
         <td key={quarter} className="px-3 py-3 min-w-[100px]">
           {isEditable ? (
-            <input
+            <Input
+              size="sm"
               type="text"
               value={record.scores[quarter] || ''}
               onChange={(e) => handleScoreChange(quarter, e.target.value)}
               placeholder={quarter === 'baseline' ? 'Baseline' : quarter}
-              className="w-full rounded-lg border border-border-default dark:border-border-dark bg-white dark:bg-[#102216] text-text-main dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary px-3 py-2 text-sm text-center"
+              aria-label={quarter === 'baseline' ? 'Baseline' : quarter}
+              inputClassName="text-center"
             />
           ) : (
             <span className="text-sm text-text-main dark:text-white text-center block">
@@ -80,12 +83,14 @@ function IndicatorDataRow({
       {/* Total */}
       <td className="px-3 py-3 min-w-[100px]">
         {isEditable ? (
-          <input
+          <Input
+            size="sm"
             type="text"
             value={record.total || ''}
             onChange={(e) => handleFieldChange('total', e.target.value)}
             placeholder="Total"
-            className="w-full rounded-lg border border-border-default dark:border-border-dark bg-white dark:bg-[#102216] text-text-main dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary px-3 py-2 text-sm font-medium text-center"
+            aria-label="Total"
+            inputClassName="font-medium text-center"
           />
         ) : (
           <span className="text-sm text-text-main dark:text-white font-medium text-center block">
@@ -97,11 +102,13 @@ function IndicatorDataRow({
       {/* Final Assessment */}
       <td className="px-3 py-3 min-w-[160px]">
         {isEditable ? (
-          <input
+          <Input
+            size="sm"
             value={record.final_assessment || ''}
             onChange={(e) => handleFieldChange('final_assessment', e.target.value)}
             placeholder="Final assessment"
-            className="w-full rounded-lg border border-border-default dark:border-border-dark bg-white dark:bg-[#102216] text-text-main dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary px-3 py-2 text-sm text-left"
+            aria-label="Final assessment"
+            inputClassName="text-left"
           />
         ) : (
           <span className="text-sm text-text-main dark:text-white">
@@ -114,14 +121,14 @@ function IndicatorDataRow({
       <td className="px-3 py-3 min-w-[160px]">
         {isEditable ? (
           <RankingSelect
-            value={record.ranking || 'not_applicable'}
+            value={record.ranking || ''}
             onChange={(value) => handleFieldChange('ranking', value)}
             categoryCode={categoryCode}
             questionNumber={questionNumber}
           />
         ) : (
           <span className="text-sm text-text-main dark:text-white capitalize text-center block">
-            {record.ranking || 'N/A'}
+            {record.ranking || '—'}
           </span>
         )}
       </td>
@@ -130,7 +137,11 @@ function IndicatorDataRow({
       <td className="px-3 py-3 min-w-[160px]">
         <ResponsibleSelect
           value={record.responsible}
-          onChange={(value) => handleFieldChange('responsible', value)}
+          valueText={record.responsible_text}
+          onChange={({ responsible, responsible_text }) => {
+            handleFieldChange('responsible', responsible)
+            handleFieldChange('responsible_text', responsible_text)
+          }}
           users={users}
           readOnly={!isEditable}
           className="w-full"
@@ -140,11 +151,12 @@ function IndicatorDataRow({
       {/* Note */}
       <td className="px-3 py-3 min-w-[180px]">
         {isEditable ? (
-          <textarea
+          <Textarea
+            rows={2}
             value={record.note || ''}
             onChange={(e) => handleFieldChange('note', e.target.value)}
             placeholder="Additional notes..."
-            className="w-full rounded-lg border border-border-default dark:border-border-dark bg-white dark:bg-[#102216] text-text-main dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary px-3 py-2 text-sm"
+            aria-label="Note"
           />
         ) : (
           <span className="text-sm text-text-secondary dark:text-gray-400">

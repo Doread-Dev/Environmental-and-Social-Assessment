@@ -1,8 +1,16 @@
 import { forwardRef, useId } from 'react'
 import { cn } from '@/utils/cn'
+import { MAX_TEXT_LENGTH } from '@/utils/textLimits'
+import {
+  ERROR_TEXT_CLASSES,
+  HELPER_TEXT_CLASSES,
+  LABEL_CLASSES,
+  READ_ONLY_CLASSES,
+  controlClasses,
+} from './formControl'
 
 /**
- * Textarea component with label and validation support
+ * Textarea component with label and validation support (shared form-control look, D71)
  *
  * @param {Object} props
  * @param {string} props.label - Textarea label
@@ -10,6 +18,7 @@ import { cn } from '@/utils/cn'
  * @param {string} props.helperText - Helper text
  * @param {number} props.rows - Number of visible rows
  * @param {'none'|'vertical'|'horizontal'|'both'} props.resize - Allow resize (default: vertical)
+ * @param {'default'|'cell'} props.variant - `cell`: borderless inside a table cell
  * @param {boolean} props.required - Mark as required
  *
  * @example
@@ -23,11 +32,14 @@ const Textarea = forwardRef(
       helperText,
       rows = 4,
       resize = 'vertical',
+      variant = 'default',
       required = false,
       disabled = false,
       className,
       textareaClassName,
       id: propId,
+      // Free text: the shared limit (D74 4); a smaller one can be passed
+      maxLength = MAX_TEXT_LENGTH,
       ...props
     },
     ref
@@ -35,6 +47,7 @@ const Textarea = forwardRef(
     const generatedId = useId()
     const id = propId || generatedId
     const errorId = `${id}-error`
+    const helperId = `${id}-helper`
 
     const resizeClasses = {
       none: 'resize-none',
@@ -45,57 +58,45 @@ const Textarea = forwardRef(
 
     return (
       <div className={cn('flex flex-col gap-1.5', className)}>
-        {/* Label */}
         {label && (
-          <label
-            htmlFor={id}
-            className={cn(
-              'text-sm font-semibold',
-              'text-text-main dark:text-gray-200',
-              disabled && 'opacity-50'
-            )}
-          >
+          <label htmlFor={id} className={cn(LABEL_CLASSES, disabled && 'opacity-50')}>
             {label}
             {required && <span className="text-error ml-1">*</span>}
           </label>
         )}
 
-        {/* Textarea */}
         <textarea
+          maxLength={maxLength}
           ref={ref}
           id={id}
           rows={rows}
           disabled={disabled}
-          aria-invalid={!!error}
-          aria-describedby={error ? errorId : undefined}
+          aria-required={required || undefined}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : helperText ? helperId : undefined}
           className={cn(
-            'w-full rounded-lg px-4 py-3',
-            'border bg-white dark:bg-black/20',
-            'text-text-main dark:text-white text-base',
-            'placeholder:text-text-muted/70 dark:placeholder:text-gray-500',
-            'transition-all duration-200',
-            'focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary',
+            controlClasses({ variant, error: !!error }),
+            READ_ONLY_CLASSES,
+            variant === 'cell' ? 'px-2 py-1' : 'px-3 py-2.5 text-sm',
             resizeClasses[resize],
-            error
-              ? 'border-error focus:border-error focus:ring-error/20'
-              : 'border-input-border dark:border-input-border-dark',
-            disabled && 'opacity-50 cursor-not-allowed',
             textareaClassName
           )}
           {...props}
         />
 
-        {/* Error message */}
         {error && (
-          <p id={errorId} className="text-sm text-error flex items-center gap-1">
-            <span className="material-symbols-outlined text-base">error</span>
+          <p id={errorId} className={ERROR_TEXT_CLASSES}>
+            <span className="material-symbols-outlined text-base" aria-hidden="true">
+              error
+            </span>
             {error}
           </p>
         )}
 
-        {/* Helper text */}
         {!error && helperText && (
-          <p className="text-sm text-text-secondary dark:text-gray-400">{helperText}</p>
+          <p id={helperId} className={HELPER_TEXT_CLASSES}>
+            {helperText}
+          </p>
         )}
       </div>
     )

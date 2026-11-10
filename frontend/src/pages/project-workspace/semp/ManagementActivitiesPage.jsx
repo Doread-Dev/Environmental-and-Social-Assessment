@@ -1,43 +1,60 @@
 /**
  * ManagementActivitiesPage (Tool 3)
- * Matches design from: 17.Management Activities Table.html
  */
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom'
-import { useSemp } from '@/hooks/useSemp'
+import { useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '@/services/queryKeys'
+import { UnsavedExportDialog, useExportHandler } from '@/components/export'
+import { useManagementActivities } from '@/hooks/useSemp'
 import { ManagementActivitiesTable } from '@/components/semp'
-import { useLookups, useAuth } from '@/contexts'
-import { cn } from '@/utils/cn'
-import { useToast } from '@/components/ui'
+import { useUsers } from '@/hooks'
+import { useUnsavedChanges } from '@/contexts'
+import {
+  useToast,
+  LoadingState,
+  PAGE_TITLE,
+  PAGE_DESCRIPTION,
+  Button,
+  ConfirmDialog,
+} from '@/components/ui'
 
 export default function ManagementActivitiesPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
   const toast = useToast()
   const outletContext = useOutletContext()
+  // From SempFullWidthLayout (workspace query)
   const project = outletContext?.project || null
-  const { activeUsers } = useLookups()
-  const { canEdit } = useAuth()
+  const workflow = outletContext?.workflow
+  const canEdit = outletContext?.can?.('semp.edit') ?? false
+  const { activeUsers } = useUsers()
 
   const {
-    managementActivities,
+    rows: managementActivities,
     isLoading,
     isSaving,
     error,
-    addManagementActivity,
-    updateManagementActivity,
-    deleteManagementActivity,
-    saveManagementActivities,
-  } = useSemp(projectId)
+    addRow: addManagementActivity,
+    updateRow: updateManagementActivity,
+    deleteRow: deleteManagementActivity,
+    saveRows: saveManagementActivities,
+  } = useManagementActivities(projectId)
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [justSaved, setJustSaved] = useState(false)
+  // Asks before exporting an empty template (in-app dialog, not window.confirm)
+  const [confirmEmptyExport, setConfirmEmptyExport] = useState(false)
+  // Export with unsaved edits: save first (D74 3)
+  const [confirmUnsavedExport, setConfirmUnsavedExport] = useState(false)
+  const [isSavingForExport, setIsSavingForExport] = useState(false)
+  const queryClient = useQueryClient()
   const hasInitialized = useRef(false)
 
   // Auto-create first row if empty on load
   useEffect(() => {
-    if (!isLoading && managementActivities.length === 0 && !hasInitialized.current) {
+    if (!isLoading && canEdit && managementActivities.length === 0 && !hasInitialized.current) {
       addManagementActivity()
       hasInitialized.current = true
       // We don't set hasUnsavedChanges here to avoid prompting if user leaves immediately
@@ -45,65 +62,45 @@ export default function ManagementActivitiesPage() {
     } else if (!isLoading && managementActivities.length > 0) {
       hasInitialized.current = true
     }
-  }, [isLoading, managementActivities, addManagementActivity])
+  }, [isLoading, canEdit, managementActivities, addManagementActivity])
 
-  // Handle export event from SempFullWidthLayout
-  useEffect(() => {
-    if (!projectId) return
-
-    const handleExportEvent = async (event) => {
-      if (event.detail?.toolType === 'tool3') {
-        try {
-          // Get project from outlet context or load it
-          let exportProject = project
-          if (!exportProject && projectId) {
-            // Try to load project if not available from context
-            const { projectService } = await import('@/services')
-            try {
-              exportProject = await projectService.getById(projectId)
-            } catch (err) {
-              console.warn('Failed to load project, using fallback:', err)
-              exportProject = { _id: projectId, title: 'Unknown Project' }
-            }
-          }
-          
-          if (!exportProject) {
-            throw new Error('Project data is not available')
-          }
-
-          // Filter out placeholder/temporary activities (those with _isNew flag or temp IDs)
-          const validActivities = (managementActivities || []).filter((activity) => {
-            // Skip activities with temporary IDs (starting with "temp_")
-            if (activity._id && typeof activity._id === 'string' && activity._id.startsWith('temp_')) {
-              return false
-            }
-            return true
-          })
-
-          if (validActivities.length === 0) {
-            const shouldExportEmpty = window.confirm(
-              'No saved activities found. Do you want to export an empty template?'
-            )
-            if (!shouldExportEmpty) {
-              return
-            }
-          }
-
-          const { exportManagementActivitiesToExcel } = await import('@/utils/excelExport')
-          await exportManagementActivitiesToExcel(exportProject, validActivities)
-          toast.success('Excel file downloaded successfully!')
-        } catch (error) {
-          console.error('[ManagementActivitiesPage] Export error:', error)
-          toast.error(`Failed to export Excel file: ${error.message || 'Unknown error'}`)
+  // The file always holds what is saved (D74 3): the cached table and the current workflow status
+  const exportSaved = useCallback(
+    async ({ confirmedEmpty = false } = {}) => {
+      try {
+        if (!project) throw new Error('Project data is not available')
+        const rows = queryClient.getQueryData(queryKeys.management(projectId))?.rows ?? []
+        if (rows.length === 0 && !confirmedEmpty) {
+          setConfirmEmptyExport(true)
+          return
         }
+        const current = queryClient.getQueryData(queryKeys.workspace(projectId))?.workflow
+        const { exportTool, exportStatus } = await import('@/utils/excelExport')
+        const fileName = await exportTool(
+          'tool3',
+          { project, rows },
+          exportStatus(current ?? workflow, 'tool3')
+        )
+        toast.success(`Downloaded ${fileName}`)
+      } catch (error) {
+        console.error('[ManagementActivitiesPage] Export error:', error)
+        toast.error(`Failed to export Excel file: ${error.message || 'Unknown error'}`)
       }
-    }
-    
-    window.addEventListener('semp-export', handleExportEvent)
-    return () => {
-      window.removeEventListener('semp-export', handleExportEvent)
-    }
-  }, [project, projectId, managementActivities, toast])
+    },
+    [project, projectId, queryClient, workflow, toast]
+  )
+
+  // The header's Export Excel (SempFullWidthLayout), once the rows are loaded: with unsaved edits,
+  // ask to save first
+  useExportHandler(
+    'semp-export',
+    (event) => {
+      if (event.detail?.toolType !== 'tool3') return
+      if (canEdit && hasUnsavedChanges) setConfirmUnsavedExport(true)
+      else exportSaved()
+    },
+    Boolean(projectId) && !isLoading
+  )
 
   // Handlers
   const handleUpdate = (rowId, field, value) => {
@@ -130,16 +127,23 @@ export default function ManagementActivitiesPage() {
       setHasUnsavedChanges(false)
       setJustSaved(true)
     }
+    return result
   }
 
-  const handleBack = () => {
-    if (hasUnsavedChanges) {
-      if (!window.confirm('You have unsaved changes. Are you sure you want to leave?')) {
-        return
-      }
-    }
-    navigate(`/app/projects/${projectId}/semp`)
+  // Leaving with unsaved edits (Back, sidebar, browser Back, refresh) asks Save / Discard / Stay
+  // in the shared in-app dialog (D61); the auto-added empty first row alone does not count.
+  useUnsavedChanges(canEdit && hasUnsavedChanges, handleSave)
+
+  // "Save and export": a failed save (its error, or the stale dialog) exports nothing
+  const saveAndExport = async () => {
+    setIsSavingForExport(true)
+    const result = await handleSave()
+    setIsSavingForExport(false)
+    setConfirmUnsavedExport(false)
+    if (result.success) await exportSaved()
   }
+
+  const handleBack = () => navigate(`/app/projects/${projectId}/semp`)
 
   // Determine button label and icon based on state
   const getSaveButtonContent = () => {
@@ -155,14 +159,7 @@ export default function ManagementActivitiesPage() {
   const saveBtn = getSaveButtonContent()
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading activities...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState message="Loading activities..." />
   }
 
   return (
@@ -171,45 +168,40 @@ export default function ManagementActivitiesPage() {
       <div className="shrink-0 flex flex-wrap justify-between items-end gap-3 px-6 md:px-10 py-6 border-b border-border-default dark:border-border-dark bg-background dark:bg-background-dark">
         <div className="flex min-w-72 flex-col gap-2">
           <div className="flex items-center gap-2 text-primary text-sm font-bold uppercase tracking-wider">
-            <span className="material-symbols-outlined text-lg">build</span>
+            <span className="material-symbols-outlined text-lg" aria-hidden="true">
+              build
+            </span>
             <span>Tool 3</span>
           </div>
-          <h1 className="text-text-main dark:text-white text-2xl md:text-3xl font-black leading-tight tracking-[-0.033em]">
-            Environmental & Social Management
-          </h1>
-          <p className="text-text-secondary dark:text-gray-400 text-sm font-normal leading-normal">
-            Operational planning and risk mitigation tracking.
-          </p>
+          <h1 className={PAGE_TITLE}>Environmental & Social Management</h1>
+          <p className={PAGE_DESCRIPTION}>Operational planning and risk mitigation tracking.</p>
         </div>
 
         <div className="gap-2 flex items-center justify-center">
-          <button
-            onClick={handleBack}
-            className="flex items-center justify-center gap-2 rounded-lg h-10 px-4 bg-white dark:bg-surface-dark border border-border-default dark:border-border-dark hover:bg-gray-50/50 dark:hover:bg-white/3 text-text-main dark:text-white text-sm font-bold transition-all shadow-sm"
-          >
-            <span className="material-symbols-outlined text-lg">arrow_back</span>
+          <Button variant="secondary" onClick={handleBack}>
+            <span className="material-symbols-outlined text-lg" aria-hidden="true">
+              arrow_back
+            </span>
             <span>Back</span>
-          </button>
+          </Button>
 
-          <button
-            onClick={handleSave}
-            disabled={isSaving || (justSaved && !hasUnsavedChanges)} // Disable if already saved to prevent double submitting without changes? Or keep enabled? User said "stays as Saved", implied purely feedback. I'll keep enabled or follow standard UX. Disable on Saved is good UX.
-            className={cn(
-              'flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-5 gap-2 text-sm font-bold leading-normal tracking-[0.015em] shadow-md transition-all transform ',
-              isSaving
-                ? 'bg-primary/70 cursor-wait'
-                : justSaved && !hasUnsavedChanges
-                  ? 'bg-green-600 hover:bg-green-700 text-white border border-transparent'
-                  : 'bg-primary hover:bg-green-500 text-primary-content'
-            )}
-          >
-            {saveBtn.spinner ? (
-              <span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <span className="material-symbols-outlined text-lg">{saveBtn.icon}</span>
-            )}
-            <span className="truncate">{saveBtn.text}</span>
-          </button>
+          {canEdit && (
+            <Button
+              variant="primary"
+              onClick={handleSave}
+              disabled={isSaving || (justSaved && !hasUnsavedChanges)}
+              isLoading={isSaving}
+              leftIcon={
+                saveBtn.icon ? (
+                  <span className="material-symbols-outlined text-lg" aria-hidden="true">
+                    {saveBtn.icon}
+                  </span>
+                ) : undefined
+              }
+            >
+              {saveBtn.text}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -218,7 +210,10 @@ export default function ManagementActivitiesPage() {
         <div className="mx-4 md:mx-10 mt-4">
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
             <div className="flex items-start gap-3">
-              <span className="material-symbols-outlined text-red-600 dark:text-red-400 text-xl">
+              <span
+                className="material-symbols-outlined text-red-600 dark:text-red-400 text-xl"
+                aria-hidden="true"
+              >
                 error
               </span>
               <div className="flex-1">
@@ -240,6 +235,28 @@ export default function ManagementActivitiesPage() {
           readOnly={!canEdit}
         />
       </div>
+
+      {confirmEmptyExport && (
+        <ConfirmDialog
+          title="Export an empty template"
+          message={<p>No saved activities found. Do you want to export an empty template?</p>}
+          confirmLabel="Export"
+          confirmIcon="download"
+          onConfirm={() => {
+            setConfirmEmptyExport(false)
+            exportSaved({ confirmedEmpty: true })
+          }}
+          onClose={() => setConfirmEmptyExport(false)}
+        />
+      )}
+
+      {confirmUnsavedExport && (
+        <UnsavedExportDialog
+          isSaving={isSavingForExport}
+          onSaveAndExport={saveAndExport}
+          onClose={() => setConfirmUnsavedExport(false)}
+        />
+      )}
     </div>
   )
 }

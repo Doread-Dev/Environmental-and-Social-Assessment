@@ -1,42 +1,34 @@
 /**
  * ProjectOverviewPage
- * صفحة نظرة عامة على المشروع
- * مطابق للتصميم الأصلي حرفياً
+ * Project overview page
  *
- * Layout: ProjectLayout (موجود)
+ * Layout: ProjectLayout
  * Route: /app/projects/:projectId/overview
  */
 
-import { useMemo, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   ProjectHeader,
   ProjectProgressTimeline,
   ProjectMetricCard,
   ProjectCTACard,
-  ProjectSiteCard,
+  ProjectDetailsCard,
+  ProjectWorkbookCard,
 } from '@/components/project'
-import { useProjectContext, useSemp } from '@/hooks'
+import { useProjectContext, useProjectSave } from '@/hooks'
 import { getScreeningCategory } from '@/utils/screeningDisplay'
 import { calculateDurationMonths, formatDuration } from '@/utils/formatters'
-import { getNextAction } from '@/utils/workflowDerivation'
 import { projectService } from '@/services/projectService'
-import { extractErrorMessage } from '@/services/api'
+import { queryKeys } from '@/services/queryKeys'
+import { ROUTES, getProjectRoute } from '@/routes/routes.config'
 
 function ProjectOverviewPage() {
   const navigate = useNavigate()
   const { projectId } = useParams()
-  const { project: contextProject, setProject: setContextProject, workflow } = useProjectContext()
-  const [project, setProject] = useState(contextProject)
-  
-  // Get Management Activities count from SEMP hook
-  const { managementActivities, isLoading: sempLoading } = useSemp(projectId)
-
-  useEffect(() => {
-    if (contextProject) {
-      setProject(contextProject)
-    }
-  }, [contextProject])
+  const { project, workflow, counts, can } = useProjectContext()
+  // The project edit is a write of project data like the tools: version check, the stale-save
+  // dialog and one request per double click (D62)
+  const { save } = useProjectSave(projectId, queryKeys.workspace(projectId))
 
   if (!project) {
     return (
@@ -48,10 +40,9 @@ function ProjectOverviewPage() {
     )
   }
 
-  // workflow is derived from actual entity data (passed from ProjectLayout)
-  const currentWorkflow = workflow || project.workflow || {}
+  // Workflow state and next action come from the backend (workspace, D30)
   const screening = project.screening || {}
-  const nextAction = getNextAction(currentWorkflow)
+  const nextAction = workflow.next_action
 
   // Calculate metrics
   const riskCategory = screening.category_code || 'N/A'
@@ -60,7 +51,7 @@ function ProjectOverviewPage() {
   const riskSubtitle = riskCategoryInfo ? riskCategoryInfo.label : ''
 
   // Get actual activities count from Tool 3 (Management Activities)
-  const activitiesCount = Array.isArray(managementActivities) ? managementActivities.length : 0
+  const activitiesCount = counts?.management_activities ?? 0
   const activitiesSubtitle = 'From Tool 3'
 
   // Calculate duration
@@ -68,39 +59,34 @@ function ProjectOverviewPage() {
   const timeframe = formatDuration(durationMonths)
 
   // Handlers
-  const handleEditProject = async (updates) => {
-    if (!projectId) return { success: false, error: 'Missing project id.' }
-    try {
-      const updatedProject = await projectService.update(projectId, updates)
-      setProject((prev) => (prev ? { ...prev, ...updatedProject } : updatedProject))
-      if (setContextProject) {
-        setContextProject((prev) => (prev ? { ...prev, ...updatedProject } : updatedProject))
-      }
-      return { success: true }
-    } catch (err) {
-      const message = extractErrorMessage(err)
-      return { success: false, error: message }
-    }
+  const handleEditProject = (updates) => {
+    if (!projectId) return Promise.resolve({ success: false, error: 'Missing project id.' })
+    return save(() => projectService.update(projectId, updates))
   }
 
   const handleNextStep = () => {
-    navigate(`/app/projects/${projectId}/${nextAction.path}`)
-  }
-
-  const handleMapExpand = () => {
-    // TODO: Open map in modal or new page
+    navigate(getProjectRoute(projectId, ROUTES[nextAction.route]))
   }
 
   return (
     <div className="flex flex-col gap-8">
       {/* Project Header Section (includes header + progress timeline) */}
-      <section className="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark p-6">
+      <section className="bg-surface dark:bg-surface-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark p-6">
         {/* Header Content */}
-        <ProjectHeader project={project} onEdit={handleEditProject} />
+        <ProjectHeader
+          project={project}
+          status={workflow?.status}
+          showEditButton={can('project.edit')}
+          onEdit={handleEditProject}
+        />
 
         {/* Progress Timeline */}
-        <ProjectProgressTimeline workflow={currentWorkflow} />
+        <ProjectProgressTimeline workflow={workflow} />
       </section>
+
+      {/* One file with every tool that has data (D67 b), right under the header so it is found
+          without scrolling; never for viewers (D28a) */}
+      {can('export') && <ProjectWorkbookCard projectId={projectId} />}
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -136,7 +122,7 @@ function ProjectOverviewPage() {
 
           {/* CTA Card */}
           <ProjectCTACard
-            title={nextAction.title}
+            title={nextAction.label}
             description={nextAction.description}
             buttonText={`Open Tool ${nextAction.tool}`}
             buttonIcon="arrow_forward"
@@ -146,13 +132,12 @@ function ProjectOverviewPage() {
 
         {/* Right Column (1/3) */}
         <div className="flex flex-col gap-6">
-          {/* Site Card */}
-          <ProjectSiteCard
+          {/* Project Details Card */}
+          <ProjectDetailsCard
             location={project.location}
-            areaName="Bukit Barisan Selatan National Park"
-            areaSize="245 Hectares"
-            mapImageUrl={null}
-            onExpand={handleMapExpand}
+            component={project.project_component}
+            startDate={project.start_date}
+            endDate={project.end_date}
           />
         </div>
       </div>

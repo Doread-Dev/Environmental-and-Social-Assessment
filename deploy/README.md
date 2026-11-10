@@ -1,0 +1,185 @@
+# ESMS on an internal server
+
+ESMS runs on one server inside the organisation, with no internet (D37, D38, D75). One Node.js
+process serves the app and its API on the same address; MongoDB runs on the same machine; IIS
+(Windows) or nginx (Linux) in front gives HTTPS. Backups go to a second disk or a network share
+every night.
+
+```
+ users' browsers ──HTTPS──▶ IIS / nginx ──HTTP 127.0.0.1:3000──▶ Node (ESMS: app + /api/v1)
+                                                                      │
+                                                     MongoDB 127.0.0.1:27017 (replica set rs0)
+                                                     uploads folder (project files, library/)
+                       daily 02:00: backup ──▶ second disk / network share (30 days)
+```
+
+**Before install day:** the organisation's IT works through the [IT checklist](IT-CHECKLIST.md)
+(server, installers, certificate, ports, accounts, backups, the questions to answer). The owner's
+own tasks (building a release, updates, first users, restore, logs) are in the
+[owner runbook](OWNER-RUNBOOK.md).
+
+**Pick your guide:** [Windows Server](INSTALL-WINDOWS.md) · [Ubuntu Linux](INSTALL-LINUX.md).
+Both are written for an IT person who is not a developer, on a clean machine with Node.js and
+MongoDB, offline. The Windows path was run on a Windows 11 test machine: in phase 11 every step
+but the service registration, then the owner ran `install.ps1` for real with a service test kit
+(the NSSM service and the backup task registered and checked, 31 checks) on the build before the
+"no MongoDB service dependency" fix (PR #25). That fix is covered by
+`backend/tests/deployScripts.test.js` and was not run again on a real machine (the phase 11 file,
+"Found during phase"). **The Linux path has not been run on a real server yet** (scripts checked
+with `bash -n` and shellcheck in CI).
+
+## What is in this folder
+
+| Path | What |
+|---|---|
+| `IT-CHECKLIST.md` | For the organisation's IT: what to prepare and decide before install day. |
+| `OWNER-RUNBOOK.md` | For the owner: releases, updates, first users, restore, logs, when the app is down. |
+| `build-release.mjs` | Builds the release on a machine **with** internet: `node deploy/build-release.mjs` → `release/esms-<version>-<date>-<commit>.zip` (or `.tar.gz`), e.g. `esms-2.0.0-2026-11-08-0fbe114.zip`. Everything the server needs, nothing to download there. |
+| `config/esms.env.example` | The server settings (`backend/.env`), every line explained. |
+| `config/mongod-windows.cfg`, `config/mongod-linux.conf` | MongoDB config with the replica set block. |
+| `windows/install.ps1` | Install / update on Windows (NSSM service, daily backup task). |
+| `windows/backup.ps1`, `restore.ps1`, `test-backup-restore.ps1` | Backup, restore, restore check. |
+| `linux/install.sh` | Install / update on Ubuntu (systemd service and timer). |
+| `linux/backup.sh`, `restore.sh`, `test-backup-restore.sh` | Backup, restore, restore check. |
+| `linux/esms.service`, `esms-backup.service`, `esms-backup.timer` | systemd units. |
+| `proxy/iis-web.config`, `proxy/nginx-esms.conf` | HTTPS reverse proxy examples. |
+
+The scripts are thin wrappers: the work is done by Node scripts in `backend/scripts/`
+(`backup.js`, `restore.js`, `test-backup-restore.js`, `init-replica-set.js`,
+`check-server.js`), the same on both systems and covered by the backend tests.
+
+## What the server needs
+
+| | Version | Note |
+|---|---|---|
+| Node.js | the major in `.nvmrc` (26 LTS) | the install scripts refuse another major |
+| MongoDB Community Server | 8.0.30+ or 8.3.9+ (or 7.0) | see the kernel matrix below (Linux) |
+| MongoDB Database Tools | 100.x | `mongodump` / `mongorestore` for backups |
+| Windows only: NSSM | 2.24 | runs Node as a Windows service |
+| Windows only: IIS + URL Rewrite + ARR | — | HTTPS in front |
+| Linux only: nginx | from Ubuntu | HTTPS in front |
+| A second disk or a network share | — | for the backups |
+| An HTTPS certificate | — | from the organisation's IT |
+
+Download the installers on a machine with internet and carry them over with the release. Each
+guide lists the files.
+
+### MongoDB 8 and the Linux kernel (check before choosing versions)
+
+MongoDB 8.x refuses to start on Linux kernels **6.19 to 7.0.13** (tcmalloc/rseq bug,
+SERVER-121912); MongoDB **8.0.30** and **8.3.9** changed the start-up check (SERVER-125742). Before
+installing on Linux, check `uname -r` and pick a combination that works:
+
+| Kernel | MongoDB 7.0 | MongoDB 8.0 | MongoDB 8.3 |
+|---|---|---|---|
+| before 6.19 | ✔ | ✔ | ✔ |
+| 6.19 – 7.0.13 | ✔ | only 8.0.30+ | only 8.3.9+ |
+| 7.0.14 and later | ✔ | ✔ | ✔ |
+
+`node backend/scripts/check-server.js --mongodb-version <version>` answers it for the machine
+it runs on; `install.sh` runs that check before anything else. Windows is not affected.
+
+## Settings
+
+All settings are in `backend/.env` (template: [config/esms.env.example](config/esms.env.example);
+the install scripts write it). The ones IT chooses:
+
+- `BACKUP_DIR` — **a second disk or a network share, never the database disk.** The backup refuses
+  a folder on the same disk as MongoDB's data, and also refuses when it cannot check (MongoDB
+  does not report `storage.dbPath`, or its data folder is not on this machine): keep `dbPath`
+  in MongoDB's config file, as the install scripts and `deploy/config` do. Windows: `E:\ESMS-backups` or
+  `\\backup-server\esms`; Linux: a mounted disk or share such as `/mnt/backup/esms`. It also refuses
+  a `BACKUP_DIR` inside `UPLOADS_DIR`. `check-server.js` reports the same disk and the disk it
+  cannot check as FAIL. The `--allow-same-disk` option overrides the disk check and prints why;
+  it is for tests and CI only (where MongoDB runs in a container), never for the server.
+- `BACKUP_KEEP_DAYS` — default 30.
+- `UPLOADS_DIR` — where project files and the library PDFs are kept.
+- `PORT` (3000), `HOST=127.0.0.1` (only the proxy can reach Node), `TRUST_PROXY=true` (one proxy
+  hop), `MAX_UPLOAD_MB` (10; the proxy must allow 2 MB more).
+- `MONGODB_URI` — `mongodb://127.0.0.1:27017/esms?replicaSet=rs0`.
+- `JWT_SECRET` — generated by the install script; changing it signs everybody out.
+- `FRONTEND_URL` — **empty** on the server (same origin, no CORS).
+
+After any change: restart the ESMS service, then run `node backend/scripts/check-server.js`.
+
+## MongoDB as a single-node replica set
+
+Transactions need a replica set; one node is enough. With it, a critical action and its audit
+entry (D65), and a Tools 3–5 bulk save with its version, either all happen or none does. Without
+it the app still works (as before phase 11) and says so in its log at start.
+
+1. Add to MongoDB's config file (the install scripts do it with `-ConfigureMongo` /
+   `--configure-mongo`):
+   ```yaml
+   replication:
+     replSetName: rs0
+   ```
+2. Restart MongoDB.
+3. Once: `node backend/scripts/init-replica-set.js` (safe to run again; `--check` only reports).
+4. `MONGODB_URI` ends in `?replicaSet=rs0`.
+
+## Backups
+
+- **What:** the whole ESMS database (`mongodump`, the audit log included) and a copy of
+  `UPLOADS_DIR` (project files and `library/`).
+- **When:** every day at 02:00 (Windows scheduled task "ESMS Backup", Linux `esms-backup.timer`).
+- **Where:** `BACKUP_DIR/esms-<date>-<time>Z/` with `database.archive.gz`, `uploads/` and
+  `manifest.json` (counts of every collection, number of files). A backup is written as
+  `….partial` and renamed when complete: a folder without `.partial` is a full backup.
+- **Kept:** `BACKUP_KEEP_DAYS` (30) days; the newest backup is never deleted.
+- **Check it works:** `test-backup-restore` restores the latest data into an empty database and
+  compares every count and every file (run once after installing, after a MongoDB upgrade, and
+  now and then).
+- **Restore:** stop ESMS, run `restore` with the backup folder, start ESMS. The database is
+  replaced (`mongorestore --drop`); the old uploads folder is kept next to it as
+  `….before-restore-<time>`; the restored counts are checked against `manifest.json`. The restore
+  refuses to run while the ESMS service is running.
+
+## Moving to another server = restoring a backup
+
+1. Install ESMS on the new server from the same release (its guide, steps 1–8).
+2. Copy the latest backup folder there (or point at the share).
+3. Stop ESMS, restore that backup, start ESMS.
+
+This is also how documents that must never be in the code repository reach the server, such as
+the library's **Annex 1** PDF (a client document): upload it once in the app, and it travels in
+the backups.
+
+## When MongoDB restarts
+
+ESMS does not depend on the MongoDB service (no Windows service dependency; on Linux only
+`Wants=`/`After=`): when MongoDB is stopped or restarted (an update, maintenance), ESMS keeps
+running, answers with errors meanwhile, and reconnects by itself once MongoDB is back. At boot the
+start order does not matter: if MongoDB is not answering yet, ESMS stops after 10 seconds and the
+service manager (NSSM / systemd) starts it again until MongoDB answers. Stopping ESMS on purpose
+(`Stop-Service ESMS`, `systemctl stop esms`) keeps it stopped.
+
+## Logs and health
+
+- Health: `http://127.0.0.1:3000/health` → `{"success":true,"message":"Server is running","version":"2.0.0"}`
+  (the version of the running release; the app also shows it at the bottom of the user menu, and
+  the release folder has it in `VERSION`).
+- App log: Windows `C:\ESMS\logs\esms-out.log` / `esms-err.log` (rotated at 10 MB); Linux
+  `journalctl -u esms`.
+- Backup log: Windows `C:\ESMS\logs\backup.log`; Linux `journalctl -u esms-backup`.
+- `node backend/scripts/check-server.js` checks everything above in one go.
+
+## HTTPS
+
+IIS (Windows) or nginx (Linux) holds the certificate and forwards to Node on `127.0.0.1:3000`;
+examples in [proxy/](proxy/) set the forwarded headers, the upload limit (`MAX_UPLOAD_MB` + 2 MB)
+and the timeouts (120 s). Security headers (CSP, HSTS …) come from the app. Node holding the
+certificate itself is **not** supported (out of scope, D75).
+
+## Updating
+
+Build a new release, carry it over, and run the install script again from the new folder: it
+stops the service, replaces the code (keeping `backend/.env`, the uploads and the logs), and
+starts it again. Take a backup first.
+
+## Vercel (until the server is live)
+
+The Vercel deployment and its PR previews keep working until the server runs (D75): there the
+frontend gets its API address from `VITE_API_URL` set in Vercel, and the API allows the Vercel
+address through `FRONTEND_URL`. Removing Vercel (`frontend/vercel.json`, the project) is a small
+follow-up once the server is live (noted in the phase 13 file, the v3 UI list).

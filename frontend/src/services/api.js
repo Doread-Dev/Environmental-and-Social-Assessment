@@ -9,10 +9,57 @@
  */
 import axios from 'axios'
 
+// The backend's 403 code while a forced password change is pending (D22), and the screen for it
+// (ROUTES.CHANGE_PASSWORD; not imported to keep this module free of routing code).
+export const PASSWORD_CHANGE_REQUIRED = 'PASSWORD_CHANGE_REQUIRED'
+const CHANGE_PASSWORD_PATH = '/change-password'
+
+// The backend's 409 code for a stale save (D62, D73): someone else changed the record or table
+// since this page loaded it. useProjectSave shows it in the shared conflict dialog.
+export const STALE_VERSION = 'STALE_VERSION'
+
+/**
+ * Is this the 409 of a stale save (D62)?
+ * @param {Error} error - Axios error
+ */
+export function isStaleVersionError(error) {
+  return error?.response?.status === 409 && error.response.data?.code === STALE_VERSION
+}
+
+// Shown where a request failed because the session expired while the user was working (D73):
+// the sign-in dialog opens over the page and nothing typed is lost.
+export const SESSION_EXPIRED_MESSAGE =
+  'Your session has expired. Sign in again to continue; what you typed is kept.'
+
+// Set by AuthProvider while a signed-in user is loaded. Called on a 401: returns true when it
+// takes over (opens the sign-in dialog over the page), false to fall back to the login page.
+let sessionExpiredHandler = null
+
+/**
+ * @param {(() => boolean) | null} handler
+ */
+export function setSessionExpiredHandler(handler) {
+  sessionExpiredHandler = handler
+}
+
+// The sign-in request answers 401 for a wrong password: never a session expiry.
+const isLoginRequest = (config) => /\/auth\/login$/.test(config?.url ?? '')
+
+/**
+ * Base URL of the API (D38, phase 11). VITE_API_URL wins when it is set (the Vercel deployment and
+ * its previews, or a dev backend on another port). Without it the production build calls its own
+ * origin (`/api/v1`: Express serves the app and the API together on the server), and `npm run dev`
+ * calls the local backend on port 3000.
+ * @param {{ VITE_API_URL?: string, DEV?: boolean }} env - import.meta.env
+ */
+export function apiBaseUrl(env) {
+  if (env.VITE_API_URL) return env.VITE_API_URL
+  return env.DEV ? 'http://localhost:3000/api/v1' : '/api/v1'
+}
+
 // Create Axios instance with base configuration
 const api = axios.create({
-  // No localhost fallback: set VITE_API_URL in .env / Vercel so production fails fast if missing
-  baseURL: import.meta.env.DEV ? (import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1') : import.meta.env.VITE_API_URL,
+  baseURL: apiBaseUrl(import.meta.env),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -22,7 +69,6 @@ const api = axios.create({
 /**
  * Request Interceptor
  * Attaches JWT token to all outgoing requests if available
- * Marks requests with silent404 flag for console error suppression
  */
 api.interceptors.request.use(
   (config) => {
@@ -30,12 +76,6 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
-    
-    // Mark requests with silent404 for console error suppression
-    if (config.silent404) {
-      silent404Requests.add(config)
-    }
-    
     return config
   },
   (error) => Promise.reject(error)
@@ -43,16 +83,26 @@ api.interceptors.request.use(
 
 /**
  * Response Interceptor
- * Handles 401 Unauthorized responses globally by:
- * - Clearing stored token
- * - Redirecting to login page
- * - Silently handling expected 404 errors when requested
+ * A 401 while a signed-in user is loaded (the token expired mid-session, or the account was
+ * deactivated) opens the sign-in dialog over the page, so typed input is kept (D73); the request
+ * is rejected with `sessionExpired` set and is never retried on its own. A 401 with no user loaded
+ * (first load, bad token) clears the session and goes to the login page. 403
+ * PASSWORD_CHANGE_REQUIRED (an admin reset the password, D22) goes to the change-password screen.
  */
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (
+      error.response?.status === 401 &&
+      !isLoginRequest(error.config) &&
+      sessionExpiredHandler?.()
+    ) {
+      error.sessionExpired = true
+      return Promise.reject(error)
+    }
+
     // Handle 401 Unauthorized - token expired or invalid
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !isLoginRequest(error.config)) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
 
@@ -65,69 +115,17 @@ api.interceptors.response.use(
       }
     }
 
-    // Silently handle 404 errors when explicitly requested (for expected "not found" cases)
-    // This prevents console noise for legitimate "resource doesn't exist yet" scenarios
-    // Example: getByProject for a new project (no screening/assessment exists yet)
-    // Note: Network tab will still show 404 (browser behavior), but console.error won't fire
-    if (error.response?.status === 404 && error.config?.silent404) {
-      // Mark error as handled to prevent default console.error
-      error.isExpected404 = true
-      
-      // The error will still be returned to the caller for proper handling
-      return Promise.reject(error)
+    if (
+      error.response?.status === 403 &&
+      error.response.data?.code === PASSWORD_CHANGE_REQUIRED &&
+      window.location.pathname !== CHANGE_PASSWORD_PATH
+    ) {
+      window.location.href = CHANGE_PASSWORD_PATH
     }
 
     return Promise.reject(error)
   }
 )
-
-// Suppress console.error for expected 404s (when silent404 flag is set)
-// This prevents console noise for legitimate "resource doesn't exist yet" scenarios
-// Example: getByProject for a new project (no screening/assessment exists yet)
-// Note: Network tab will still show 404 (browser behavior), which is useful for debugging
-
-// Store requests with silent404 flag to suppress their console errors
-const silent404Requests = new WeakSet()
-
-// Override console.error to filter out expected 404 errors
-// This must be done BEFORE axios makes requests to catch errors from dispatchXhrRequest
-const originalConsoleError = console.error
-console.error = (...args) => {
-  // Convert all arguments to string for pattern matching
-  const allArgsAsString = args.map(arg => {
-    if (typeof arg === 'string') return arg
-    if (typeof arg === 'object' && arg !== null) {
-      // Check axios error objects
-      if (arg.config?.silent404 && arg.response?.status === 404) {
-        return 'SUPPRESS_404'
-      }
-      // Check error messages
-      if (arg.message) return arg.message
-      if (arg.stack) return arg.stack
-      return JSON.stringify(arg)
-    }
-    return String(arg)
-  }).join(' ')
-  
-  // Check if this is a 404 error for a /project/ endpoint (expected 404s)
-  // These are legitimate "resource doesn't exist yet" scenarios for new projects
-  const isExpected404 = 
-    allArgsAsString.includes('404') && 
-    (allArgsAsString.includes('/screenings/project/') || 
-     allArgsAsString.includes('/assessments/project/') ||
-     allArgsAsString.includes('/management/project/') ||
-     allArgsAsString.includes('/mitigation/project/') ||
-     allArgsAsString.includes('/monitoring/project/') ||
-     allArgsAsString.includes('SUPPRESS_404'))
-  
-  if (isExpected404) {
-    // Suppress this specific error - it's an expected 404 for new projects
-    return
-  }
-  
-  // Call original console.error for all other errors
-  originalConsoleError.apply(console, args)
-}
 
 /**
  * Extract user-friendly error message from Axios error
@@ -135,9 +133,15 @@ console.error = (...args) => {
  * @returns {string} Human-readable error message
  */
 export function extractErrorMessage(error) {
-  // 403 Forbidden: consistent user-friendly message
+  if (error?.sessionExpired) return SESSION_EXPIRED_MESSAGE
+
+  // 403 Forbidden (wrong role): consistent user-friendly message. Other 403s carry their own
+  // reason, e.g. "Account is deactivated" or a pending password change.
   if (error.response?.status === 403) {
-    return "You don't have permission to perform this action."
+    const reason = error.response.data?.error
+    return reason && reason !== 'Forbidden'
+      ? reason
+      : "You don't have permission to perform this action."
   }
 
   // Server responded with error
@@ -165,24 +169,6 @@ export function extractErrorMessage(error) {
   }
 
   return 'An unexpected error occurred. Please try again.'
-}
-
-/**
- * Check if error is a network/connectivity error
- * @param {Error} error - Axios error object
- * @returns {boolean}
- */
-export function isNetworkError(error) {
-  return error.code === 'ERR_NETWORK' || error.code === 'ECONNABORTED' || !error.response
-}
-
-/**
- * Check if error is an authentication error
- * @param {Error} error - Axios error object
- * @returns {boolean}
- */
-export function isAuthError(error) {
-  return error.response?.status === 401 || error.response?.status === 403
 }
 
 export default api

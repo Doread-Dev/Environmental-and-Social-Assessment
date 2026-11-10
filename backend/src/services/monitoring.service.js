@@ -1,68 +1,91 @@
+const mongoose = require("mongoose");
 const MonitoringRecord = require("../models/monitoringRecord.model");
+const Indicator = require("../models/indicator.model");
 const ApiError = require("../utils/ApiError");
+const normalizeResponsible = require("../utils/responsible");
+const validationMessage = require("../utils/validationMessage");
+const { requireSempComplete } = require("./workflow.service");
+const { assertCurrentRevision, getRevision, withRevision } = require("../utils/version");
+const { atomic } = require("../utils/transaction");
 
-const listMonitoring = async () =>
-  MonitoringRecord.find()
-    .populate("project indicator responsible")
-    .sort({ createdAt: -1 });
+const TABLE = "monitoring";
 
 const getMonitoringRecord = async (id) => {
-  const record = await MonitoringRecord.findById(id).populate(
-    "project indicator responsible"
-  );
+  const record = await MonitoringRecord.findById(id).populate("project indicator responsible");
   if (!record) throw new ApiError(404, "Monitoring record not found");
   return record;
 };
 
-const getByProject = async (projectId) =>
-  MonitoringRecord.find({ project: projectId }).populate(
-    "project indicator responsible"
+const findRecords = (projectId) =>
+  MonitoringRecord.find({ project: projectId }).populate("project indicator responsible");
+
+// The records and the table's revision (D62): `{ records, version }`.
+const getByProject = async (projectId) => {
+  const [records, version] = await Promise.all([
+    findRecords(projectId),
+    getRevision(projectId, TABLE),
+  ]);
+  return { records, version };
+};
+
+const recordError = (index, message) => new ApiError(400, `Record ${index + 1}: ${message}`);
+
+// All of a project's monitoring records in one request (D32), upserted by indicator: a record
+// for an indicator that has none yet is created, otherwise that record is updated. Records left
+// out stay as they are. Values stay free text (D19). Every record is checked before the first
+// write, so an invalid one leaves everything untouched. `version` = the table's revision the
+// client loaded: a stale one → 409 first; it is checked and raised in one conditional update
+// right before the write (D62). Returns `{ records, version }` with the new revision.
+const upsertForProject = async (projectId, { records, version }) => {
+  await assertCurrentRevision(projectId, TABLE, version);
+  await requireSempComplete(projectId);
+
+  const indicatorIds = records.map((record) => record.indicator);
+  const known = new Set(
+    (
+      await Indicator.find({ _id: { $in: indicatorIds } })
+        .select("_id")
+        .lean()
+    ).map((i) => String(i._id))
   );
+  const seen = new Set();
+  const prepared = [];
+  for (const [index, record] of records.entries()) {
+    if (!known.has(record.indicator)) throw recordError(index, "unknown indicator");
+    if (seen.has(record.indicator)) throw recordError(index, "indicator sent twice");
+    seen.add(record.indicator);
 
-const createRecord = async (payload) => {
-  const record = await MonitoringRecord.create(payload);
-  // Populate relations before returning (consistent with other methods)
-  await record.populate("project indicator responsible");
-  return record;
-};
-
-const updateRecord = async (id, payload) => {
-  const updated = await MonitoringRecord.findByIdAndUpdate(id, payload, {
-    new: true,
-    runValidators: true,
-  });
-  if (!updated) throw new ApiError(404, "Monitoring record not found");
-  
-  // Populate relations before returning (consistent with other methods)
-  await updated.populate("project indicator responsible");
-  return updated;
-};
-
-const updateQuarter = async (id, quarterKey, value) => {
-  const record = await MonitoringRecord.findById(id);
-  if (!record) throw new ApiError(404, "Monitoring record not found");
-
-  if (!["baseline", "Q1", "Q2", "Q3", "Q4"].includes(quarterKey)) {
-    throw new ApiError(400, "Invalid quarter key");
+    let fields;
+    try {
+      fields = normalizeResponsible(record);
+      await new MonitoringRecord({ ...fields, project: projectId }).validate();
+    } catch (err) {
+      throw recordError(index, validationMessage(err));
+    }
+    prepared.push(fields);
   }
 
-  record.scores = record.scores || {};
-  record.scores[quarterKey] = value; // value الآن String
-
-  // لا يتم حساب total تلقائياً - سيتم إرساله من الفرونت
-
-  await record.save();
-  
-  // Populate relations before returning (consistent with other methods)
-  await record.populate("project indicator responsible");
-  return record;
+  const project = new mongoose.Types.ObjectId(String(projectId));
+  // One transaction for the revision and the rows when MongoDB supports one (phase 11).
+  const revision = await atomic(() =>
+    withRevision(projectId, TABLE, version, async () => {
+      if (prepared.length === 0) return;
+      await MonitoringRecord.bulkWrite(
+        prepared.map(({ indicator, ...fields }) => ({
+          updateOne: {
+            filter: { project, indicator: new mongoose.Types.ObjectId(indicator) },
+            update: { $set: fields },
+            upsert: true,
+          },
+        }))
+      );
+    })
+  );
+  return { records: await findRecords(projectId), version: revision };
 };
 
 module.exports = {
-  listMonitoring,
+  upsertForProject,
   getMonitoringRecord,
   getByProject,
-  createRecord,
-  updateRecord,
-  updateQuarter,
 };

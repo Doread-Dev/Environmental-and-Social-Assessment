@@ -8,6 +8,8 @@ export const ROUTES = {
   // Auth Routes
   // ==========================================
   LOGIN: '/login',
+  // Forced password change after an admin reset or on a new account (D22)
+  CHANGE_PASSWORD: '/change-password',
 
   // ==========================================
   // Main App Routes
@@ -15,6 +17,8 @@ export const ROUTES = {
   APP: '/app',
   DASHBOARD: '/app/dashboard',
   PROJECTS: '/app/projects',
+  // Reference library (D64): organisation guidance
+  LIBRARY: '/app/library',
   PROJECT_NEW: '/app/projects/new',
 
   // ==========================================
@@ -43,12 +47,19 @@ export const ROUTES = {
   MONITORING: '/app/projects/:projectId/monitoring',
   MONITORING_DATA: '/app/projects/:projectId/monitoring/data-entry',
 
-  // Files & Annex
-  PROJECT_FILES: '/app/projects/:projectId/files',
-  PROJECT_ANNEX: '/app/projects/:projectId/annex',
+  // Project documents (D64 d)
+  PROJECT_DOCUMENTS: '/app/projects/:projectId/documents',
 
   // Settings
   SETTINGS: '/app/settings',
+  // Critical-actions log (D65), admin only
+  SETTINGS_ACTIVITY_LOG: '/app/settings/activity-log',
+
+  // Own profile and password (D23)
+  PROFILE: '/app/profile',
+
+  // The in-app user guide (phase 14, D78); ?section=<id> opens it at a part or section
+  HELP: '/app/help',
 }
 
 /**
@@ -66,6 +77,19 @@ export function getProjectRoute(projectId, route) {
 }
 
 /**
+ * The Help page, optionally at a part or section of the guide (D78): one id, or several, most
+ * specific first (the page opens the first one the user's guide has; routes/helpSections.js)
+ * @param {string|string[]|null} [sections]
+ * @returns {string}
+ */
+export function getHelpRoute(sections = null) {
+  const ids = [sections ?? []].flat().filter(Boolean)
+  return ids.length
+    ? `${ROUTES.HELP}?section=${ids.map(encodeURIComponent).join(',')}`
+    : ROUTES.HELP
+}
+
+/**
  * Navigation items for MainSidebar
  */
 export const MAIN_NAV_ITEMS = [
@@ -80,6 +104,18 @@ export const MAIN_NAV_ITEMS = [
     label: 'Projects',
     icon: 'folder_open',
     path: ROUTES.PROJECTS,
+  },
+  {
+    id: 'library',
+    label: 'Library',
+    icon: 'menu_book',
+    path: ROUTES.LIBRARY,
+  },
+  {
+    id: 'help',
+    label: 'Help',
+    icon: 'help',
+    path: ROUTES.HELP,
   },
 ]
 
@@ -126,17 +162,65 @@ export const PROJECT_WORKFLOW_NAV = [
 ]
 
 /**
+ * Where the locked v3 buttons sit (D48, D59), with the heading shown above them (if any)
+ */
+export const V3_LOCKED_LOCATIONS = Object.freeze({
+  SEMP_OVERVIEW: 'semp_overview',
+  PROJECT_SUPPORT: 'project_support',
+  ORGANIZATION: 'organization',
+})
+
+export const V3_LOCKED_HEADINGS = Object.freeze({
+  [V3_LOCKED_LOCATIONS.PROJECT_SUPPORT]: 'Project support tools',
+  [V3_LOCKED_LOCATIONS.ORGANIZATION]: 'Organization tools',
+})
+
+/**
+ * v3 modules shown as locked buttons (D48, D70). They are not links and have no route; no env
+ * variable, query flag or role turns them on — building the module in v3 does. `place` is the
+ * module's key in the backend places registry (D64 a).
+ */
+export const V3_LOCKED_NAV = Object.freeze([
+  {
+    id: 'semp-plan',
+    label: 'SEMP Plan',
+    icon: 'assignment',
+    location: V3_LOCKED_LOCATIONS.SEMP_OVERVIEW,
+    place: 'semp_plan',
+    description:
+      "The project's Social and Environmental Management Plan document: roles, responsibilities, objectives, training, incidents and records.",
+  },
+  {
+    id: 'stakeholder-awareness',
+    label: 'Stakeholder Awareness',
+    icon: 'campaign',
+    location: V3_LOCKED_LOCATIONS.PROJECT_SUPPORT,
+    place: 'stakeholder_awareness',
+  },
+  {
+    id: 'ghg-emissions',
+    label: 'GHG Emissions',
+    icon: 'co2',
+    location: V3_LOCKED_LOCATIONS.ORGANIZATION,
+    place: 'ghg_emissions',
+  },
+  {
+    id: 'environmental-data',
+    label: 'Environmental Data Collection',
+    icon: 'dataset',
+    location: V3_LOCKED_LOCATIONS.ORGANIZATION,
+    place: 'environmental_data',
+  },
+])
+
+/**
  * Secondary navigation items for ProjectSidebar
  */
 export const PROJECT_SECONDARY_NAV = [
   {
-    id: 'annex',
-    label: 'Annex & Attachments',
+    id: 'documents',
+    label: 'Documents',
     icon: 'folder_open',
-    path: 'annex',
-    children: [
-      { id: 'attachments', label: 'Attachments', path: 'files' },
-      { id: 'annex', label: 'Annex', path: 'annex' },
-    ],
+    path: 'documents',
   },
 ]

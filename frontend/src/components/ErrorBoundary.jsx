@@ -1,5 +1,6 @@
 import { Component } from 'react'
 import { ROUTES } from '@/routes/routes.config'
+import { Button } from '@/components/ui'
 
 const CHUNK_RELOAD_KEY = 'esms_chunk_reload_done'
 
@@ -33,7 +34,9 @@ export class ErrorBoundary extends Component {
           window.location.reload()
           return
         }
-      } catch (_) {}
+      } catch {
+        // sessionStorage unavailable (e.g. private mode): fall through to the error UI
+      }
     }
     console.error('ErrorBoundary caught:', error, errorInfo)
   }
@@ -41,7 +44,9 @@ export class ErrorBoundary extends Component {
   handleRetry = () => {
     try {
       sessionStorage.removeItem(CHUNK_RELOAD_KEY)
-    } catch (_) {}
+    } catch {
+      // sessionStorage unavailable: nothing to clear
+    }
     this.setState({ hasError: false, error: null })
   }
 
@@ -61,22 +66,14 @@ export class ErrorBoundary extends Component {
             </p>
             <div className="flex gap-3 justify-center">
               {isChunk ? (
-                <button
-                  type="button"
-                  onClick={() => window.location.reload()}
-                  className="px-4 py-2 bg-primary text-white rounded-lg"
-                >
+                <Button variant="primary" type="button" onClick={() => window.location.reload()}>
                   Reload page
-                </button>
+                </Button>
               ) : (
                 <>
-                  <button
-                    type="button"
-                    onClick={this.handleRetry}
-                    className="px-4 py-2 bg-primary text-white rounded-lg"
-                  >
+                  <Button variant="primary" type="button" onClick={this.handleRetry}>
                     Try Again
-                  </button>
+                  </Button>
                   <a href={ROUTES.DASHBOARD} className="px-4 py-2 border rounded-lg">
                     Back to Dashboard
                   </a>

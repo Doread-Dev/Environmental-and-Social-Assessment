@@ -1,22 +1,17 @@
 import { cn } from '@/utils'
-import { workflowStepStatuses } from '@/utils/workflowStatuses'
+import { getStatusBadge, getStatusBarColor } from '@/utils/statusBadges'
 
 /**
- * WorkflowProgressBar - شريط تقدم سير العمل (S/A/M/R)
+ * WorkflowProgressBar - workflow progress (S/A/M/R)
  *
  * @param {Object} props
- * @param {Object} props.progress - حالة كل خطوة
- * @param {boolean} props.showLabels - عرض التسميات (default: true)
- * @param {'sm'|'md'} props.size - الحجم (default: 'md')
+ * @param {Object} props.progress - workflow state from the backend (`workflow.steps` is read)
+ * @param {boolean} props.showLabels - Show the labels (default: true)
+ * @param {'sm'|'md'} props.size - Size (default: 'md')
  *
  * @example
  * <WorkflowProgressBar
- *   progress={{
- *     screening: { status: 'approved' },
- *     assessment: { status: 'in_progress' },
- *     semp: { status: 'pending' },
- *     monitoring: { status: 'pending' }
- *   }}
+ *   progress={project.workflow}
  * />
  */
 function WorkflowProgressBar({ progress, showLabels = true, size = 'md', className, ...props }) {
@@ -27,11 +22,6 @@ function WorkflowProgressBar({ progress, showLabels = true, size = 'md', classNa
     { key: 'monitoring', label: 'Mon', fullLabel: 'Monitoring' },
   ]
 
-  const getStatusColor = (status) => {
-    const statusConfig = workflowStepStatuses[status] || workflowStepStatuses.pending
-    return statusConfig.color || 'bg-gray-200 dark:bg-border-dark'
-  }
-
   const barHeight = size === 'sm' ? 'h-1.5' : 'h-2'
   const labelSize = size === 'sm' ? 'text-[10px]' : 'text-xs'
 
@@ -40,15 +30,14 @@ function WorkflowProgressBar({ progress, showLabels = true, size = 'md', classNa
       {/* Progress Bar */}
       <div className={cn('flex gap-2', barHeight)}>
         {steps.map((step) => {
-          const stepProgress = progress[step.key]
-          const status = stepProgress?.status || 'pending'
-          const color = getStatusColor(status)
+          const status = progress?.steps?.[step.key]?.status || 'not_started'
+          const color = getStatusBarColor(status)
 
           return (
             <div
               key={step.key}
               className={cn('flex-1 rounded-full transition-colors', color)}
-              title={`${step.fullLabel}: ${status}`}
+              title={`${step.fullLabel}: ${getStatusBadge(status).label}`}
             />
           )
         })}

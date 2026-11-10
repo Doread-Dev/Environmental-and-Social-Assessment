@@ -1,10 +1,6 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { THEME_STORAGE_KEY, THEMES } from '@/utils/constants'
-
-/**
- * Theme Context for managing dark/light mode
- */
-const ThemeContext = createContext(undefined)
+import { ThemeContext } from './useTheme'
 
 /**
  * Get initial theme from localStorage.
@@ -106,20 +102,3 @@ export function ThemeProvider({ children }) {
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }
-
-/**
- * Custom hook to use theme context
- * @returns {Object} Theme context value
- * @throws {Error} If used outside of ThemeProvider
- */
-export function useTheme() {
-  const context = useContext(ThemeContext)
-
-  if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider')
-  }
-
-  return context
-}
-
-export default ThemeContext

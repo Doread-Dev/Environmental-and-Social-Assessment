@@ -1,6 +1,6 @@
 /**
  * MethodChecklistItem Component
- * عنصر قائمة تحقق لطريقة التقييم (AssessmentMethod)
+ * Checklist item for one assessment method (AssessmentMethod)
  */
 
 import { cn } from '@/utils/cn'
@@ -8,12 +8,12 @@ import { Checkbox, Input, Textarea } from '@/components/ui'
 
 /**
  * @param {Object} props
- * @param {Object} props.method - بيانات الطريقة
- * @param {boolean} props.checked - هل محدد
- * @param {string} props.details - التفاصيل (method_type + details)
- * @param {Function} props.onCheckedChange - callback للتحديد
- * @param {Function} props.onDetailsChange - callback للتفاصيل
- * @param {boolean} props.readOnly - وضع القراءة فقط
+ * @param {Object} props.method - The method
+ * @param {boolean} props.checked - Whether it is selected
+ * @param {string} props.details - Details (method_type + details)
+ * @param {Function} props.onCheckedChange - Called when selected or cleared
+ * @param {Function} props.onDetailsChange - Called when the details change
+ * @param {boolean} props.readOnly - Read-only mode
  */
 export default function MethodChecklistItem({
   method,
@@ -26,7 +26,7 @@ export default function MethodChecklistItem({
   const InputComponent = method.inputType === 'textarea' ? Textarea : Input
 
   return (
-    <div className="checkbox-wrapper flex flex-col gap-3 p-3 rounded-lg hover:bg-gray-50/50 dark:hover:bg-white/5">
+    <div className="checkbox-wrapper flex flex-col gap-3 p-3 rounded-lg hover:bg-background dark:hover:bg-white/5">
       <label className="flex flex-start gap-4 cursor-pointer">
         <div className="flex items-center h-6">
           <Checkbox

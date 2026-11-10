@@ -1,11 +1,6 @@
 const asyncHandler = require("../utils/asyncHandler");
 const service = require("../services/screening.service");
 
-exports.getAll = asyncHandler(async (req, res) => {
-  const data = await service.listScreenings();
-  res.json({ success: true, data });
-});
-
 exports.getOne = asyncHandler(async (req, res) => {
   const data = await service.getScreening(req.params.id);
   res.json({ success: true, data });
@@ -28,24 +23,21 @@ exports.update = asyncHandler(async (req, res) => {
   res.json({ success: true, data });
 });
 
+exports.submit = asyncHandler(async (req, res) => {
+  const data = await service.submitScreening(req.params.id, req.user._id, req.body.version);
+  res.json({ success: true, data });
+});
+
 exports.approve = asyncHandler(async (req, res) => {
   const { recommendations } = req.body || {};
   const approvedBy = req.user._id;
-  const data = await service.approveScreening(
-    req.params.id,
-    approvedBy,
-    recommendations
-  );
+  const data = await service.approveScreening(req.params.id, approvedBy, recommendations);
   res.json({ success: true, data });
 });
 
 exports.reject = asyncHandler(async (req, res) => {
   const { reject_reason } = req.body || {};
   const rejectBy = req.user._id;
-  const data = await service.rejectScreening(
-    req.params.id,
-    rejectBy,
-    reject_reason
-  );
+  const data = await service.rejectScreening(req.params.id, rejectBy, reject_reason);
   res.json({ success: true, data });
 });

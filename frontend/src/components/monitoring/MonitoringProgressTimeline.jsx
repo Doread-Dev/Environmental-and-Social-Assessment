@@ -1,15 +1,15 @@
 /**
  * MonitoringProgressTimeline Component
- * شريط زمني للأرباع السنوية
+ * Timeline of the baseline and the quarters
  */
 
 import { cn } from '@/utils/cn'
 
 /**
  * @param {Object} props
- * @param {Object} props.completedQuarters - الأرباع المكتملة {baseline: boolean, Q1: boolean, ...}
- * @param {string} [props.currentQuarter] - الربع الحالي
- * @param {boolean} [props.embedded] - يستخدم داخل كارت بدون غلاف
+ * @param {Object} props.completedQuarters - Quarters done {baseline: boolean, Q1: boolean, ...}
+ * @param {string} [props.currentQuarter] - The current quarter
+ * @param {boolean} [props.embedded] - Inside a card, without its own frame
  */
 function MonitoringProgressTimeline({
   completedQuarters = {},
@@ -29,7 +29,7 @@ function MonitoringProgressTimeline({
       className={cn(
         embedded
           ? 'pt-2'
-          : 'bg-white dark:bg-[#152a1d] rounded-xl shadow-sm border border-border-default dark:border-border-dark p-6'
+          : 'bg-surface dark:bg-card-dark rounded-xl shadow-sm border border-border-default dark:border-border-dark p-6'
       )}
     >
       {!embedded && (
@@ -69,7 +69,10 @@ function MonitoringProgressTimeline({
                         : 'bg-surface dark:bg-surface-dark border-border-default dark:border-border-dark text-text-secondary dark:text-gray-500'
                   )}
                 >
-                  <span className="flex items-center justify-center material-symbols-outlined text-xl">
+                  <span
+                    className="flex items-center justify-center material-symbols-outlined text-xl"
+                    aria-hidden="true"
+                  >
                     {isCompleted ? 'check ' : quarter.icon}
                   </span>
                 </div>

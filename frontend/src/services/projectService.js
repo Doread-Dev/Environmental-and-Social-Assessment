@@ -1,6 +1,6 @@
 /**
  * Project Service
- * Handles project CRUD operations
+ * Handles project CRUD operations and the aggregate project reads (D31)
  */
 import api from './api'
 
@@ -9,7 +9,7 @@ import api from './api'
  */
 export const projectService = {
   /**
-   * Get all projects
+   * Get all projects, each with its screening/assessment summary, `workflow` and `allowed_actions`
    * @returns {Promise<Array>} Array of projects
    */
   async getAll() {
@@ -17,13 +17,28 @@ export const projectService = {
     return response.data.data
   },
 
+  /** Archived projects only (hidden from the default list, D17) */
+  async getArchived() {
+    const response = await api.get('/projects', { params: { archived: true } })
+    return response.data.data
+  },
+
   /**
-   * Get a single project by ID
+   * Get everything the project workspace needs in one call
    * @param {string} id - Project ID
-   * @returns {Promise<Object>} Project object
+   * @returns {Promise<{project: Object, workflow: Object, allowed_actions: string[], screening: Object|null, assessment: Object|null, counts: Object}>}
    */
-  async getById(id) {
-    const response = await api.get(`/projects/${id}`)
+  async getWorkspace(id) {
+    const response = await api.get(`/projects/${id}/workspace`)
+    return response.data.data
+  },
+
+  /**
+   * Dashboard stats and the latest projects (with workflow state)
+   * @returns {Promise<{stats: Object, latest_projects: Array}>}
+   */
+  async getDashboard() {
+    const response = await api.get('/dashboard')
     return response.data.data
   },
 
@@ -40,7 +55,8 @@ export const projectService = {
   /**
    * Update an existing project
    * @param {string} id - Project ID
-   * @param {Object} data - Updated project data
+   * @param {Object} data - Updated project data, with `version`: the project's `updatedAt` the
+   *   user saw (D62; a stale one answers 409)
    * @returns {Promise<Object>} Updated project
    */
   async update(id, data) {
@@ -55,6 +71,23 @@ export const projectService = {
    */
   async delete(id) {
     await api.delete(`/projects/${id}`)
+  },
+
+  /** Archive a project: read-only and hidden from the default list (D17) */
+  async archive(id) {
+    const response = await api.patch(`/projects/${id}/archive`)
+    return response.data.data
+  },
+
+  /** Restore an archived project (D17) */
+  async restore(id) {
+    const response = await api.patch(`/projects/${id}/restore`)
+    return response.data.data
+  },
+
+  /** Permanently delete an archived project, approved work included (admin only, D60) */
+  async purge(id) {
+    await api.delete(`/projects/${id}/purge`)
   },
 }
 

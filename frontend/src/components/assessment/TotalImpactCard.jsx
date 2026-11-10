@@ -1,14 +1,14 @@
 /**
  * TotalImpactCard Component
- * بطاقة التأثير الإجمالي للمشروع
+ * The project's total impact
  */
 
 import { cn } from '@/utils/cn'
-import { IMPACT_LEVEL_CONFIG } from '@/contexts/LookupContext'
+import { IMPACT_LEVEL_CONFIG } from '@/utils/impactLevels'
 
 /**
  * @param {Object} props
- * @param {string} props.impact - مستوى التأثير
+ * @param {string} props.impact - Impact level
  */
 export default function TotalImpactCard({ impact = 'negligible' }) {
   const config = IMPACT_LEVEL_CONFIG[impact] || IMPACT_LEVEL_CONFIG.negligible
@@ -57,11 +57,12 @@ export default function TotalImpactCard({ impact = 'negligible' }) {
             <span
               className="material-symbols-outlined text-red-500 mb-2"
               style={{ fontSize: '40px' }}
+              aria-hidden="true"
             >
               warning
             </span>
           )}
-          <h2 className={cn('text-3xl font-black uppercase tracking-tight', config.textClass)}>
+          <h2 className={cn('text-3xl font-bold uppercase tracking-tight', config.textClass)}>
             {impactLabels[impact] || 'Unknown'}
           </h2>
           <p className={cn('text-xs font-medium mt-1', config.textClass)}>

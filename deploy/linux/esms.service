@@ -1,0 +1,34 @@
+# systemd unit of the ESMS app (Ubuntu). deploy/linux/install.sh copies it to
+# /etc/systemd/system/esms.service. Logs: journalctl -u esms
+[Unit]
+Description=ESMS (Environmental and Social Management System)
+Documentation=file:///opt/esms/deploy/INSTALL-LINUX.md
+# Wants/After only: start after MongoDB at boot, but a MongoDB stop or restart never stops ESMS
+# (no Requires=, BindsTo= or PartOf=). The app reconnects by itself; if MongoDB is not up at
+# boot, server.js exits after 10 s and Restart=always starts it again.
+After=network-online.target mongod.service
+Wants=network-online.target mongod.service
+
+[Service]
+Type=simple
+User=esms
+Group=esms
+WorkingDirectory=/opt/esms/backend
+Environment=NODE_ENV=production
+# Settings: /opt/esms/backend/.env (read by the app itself)
+ExecStart=/usr/bin/node src/server.js
+Restart=always
+RestartSec=5
+# SIGTERM: the app closes the server and MongoDB, then exits.
+KillSignal=SIGTERM
+TimeoutStopSec=20
+
+# Hardening: the app may write only to its uploads folder.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/esms
+
+[Install]
+WantedBy=multi-user.target

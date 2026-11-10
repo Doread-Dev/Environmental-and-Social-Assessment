@@ -6,36 +6,13 @@ import api from './api'
 
 export const screeningService = {
   /**
-   * Get all screenings
-   * @returns {Promise<Array>}
-   */
-  async getAll() {
-    const response = await api.get('/screenings')
-    return response.data.data
-  },
-  /**
    * Get screening by project ID
    * @param {string} projectId
-   * @returns {Promise<Object|null>} Screening object or null if not found
+   * @returns {Promise<Object|null>} Screening, or null when not started yet
    */
   async getByProject(projectId) {
-    try {
-      const response = await api.get(`/screenings/project/${projectId}`, {
-        silent404: true, // Suppress console error for expected 404 (new project)
-        validateStatus: (status) => status === 200 || status === 404, // Don't throw on 404
-      })
-      // 404 means no screening exists yet - return null
-      if (response.status === 404) {
-        return null
-      }
-      return response.data.data
-    } catch (error) {
-      // Only throw if it's not a 404
-      if (error.response?.status !== 404) {
-        throw error
-      }
-      return null
-    }
+    const response = await api.get(`/screenings/project/${projectId}`)
+    return response.data.data
   },
 
   /**
@@ -56,6 +33,17 @@ export const screeningService = {
    */
   async update(id, data) {
     const response = await api.put(`/screenings/${id}`, data)
+    return response.data.data
+  },
+
+  /**
+   * Submit a screening for approval (draft|rejected → submitted)
+   * @param {string} id
+   * @returns {Promise<Object>}
+   */
+  async submit(id, version) {
+    // `version` = the `updatedAt` of the screening the user saw (D62)
+    const response = await api.patch(`/screenings/${id}/submit`, { version })
     return response.data.data
   },
 

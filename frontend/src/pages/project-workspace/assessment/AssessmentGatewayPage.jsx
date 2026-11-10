@@ -1,6 +1,6 @@
 /**
  * AssessmentGatewayPage
- * صفحة بوابة التقييم البيئي
+ * Assessment gateway: start or continue the environmental assessment
  */
 
 import { useParams, useNavigate } from 'react-router-dom'
@@ -10,69 +10,48 @@ import {
   AssessmentStartCard,
   ProjectContextCard,
 } from '@/components/assessment'
+import { Button, EmptyState, LoadingState, PageHeader } from '@/components/ui'
+import { getProjectRoute, ROUTES } from '@/routes/routes.config'
+import { getStepStatus } from '@/utils/workflowSteps'
 
 /**
- * تحديد حالة التقييم
+ * Gateway state from the backend step status (locked until the screening is approved)
  */
-function getAssessmentStatus(assessment, screening) {
-  // لا يمكن بدء التقييم إذا لم يُعتمد الفرز
-  if (screening?.status !== 'approved') {
-    return 'locked'
-  }
-
-  if (!assessment || !assessment._id) {
-    return 'not_started'
-  }
-
-  if (assessment.status === 'approved') {
-    return 'completed'
-  }
-
+function getGatewayStatus(stepStatus) {
+  if (stepStatus === 'locked' || stepStatus === 'not_started') return stepStatus
+  if (stepStatus === 'approved') return 'completed'
   return 'in_progress'
 }
 
 export default function AssessmentGatewayPage() {
   const { projectId } = useParams()
   const navigate = useNavigate()
-  const { project } = useProjectContext()
+  const { project, workflow, can } = useProjectContext()
   const { screening, isLoading: screeningLoading } = useScreening(projectId)
-  const { assessment, isLoading: assessmentLoading, startAssessment } = useAssessment(projectId)
+  const { isLoading: assessmentLoading, startAssessment } = useAssessment(projectId)
 
   const isLoading = screeningLoading || assessmentLoading
 
   if (isLoading) {
-    return (
-      <div className="flex w-full items-center justify-center py-20">
-        <div className="flex flex-col items-center gap-4">
-          <div className="size-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-text-secondary dark:text-gray-400 text-sm">Loading...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState message="Loading assessment..." />
   }
 
-  const status = getAssessmentStatus(assessment, screening)
+  const status = getGatewayStatus(getStepStatus(workflow, 'assessment'))
 
-  // إذا كان التقييم مقفل (Screening غير معتمد)
+  // The assessment is locked (the screening is not approved)
   if (status === 'locked') {
     return (
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark p-8 shadow-sm">
-          <div className="flex flex-col items-center gap-4 text-center">
-            <span className="material-symbols-outlined text-6xl text-gray-400">lock</span>
-            <h2 className="text-2xl font-bold text-text-main dark:text-white">Assessment Locked</h2>
-            <p className="text-text-secondary max-w-md">
-              Please complete and approve the Screening process before starting the Environmental
-              Assessment.
-            </p>
-            <button
-              onClick={() => navigate(`/app/projects/${projectId}/screening`)}
-              className="mt-4 px-6 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg font-medium transition-colors"
-            >
+      <div className="max-w-4xl mx-auto bg-surface dark:bg-surface-dark rounded-xl border border-border-default dark:border-border-dark shadow-sm">
+        <EmptyState
+          icon="lock"
+          title="Assessment Locked"
+          description="Please complete and approve the Screening process before starting the Environmental Assessment."
+          action={
+            <Button onClick={() => navigate(getProjectRoute(projectId, ROUTES.SCREENING))}>
               Go to Screening
-            </button>
-          </div>
-        </div>
+            </Button>
+          }
+        />
       </div>
     )
   }
@@ -80,38 +59,24 @@ export default function AssessmentGatewayPage() {
   const handleStart = async () => {
     const result = await startAssessment()
     if (result.success) {
-      navigate(`/app/projects/${projectId}/assessment/metadata`)
+      navigate(getProjectRoute(projectId, ROUTES.ASSESSMENT_METADATA))
     }
   }
 
   const handleContinue = () => {
-    // دائماً الانتقال إلى صفحة Metadata بغض النظر عن المرحلة السابقة
-    navigate(`/app/projects/${projectId}/assessment/metadata`)
+    // Always to the Metadata page, whatever step was last
+    navigate(getProjectRoute(projectId, ROUTES.ASSESSMENT_METADATA))
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Page Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-3xl font-bold text-text-main dark:text-white">
-              Environmental Assessment
-            </h1>
-            <p className="text-text-secondary mt-1">
-              Tool 2 – Site-specific Environmental Assessment
-            </p>
-          </div>
-          <AssessmentProgressIndicator
-            currentStep={2}
-            screeningComplete={screening?.status === 'approved'}
-          />
-        </div>
-      </div>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Environmental Assessment"
+        description="Tool 2 – Site-specific Environmental Assessment"
+        actions={<AssessmentProgressIndicator workflow={workflow} currentStep="assessment" />}
+      />
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        {/* Main Content (2/3) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         <div className="lg:col-span-2 flex flex-col gap-6">
           <AssessmentStartCard
             status={
@@ -123,10 +88,11 @@ export default function AssessmentGatewayPage() {
             }
             onStart={handleStart}
             onContinue={handleContinue}
+            canStart={can('assessment.create')}
+            canEdit={can('assessment.edit')}
           />
         </div>
 
-        {/* Sidebar (1/3) */}
         <div className="flex flex-col gap-6">
           <ProjectContextCard project={project} screening={screening} />
         </div>

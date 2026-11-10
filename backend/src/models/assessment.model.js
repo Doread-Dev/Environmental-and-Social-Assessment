@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const statusHistorySchema = require("./statusHistory.schema");
 
 const scoreCountSchema = new mongoose.Schema(
   {
@@ -18,8 +19,9 @@ const assessmentSchema = new mongoose.Schema(
       ref: "Project",
       required: true,
     },
-    project_activity: { type: String, required: true },
-    description: { type: String, required: true },
+    // Required at submit, not at create: a new assessment starts empty (D69, D57).
+    project_activity: { type: String },
+    description: { type: String },
     environmental_setting: { type: String },
     legal_requirements: { type: String },
 
@@ -42,11 +44,15 @@ const assessmentSchema = new mongoose.Schema(
       enum: ["draft", "submitted", "approved", "rejected"],
       default: "draft",
     },
+    status_history: [statusHistorySchema],
   },
   {
     timestamps: true,
     versionKey: false,
   }
 );
+
+// One assessment per project (D18).
+assessmentSchema.index({ project: 1 }, { unique: true });
 
 module.exports = mongoose.model("Assessment", assessmentSchema);

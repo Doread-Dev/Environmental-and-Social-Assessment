@@ -1,6 +1,6 @@
-# ESMS v2 — Phase plan
+# ESMS v2 and v2.5 — Phase plan
 
-What we build is decided in [DECISIONS.md](DECISIONS.md) (D1–D79). This file says **in which order**. Each phase is done in its own conversation: open the phase file, do exactly that scope, finish with its "Done when" list.
+What we build is decided in [DECISIONS.md](DECISIONS.md) (D1–D95). This file says **in which order**. Each phase is done in its own conversation: open the phase file, do exactly that scope, finish with its "Done when" list.
 
 The v2 prototype (`Environmental-and-Social-Assessment-main version 2/`, git-ignored) is a **reference only** — see [V2_INVENTORY.md](V2_INVENTORY.md). Port code from it only where a phase file names it; never edit it. Anything from v2 not covered by a decision: keep this repo's behavior and ask the owner.
 
@@ -26,9 +26,37 @@ The v2 prototype (`Environmental-and-Social-Assessment-main version 2/`, git-ign
 | 12 | [E2E tests & documentation](phases/12-e2e-docs.md) | D39, D44, D76 | 11 |
 | 12a | [Release readiness (v2.0.0)](phases/12a-release-readiness.md) | D77 | 12 |
 | 14 | [User guide](phases/14-user-guide.md) | D76 1, D77 3, D78 | 12a |
-| 13 | [Page-by-page UI/UX review & design system](phases/13-page-by-page-ui-review.md) — **moved to v3 (D77); from-scratch UI/UX design (D79)**: the file is the starting list for the v3 UI work; scope and order agreed with the owner before it starts | D71, D72, D76 4, D77 2, D79 | v3 |
+| 13 | Page-by-page UI/UX review & design system — moved to v3 (D77 2), then designed from scratch in **v2.5** (D79, D80): its list is now [the UI/UX findings list](phases/ui-findings.md), taken by the v2.5 page phases 20–25 | D71, D72, D76 4, D77 2, D79, D80 | v2.5 |
 
-Order matters: removals before new code (less to secure), backend rules before the frontend switches to them, data layer before the UI work that sits on it, deployment last because Vercel stays in use until then (D38). v2.0.0 is released after 12a and 14 (D77); phase 13 is v3 work.
+Order matters: removals before new code (less to secure), backend rules before the frontend switches to them, data layer before the UI work that sits on it, deployment last because Vercel stays in use until then (D38). v2.0.0 is released after 12a and 14 (D77).
+
+## v2.5 phases (D80–D95)
+
+The design is done ([V2_5_CONCEPT.md](V2_5_CONCEPT.md) and the playgrounds in [design/](design/)); these phases build it. Each concept build note belongs to exactly one phase (the "Phase" column of the build-notes table in the concept).
+
+| # | Phase | Main decisions | Depends on |
+|---|---|---|---|
+| 15 | [Design foundations in code](phases/15-design-foundations.md): tokens, themes, fonts, SVG icons, English + Arabic, locale formats, error codes | D80, D81, D86, D87, D94 | 14 |
+| 16 | [Component library and shared patterns](phases/16-components.md) | D86, D87, D88, D94 | 15 |
+| 17 | [Access model](phases/17-access-model.md) (backend): permissions, editable roles, scopes, assignments | D82, D83 | 14 (next to 15–16) |
+| 18 | [Workflow additions and notifications](phases/18-workflow-notifications.md) (backend): step contract, return reason, reopen, gaps, project code, notifications | D88, D90, D93 | 17 |
+| 19 | [Accounts, sessions, files and Deleted items](phases/19-accounts-files-deleted.md) (backend) | D89, D91, D92 | 17 |
+| 20 | [App shell and navigation](phases/20-app-shell.md) | D84, D83, D90, D81 | 16, 18 |
+| 21 | [Home, Projects, overview, new project](phases/21-home-projects.md) | D85, D82, D89, D90, D93 | 20, 17, 18, 19 |
+| 22 | [The step pattern and Tools 1–2](phases/22-reviewed-steps.md) | D88, D85 | 20, 18 |
+| 23 | [Tools 3–5 on the step pattern](phases/23-working-steps.md) | D88, D90 | 22 |
+| 24 | [Documents, Library, Notifications, account, sign-in, readers, system pages](phases/24-documents-account-readers.md) | D85, D90, D91, D92, D81 | 20, 19 |
+| 25 | [Administration](phases/25-administration.md) | D82, D85, D89, D91 | 21, 17, 19 |
+| 26 | [Release readiness (v2.5.0)](phases/26-release-v2-5.md) | D94, D80, D78 | 21–25 |
+| 27+ | The four locked modules (SEMP Plan, Stakeholder Awareness, GHG Emissions, Environmental Data Collection), built on the v2.5 system after 26 (D80); their phase files are written with the owner when 26 is done, from the designs in [V3_VISION.md](V3_VISION.md) | D80, D46, D64, D69 | 26 |
+
+Order: the frontend foundations (15, 16) and the backend (17, 18, 19) can run at the same time in separate sessions, because they touch different folders; the page phases (20–25) come after both, one at a time; 26 closes v2.5.
+
+**Rules added for v2.5 phases (on top of the rules below):**
+- **Design reference:** every page and component is built from the concept and its playground; a change to the design is agreed with the main chat first and written back into the concept (the concept wins over the old screens, never the reverse).
+- **Every page** in light and dark, English and Arabic, laptop, tablet and phone; tokens only; logical CSS properties only; icons through the `Icon` component on the text line (D87, D94).
+- **Findings list:** each page phase takes the items of its screens from [the UI/UX findings list](phases/ui-findings.md) and moves them to its Result.
+- **Removed as replaced:** a page phase removes the old pages, layouts and components it replaced.
 
 ## Rules for every phase
 
@@ -39,10 +67,10 @@ Order matters: removals before new code (less to secure), backend rules before t
 - **Keep it running:** at the end of a phase the app starts, `npm run lint`, `npm run build` and all tests pass, and `backend/scripts/seed-demo-project.js` still creates the full demo project (update the script when the API changes).
 - **Data:** no real data exists (see DECISIONS context). Schema changes need no migration; wiping local data is fine — ask before running destructive scripts.
 - **Tests section:** every phase file has a `## Tests` section listing, item by item, what must be tested (each item concrete enough to check). A phase is **not done** until every item there has a test; its "Done when" list has the line "Every item under Tests has a test (file names listed in Result)", and the test file names are listed in its "Result" / "Found during phase" section so the reviewer can check item by item.
-- **UI/UX findings (D72):** a UI or UX issue found while working on a phase (look, wording, layout, a missing warning, an inconsistency between tools) is written into [the phase 13 file](phases/13-page-by-page-ui-review.md) (the v3 UI list since D77) under its screen, not fixed on the side, unless the phase file lists it.
+- **UI/UX findings (D72):** a UI or UX issue found while working on a phase (look, wording, layout, a missing warning, an inconsistency between tools) is written into [the UI/UX findings list](phases/ui-findings.md) under its screen, not fixed on the side, unless the phase file lists it.
 - **Scope:** do only what the phase file lists. Something found outside scope → write it under "Found during phase" at the bottom of that phase file and tell the owner; don't fix it silently.
 - **Docs:** the technical docs are in [`docs/`](../docs/README.md) (phase 12, D44, D76); the code wins when they disagree. A change updates the docs and `CLAUDE.md` it affects (routes, roles, permissions, responses, models, commands) in the same PR; `backend/tests/docs.test.js` checks the route list, the permission matrices and the links.
-- **Language:** UI and code in English (see DECISIONS context). Replies to the owner in Arabic.
+- **Language:** code in English; the interface in English and, from v2.5, Arabic (D81). Replies to the owner in Arabic.
 - **Critical-actions log (D65, from phase 7a):** a phase that adds a destructive action, an archive/restore-like state change or a user/access change records it through the shared audit helper (who, action, project, target, snapshot; never passwords or tokens) and tests the entry. Ordinary edits are not logged in v2 (full log = v3). Each phase file names the critical actions it adds.
 - **Access seams (D66, from phase 7a):** new project-scoped routes go through the single project-access check, and new route checks use `requirePermission(...)`, never role lists.
 - **Close a phase:** tick its "Done when" list in the phase file, raise the coverage thresholds, add a one-line result (incl. coverage) to the table below.
@@ -70,4 +98,5 @@ Order matters: removals before new code (less to secure), backend rules before t
 | 12 | Done (owner reviews docs and the untested-modules list) | `claude/phase-12-e2e-docs-a8d581` | Owner concept as D76 (user guide → new phase 14, E2E flows 10 Excel + 11 Arabic, Chromium only, test gaps as a rule, phase 13 = design system); Playwright E2E in `e2e/` (flows 1–11 + 5a, 19 tests, production-style server on port 3100, own `esms_e2e_test`, CI job E2E on a MongoDB 7.0 replica set); tests for every module with logic that had none; old docs deleted, new `docs/` (architecture, API reference checked against the route table, data models, permission matrices checked against the code, workflow rules, developer guide, style rules), root README, CLAUDE.md shortened with links; 949 backend / 494 frontend tests, lines backend 97% / frontend 87% (floors 96/91/95/97 and 85/78/80/87) |
 | 12a | Done (owner reviews the PR) | `claude/phase-12a-release-v2-eb1eee` | D77: v2.0.0 (`/health`, user menu, CHANGELOG, release name), folder cleaned (unused files, dead exports, stale comments, `.gitignore`, English code comments with a guard test, `UNLICENSED`), docs checked against the code (service test kit recorded), 9 day-one UI fixes from the phase 13 list, icon font subset 4.0 MB → 169 kB at build time, `deploy/IT-CHECKLIST.md` + `deploy/OWNER-RUNBOOK.md`; 966 backend / 536 frontend tests, lines backend 97% / frontend 88% (frontend floors 86/80/81/88) |
 | 14 | Done (owner reviews the guide and the PR) | `claude/phase-14-user-guide-4a281a` | D78: user guide in English and Arabic (`docs/user-guide/`, 13 parts each, tagged by permission), in-app Help (`GET /help` filtered by `can()`, `/app/help` with contents, EN/AR switch with RTL, print; contextual Help button on every page with a place key), the release carries the guide; tests: `userGuide.test.js`, `help.test.js`, `HelpPage.test.jsx`; floating Help button on every page, contents scroll-spy, workbook bar under the project header (owner review, D78 6); 998 backend / 571 frontend tests, lines backend 97.5 % / frontend 88.8 % (floors 96/91/96/97 and 87/81/82/88) |
-| 13 | Moved to v3 (D77); from-scratch UI/UX design (D79) | | the file stays as the v3 UI list |
+| 13 | Designed in v2.5 (D80) | | its list is now [the UI/UX findings list](phases/ui-findings.md) |
+| 15–26 | Not started | | v2.5; design done (V2_5_CONCEPT.md, committed on `docs/v2.5-concept`) |

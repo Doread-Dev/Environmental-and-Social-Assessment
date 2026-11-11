@@ -1,8 +1,8 @@
 # Style guide
 
-The UI rules of ESMS v2, binding for every frontend change. A full design system comes with v3
-([D77 2](../plan/DECISIONS.md); its starting list is
-[phase 13](../plan/phases/13-page-by-page-ui-review.md)). These rules merge the old
+The UI rules of ESMS v2, binding for every frontend change. The v2.5 design system replaces it in phase 15
+([D80](../plan/DECISIONS.md), [design](../plan/V2_5_CONCEPT.md); open UI issues are in
+[the UI/UX findings list](../plan/phases/ui-findings.md)). These rules merge the old
 `frontend/docs/STYLE_GUIDE.md` (Arabic, January 2026; translated here, with what the code has
 since changed) and the style rules that were in `CLAUDE.md`. Where the old guide and the code
 disagree, the code and this page win.

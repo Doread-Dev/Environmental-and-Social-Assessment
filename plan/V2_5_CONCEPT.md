@@ -1,6 +1,6 @@
 # v2.5 — Design concept (working notes)
 
-**What this is:** the working notes of the v2.5 design discussion between the owner and the main chat. Nothing here is a decision until it is recorded in [DECISIONS.md](DECISIONS.md). Started 2026-11-10.
+**What this is:** the working notes of the v2.5 design discussion between the owner and the main chat. Started 2026-11-10. **Recorded as decisions D80–D95** in [DECISIONS.md](DECISIONS.md) and built in phases 15–26 ([README.md](README.md)); this file stays the detailed design reference for those phases.
 
 ## Where v2.5 sits
 - **v2.0.x:** delivered; goes to the Syria IT server.
@@ -172,7 +172,7 @@ The person who creates a project does not choose its team (they may be a Focal P
   - one matrix, with permissions as rows (grouped: Projects, Workflow tools, Library, Administration, each a plain sentence) and roles as columns with their people count;
   - click to change, with a save bar;
   - "organisation only" marks permissions that work only when the role is given for the whole organisation;
-  - the six v2 roles become editable starting roles: the Program Manager gets "approve or return" (owner: they review and approve) and the Reader keeps Export (owner);
+  - the six v2 roles become editable starting roles: the Program Manager gets "approve or return" (owner: they review and approve) and the Reader gets Export (owner; today the viewer cannot export, D28a);
   - the Administrator's "Manage users" and "Manage roles" are locked, so nobody locks everyone out;
   - "New role" in a side panel (name, description, start from an existing role);
   - on a phone: pick a role, see its permissions as a list.
@@ -392,31 +392,31 @@ The rest of the recurring work, built from the components and patterns A.
 ## Build notes for the v2.5 phases (collected during the design, 2026-11-10)
 **How these are handled:** the design stage (this file) only records them. Step 5 below turns them into decisions in [DECISIONS.md](DECISIONS.md) and puts each one in the scope of a v2.5 phase file in [phases/](phases/); the phase session that owns that part builds and tests it, and the main chat reviews the code. **Rule (owner, 2026-11-10):** questions about implementation (sizes, types, limits, server settings) are still asked as they come up, and the answer is recorded here; but the work is **assigned to the phase that builds it**, never done now at the expense of the design. v2.5 is above all the design: small and medium changes the design needs go in this table; a large structural change goes to v3 ([V3_VISION.md](V3_VISION.md)) instead. A related change that fits with an item already here (permissions, project code, deleted items, passwords…) is added to this table.
 
-| Item | Where it came from | Notes for the phase |
-|---|---|---|
-| Access model: permissions, editable roles, scopes (organisation → project), assignments; every access change logged | Access model | Plugs into the 7a seams (D65, D66); the biggest backend piece of v2.5. |
-| Error codes for a multilingual interface | Where v2.5 sits | The server returns codes, the interface writes the message in the user's language. |
-| Server error reference code written to the log | System pages | Shown to the user for IT. |
-| In-app notifications (waiting for review, approved, returned) | Agreed list | Email on the same events only if the server can send mail (IT item). |
-| Project code (ESMS-024) given by the server | Lists | Searchable, in exports. |
-| `last sign-in` on users | Users page | |
-| Deleted items: soft delete, kept 30 days, then removed | Administration | Projects, project files, library documents. |
-| Language and theme saved on the account | My account | Apply at once, follow the user to any device. |
-| Passwords: at least 12 characters, no forced symbols, block common and leaked passwords | Owner, sign-in | Replaces the 6-character minimum. |
-| Session ends after 8 hours without activity; "session ended" dialog that keeps unsaved changes | Owner, sign-in | Today: 12 hours from sign-in (`JWT_EXPIRES_IN`). |
-| Search inside the user guide | Readers | |
-| **Upload size stays configurable** (owner, 2026-11-10) | Components group 1 | Never fixed in code. Today a server setting, `MAX_UPLOAD_MB` (10 MB by default). The phase decides with the owner whether the administrator can also change it in the app, and the right default for full assessment reports with annexes. The interface always shows the current limit from the server. |
-| **Site photos can be uploaded** (owner, 2026-11-10) | Components group 1 | Today only PDF and Office files are accepted. The phase adds image types (at least JPG and PNG; iPhone HEIC to be checked), with the same file-signature check as the other types, and shows them as images (preview, not only a download). |
-| Syria map as a light SVG; IBM Plex weight 700 dropped from the bundle | Foundations | Frontend only. |
-| **Icons as SVG components on the text line** (owner, 2026-11-10) | Audit | Fixes v2's raised icons. The same Material Symbols set (D37), delivered as SVG components instead of font ligature spans; each icon box is one text line tall (`1lh`) inside a flex row. No text flash before the font loads, and only the icons used are bundled. `styleGuard.test.js` checks that no icon is placed inline on the text baseline. Frontend only. |
-| A reason is required to return a screening or an assessment | Patterns A, reviewing | Today `reject_reason` is optional; approve already requires recommendations (D74 5). |
-| The workflow sends, per step, its kind (reviewed or working) and what is still missing, as field codes | Patterns A, submitting | Feeds the "Before you submit" checklist and the links to each field; fits the error-codes item. The submit check itself stays on the server (D74 2). |
-| Stale save keeps the person's changes in a list to apply again | Patterns A, interruptions | Frontend only (`useProjectSave`); the 409 `STALE_VERSION` stays as it is. |
-| Review history panel | Patterns A, returned | Frontend only, from `status_history`. |
-| Delete an archived project for good asks for the project code | Patterns B | Frontend only; the purge endpoint and its audit entry stay as they are (D60, D65). |
-| **Paste a block from Excel into the monitoring grid, with Undo** (owner, 2026-11-10: the teams fill monitoring from Excel) | Patterns B | Frontend only; the save is the same bulk save as today (D32). |
-| "Take a photo" on phones | Patterns B | A file input that accepts images and offers the camera; depends on the site-photos item above. |
-| **Reopen an approved screening or assessment** (owner, 2026-11-10) | Patterns A | A new transition `approved` → `rejected` for people who can approve, with a required reason, appended to `status_history` (for example `reopened`) and notified to the submitter. Later steps keep their data; while the step is reopened they follow today's gates (read only). |
+| Item | Where it came from | Notes for the phase | Phase |
+|---|---|---|---|
+| Access model: permissions, editable roles, scopes (organisation → project), assignments; every access change logged | Access model | Plugs into the 7a seams (D65, D66); the biggest backend piece of v2.5. | 17 |
+| Error codes for a multilingual interface | Where v2.5 sits | The server returns codes, the interface writes the message in the user's language. | 15 |
+| Server error reference code written to the log | System pages | Shown to the user for IT. | 15 |
+| In-app notifications (waiting for review, approved, returned) | Agreed list | Email on the same events only if the server can send mail (IT item). | 18 (bell 20, page 24) |
+| Project code (ESMS-024) given by the server | Lists | Searchable, in exports. | 18 |
+| `last sign-in` on users | Users page | | 19 |
+| Deleted items: soft delete, kept 30 days, then removed | Administration | Projects, project files, library documents. | 19 (page 25) |
+| Language and theme saved on the account | My account | Apply at once, follow the user to any device. | 19 (UI 20, 24) |
+| Passwords: at least 12 characters, no forced symbols, block common and leaked passwords | Owner, sign-in | Replaces the 6-character minimum. | 19 |
+| Session ends after 8 hours without activity; "session ended" dialog that keeps unsaved changes | Owner, sign-in | Today: 12 hours from sign-in (`JWT_EXPIRES_IN`). | 19 |
+| Search inside the user guide | Readers | | 24 |
+| **Upload size stays configurable** (owner, 2026-11-10) | Components group 1 | Never fixed in code. Today a server setting, `MAX_UPLOAD_MB` (10 MB by default). The phase decides with the owner whether the administrator can also change it in the app, and the right default for full assessment reports with annexes. The interface always shows the current limit from the server. | 19 (UI 24) |
+| **Site photos can be uploaded** (owner, 2026-11-10) | Components group 1 | Today only PDF and Office files are accepted. The phase adds image types (at least JPG and PNG; iPhone HEIC to be checked), with the same file-signature check as the other types, and shows them as images (preview, not only a download). | 19 (UI 24) |
+| Syria map as a light SVG; IBM Plex weight 700 dropped from the bundle | Foundations | Frontend only. | 15 |
+| **Icons as SVG components on the text line** (owner, 2026-11-10) | Audit | Fixes v2's raised icons. The same Material Symbols set (D37), delivered as SVG components instead of font ligature spans; each icon box is one text line tall (`1lh`) inside a flex row. No text flash before the font loads, and only the icons used are bundled. `styleGuard.test.js` checks that no icon is placed inline on the text baseline. Frontend only. | 15 |
+| A reason is required to return a screening or an assessment | Patterns A, reviewing | Today `reject_reason` is optional; approve already requires recommendations (D74 5). | 18 (UI 22) |
+| The workflow sends, per step, its kind (reviewed or working) and what is still missing, as field codes | Patterns A, submitting | Feeds the "Before you submit" checklist and the links to each field; fits the error-codes item. The submit check itself stays on the server (D74 2). | 18 (UI 22) |
+| Stale save keeps the person's changes in a list to apply again | Patterns A, interruptions | Frontend only (`useProjectSave`); the 409 `STALE_VERSION` stays as it is. | 16 |
+| Review history panel | Patterns A, returned | Frontend only, from `status_history`. | 22 |
+| Delete an archived project for good asks for the project code | Patterns B | Frontend only; the purge endpoint and its audit entry stay as they are (D60, D65). | 21 |
+| **Paste a block from Excel into the monitoring grid, with Undo** (owner, 2026-11-10: the teams fill monitoring from Excel) | Patterns B | Frontend only; the save is the same bulk save as today (D32). | 23 |
+| "Take a photo" on phones | Patterns B | A file input that accepts images and offers the camera; depends on the site-photos item above. | 24 |
+| **Reopen an approved screening or assessment** (owner, 2026-11-10) | Patterns A | A new transition `approved` → `rejected` for people who can approve, with a required reason, appended to `status_history` (for example `reopened`) and notified to the submitter. Later steps keep their data; while the step is reopened they follow today's gates (read only). | 18 (UI 22) |
 
 ## Quality check for the playgrounds (2026-11-10)
 - [design/audit.js](design/audit.js) renders every combination of a playground's controls in the browser pane (design-playgrounds server) and reports: an icon or step marker not on the first line of the text after it, text clipped or outside its frame, text over text, text contrast under WCAG AA, and broken values. Every playground passes it as of 2026-11-10; each new playground is checked with it before it is shown to the owner.
@@ -435,4 +435,4 @@ The rest of the recurring work, built from the components and patterns A.
 2. App shell: sidebar, header, project navigation, context slot, Help — options compared with the owner on screen (playground), decision with reasons. **Done: option 1 agreed (see "App shell" above).**
 3. Page by page: priorities and layout. **Done (owner approved all groups, 2026-11-10):** shell, core pages, lists and Administration, account / sign-in / readers / system pages, each in a playground under [design/](design/), with phone views and the tablet rail. A consistency pass over the four playgrounds and these notes followed the same day: where they differed, these notes win.
 4. Design system: foundations → components → patterns. **Foundations done** (2026-11-10, owner answered the locale questions and agreed to AKF's palette). Components (layer 2): groups 1, 2 and 3 approved and committed. Patterns (layer 3): group A (the workflow cycle) approved and committed; group B (tasks: new project and its team, upload, give access, archive / delete / restore, monitoring entry) proposed. Next: step 5 below.
-5. Record the outcome as decisions (DECISIONS.md), write the v2.5 phase files (each build note above goes into the scope of one phase), and rename the "phase 13" references in CLAUDE.md and plan/ in the same change.
+5. Record the outcome as decisions (DECISIONS.md), write the v2.5 phase files (each build note above goes into the scope of one phase), and rename the "phase 13" references in CLAUDE.md and plan/ in the same change. **Done (2026-11-10):** D80–D95, phases 15–26 in [README.md](README.md) (the "Phase" column above), the phase 13 file renamed to [the UI/UX findings list](phases/ui-findings.md).

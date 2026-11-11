@@ -1,4 +1,6 @@
-# Phase 13 — Page-by-page UI/UX review
+# UI/UX findings list (input to the v2.5 page phases)
+
+> **What this file is now (D80, 2026-11-10).** It was phase 13 (page-by-page UI/UX review), moved to v3 by D77 2, then turned into a from-scratch design by D79. That design was done in v2.5: [V2_5_CONCEPT.md](../V2_5_CONCEPT.md) and its playgrounds in [design/](../design/). This file is now the list of UI/UX issues found in v2. **Each v2.5 page phase (20–25) takes the items under its screens:** it fixes them in the new design or marks them as solved by it, and moves them to its Result. UI/UX issues found while working are still written here, under their screen (D72 c). The history below is kept as it was.
 
 > **Moved to v3 (D77 2, 2026-11-08).** v2.0.0 ships without this phase. This file stays as the starting list for the v3 UI work (linked from [V3_VISION.md](../V3_VISION.md)); UI/UX issues found from now on are still written here (D72 c). The small visible fixes a user meets on day one were done in [phase 12a](12a-release-readiness.md) and moved out of the list below.
 

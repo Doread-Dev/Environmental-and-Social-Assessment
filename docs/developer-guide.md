@@ -197,8 +197,7 @@ frontend, and the E2E run (`cd e2e && npm test`) when a flow is affected. Lint s
 - Backend endpoint conventions: [architecture → conventions](architecture.md#conventions-for-endpoints).
 - Frontend data layer and guards: [architecture → frontend](architecture.md#frontend).
 - UI: [style rules](style-guide.md); UI or UX issues found while working go into
-  [the phase 13 file](../plan/phases/13-page-by-page-ui-review.md) (the v3 UI list, D77), not fixed
-  on the side (D72 c).
+  [the UI/UX findings list](../plan/phases/ui-findings.md), not fixed on the side (D72 c).
 - Language: UI and code in English; Arabic only as user data.
 - There is no `v3/` folder: the v3 modules are not ported (D70); their designs are in
   [`plan/V3_VISION.md`](../plan/V3_VISION.md).
@@ -213,7 +212,7 @@ Until the organisation's server runs, a demo runs on Vercel (frontend, from `mai
 or restart) with MongoDB Atlas (D75). The frontend gets its API address from `VITE_API_URL` set in
 Vercel, and the API allows the Vercel address through `FRONTEND_URL`. Removing Vercel
 (`frontend/vercel.json`, the project) and the Render service is a small follow-up once the server
-is live (noted in the phase 13 file). The release package for the server does not mention any of
+is live (noted in the UI/UX findings list). The release package for the server does not mention any of
 this.
 
 ## Git

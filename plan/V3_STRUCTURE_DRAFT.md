@@ -177,10 +177,8 @@ must all be editable and manageable")
 
 ### 2.5 Places
 
-**[OPEN — re-asked in round 5]** The first proposal (free text + an office-managed list of
-administrative areas + optional typed coordinates) was written for an offline server. The owner
-then said the global platform is online (§6), so the question is asked again with the map as the
-main way to give a location. Round 5 proposal:
+**[AGREED 2026-11-16]** (round 5; replaces the round 4 proposal, which was written for an offline
+server before the owner said the global platform is online)
 
 - a location is a **point picked on a map** (coordinates) with a name; the free-text field stays;
 - a project or activity can have **several** location points (one marked as the main one);
@@ -188,7 +186,9 @@ main way to give a location. Round 5 proposal:
   with the point (editable), so grouping by place never depends on a later lookup;
 - the Projects list gains a map view;
 - the map provider is chosen in the technology stage (§6.1; the global platform may already have
-  one).
+  one);
+- on a stand-alone installation without a map source, coordinates can be typed or pasted and the
+  area chosen by hand (**[PROPOSAL]**, the fallback of §6).
 
 ### 2.5a Office-level and organisation-level tools
 
@@ -226,7 +226,19 @@ exactly one layer (no copies between layers).
 ### 2.6 People and identity
 
 **[PROPOSAL]** A user = a person record + one or more *identities* (local password; organisation
-account through single sign-on). Home office on the person. **[AGREED 2026-11-16]** An account created on first sign-in from the global platform starts
+account through single sign-on). Home office on the person.
+
+**[AGREED 2026-11-16]** (round 5)
+
+- **Staff sign in with their organisation account only** — no ESMS password for them.
+- **People outside the organisation** (third-party readers, donors, consultants) get a **local
+  account by invitation:** the office administrator sends an email invitation, the person sets
+  their own password (the v2.5 password rules, D91), and the account can carry an optional **expiry
+  date**. An external account is marked as external wherever people are listed.
+- **Email:** the notification events of D90 are also sent by email; each person can switch email
+  off in My account. "Forgot your password?" becomes a reset link by email for local accounts
+  (replaces D91's "the administrator gives a temporary one" where email exists). No time-based
+  reminders: monitoring keeps "gaps, not dates" (D90). **[AGREED 2026-11-16]** An account created on first sign-in from the global platform starts
 with **no access**; the administrators of its office are notified ("New person needs access") and
 assign a role (same pattern as "New project needs a team", D82/D90).
 
@@ -285,10 +297,22 @@ assign a role (same pattern as "New project needs a team", D82/D90).
 
 ## 5. Data migration from v2.5
 
-**[PROPOSAL]**
+**[AGREED 2026-11-16]** (round 5) **How Syria moves:**
 
-- One office is created ("AKF Syria"); every project is attached to it; every user's home office is
-  Syria.
+- Syria is the **first office on v3** and the test of the migration.
+- Syria keeps working on v2.5 until v3 is ready; the two systems are **never run side by side**.
+- **One cut-over on a set day:** rehearsals of the migration on a copy of the data beforehand, a
+  full backup, the migration, checks, then people sign in to v3. v2.5 stays **read only** for a
+  period afterwards (length to set with the client), then is retired.
+
+**[PROPOSAL]** What the migration does:
+
+- One office is created ("AKF Syria", code `SY`); every project is attached to it; every user's
+  home office is Syria.
+- Project codes become `ESMS-SY-nnn`, with the old code kept as an alias (§2.5c).
+- Free-text locations are kept as text; map points are added by people afterwards (never guessed).
+- Staff accounts are matched to organisation accounts by email at first sign-in; accounts of
+  people outside the organisation stay local.
 - Every project gets one workflow unit; tool data is re-pointed from `project_id` to `unit_id`.
 - Organisation-scope assignments become **office-scope (Syria)** assignments, except administrators
   chosen as global administrators (**[OPEN]** who).
@@ -313,9 +337,12 @@ assign a role (same pattern as "New project needs a team", D82/D90).
   - **[AGREED 2026-11-16] (owner's correction, round 4): the global platform is online — do not
     design v3 around an offline server.** The central shape assumes the internet and may use
     online services (map, email, organisation sign-in). D37's "no runtime internet dependency" is a
-    v2/v2.5 rule for the Syria server and no longer limits what v3 can offer. **[OPEN — round 5]**
-    whether a stand-alone installation without internet must still be supported in v3, and what
-    it loses if so;
+    v2/v2.5 rule for the Syria server and no longer limits what v3 can offer;
+  - **[AGREED 2026-11-16] v3 is online first.** Every feature is designed for the online, central
+    shape. A stand-alone installation stays **possible** for a country whose rules keep data inside
+    it; without internet it simply runs **without the online features** (map picking, email,
+    organisation sign-in → typed coordinates, in-app notifications only, local accounts). Nothing
+    is designed around that case;
   - **[AGREED 2026-11-16]** **an office can be moved** from a stand-alone server into the central
     one: a full export/import of one office (its data, files, history and people), which is why
     identifiers are globally unique from day one.
@@ -351,8 +378,8 @@ their own stage, after the domain structure above is settled:
 
 **Constraints that hold whatever is chosen** (they come from agreed items):
 
-- one build, two deployment shapes (central online; stand-alone — its offline requirement is open,
-  round 5);
+- one build, two deployment shapes (central online, the design target; stand-alone possible,
+  without the online features when it has no internet);
 - online services (map, email, organisation sign-in) sit behind interfaces, so the core work
   (filling, reviewing, exporting) never fails because one of them is down;
 - transactions and referential integrity for the tree of scopes, assignments, revisions and history;
@@ -382,11 +409,14 @@ their own stage, after the domain structure above is settled:
 | Q14 | Approval path per country / for activities; multi-level approval. | owner | **answered** — one path, levels supported but off (§4) |
 | Q15 | History and revisions. | owner | **answered** (§4) |
 | Q17 | Office-level tools (GHG, Environmental Data); library layers; one office per project and the code; languages and exports. | owner | **answered** (§2.5a–c, §2.4) |
-| Q18 | Location of a project/activity now that the platform is online. | owner | re-asked (round 5) |
-| Q19 | Must a stand-alone installation without internet still be supported in v3? | owner | asked (round 5) |
-| Q20 | People outside the organisation (third-party readers): how they get an account. | owner | asked (round 5) |
-| Q21 | Email notifications and password reset by email. | owner | asked (round 5) |
-| Q22 | How Syria moves to v3. | owner | asked (round 5) |
+| Q18 | Location of a project/activity now that the platform is online. | owner | **answered** — map points (§2.5) |
+| Q19 | Must a stand-alone installation without internet still be supported in v3? | owner | **answered** — online first; stand-alone possible without the online features (§6) |
+| Q20 | People outside the organisation (third-party readers): how they get an account. | owner | **answered** — email invitation, local account, optional expiry (§2.6) |
+| Q21 | Email notifications and password reset by email. | owner | **answered** (§2.6) |
+| Q22 | How Syria moves to v3. | owner | **answered** — first office, one cut-over (§5) |
+| Q23 | Order of delivery: one release or stages; what the client needs first. | owner | asked (round 6) |
+| Q24 | Reports across projects (office and organisation level). | owner | asked (round 6) |
+| Q25 | Who creates an activity; activity kinds. | owner | asked (round 6) |
 | Q16 | Technology (database, languages, sign-in technology, integration). | separate stage | **deferred** by the owner to a dedicated architecture stage (§6.1) |
 
 ### 7.1 Facts to collect from the client and their IT (before the technology stage)
@@ -413,15 +443,30 @@ their own stage, after the domain structure above is settled:
 1. v3 review and decisions (this draft → D-numbers), after the client facts of §7.1 are collected.
 2. **Technology stage** (§6.1): architecture decision records for the database, languages, sign-in
    and integration; then the platform base (module layout, migration tooling).
-3. Organisation tree and scopes; access model on the tree; migration of v2.5 assignments.
-4. Workflow unit and tool registry: tools become registered modules pointing to units; versioned
-   workflow definitions; data migration.
-5. Activities (model, workflow, pages on the existing patterns, exports).
-6. Managed catalogues with versions and translations.
-7. Identity: OIDC sign-in, server sessions, entry from the global platform.
-8. History: field-level log, revisions.
-9. Places on a map.
-10. Deployment shapes, observability, release.
+3. **Platform base:** module layout, the history writer (field-level, used by every later module),
+   sessions, migration tooling, CI, observability.
+4. **Organisation tree and access:** offices, scopes on the tree, global and office administrators,
+   the office switcher and the "Office" filter.
+5. **Workflow unit, tool registry, workflow definitions:** Tools 1–5 as registered modules pointing
+   to units; approval levels in the definition.
+6. **Managed catalogues:** versions, draft/publish, translations, pinning of units.
+7. **The other tools as modules:** SEMP Plan, Stakeholder Awareness (unit level), GHG Emissions,
+   Environmental Data Collection (office level, organisation total); library in two layers; files.
+8. **Activities:** model, codes, access, the spine one level down, overview roll-up, archive/delete
+   with the project.
+9. **Revisions and history pages:** numbered revisions, reading and exporting an old revision, the
+   history panel.
+10. **Identity and email:** organisation sign-in, entry and deep links from the global platform,
+    invitations for outside people, email notifications and password reset.
+11. **Places:** map points, areas from the map, the map view of projects.
+12. **Exports:** language at export time, activity workbooks, the activities sheet.
+13. **Migration from v2.5:** the script, rehearsals on copies, the Syria cut-over.
+14. **Office export/import and the stand-alone package.**
+15. **Release readiness:** E2E of the golden flows, security and performance review, docs, user
+    guide in both languages.
+
+Every phase keeps the rules of the v2.5 phases (tests, CI, coverage floors, docs in the same
+change, the design system as it is). The order inside 6–12 can change with the answers to Q23.
 
 ---
 
@@ -447,3 +492,8 @@ their own stage, after the domain structure above is settled:
   office code and old codes as aliases; catalogues per language, typed content never translated,
   exports ask for the language. **Owner's correction: the global platform is online; v3 is not
   designed around an offline server.** Location re-opened for that reason.
+- 2026-11-16 — round 5 agreed: v3 is online first, stand-alone possible without the online
+  features; locations are map points (several per unit, area from the map, map view of projects);
+  staff sign in with the organisation account, outside people by email invitation with an optional
+  expiry; email notifications and password reset by email; Syria is the first office, one cut-over,
+  v2.5 read only afterwards. Phase outline rewritten (15 phases).

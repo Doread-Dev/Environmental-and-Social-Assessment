@@ -23,9 +23,9 @@ Claude (owner's standing rule); the owner answers domain and business questions.
 
 | # | Goal | Status |
 |---|---|---|
-| G1 | **Global use:** AKF offices in other countries use ESMS, entering from AKF's global platform. | [PROPOSAL] (client hint 2026-11-10, V3_VISION) |
-| G2 | **Activities inside a project:** an activity is a mini-project that goes through the tools on its own. | [PROPOSAL] (owner 2026-11-10, V3_VISION) |
-| G3 | **Structural rebuild to enterprise level:** identity and sessions, full history, configurable reference data, data integrity, observability. | [PROPOSAL] (owner 2026-11-04) |
+| G1 | **Global use:** AKF offices in other countries use ESMS, entering from AKF's global platform. | [AGREED 2026-11-16] (online first, §6; client hint 2026-11-10) |
+| G2 | **Activities inside a project:** an activity is a mini-project that goes through the tools on its own. | [AGREED 2026-11-16] (§2.3) |
+| G3 | **Structural rebuild to enterprise level:** identity and sessions, full history, configurable reference data, data integrity, observability. | [AGREED] as a goal (owner 2026-11-04); the technology is its own stage (§6.1) |
 | G4 | **Client features not disclosed yet** — the structure must leave room for them. | [OPEN] |
 
 ### 1.2 What stays from v2.5
@@ -73,7 +73,7 @@ Organisation (AKF)
 
 ### 2.2 The workflow unit
 
-**[PROPOSAL]** The thing that goes through Tools 1–5 becomes its own entity, the **workflow unit**
+**[AGREED 2026-11-16]** The thing that goes through Tools 1–5 becomes its own entity, the **workflow unit**
 (already one pattern in the v2.5 design, concept §"Design for variation"):
 
 - A project owns one workflow unit; each activity owns one workflow unit.
@@ -332,7 +332,7 @@ assign a role (same pattern as "New project needs a team", D82/D90).
   hosting decision. Consequences:
   - the office level always exists in the data (a stand-alone server simply has one office);
   - every identifier that may one day meet another installation's data is globally unique (UUIDs,
-    and project codes that carry an office prefix when more than one office exists — **[PROPOSAL]**);
+    and project codes that carry the office code, §2.5c);
   - sign-in works both with an organisation account (central) and with local accounts (stand-alone);
   - **[AGREED 2026-11-16] (owner's correction, round 4): the global platform is online — do not
     design v3 around an offline server.** The central shape assumes the internet and may use

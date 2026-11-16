@@ -530,7 +530,8 @@ sessions build, mid-plan, would cause more confusion than it saves.
 
 Everything that was still a proposal or not yet asked, closed in one round so that only the client
 questions (§7.1, [V3_CLIENT_QUESTIONS.md](V3_CLIENT_QUESTIONS.md)) and the technology stage (§6.1)
-remain. **Status of every row: [PROPOSAL — asked in round 7].**
+remain. **Status: every row is [AGREED 2026-11-16]** (owner, round 7), **except M1**, which the owner asked to have
+explained again (still [PROPOSAL]).
 
 ### 9.1 Migration from v2.5 — details
 
@@ -647,3 +648,6 @@ v3.1 waits for the client (C11).
 - 2026-11-16 — round 7 asked: every remaining proposal and small rule gathered in §9 (migration
   details, activity rules, catalogues and definitions, people and offices, time, out of scope);
   the client question sheet written ([V3_CLIENT_QUESTIONS.md](V3_CLIENT_QUESTIONS.md), C1–C14).
+- 2026-11-16 — round 7 agreed: all of §9 (migration details M2–M10, activity rules, catalogues and
+  definitions, people and offices, time, out of scope, phase order) except M1 (administrators at
+  the migration), explained again to the owner.

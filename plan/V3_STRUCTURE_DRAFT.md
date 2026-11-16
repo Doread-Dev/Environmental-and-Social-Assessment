@@ -182,7 +182,7 @@ must all be editable and manageable")
   shown as written (`dir="auto"`, D87).
 - **[AGREED 2026-11-16]** **Exports ask for the language** at export time: fixed labels and
   catalogue texts come out in that language, typed content as written.
-- **[PROPOSAL]** Moving a running unit to a newer catalogue version is an explicit action by someone
+- **[AGREED 2026-11-16]** (§9.3 K1) Moving a running unit to a newer catalogue version is an explicit action by someone
   who can edit it, never automatic.
 
 ### 2.5 Places
@@ -198,7 +198,7 @@ server before the owner said the global platform is online)
 - the map provider is chosen in the technology stage (§6.1; the global platform may already have
   one);
 - on a stand-alone installation without a map source, coordinates can be typed or pasted and the
-  area chosen by hand (**[PROPOSAL]**, the fallback of §6).
+  area chosen by hand (the fallback of §6; decided by Claude, delegated).
 
 ### 2.5a Office-level and organisation-level tools
 
@@ -215,7 +215,7 @@ computed**, never typed in. On a stand-alone server with one office nothing chan
   laws, national guidance).
 
 Both appear under the same "Guidance" button of a page and on the Library page. **Owner's
-condition: it must stay organised, not cluttered.** So (design delegated to Claude, **[PROPOSAL]**):
+condition: it must stay organised, not cluttered.** So (design delegated to Claude and decided, §9.6):
 the two layers are always shown as two labelled groups ("AKF global", "AKF Syria"), never one mixed
 list; inside a group the order is the manager's order; the Library page has one filter for layer
 and one for place, and each document shows its layer, language and date; a document belongs to
@@ -245,7 +245,7 @@ structure allows it").
 
 ### 2.6 People and identity
 
-**[PROPOSAL]** A user = a person record + one or more *identities* (local password; organisation
+**[PROPOSAL — for the technology stage, §6.1]** A user = a person record + one or more *identities* (local password; organisation
 account through single sign-on). Home office on the person.
 
 **[AGREED 2026-11-16]** (round 5)
@@ -266,14 +266,14 @@ assign a role (same pattern as "New project needs a team", D82/D90).
 
 ## 3. Access model changes
 
-**[PROPOSAL]**
+**[AGREED 2026-11-16]** (the items below, with §9.4)
 
 - Scope levels grow from `organisation → project` to
   `organisation → office → project → activity` (the tree of §2.1). An assignment on a node covers
   everything under it. **[AGREED 2026-11-16]** for the activity level: project access covers every
   activity of the project, and a person can be assigned to a single activity. A person assigned
   only to an activity sees the parent project's name and code (to know where they are) but not the
-  project's own tools or its other activities (**[PROPOSAL]** for this last sentence).
+  project's own tools or its other activities (§9.2 A5).
 - **[AGREED 2026-11-16]** "Administrator" splits by scope: a **global administrator** (offices,
   roles, catalogues, workflow definitions) and an **office administrator** (users and access inside
   their own office only; never sees or changes another office's people). On a stand-alone server
@@ -325,7 +325,7 @@ assign a role (same pattern as "New project needs a team", D82/D90).
   full backup, the migration, checks, then people sign in to v3. v2.5 stays **read only** for a
   period afterwards (length to set with the client), then is retired.
 
-**[PROPOSAL]** What the migration does:
+**[AGREED 2026-11-16]** What the migration does (details in §9.1):
 
 - One office is created ("AKF Syria", code `SY`); every project is attached to it; every user's
   home office is Syria.
@@ -464,7 +464,7 @@ The sheet the owner takes to the client, in English and Arabic: [V3_CLIENT_QUEST
 
 ## 8. Proposed phase outline
 
-**[PROPOSAL]** — rough order, refined at the end of the session.
+**[AGREED 2026-11-16]** as the working order (§9.8); the technology stage may regroup phases.
 
 1. v3 review and decisions (this draft → D-numbers), after the client facts of §7.1 are collected.
 2. **Technology stage** (§6.1): architecture decision records for the database, languages, sign-in

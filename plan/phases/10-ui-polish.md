@@ -4,7 +4,7 @@
 
 **Decisions:** D43, D71 (+ STYLE_GUIDE rules in `CLAUDE.md`).
 
-**Scope (D71, owner 2026-11-05):** this phase unifies everything that is shared or obviously inconsistent across the app — typography (one font family, one type scale), form controls (inputs, select boxes, textareas, checkboxes), colours via tokens, buttons, badges, cards, page headers, tables, modals/confirm dialogs, toasts, date/number formats, loading/empty/error/read-only states, focus rings and basic accessibility — with one shared component or helper per kind, every usage migrated, and a guard test against forbidden colours and raw selects. It is visual and consistency work only: no workflow rule, export or data change. **Page-specific findings go to [phase 13](13-page-by-page-ui-review.md)** (page-by-page review), not into this phase.
+**Scope (D71, owner 2026-11-05):** this phase unifies everything that is shared or obviously inconsistent across the app — typography (one font family, one type scale), form controls (inputs, select boxes, textareas, checkboxes), colours via tokens, buttons, badges, cards, page headers, tables, modals/confirm dialogs, toasts, date/number formats, loading/empty/error/read-only states, focus rings and basic accessibility — with one shared component or helper per kind, every usage migrated, and a guard test against forbidden colours and raw selects. It is visual and consistency work only: no workflow rule, export or data change. **Page-specific findings go to [phase 13](ui-findings.md)** (page-by-page review), not into this phase.
 
 ## Unify (system-wide)
 - Inventory by searching the code: font families/sizes and heading styles, raw `<select>` vs a shared Select, inputs/textareas, colour classes that bypass the tokens (forbidden classes, raw hex, `gray-*` where a token exists, leftover emerald/teal), button variants, badges/status pills, date helpers, spinners and loading/empty/error patterns, confirm dialogs, toasts.
@@ -37,7 +37,7 @@
 - Font (D72): no Google text font, font stack, bundled `@fontsource` files with exact versions, only loaded weights.
 
 ## Process
-- Walk the main screens with the demo project in light and dark mode, desktop and 375 px. Page-specific findings go to [phase 13](13-page-by-page-ui-review.md) (D71); this phase fixes what is shared.
+- Walk the main screens with the demo project in light and dark mode, desktop and 375 px. Page-specific findings go to [phase 13](ui-findings.md) (D71); this phase fixes what is shared.
 
 ## Done when
 - [x] Every item under Tests has a test (file names listed in Result).

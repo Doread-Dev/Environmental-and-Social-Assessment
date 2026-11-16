@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ESMS v2.5 — App shell options</title>
+<style>
+:root{--bg:#14161a;--panel:#1b1e23;--panel2:#23272d;--line:#30353d;--ink:#e8eaed;--muted:#9ba2ac;--accent:#86b6ec;--good:#7fd1a0;--bad:#f0a093}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.65 system-ui,"Segoe UI",Tahoma,sans-serif}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit}
+.app{display:grid;grid-template-columns:350px minmax(0,1fr);min-height:100vh}
+.controls{background:var(--panel);border-inline-end:1px solid var(--line);padding:18px 18px 40px;height:100vh;overflow:auto;position:sticky;top:0}
+.controls h1{font-size:17px;margin:0 0 4px}
+.controls .intro{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+.grp{margin-top:16px}
+.grp>.gl{font-size:12px;color:var(--muted);margin-bottom:6px;display:block}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.presets button{background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:4px 11px;font-size:12px;cursor:pointer}
+.presets button:hover{border-color:var(--accent)}
+.opt{display:block;width:100%;text-align:start;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+.opt.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.opt b{display:flex;align-items:center;gap:8px;font-size:13.5px}
+.opt small{display:block;color:var(--muted);font-size:12px;line-height:1.5;margin-top:3px}
+.rec{font-size:10.5px;font-weight:600;color:#10261a;background:var(--good);border-radius:99px;padding:1px 8px}
+.seg{display:flex;flex-wrap:wrap;gap:4px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:3px}
+.seg button{flex:1 1 auto;border:0;background:transparent;border-radius:6px;padding:5px 8px;font-size:12.5px;cursor:pointer;white-space:nowrap}
+.seg button.on{background:var(--accent);color:#0d1b2a;font-weight:600}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;padding:3px 0;cursor:pointer}
+.chk input{accent-color:var(--accent)}
+.chk.dis{opacity:.45;cursor:default}
+.legend{font-size:12px;color:var(--muted);line-height:1.9}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-1px;margin-inline-end:6px;border:1.5px solid #ccc}
+.stage{padding:18px 22px 40px;min-width:0}
+.stage-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;font-size:13px;color:var(--muted)}
+.stage-bar b{color:var(--ink)}
+.viewport{position:relative;background:#0e1013;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+#frame{position:absolute;top:12px;transform-origin:top left;box-shadow:0 10px 40px rgba(0,0,0,.5);border-radius:8px}
+.verdict{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.box h2{font-size:15px;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+.box h3{font-size:13px;margin:12px 0 4px;color:var(--muted);font-weight:600}
+.box ul{margin:0;padding-inline-start:20px}
+.box li{margin-bottom:5px;font-size:13.5px}
+.box li b{color:var(--ink)}
+.v-yes{color:#10261a;background:var(--good);font-size:11px;border-radius:99px;padding:1px 9px}
+.v-no{color:#2a120e;background:var(--bad);font-size:11px;border-radius:99px;padding:1px 9px}
+.pros li::marker{color:var(--good)} .cons li::marker{color:var(--bad)}
+.output{margin-top:16px}
+.output textarea{width:100%;min-height:70px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:8px 10px;font:inherit;font-size:13px;resize:vertical}
+.prompt{white-space:pre-wrap;background:#0e1013;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:13px;margin-top:8px}
+.copy{margin-top:8px;background:var(--accent);color:#0d1b2a;border:0;border-radius:8px;padding:7px 16px;font-weight:600;cursor:pointer}
+.radio{display:flex;flex-direction:column;gap:2px;margin:6px 0 10px}
+@media (max-width:1100px){.verdict{grid-template-columns:1fr}}
+@media (max-width:860px){.app{grid-template-columns:1fr}.controls{position:static;height:auto}}
+
+/* ---------- Wireframe (inside the frame) ---------- */
+.f-shell{--w-bg:#f2f3f5;--w-sf:#fff;--w-ln:#d7dbe1;--w-ink:#262a30;--w-mu:#5c636d;--w-ac:#2f6db5;--w-acbg:#e5eef9;--w-ok:#336a49;--w-bad:#b0473a;--w-badbg:#f9e8e5;
+  position:relative;width:100%;height:100%;background:var(--w-bg);color:var(--w-ink);font:13px/1.45 system-ui,"Segoe UI",Tahoma,sans-serif;display:flex;flex-direction:column;overflow:hidden;border-radius:8px}
+.f-shell .ic{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.f-shell[dir=rtl] .flip{transform:scaleX(-1)}
+.f-header{height:48px;flex:none;display:flex;align-items:center;gap:8px;padding-inline:12px;background:var(--w-sf);border-bottom:1px solid var(--w-ln);position:relative;z-index:9}
+.logo{font-weight:700;letter-spacing:.5px;padding:2px 8px;border:1.5px solid var(--w-ink);border-radius:4px;font-size:12px}
+.ctx{font-size:11.5px;color:var(--w-mu);border:1px dashed #b9bfc8;padding:1px 9px;border-radius:99px;white-space:nowrap}
+.hsp{flex:1}
+.search{display:flex;align-items:center;gap:6px;width:250px;height:30px;border:1px solid var(--w-ln);border-radius:6px;padding-inline:8px;color:var(--w-mu);font-size:12px;background:var(--w-bg)}
+.search .ic{width:15px;height:15px}
+.kbd{margin-inline-start:auto;font-size:10px;border:1px solid var(--w-ln);border-radius:3px;padding:0 4px;direction:ltr}
+.ib{width:32px;height:32px;display:grid;place-items:center;border-radius:6px;position:relative;flex:none}
+.ib.on{background:var(--w-acbg);color:var(--w-ac)}
+.badge{position:absolute;top:2px;inset-inline-end:2px;min-width:15px;height:15px;border-radius:99px;background:var(--w-bad);color:#fff;font-size:9px;font-weight:700;display:grid;place-items:center;padding:0 3px}
+.avatar{width:28px;height:28px;border-radius:50%;background:#dfe2e7;display:grid;place-items:center;font-size:11px;font-weight:700;flex:none}
+.topnav{display:flex;gap:2px;margin-inline-start:6px}
+.topnav a{padding:6px 10px;border-radius:6px;font-size:12.5px;white-space:nowrap}
+.topnav a.on{background:var(--w-acbg);color:var(--w-ac);font-weight:600}
+.f-body{flex:1;display:flex;min-height:0;position:relative}
+.side{flex:none;background:var(--w-sf);border-inline-end:1px solid var(--w-ln);display:flex;flex-direction:column;overflow:auto;padding:10px 8px}
+.side.w-full{width:250px}
+.side.w-rail{width:60px;align-items:center;padding-inline:6px}
+.side.w-panel{width:238px;background:#fafbfc}
+.ni{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;font-size:13px;white-space:nowrap}
+.ni.on{background:var(--w-acbg);color:var(--w-ac);font-weight:600}
+.ni.muted{color:var(--w-mu);font-size:12.5px}
+.w-rail .ni{padding:8px;justify-content:center}
+.sec{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--w-mu);padding:12px 10px 4px}
+.f-shell[dir=rtl] .sec{letter-spacing:0;text-transform:none;font-size:11px}
+.w-rail .sec{padding:8px 0 2px;width:100%;border-top:1px solid var(--w-ln);margin-top:6px;font-size:0}
+.side-foot{margin-top:auto;padding-top:8px;border-top:1px solid var(--w-ln);width:100%}
+.unit{padding:6px 10px 10px;margin-bottom:4px;border-bottom:1px solid var(--w-ln)}
+.unit-kind{font-size:10.5px;color:var(--w-mu);text-transform:uppercase;letter-spacing:.5px}
+.f-shell[dir=rtl] .unit-kind{letter-spacing:0}
+.unit-name{font-weight:650;font-size:13.5px;line-height:1.3;margin-top:1px}
+.unit-meta{font-size:11px;color:var(--w-mu);display:flex;gap:6px;align-items:center;margin-top:4px;flex-wrap:wrap}
+.chip{font-size:10.5px;padding:1px 8px;border-radius:99px;background:var(--w-bg);border:1px solid var(--w-ln);white-space:nowrap}
+.chip.ac{background:var(--w-acbg);border-color:transparent;color:var(--w-ac)}
+.chip.bad{background:var(--w-badbg);border-color:transparent;color:var(--w-bad)}
+.step{display:flex;align-items:center;gap:9px;padding:6px 10px;border-radius:6px;font-size:13px;white-space:nowrap}
+.w-rail .step{padding:6px;justify-content:center}
+.dot{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:700;border:1.5px solid var(--w-ink)}
+.st-ok .dot{background:var(--w-ok);border-color:var(--w-ok);color:#fff}
+.st-cur .dot{border-color:var(--w-ac);color:var(--w-ac)}
+.st-lock{color:var(--w-mu)}
+.st-lock .dot{border-style:dashed;border-color:#a9b0ba}
+.step.on{background:var(--w-acbg)}
+.step .sl{margin-inline-start:auto;font-size:10.5px;color:var(--w-mu)}
+.subs{margin-inline-start:29px;border-inline-start:1.5px solid var(--w-ln);padding-inline-start:6px;margin-block:2px 4px}
+.subs a{display:block;padding:3px 8px;font-size:12px;border-radius:5px;color:var(--w-mu)}
+.subs a.on{color:var(--w-ac);font-weight:600;background:var(--w-acbg)}
+.reserved{border:1.5px dashed #c3c9d1;color:var(--w-mu);margin-top:6px}
+.tag{font-size:9.5px;border:1px solid currentColor;border-radius:3px;padding:0 4px;margin-inline-start:auto;direction:ltr}
+.f-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.f-page{flex:1;overflow:auto;padding:18px 22px}
+.crumbs{font-size:11.5px;color:var(--w-mu);margin-bottom:6px}
+.ph{display:flex;align-items:flex-start;gap:10px 12px;margin-bottom:14px;flex-wrap:wrap}
+.ph h1{font-size:19px;margin:0;font-weight:650;line-height:1.3}
+.ph .tt{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.acts{margin-inline-start:auto;display:flex;gap:8px;flex-wrap:wrap}
+.btn{height:30px;padding:0 12px;border-radius:6px;border:1px solid var(--w-ln);background:var(--w-sf);display:inline-flex;align-items:center;gap:6px;font-size:12.5px;white-space:nowrap}
+.btn .ic{width:15px;height:15px}
+.btn.pr{background:var(--w-ink);color:#fff;border-color:var(--w-ink)}
+.btn.icon{padding:0 8px}
+.grid2{display:grid;grid-template-columns:1.5fr 1fr;gap:14px}
+.card{background:var(--w-sf);border:1px solid var(--w-ln);border-radius:8px;padding:14px}
+.card h3{margin:0 0 6px;font-size:13.5px;display:flex;align-items:center;gap:8px}
+.card .row{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--w-ln);font-size:12.5px}
+.card .row:first-of-type{border-top:0}
+.card .row .grow{flex:1;min-width:0}
+.card .row .sub{color:var(--w-mu);font-size:11.5px}
+.bar{height:8px;border-radius:4px;background:#e3e6ea}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{border:1px solid var(--w-ln);border-radius:6px;padding:8px}
+.stat b{display:block;font-size:18px}
+.stat span{font-size:11px;color:var(--w-mu)}
+.tbl{background:var(--w-sf);border:1px solid var(--w-ln);border-radius:8px;overflow:hidden}
+.tr{display:grid;grid-template-columns:2.4fr 1fr 1fr 1fr .8fr;gap:14px;padding:11px 14px;border-bottom:1px solid var(--w-ln);align-items:center}
+.tr:last-child{border-bottom:0}
+.tr.th{background:#f7f8fa;font-size:11px;color:var(--w-mu);font-weight:600}
+.savebar{flex:none;display:flex;align-items:center;gap:8px;padding:9px 22px;background:var(--w-sf);border-top:1px solid var(--w-ln);font-size:12.5px}
+.savebar .grow{flex:1;color:var(--w-mu)}
+.helpp{flex:none;width:310px;background:var(--w-sf);border-inline-start:1px solid var(--w-ln);display:flex;flex-direction:column;z-index:5}
+.hp-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--w-ln);font-weight:650}
+.hp-tabs{display:flex;gap:4px;padding:8px 12px 0;border-bottom:1px solid var(--w-ln)}
+.hp-body{padding:12px 14px;display:flex;flex-direction:column;gap:9px;overflow:auto}
+.hp-link{margin-top:auto;padding:10px 14px;border-top:1px solid var(--w-ln);color:var(--w-ac);font-size:12.5px}
+.notif{position:absolute;top:50px;inset-inline-end:52px;width:330px;background:var(--w-sf);border:1px solid var(--w-ln);border-radius:8px;box-shadow:0 10px 28px rgba(0,0,0,.14);z-index:12}
+.notif .nh{display:flex;padding:10px 14px;border-bottom:1px solid var(--w-ln);font-weight:650}
+.notif .nh span{margin-inline-start:auto;font-weight:400;color:var(--w-ac);font-size:12px}
+.notif .nr{display:flex;gap:10px;padding:10px 14px;border-bottom:1px solid var(--w-ln);font-size:12.5px}
+.notif .nr i{flex:none;width:8px;height:8px;border-radius:50%;background:var(--w-ac);margin-top:5px}
+.notif .nr.read i{background:transparent}
+.notif .nr .sub{color:var(--w-mu);font-size:11.5px}
+.notif .nf{padding:9px 14px;color:var(--w-ac);font-size:12.5px;text-align:center}
+.scrim{position:absolute;inset:48px 0 0 0;background:rgba(20,22,26,.38);z-index:10}
+.drawer{position:absolute;top:48px;bottom:0;inset-inline-start:0;width:280px;background:var(--w-sf);z-index:11;padding:10px 8px;overflow:auto;display:flex;flex-direction:column;box-shadow:0 0 30px rgba(0,0,0,.2)}
+.stepbar{flex:none;display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--w-sf);border-bottom:1px solid var(--w-ln);font-size:12.5px}
+.stepbar .grow{flex:1}
+.band{flex:none;background:var(--w-sf);border-bottom:1px solid var(--w-ln);padding:12px 22px 0}
+.band .ph{margin-bottom:8px}
+.tabs{display:flex;gap:2px;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+.tab{padding:8px 10px;font-size:12.5px;border-bottom:2px solid transparent;display:inline-flex;align-items:center;gap:6px;flex:none}
+.tab .dot{width:17px;height:17px;font-size:9.5px}
+.tab.on{border-bottom-color:var(--w-ac);color:var(--w-ac);font-weight:600}
+.subtabs{flex:none;display:flex;gap:6px;padding:8px 22px;background:#fafbfc;border-bottom:1px solid var(--w-ln);overflow-x:auto}
+.pill{padding:3px 11px;border-radius:99px;font-size:12px;border:1px solid var(--w-ln);background:var(--w-sf);white-space:nowrap}
+.pill.on{background:var(--w-acbg);color:var(--w-ac);border-color:transparent;font-weight:600}
+.note{position:absolute;z-index:20;background:#fff7d6;color:#5a4a00;border:1px solid #e9d46a;border-radius:6px;font-size:11.5px;padding:4px 8px;max-width:240px;line-height:1.4;box-shadow:0 3px 10px rgba(0,0,0,.1)}
+.dev-phone .f-page{padding:14px}
+.dev-phone .ph h1{font-size:16px}
+.dev-phone .acts{margin-inline-start:0;width:100%}
+.dev-phone .acts .btn.pr{flex:1;justify-content:center}
+.dev-phone .grid2{grid-template-columns:1fr}
+.dev-phone .tr{grid-template-columns:1fr auto}
+.dev-phone .tr>*:nth-child(n+3):not(:last-child){display:none}
+.dev-phone .helpp{position:absolute;inset:0;width:auto;border:0;z-index:13}
+.dev-phone .notif{inset-inline:8px;width:auto}
+.dev-phone .savebar{padding:9px 14px}
+.dev-tablet .grid2{grid-template-columns:1fr}
+.dev-tablet .helpp{position:absolute;top:0;bottom:0;inset-inline-end:0;box-shadow:0 0 30px rgba(0,0,0,.15)}
+
+/* audit fixes (2026-11-10): an icon sits on the first line of the text next to it; search hints and codes never wrap */
+.row:has(> div .sub) > .ic:first-child,.row:has(> div .sub) > .av:first-child{align-self:flex-start;margin-top:1px}
+.mini-search{white-space:nowrap;width:240px}
+.offline{align-items:flex-start}
+.offline .ic{margin-top:1px}
+.hp-link{display:flex;align-items:center;gap:6px}
+.overlay>.dialog{min-width:0;overflow-wrap:anywhere}
+
+/* icons sit on the text line (2026-11-10): one text line tall, glyph centred; no margin nudges */
+.f-shell svg.ic{height:1lh!important;margin-block:0!important}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="controls">
+    <h1>هيكل التطبيق — ESMS v2.5</h1>
+    <p class="intro">مخطط أولي: مربعات وتوزيع بس، مش ألوان ولا خطوط (هدول بييجوا بخطوة نظام التصميم). الألوان الخفيفة بس لتبيّن حالة كل أداة. المحتوى أمثلة وهمية.</p>
+
+    <div class="grp"><span class="gl">جاهزين</span><div class="presets" id="presets"></div></div>
+
+    <div class="grp"><span class="gl">الخيار</span><div id="opts"></div></div>
+
+    <div class="grp"><span class="gl">وين انت بالتطبيق</span><div class="seg" data-key="where"></div></div>
+    <div class="grp"><span class="gl">مين المستخدم (أمثلة لتركيبات شائعة؛ الشاشة الحقيقية بتنبني من صلاحيات الشخص وحالة الأداة، فاللي بيراجع وبيعدّل بيشوف الاتنين)</span><div class="seg" data-key="role"></div></div>
+    <div class="grp"><span class="gl">الجهاز</span><div class="seg" data-key="device"></div></div>
+    <div class="grp"><span class="gl">لغة الواجهة</span><div class="seg" data-key="dir"></div></div>
+
+    <div class="grp"><span class="gl">افتح</span>
+      <label class="chk"><input type="checkbox" data-flag="help"> لوحة المساعدة (زر ؟)</label>
+      <label class="chk"><input type="checkbox" data-flag="notif"> الإشعارات (الجرس)</label>
+      <label class="chk" id="chk-drawer"><input type="checkbox" data-flag="drawer"> القائمة (زر ☰، موبايل وتابلت)</label>
+      <label class="chk" id="chk-collapsed"><input type="checkbox" data-flag="collapsed"> صغّر القائمة لأيقونات (لابتوب)</label>
+    </div>
+
+    <div class="grp"><span class="gl">حالة كل أداة</span>
+      <div class="legend">
+        <div><i style="background:#3b7a55;border-color:#3b7a55"></i>معتمدة</div>
+        <div><i style="border-color:#2f6db5"></i>الحالية (مسودة أو مرسلة)</div>
+        <div><i style="border-style:dashed;border-color:#a9b0ba"></i>مقفلة لحتى تخلص اللي قبلها</div>
+        <div><i style="border-style:dashed;border-color:#c3c9d1;border-radius:3px"></i>مكان محجوز لـ v3 (الأنشطة)</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-bar" id="stagebar"></div>
+    <div class="viewport" id="viewport"><div id="frame"></div></div>
+
+    <section class="verdict">
+      <div class="box" id="v-option"></div>
+      <div class="box" id="v-all"></div>
+    </section>
+
+    <section class="box output">
+      <h2>رأيك</h2>
+      <div class="radio" id="choice"></div>
+      <textarea id="notes" placeholder="ملاحظاتك هون (اختياري)…"></textarea>
+      <div class="prompt" id="prompt"></div>
+      <button class="copy" id="copy">انسخ وابعتلي ياه</button>
+    </section>
+  </main>
+</div>
+
+<script>
+const DEFAULTS = {option:1, where:'project', role:'preparer', device:'laptop', dir:'ltr', help:false, notif:false, drawer:false, collapsed:false};
+const S = {...DEFAULTS};
+let choice = 'agree';
+
+const SEGS = {
+  where: [['home','الرئيسية'],['project','جوّا مشروع'],['activity','نشاط جوّا مشروع (v3)']],
+  role: [['preparer','مُعِدّ (Focal Point / PM)'],['reviewer','مراجِع (Specialist)'],['reader','قارئ من طرف ثالث'],['admin','مدير النظام']],
+  device: [['laptop','لابتوب'],['tablet','تابلت'],['phone','موبايل']],
+  dir: [['ltr','English (الافتراضي)'],['rtl','العربية']],
+};
+const OPTIONS = {
+  1:{name:'قائمة جانبية بتتبدّل', sub:'برّا المشروع: القائمة العامة. جوّا المشروع: نفس العمود بيصير مسار الأدوات الخمسة.'},
+  2:{name:'شريط أيقونات + لوحة المشروع', sub:'أيقونات عامة دايماً ظاهرة، وجوّا المشروع لوحة تانية جنبها فيها الأدوات.'},
+  3:{name:'قائمة علوية + تبويبات', sub:'القائمة العامة بالشريط العلوي، وجوّا المشروع الأدوات تبويبات أفقية.'},
+};
+const PRESETS = [
+  ['توصيتي', {}],
+  ['المراجِع عالرئيسية', {where:'home', role:'reviewer'}],
+  ['طرف ثالث عالموبايل', {where:'home', role:'reader', device:'phone'}],
+  ['مستخدم بالعربي + مساعدة', {dir:'rtl', help:true}],
+  ['نشاط جوّا مشروع (v3)', {where:'activity'}],
+];
+const DIM = {laptop:[1366,768], tablet:[834,1040], phone:[390,780]};
+
+const T = {
+ en:{home:'Home',projects:'Projects',library:'Library',organisation:'Organisation',ghg:'GHG emissions',envdata:'Environmental data',admin:'Administration',
+  search:'Search projects…',allProjects:'All projects',overview:'Overview',workflow:'Workflow',screening:'Screening',assessment:'Assessment',mgmt:'Management activities',
+  mitigation:'Mitigation plan',monitoring:'Monitoring',projectSec:'Project',documents:'Documents',sempPlan:'SEMP plan',stakeholder:'Stakeholder awareness',activities:'Activities',
+  metadata:'Metadata',methods:'Methods',scoring:'Scoring',review:'Review',approved:'Approved',draft:'Draft',submitted:'Submitted',locked:'Locked',
+  submit:'Submit for review',approve:'Approve',reject:'Reject',export:'Export',save:'Save',discard:'Discard',unsaved:'2 unsaved changes',readOnly:'Read only',
+  helpTitle:'Help with this page',howTo:'How to',guidance:'Guidance',openGuide:'Open the full guide',notifications:'Notifications',seeAll:'See all',markRead:'Mark all read',
+  ctx:'AKF Syria',projName:'School rehabilitation – Aleppo',actName:'Classroom block B',projKind:'Project',actKind:'Activity',inAssessment:'In assessment',inScreening:'In screening',
+  waiting:'Waiting for your review',needsAction:'Needs your action',myProjects:'My projects',yourProjects:'Your projects',glance:'All projects at a glance',
+  stepOf:'Step {n} of 5',tool:'Tool',collapse:'Collapse',users:'Users & access',recentLog:'Recent activity log',
+  impact:'Impact',likelihood:'Likelihood',severity:'Severity',score:'Score',next:'Next',
+  p1:'Water network – Hama',p2:'Health centre – Idlib',p3:'School rehabilitation – Aleppo',
+  rej:'Screening returned with comments',sub2d:'Submitted 2 days ago',subToday:'Submitted today',nextAssess:'Next: finish the assessment',nextMon:'Next: Q4 monitoring due in 9 days',
+  active:'Active',waitingN:'Waiting review',stuck:'No change in 30 days',
+  n1:'Your screening was returned with comments',n2:'Assessment approved',n3:'You were given access to Solar pumping station',ago1:'10 min ago',ago2:'Yesterday',ago3:'3 days ago',
+  rejReason:'Reason: missing site photos and land ownership note.',open:'Open'},
+ ar:{home:'الرئيسية',projects:'المشاريع',library:'المكتبة',organisation:'المؤسسة',ghg:'انبعاثات الغازات الدفيئة',envdata:'البيانات البيئية',admin:'الإدارة',
+  search:'ابحث في المشاريع…',allProjects:'كل المشاريع',overview:'نظرة عامة',workflow:'مسار العمل',screening:'الفرز',assessment:'التقييم',mgmt:'أنشطة الإدارة',
+  mitigation:'خطة التخفيف',monitoring:'الرصد',projectSec:'المشروع',documents:'الوثائق',sempPlan:'خطة SEMP',stakeholder:'توعية أصحاب المصلحة',activities:'الأنشطة',
+  metadata:'البيانات الأساسية',methods:'المنهجية',scoring:'التقدير',review:'المراجعة',approved:'معتمد',draft:'مسودة',submitted:'مُرسل',locked:'مقفل',
+  submit:'إرسال للمراجعة',approve:'اعتماد',reject:'إرجاع',export:'تصدير',save:'حفظ',discard:'تجاهل',unsaved:'تغييران غير محفوظين',readOnly:'قراءة فقط',
+  helpTitle:'مساعدة لهذه الصفحة',howTo:'طريقة العمل',guidance:'إرشادات',openGuide:'افتح الدليل الكامل',notifications:'الإشعارات',seeAll:'عرض الكل',markRead:'تعليم الكل كمقروء',
+  ctx:'AKF سوريا',projName:'إعادة تأهيل مدرسة – حلب',actName:'مبنى الصفوف B',projKind:'مشروع',actKind:'نشاط',inAssessment:'قيد التقييم',inScreening:'قيد الفرز',
+  waiting:'بانتظار مراجعتك',needsAction:'بحاجة لإجراء منك',myProjects:'مشاريعي',yourProjects:'مشاريعك',glance:'كل المشاريع بلمحة',
+  stepOf:'الخطوة {n} من 5',tool:'الأداة',collapse:'تصغير',users:'المستخدمون والصلاحيات',recentLog:'آخر سجل النشاط',
+  impact:'الأثر',likelihood:'الاحتمال',severity:'الشدة',score:'الدرجة',next:'التالي',
+  p1:'شبكة مياه – حماة',p2:'مركز صحي – إدلب',p3:'إعادة تأهيل مدرسة – حلب',
+  rej:'أُعيد الفرز مع ملاحظات',sub2d:'أُرسل قبل يومين',subToday:'أُرسل اليوم',nextAssess:'التالي: إكمال التقييم',nextMon:'التالي: رصد الربع الرابع بعد 9 أيام',
+  active:'نشطة',waitingN:'بانتظار المراجعة',stuck:'بلا تغيير منذ 30 يوماً',
+  n1:'أُعيد الفرز الخاص بك مع ملاحظات',n2:'تم اعتماد التقييم',n3:'حصلت على صلاحية محطة ضخ بالطاقة الشمسية',ago1:'قبل 10 دقائق',ago2:'أمس',ago3:'قبل 3 أيام',
+  rejReason:'السبب: صور الموقع وملاحظة ملكية الأرض ناقصة.',open:'فتح'}
+};
+const t = (k, v={}) => { let s = T[S.dir==='rtl'?'ar':'en'][k] ?? k; for (const [a,b] of Object.entries(v)) s = s.replace('{'+a+'}', b); return s; };
+
+const P = {
+ home:'M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+ proj:'M3 7a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z',
+ lib:'M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2zM5 18a2 2 0 0 1 2-2h11',
+ org:'M4 21V4h10v17M14 9h6v12M3 21h18M7 8h3M7 12h3M7 16h3',
+ admin:'M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6zM12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1',
+ bell:'M6 16v-5a6 6 0 0 1 12 0v5l2 2H4zM10 21a2 2 0 0 0 4 0',
+ search:'M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM20 20l-4-4',
+ help:'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.8-.9 1.5V14M12 17.2v.1',
+ menu:'M4 6h16M4 12h16M4 18h16',
+ back:'M15 6l-6 6 6 6',
+ doc:'M7 3h7l5 5v13H7zM14 3v5h5',
+ chev:'M6 9l6 6 6-6',
+ grid:'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+ layers:'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5',
+ dl:'M12 4v11M7 10l5 5 5-5M5 20h14',
+ more:'M5 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0M11 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0M17 12a1 1 0 1 0 2 0a1 1 0 1 0-2 0',
+ close:'M6 6l12 12M18 6L6 18',
+ ext:'M14 4h6v6M20 4l-9 9M18 14v6H4V6h6',
+ plan:'M6 3h12v18H6zM9 8h6M9 12h6M9 16h4',
+ people:'M9 11a3 3 0 1 0 0-6a3 3 0 1 0 0 6zM3 20a6 6 0 0 1 12 0M16 5a3 3 0 0 1 0 6M18 20a6 6 0 0 0-3-5'
+};
+const ic = (n, cls='') => `<svg class="ic ${cls}" viewBox="0 0 24 24"><path d="${P[n]}"/></svg>`;
+
+/* ---------- data ---------- */
+const isReviewerLike = () => S.role==='reviewer' || S.role==='admin';
+function steps(){
+  const curLbl = S.role==='preparer' ? t('draft') : t('submitted');
+  if (S.where==='activity') return [
+    {n:1,k:'screening',st:'cur',lbl:curLbl,on:true},
+    {n:2,k:'assessment',st:'lock'},{n:3,k:'mgmt',st:'lock'},{n:4,k:'mitigation',st:'lock'},{n:5,k:'monitoring',st:'lock'}];
+  return [
+    {n:1,k:'screening',st:'ok',lbl:t('approved')},
+    {n:2,k:'assessment',st:'cur',lbl:curLbl,on:true,subs:['metadata','methods','scoring','review'],activeSub:'scoring'},
+    {n:3,k:'mgmt',st:'lock'},{n:4,k:'mitigation',st:'lock'},{n:5,k:'monitoring',st:'lock'}];
+}
+const curStep = () => steps().find(s=>s.on);
+const dot = s => `<span class="dot">${s.st==='ok'?'✓':s.n}</span>`;
+
+/* ---------- navigation pieces ---------- */
+function globalNav(mode){ // mode: full | rail
+  const r = mode==='rail';
+  const item = (k,i,on) => `<a class="ni ${on?'on':''}" title="${t(k)}">${ic(i)}${r?'':`<span>${t(k)}</span>`}</a>`;
+  let h = item('home','home',S.where==='home') + item('projects','proj',S.where!=='home');
+  if (S.role!=='reader') h += item('library','lib',false);
+  if (S.role!=='reader') h += `<div class="sec">${t('organisation')}</div>` + (r ? item('organisation','org',false) : item('ghg','org',false) + item('envdata','layers',false));
+  if (isReviewerLike()) h += `<div class="side-foot">${item('admin','admin',false)}${S.option===1 && !r && S.device==='laptop' ? `<a class="ni muted">${ic('back','flip')}<span>${t('collapse')}</span></a>`:''}</div>`;
+  else if (S.option===1 && S.device==='laptop' && !r) h += `<div class="side-foot"><a class="ni muted">${ic('back','flip')}<span>${t('collapse')}</span></a></div>`;
+  return h;
+}
+function spine(mode, withBack=true){ // mode: full | rail
+  const r = mode==='rail', act = S.where==='activity';
+  let h = '';
+  if (withBack) h += `<a class="ni muted" title="${act?t('projName'):t('allProjects')}">${ic('back','flip')}${r?'':`<span>${act?t('projName'):t('allProjects')}</span>`}</a>`;
+  if (!r) h += `<div class="unit"><div class="unit-kind">${act?t('actKind'):t('projKind')}</div><div class="unit-name">${act?t('actName'):t('projName')}</div>
+    <div class="unit-meta"><span>${act?'ESMS-024 · A2':'ESMS-024'}</span><span class="chip ac">${act?t('inScreening'):t('inAssessment')}</span>${S.role==='reader'?`<span class="chip">${t('readOnly')}</span>`:''}</div></div>`;
+  h += `<a class="ni" title="${t('overview')}">${ic('grid')}${r?'':`<span>${t('overview')}</span>`}</a>`;
+  h += `<div class="sec">${t('workflow')}</div>`;
+  for (const s of steps()){
+    h += `<a class="step st-${s.st} ${s.on&&!s.subs?'on':''}" title="${t(s.k)}">${dot(s)}${r?'':`<span>${t(s.k)}</span>${s.lbl?`<span class="sl">${s.lbl}</span>`:''}`}</a>`;
+    if (s.subs && !r) h += `<div class="subs">${s.subs.map(x=>`<a class="${x===s.activeSub?'on':''}">${t(x)}</a>`).join('')}</div>`;
+  }
+  h += `<div class="sec">${act?t('actKind'):t('projectSec')}</div>`;
+  h += `<a class="ni" title="${t('documents')}">${ic('doc')}${r?'':`<span>${t('documents')}</span>`}</a>`;
+  if (!act){
+    h += `<a class="ni" title="${t('sempPlan')}">${ic('plan')}${r?'':`<span>${t('sempPlan')}</span>`}</a>`;
+    h += `<a class="ni" title="${t('stakeholder')}">${ic('people')}${r?'':`<span>${t('stakeholder')}</span>`}</a>`;
+    h += `<a class="ni reserved" title="${t('activities')} (v3)">${ic('layers')}${r?'':`<span>${t('activities')}</span><span class="tag">v3</span>`}</a>`;
+  }
+  return h;
+}
+
+/* ---------- header ---------- */
+function header(){
+  const phone = S.device==='phone', tablet = S.device==='tablet';
+  const showMenuBtn = phone || tablet;
+  let h = `<header class="f-header">`;
+  if (showMenuBtn) h += `<span class="ib ${S.drawer?'on':''}">${ic('menu')}</span>`;
+  h += `<span class="logo">ESMS</span>`;
+  if (!phone) h += `<span class="ctx">${t('ctx')}</span>`;
+  if (S.option===3 && S.device==='laptop'){
+    const on = k => (k==='home'&&S.where==='home')||(k==='projects'&&S.where!=='home');
+    h += `<nav class="topnav"><a class="${on('home')?'on':''}">${t('home')}</a><a class="${on('projects')?'on':''}">${t('projects')}</a>`;
+    if (S.role!=='reader') h += `<a>${t('library')}</a><a>${t('organisation')} ▾</a>`;
+    if (isReviewerLike()) h += `<a>${t('admin')}</a>`;
+    h += `</nav>`;
+  }
+  h += `<span class="hsp"></span>`;
+  if (phone || (S.option===3 && S.device!=='laptop') ) h += `<span class="ib">${ic('search')}</span>`;
+  else h += `<span class="search" style="${S.option===3?'width:200px':''}">${ic('search')}<span>${t('search')}</span><span class="kbd">Ctrl K</span></span>`;
+  h += `<span class="ib ${S.help?'on':''}" title="Help">${ic('help')}</span>`;
+  h += `<span class="ib ${S.notif?'on':''}">${ic('bell')}<span class="badge">${S.role==='reader'?1:3}</span></span>`;
+  h += `<span class="avatar">U</span></header>`;
+  return h;
+}
+
+/* ---------- pages ---------- */
+function homePage(){
+  let h = `<div class="ph"><div class="tt"><h1>${t('home')}</h1></div></div>`;
+  const row = (title, sub, right, bad) => `<div class="row"><div class="grow"><div>${title}</div><div class="sub">${sub}</div></div>${bad?`<span class="chip bad">${bad}</span>`:''}${right||''}</div>`;
+  if (S.role==='reviewer' || S.role==='admin'){
+    h += `<div class="grid2"><div class="card"><h3>${t('waiting')} <span class="chip ac">2</span></h3>
+      ${row(t('screening')+' · '+t('p1'), t('sub2d'), `<span class="btn">${t('open')}</span>`)}
+      ${row(t('assessment')+' · '+t('p3'), t('subToday'), `<span class="btn">${t('open')}</span>`)}</div>
+      <div class="card"><h3>${t('glance')}</h3><div class="stats"><div class="stat"><b>18</b><span>${t('active')}</span></div><div class="stat"><b>2</b><span>${t('waitingN')}</span></div><div class="stat"><b>3</b><span>${t('stuck')}</span></div></div>
+      <div style="margin-top:12px" class="bar"></div><div style="margin-top:8px;width:70%" class="bar"></div></div></div>`;
+    if (S.role==='admin') h += `<div class="grid2" style="margin-top:14px"><div class="card"><h3>${t('recentLog')}</h3><div class="bar"></div><div class="bar" style="margin-top:8px;width:80%"></div><div class="bar" style="margin-top:8px;width:60%"></div></div><div class="card"><h3>${t('users')}</h3><div class="bar"></div><div class="bar" style="margin-top:8px;width:50%"></div></div></div>`;
+  } else if (S.role==='preparer'){
+    h += `<div class="grid2"><div class="card"><h3>${t('needsAction')} <span class="chip bad">1</span></h3>
+      ${row(t('rej')+' · '+t('p2'), t('rejReason'), `<span class="btn pr">${t('open')}</span>`)}</div>
+      <div class="card"><h3>${t('myProjects')} <span class="chip">3</span></h3>
+      ${row(t('p3'), t('nextAssess'))}${row(t('p1'), t('nextMon'))}${row(t('p2'), t('rej'))}</div></div>`;
+  } else {
+    h += `<div class="card"><h3>${t('yourProjects')} <span class="chip">2</span></h3>
+      ${row(t('p3'), t('inAssessment'), `<span class="btn">${ic('dl')}${t('export')}</span>`)}
+      ${row(t('p1'), t('monitoring'), `<span class="btn">${ic('dl')}${t('export')}</span>`)}</div>`;
+  }
+  return h;
+}
+function pageHeader(inBand){
+  const s = curStep(), act = S.where==='activity';
+  const crumbs = [t('projects'), t('projName')].concat(act?[t('activities'), t('actName')]:[]).concat([t(s.k)]);
+  const title = `${t(s.k)} – ${t('tool')} ${s.n}` + (s.activeSub && S.option!==3 ? ` · ${t(s.activeSub)}` : '');
+  let acts = `<span class="btn">${ic('dl')}${t('export')}</span>`;
+  if (S.role==='preparer') acts += `<span class="btn icon">${ic('more')}</span><span class="btn pr">${t('submit')}</span>`;
+  else if (isReviewerLike()) acts += `<span class="btn icon">${ic('more')}</span><span class="btn">${t('reject')}</span><span class="btn pr">${t('approve')}</span>`;
+  const chip = S.role==='preparer' ? `<span class="chip ac">${t('draft')}</span>` : `<span class="chip ac">${t('submitted')}</span>${S.role==='reader'?`<span class="chip">${t('readOnly')}</span>`:''}`;
+  if (inBand){
+    return `<div class="crumbs">${t('projects')} / ${act?t('projName')+' / '+t('activities')+' / ':''}</div>
+      <div class="ph"><div class="tt"><h1>${act?t('actName'):t('projName')}</h1><span class="chip">ESMS-024</span></div><div class="acts">${acts}</div></div>`;
+  }
+  return `<div class="crumbs">${crumbs.join(' / ')}</div><div class="ph"><div class="tt"><h1>${title}</h1>${chip}</div><div class="acts">${acts}</div></div>`;
+}
+function workSurface(){
+  const s = curStep();
+  if (s.k==='screening'){
+    return `<div class="card">${[90,70,85,60,75].map(w=>`<div style="padding:10px 0;border-top:1px solid var(--w-ln)"><div class="bar" style="width:${w*0.5}%;background:#d3d7dd"></div><div class="bar" style="margin-top:8px;width:${w}%"></div></div>`).join('')}</div>`;
+  }
+  const rows = [80,62,90,55,72,66,84].map(w=>`<div class="tr"><div class="bar" style="width:${w}%"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar" style="background:#cdd3db"></div></div>`).join('');
+  return `<div class="tbl"><div class="tr th"><div>${t('impact')}</div><div>${t('likelihood')}</div><div>${t('severity')}</div><div>${t('score')}</div><div></div></div>${rows}</div>`;
+}
+function unitPage(){
+  const s = curStep();
+  let h = '';
+  if (S.option===3){
+    const chip = S.role==='preparer' ? t('draft') : t('submitted');
+    h += `<div class="crumbs">${S.where==='activity'?t('projName')+' / '+t('activities')+' / '+t('actName')+' / ':''}${t(s.k)}</div><div class="ph"><div class="tt"><h1>${t(s.k)} – ${t('tool')} ${s.n}${s.activeSub?' · '+t(s.activeSub):''}</h1><span class="chip ac">${chip}</span></div></div>`;
+  } else h += pageHeader(false);
+  if (S.device==='phone' && s.subs && S.option!==3) h += `<div style="display:flex;gap:6px;overflow-x:auto;margin:-4px 0 12px">${s.subs.map(x=>`<span class="pill ${x===s.activeSub?'on':''}">${t(x)}</span>`).join('')}</div>`;
+  return h + workSurface();
+}
+function projectBand(){ // option 3
+  const act = S.where==='activity';
+  let h = `<div class="band">${pageHeader(true)}<div class="tabs"><span class="tab">${t('overview')}</span>`;
+  for (const s of steps()) h += `<span class="tab st-${s.st} ${s.on?'on':''}">${dot(s)}${t(s.k)}</span>`;
+  h += `<span class="tab">${t('documents')}</span>`;
+  if (!act) h += `<span class="tab">${t('sempPlan')}</span><span class="tab">${t('stakeholder')}</span><span class="tab" style="color:var(--w-mu)">${t('activities')} <span class="tag">v3</span></span>`;
+  h += `</div></div>`;
+  const s = curStep();
+  if (s.subs) h += `<div class="subtabs">${s.subs.map(x=>`<span class="pill ${x===s.activeSub?'on':''}">${t(x)}</span>`).join('')}</div>`;
+  return h;
+}
+function stepBar(){
+  const s = curStep();
+  return `<div class="stepbar">${S.option===3?'':`<span class="dot" style="border-color:var(--w-ac);color:var(--w-ac)">${s.n}</span>`}<span class="grow"><b>${t('stepOf',{n:s.n})}</b> · ${t(s.k)}</span>${ic('chev')}</div>`;
+}
+function saveBar(){
+  if (S.where==='home' || S.role!=='preparer') return '';
+  return `<div class="savebar"><span class="grow">● ${t('unsaved')}</span><span class="btn">${t('discard')}</span><span class="btn pr">${t('save')}</span></div>`;
+}
+function helpPanel(){
+  const lines = [88,72,94,60].map(w=>`<div class="bar" style="width:${w}%"></div>`).join('');
+  return `<aside class="helpp"><div class="hp-head">${ic('help')}<span>${t('helpTitle')}</span><span class="hsp"></span>${ic('close')}</div>
+   <div class="hp-tabs"><span class="tab on">${t('howTo')}</span><span class="tab">${t('guidance')} (2)</span></div>
+   <div class="hp-body"><b style="font-size:13px">${S.where==='home'?t('home'):t(curStep().k)}</b>${lines}<div style="height:6px"></div>${lines}</div>
+   <a class="hp-link">${t('openGuide')} ${ic('ext','flip')}</a></aside>`;
+}
+function notifPanel(){
+  const items = S.role==='reader' ? [[t('n2'),t('p3')+' · '+t('ago2'),false]] :
+    [[t('n1'),t('p2')+' · '+t('ago1'),false],[t('n2'),t('p3')+' · '+t('ago2'),false],[t('n3'),t('p1')+' · '+t('ago3'),true]];
+  return `<div class="notif"><div class="nh">${t('notifications')}<span>${t('markRead')}</span></div>${items.map(([a,b,r])=>`<div class="nr ${r?'read':''}"><i></i><div><div>${a}</div><div class="sub">${b}</div></div></div>`).join('')}<div class="nf">${t('seeAll')}</div></div>`;
+}
+
+/* ---------- navigation columns per option ---------- */
+function navColumns(){
+  const phone = S.device==='phone', tablet = S.device==='tablet', inUnit = S.where!=='home';
+  if (phone) return '';
+  if (S.option===1){
+    const rail = tablet || S.collapsed;
+    return `<nav class="side ${rail?'w-rail':'w-full'}">${inUnit ? spine(rail?'rail':'full') : globalNav(rail?'rail':'full')}</nav>`;
+  }
+  if (S.option===2){
+    let h = `<nav class="side w-rail">${globalNav('rail')}</nav>`;
+    if (inUnit && !tablet) h += `<nav class="side w-panel">${spine('full', S.where==='activity')}</nav>`;
+    return h;
+  }
+  return ''; // option 3
+}
+function drawer(){
+  const inUnit = S.where!=='home';
+  let inner;
+  if (S.option===1) inner = inUnit ? spine('full') : globalNav('full');
+  else if (S.option===2) inner = globalNav('full') + (inUnit ? `<div style="border-top:1px solid var(--w-ln);margin-top:8px;padding-top:4px">${spine('full', S.where==='activity')}</div>` : '');
+  else inner = globalNav('full');
+  return `<div class="scrim"></div><nav class="drawer">${inner}</nav>`;
+}
+
+function renderFrame(){
+  const [w,h] = DIM[S.device];
+  const phone = S.device==='phone', tablet = S.device==='tablet', inUnit = S.where!=='home';
+  const fr = document.getElementById('frame');
+  let html = `<div class="f-shell dev-${S.device}" dir="${S.dir}" lang="${S.dir==='rtl'?'ar':'en'}">`;
+  html += header();
+  html += `<div class="f-body">`;
+  html += navColumns();
+  html += `<div class="f-main">`;
+  if (S.option===3 && inUnit) html += projectBand();
+  if (phone && inUnit && S.option!==3) html += stepBar();
+  html += `<div class="f-page">${inUnit ? unitPage() : homePage()}</div>${saveBar()}</div>`;
+  if (S.help) html += helpPanel();
+  html += `</div>`;
+  if (S.notif) html += notifPanel();
+  if (S.drawer && (phone || tablet)) html += drawer();
+  html += `</div>`;
+  fr.innerHTML = html;
+  fr.style.width = w+'px'; fr.style.height = h+'px';
+  fit();
+}
+function fit(){
+  const vp = document.getElementById('viewport'), fr = document.getElementById('frame');
+  const [w,h] = DIM[S.device];
+  const avail = vp.clientWidth - 24;
+  const s = Math.min(1, avail / w);
+  fr.style.transform = `scale(${s})`;
+  fr.style.left = ((vp.clientWidth - w*s)/2)+'px';
+  vp.style.height = (h*s + 24)+'px';
+}
+
+/* ---------- verdict ---------- */
+const VERDICT = {
+ 1:{yes:true, pros:[
+  '<b>عمود تنقّل واحد بس،</b> فبيضل أوسع مكان للجداول الطويلة (التقييم والرصد) على شاشة لابتوب عادية.',
+  '<b>الأسماء مكتوبة كاملة</b> جنب الأيقونات: المستخدم الجديد بيفهم بلا تخمين، والأسماء الطويلة بالعربي أو بلغة تانية بتنكتب عادي.',
+  '<b>جوّا المشروع الأدوات الخمسة تحت بعض بالترتيب،</b> وجنب كل وحدة حالتها (معتمدة، مسودة، مقفلة)، فالخطوة الجاية دايماً واضحة.',
+  '<b>الأجزاء الفرعية</b> (متل أجزاء التقييم) بتنفتح تحت أداتها، بلا صف تبويبات زيادة.',
+  '<b>بـ v3 النشاط جوّا المشروع بيفتح بنفس الشكل بالضبط:</b> رجوع للمشروع + مسار أدوات النشاط. يعني ما منعيد رسم شي (جرّب "نشاط جوّا مشروع").',
+  'لما بدك مساحة أكبر بتصغّر القائمة لأيقونات وأرقام الأدوات.'],
+  cons:['جوّا المشروع القائمة العامة (المكتبة، المؤسسة) مش ظاهرة، بدها كبسة "كل المشاريع". <b>الحل:</b> البحث والإشعارات والمساعدة دايماً بالشريط العلوي، والشعار بيرجّعك عالرئيسية. وأغلب الشغل أصلاً بيصير جوّا مشروع واحد.']},
+ 2:{yes:false, pros:['الأقسام العامة دايماً ظاهرة، حتى جوّا المشروع.','بيكبر منيح إذا صار في أقسام عامة كتير.'],
+  cons:['<b>عمودين تنقّل</b> بياكلوا حوالي 300 بكسل من عرض الشاشة، على حساب الجداول.','<b>أيقونات بلا أسماء:</b> لازم المستخدم يحفظها أو يمرّق الماوس فوقها، وعالتابلت والموبايل ما في ماوس.','مكانين للتنقّل جنب بعض بيلخبطوا المستخدم الجديد: وين لازم يكبس؟','عنا 4–5 أقسام عامة بس، فالميزة الأساسية لهالشكل ما منستفيد منها هلق.']},
+ 3:{yes:false, pros:['شكل مألوف وبيعطي عرض الصفحة كامل للمحتوى.'],
+  cons:['<b>جوّا المشروع في 8–9 تبويبات</b> (نظرة عامة + 5 أدوات + وثائق + أدوات المشروع) مع حالة كل وحدة: بالكاد بيساعهم سطر على لابتوب، وبالعربي بيطولوا أكتر.','الأجزاء الفرعية بدها صف تبويبات تاني، فبيصير في 3 شرائط فوق بعض قبل ما يبلّش المحتوى.','<b>ما في مكان طبيعي لمستوى "الأنشطة" بـ v3،</b> بيصير صف رابع أو صفحة منفصلة.','عالموبايل التبويبات بتتمرّر أفقياً ونصها بيضيع برّا الشاشة.']},
+};
+const ALL = [
+ '<b>المساعدة:</b> زر "؟" ثابت بالشريط العلوي بيفتح لوحة جانبية "مساعدة لهالصفحة" فيها تبويبين: "طريقة العمل" (من دليل الاستخدام) و"إرشادات" (وثائق المكتبة المربوطة بهالصفحة)، ورابط للدليل الكامل. <b>لا زر عائم ولا بند بالقائمة.</b> ليش: مكان واحد ثابت لكل أنواع المساعدة؛ الزر العائم بيغطي شريط الحفظ وآخر صف بالجدول؛ والصفحة بتضل قدامك وانت عم تقرأ (مش نافذة بتسكّر عليها). عالموبايل بتفتح عالشاشة كلها.',
+ '<b>الإشعارات:</b> جرس بالشريط العلوي مع العدد، بيفتح قائمة قصيرة، وكل إشعار بياخدك عالمكان المطلوب.',
+ '<b>"AKF Syria":</b> اسم ثابت جنب الشعار. بـ v3 بيصير قائمة اختيار بس للي إلو صلاحية على أكتر من مكتب.',
+ '<b>البحث:</b> بالشريط العلوي، عن المشاريع بالاسم أو الرمز (Ctrl+K)، لأن المراجِع بيتنقّل بين مشاريع كتير.',
+ '<b>الإدارة:</b> بند أسفل القائمة، بيظهر بس للي عندو صلاحية، وجوّاه بس الأقسام المسموحة إلو. الأشياء الشخصية (الملف الشخصي، اللغة، الوضع الليلي، تسجيل الخروج) بقائمة المستخدم فوق.',
+ '<b>الصلاحيات:</b> القارئ من طرف ثالث ما بيشوف إلا مشاريعو، ولا بيظهرلو قسم ما إلو صلاحية عليه (جرّب "قارئ من طرف ثالث"). مثلاً المكتبة مخفية هون، وهالشي إعداد بالدور مش بالكود.',
+ '<b>شريط الحفظ:</b> جزء من الصفحة تحت المحتوى، مش طايف فوقه، فما بيغطّي آخر صف.',
+ '<b>الإجراءات:</b> إجراء أساسي واحد بكل صفحة (إرسال، اعتماد)، و"تصدير" دايماً ظاهر، والباقي تحت "⋯".',
+ '<b>التابلت:</b> القائمة بتصغر لأيقونات (جوّا المشروع: أرقام الأدوات مع حالتها)، و☰ بيفتح القائمة كاملة كدرج. <b>الموبايل:</b> القائمة درج بزر ☰، وجوّا المشروع شريط "الخطوة 2 من 5" بيبدّل بين الأدوات.',
+ '<b>العربي:</b> كل شي بينقلب يمين-يسار لحالو، بلا تصميم تاني (جرّب "العربية").'
+];
+function renderVerdict(){
+  const v = VERDICT[S.option];
+  document.getElementById('v-option').innerHTML = `<h2>الخيار ${S.option}: ${OPTIONS[S.option].name} ${v.yes?'<span class="v-yes">قراري: هاد</span>':'<span class="v-no">مش موصى فيه</span>'}</h2>
+   <h3>منيح فيه</h3><ul class="pros">${v.pros.map(x=>`<li>${x}</li>`).join('')}</ul>
+   <h3>${v.yes?'نقطة ضعفو وكيف منحلّها':'ليش لأ'}</h3><ul class="cons">${v.cons.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+  document.getElementById('v-all').innerHTML = `<h2>قرارات بتنطبق على أي خيار</h2><ul>${ALL.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+}
+
+/* ---------- prompt ---------- */
+const CHOICES = [['agree','موافق على توصيتك (الخيار 1)'],['opt2','بفضّل الخيار 2'],['opt3','بفضّل الخيار 3'],['talk','مش متأكد، بدي نحكي فيها']];
+function updatePrompt(){
+  const lbl = CHOICES.find(c=>c[0]===choice)[1];
+  const notes = document.getElementById('notes').value.trim();
+  let s = `رأيي بهيكل التطبيق (playground ‏app-shell-options):\n- ${lbl}.`;
+  if (notes) s += `\n- ملاحظاتي: ${notes}`;
+  const seen = [];
+  if (S.option!==DEFAULTS.option) seen.push('الخيار '+S.option);
+  for (const k of ['where','role','device','dir']) if (S[k]!==DEFAULTS[k]) seen.push(SEGS[k].find(x=>x[0]===S[k])[1]);
+  if (S.help) seen.push('لوحة المساعدة مفتوحة'); if (S.notif) seen.push('الإشعارات مفتوحة');
+  if (seen.length) s += `\n(كنت عم شوف: ${seen.join('، ')})`;
+  document.getElementById('prompt').textContent = s;
+}
+
+/* ---------- controls ---------- */
+function stageBar(){
+  const parts = [`<b>الخيار ${S.option}</b>`, SEGS.where.find(x=>x[0]===S.where)[1], SEGS.role.find(x=>x[0]===S.role)[1], SEGS.device.find(x=>x[0]===S.device)[1]+` (${DIM[S.device][0]}px)`, SEGS.dir.find(x=>x[0]===S.dir)[1]];
+  document.getElementById('stagebar').innerHTML = parts.join(' · ');
+}
+function syncControls(){
+  document.querySelectorAll('.opt').forEach(b=>b.classList.toggle('on', +b.dataset.v===S.option));
+  document.querySelectorAll('.seg').forEach(seg=>seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on', S[seg.dataset.key]===b.dataset.v)));
+  document.querySelectorAll('[data-flag]').forEach(i=>i.checked = !!S[i.dataset.flag]);
+  const dOk = S.device!=='laptop', cOk = S.device==='laptop' && S.option===1;
+  document.getElementById('chk-drawer').classList.toggle('dis', !dOk); document.querySelector('[data-flag=drawer]').disabled = !dOk;
+  document.getElementById('chk-collapsed').classList.toggle('dis', !cOk); document.querySelector('[data-flag=collapsed]').disabled = !cOk;
+}
+function updateAll(){ renderFrame(); renderVerdict(); updatePrompt(); stageBar(); syncControls(); }
+
+document.getElementById('presets').innerHTML = PRESETS.map((p,i)=>`<button data-i="${i}">${p[0]}</button>`).join('');
+document.getElementById('presets').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; Object.assign(S, DEFAULTS, PRESETS[+b.dataset.i][1]); updateAll(); });
+document.getElementById('opts').innerHTML = Object.entries(OPTIONS).map(([k,o])=>`<button class="opt" data-v="${k}"><b>${k}. ${o.name}${k==='1'?' <span class="rec">توصيتي</span>':''}</b><small>${o.sub}</small></button>`).join('');
+document.getElementById('opts').addEventListener('click', e=>{ const b=e.target.closest('.opt'); if(!b) return; S.option=+b.dataset.v; updateAll(); });
+document.querySelectorAll('.seg').forEach(seg=>{
+  seg.innerHTML = SEGS[seg.dataset.key].map(([v,l])=>`<button data-v="${v}">${l}</button>`).join('');
+  seg.addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; S[seg.dataset.key]=b.dataset.v; if(seg.dataset.key==='device') S.drawer=false; updateAll(); });
+});
+document.querySelectorAll('[data-flag]').forEach(i=>i.addEventListener('change', ()=>{ S[i.dataset.flag]=i.checked; if(i.dataset.flag==='help'&&i.checked) S.notif=false; if(i.dataset.flag==='notif'&&i.checked) S.help=false; updateAll(); }));
+document.getElementById('choice').innerHTML = CHOICES.map(([v,l])=>`<label class="chk"><input type="radio" name="choice" value="${v}" ${v===choice?'checked':''}> ${l}</label>`).join('');
+document.getElementById('choice').addEventListener('change', e=>{ choice=e.target.value; updatePrompt(); });
+document.getElementById('notes').addEventListener('input', updatePrompt);
+document.getElementById('copy').addEventListener('click', async e=>{
+  const txt = document.getElementById('prompt').textContent;
+  try { await navigator.clipboard.writeText(txt); } catch { const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  e.target.textContent='انتسخ ✓'; setTimeout(()=>e.target.textContent='انسخ وابعتلي ياه',1400);
+});
+new ResizeObserver(fit).observe(document.getElementById('viewport'));
+updateAll();
+</script>
+</body>
+</html>

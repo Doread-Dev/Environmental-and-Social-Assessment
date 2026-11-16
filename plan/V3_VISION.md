@@ -15,17 +15,29 @@
 ## Topics for the v3 review
 
 ### Access & identity
-- **Per-user capabilities instead of fixed roles.** What each person works on, sees and does is set per person (or per group), not by six hard-coded roles.
-- **Project membership / scoped access.** For example, a viewer who sees only project X, or a team that works only on its own projects. D66 already routes every project access through one check and every route through named permissions, so this can be added behind those seams.
+- **Per-user capabilities instead of fixed roles.** *Built in v2.5 (D82):* editable roles, assignments with an organisation or project scope. v3 adds country / office scopes above them and, if asked, teams/groups.
+- **Project membership / scoped access.** *Built in v2.5 (D82).* For example, a viewer who sees only project X, or a team that works only on its own projects. D66 already routes every project access through one check and every route through named permissions, so this can be added behind those seams.
 - **Sessions:**
   - Today: JWT in `localStorage`, no revocation (a password change does not end other sessions), no refresh tokens.
   - Consider server-side sessions or short-lived tokens with refresh and revocation.
 - **Single sign-on:** Active Directory / LDAP or SSO for an institutional server.
 - **Organisation structure:** branches, offices or regions, if the client needs them; possibly multi-organisation.
 
+### Global use (client hint, 2026-11-10 — nothing decided)
+The client said ESMS will likely be used beyond Syria: AKF offices in other countries already work on a global AKF platform, and a button there would open ESMS so they can use its tools. Count of countries, which agencies and when: unknown. Where servers and data live is decided with the client in meetings; we advise.
+- **Entry from the global platform:** staff should arrive already signed in (single sign-on with their organisation account, see "Single sign-on" above; ask the client's IT how staff sign in to the global platform), user accounts created on first sign-in, and links that open a given page.
+- **Country / office context:** each user belongs to a country or office by their account; a switcher only for users with access to several. Head-office views across countries: allowed by the structure, not built until asked. Approval rules are expected to stay the same per country.
+- **Where data lives:** one central server or one per country (some countries require data to stay inside them). Shapes the whole structure.
+- **Languages:** the interface becomes multilingual in v2.5 (D81). Translating content (impact questions, indicators, categories — data, not interface text) is a data-model topic for v3.
+- **Branding:** stay close to AKF's own look; exports branded per office ("AKF Syria" today).
+- **Project location (owner, 2026-11-10):** in v2.5 the location stays free text. Grouping projects by place (for example by governorate) may be needed later. Fixed lists of governorates or villages do not travel across countries, so the owner's idea is to pick the place on a map and store coordinates, either in ESMS itself or through the global platform. Decide with the v3 structure (map provider, offline use, how places roll up per country). No grouping by sector is expected.
+
+### Activities inside a project (owner, 2026-11-10)
+In v3 a project will hold **activities**. An activity is a mini-project: the project keeps its own tools, and each activity inside it goes through all the tools too (screening, assessment, Tools 3–5); users open an activity and work in it like in a project. A structural change for v3 (data model, workflow, permissions, exports); not in v2.5. The v2.5 design keeps room for it (design for variation, see [V2_5_CONCEPT.md](V2_5_CONCEPT.md)).
+
 ### Records & history
 - **Full activity log:** field-level changes for every write, project history for the roles allowed to see the project. It builds on the v2 critical-actions log entries (D65).
-- **Versioning and revisions of documents:** an approved screening or assessment can't be reopened today and has no revisions. The SEMP Plan design (D46) already has a revision history.
+- **Versioning and revisions of documents:** v2.5 lets people who can approve reopen an approved screening or assessment with a reason (D88); real revisions stay a v3 topic. The SEMP Plan design (D46) already has a revision history.
 - **Configurable workflows:** multi-level approval, or a different path per project type or category. Today the workflow is linear and in code.
 
 ### Configuration
@@ -40,11 +52,11 @@
 - **Backups and restore**, beyond phase 11's daily dump, if the client needs more.
 
 ### Product & quality
-- **v3 modules (D48, D70):** SEMP Plan, Stakeholder Awareness, GHG Emissions, Environmental Data Collection. Only locked buttons in v2; built in v3 on the new structure. Designs below.
+- **The four locked modules (D48, D70, D80):** SEMP Plan, Stakeholder Awareness, GHG Emissions, Environmental Data Collection. Only locked buttons in v2; **built in v2.5** after the redesign, on the v2.5 design system and access model (D80). Designs below.
 - **Client-requested features:** not disclosed yet; the owner brings them to the v3 review.
 - **Frontend test coverage:** about 34% after phase 7.
 - **Office file preview:** server-side conversion (D64 left it out).
-- **Design system and page-by-page UI/UX review (D77 2):** moved out of v2. [Phase 13](phases/13-page-by-page-ui-review.md) is the starting list: the owner's aim (D76 4: a full design system, enterprise-grade UI/UX down to hover states, front-end performance, reusable by v3), its method, and the issue list per screen collected in phases 10–12a.
+- **Design system and page-by-page UI/UX design (D77 2, D79):** done in **v2.5** (D80, [V2_5_CONCEPT.md](V2_5_CONCEPT.md)); v3 reuses that design system as it is. Open UI issues: [the UI/UX findings list](phases/ui-findings.md).
 
 ## Prepared in v2 for v3
 - D65: one audit writer and a forward-compatible entry shape.
@@ -54,9 +66,9 @@
 
 ## v3 modules (designs kept from v2)
 
-D70: these four modules are **not** ported in v2, only shown as locked buttons (`V3_LOCKED_NAV` in `frontend/src/routes/routes.config.js`). They are built in v3 on the new structure, after the v3 review. What they hold comes from [V2_INVENTORY.md](V2_INVENTORY.md) §1 (D46 for the SEMP Plan); the v2 prototype is the reference implementation.
+D70: these four modules are **not** ported in v2, only shown as locked buttons (`V3_LOCKED_NAV` in `frontend/src/routes/routes.config.js`). D80: they are built in **v2.5**, after the design system and all existing pages (phases 27+), on the v2.5 design system and access model. What they hold comes from [V2_INVENTORY.md](V2_INVENTORY.md) §1 (D46 for the SEMP Plan); the v2 prototype is the reference implementation.
 
-**The v2 prototype** (`Environmental-and-Social-Assessment-main version 2/`) exists **only on the owner's machine**: it is git-ignored and was never committed (D45). It must be **kept backed up until v3**, otherwise the reference for these designs is lost. Never edit it.
+**The v2 prototype** (`Environmental-and-Social-Assessment-main version 2/`) exists **only on the owner's machine**: it is git-ignored and was never committed (D45). It must be **kept backed up until these modules are built**, otherwise the reference for these designs is lost. Never edit it.
 
 ### SEMP Plan
 - **Scope:** project (one living document per project).

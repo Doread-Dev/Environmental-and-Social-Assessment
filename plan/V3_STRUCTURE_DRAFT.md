@@ -441,6 +441,8 @@ their own stage, after the domain structure above is settled:
 
 ### 7.1 Facts to collect from the client and their IT (before the technology stage)
 
+The sheet the owner takes to the client, in English and Arabic: [V3_CLIENT_QUESTIONS.md](V3_CLIENT_QUESTIONS.md).
+
 | # | Fact | Why it matters |
 |---|---|---|
 | C1 | How staff sign in at work: which identity provider (for example Microsoft Entra ID / Active Directory, Google, another), one directory for all AKDN or one per agency/country, multi-factor rules. | Decides the sign-in technology and how accounts are created. |
@@ -454,6 +456,8 @@ their own stage, after the domain structure above is settled:
 | C9 | The SEMP Plan and Stakeholder Awareness on activities, and other tools wanted — Q12. | Start configuration of the tool registry. |
 | C10 | The features the client has not disclosed yet — Q9. | May shape the structure. |
 | C11 | What the client needs first: activities for Syria, or the global roll-out (other countries, entry from the global platform) — Q23. | Order of the delivery stages (§8.1). |
+| C13 | Whether every office reports by calendar year; which languages beyond English and Arabic, and who translates the catalogues. | Periods of the yearly reports; languages are added as data. |
+| C14 | Rules on keeping and removing data (project records after closing, personal data). | A retention rule would be a setting; v3 removes nothing by itself. |
 | C12 | Whether activities should carry a kind (a descriptive list such as construction, training, distribution) — Q25. | Switches on an optional catalogue; no structural change. |
 
 ---
@@ -522,6 +526,90 @@ sessions build, mid-plan, would cause more confusion than it saves.
 
 ---
 
+## 9. Final details (round 7)
+
+Everything that was still a proposal or not yet asked, closed in one round so that only the client
+questions (§7.1, [V3_CLIENT_QUESTIONS.md](V3_CLIENT_QUESTIONS.md)) and the technology stage (§6.1)
+remain. **Status of every row: [PROPOSAL — asked in round 7].**
+
+### 9.1 Migration from v2.5 — details
+
+| # | Item | Rule |
+|---|---|---|
+| M1 | Administrators | Today's Syria administrators become **office administrators of Syria**. Global administrators are named by the client. Until then, and on a one-office server, the current administrator holds both. |
+| M2 | Assignments | Organisation-scope assignments of v2.5 become **office-scope (Syria)**; project-scope assignments stay as they are. Nobody gains or loses access through the migration. |
+| M3 | History | The v2.5 activity log is carried over as it is. Field-level history **starts on the migration day**; nothing is reconstructed. Each step that is approved at the migration becomes **Revision 1**, with its original approval date and people. |
+| M4 | Carried as they are | Archived projects, deleted items with their remaining days, notifications with their read state, project files, status histories. |
+| M5 | Library | v2.5 library documents become **office documents of Syria**; the global administrator then moves to the global layer the ones that are AKF-wide guidance (a move, not a copy). Links to places are kept. |
+| M6 | Catalogues | The seeded lookups become catalogue **version 1**; every existing project is pinned to it. |
+| M7 | Locations | The free text is kept. No map point is guessed; people add points afterwards. |
+| M8 | Accounts | Passwords keep working after the migration. When organisation sign-in opens (stage v3.1), a staff account is linked to the organisation account **by email** at first sign-in; accounts of outside people stay local. |
+| M9 | v2.5 after the cut-over | Read only for **3 months** (final length with the client), then a final backup is handed to the client's IT and the old server is retired. |
+| M10 | Method | Scripted and repeatable; at least two rehearsals on copies of the real data; a report that compares counts before and after for every kind of record; a full backup first; if the checks fail on the day, v2.5 simply stays in use (nothing is switched until the checks pass). |
+
+### 9.2 Activities — remaining rules
+
+| # | Rule |
+|---|---|
+| A1 | **One level only:** an activity cannot hold activities. |
+| A2 | An activity **does not move** to another project, and a project does not become an activity (or the reverse). A wrongly placed one is deleted and created again; an administrator "move" is added only if asked. |
+| A3 | The project's completion % counts **only the project's own tools**. The overview shows the activities' progress next to it ("Activities: 3 of 5 completed"), never mixed into it. |
+| A4 | A project can be archived while some activities are unfinished; the confirmation says how many. |
+| A5 | A person assigned only to an activity sees the parent project's **name and code only**, not its tools, people, documents or other activities. |
+| A6 | Activities appear in the Home queues, search, notifications, monitoring gaps and Reports exactly as projects do. |
+
+### 9.3 Catalogues, tools and workflow definitions
+
+| # | Rule |
+|---|---|
+| K1 | A unit stays on the catalogue version it started with. Moving to a newer version is an explicit action by someone who can edit, and only for a step that is **not approved**; an approved revision keeps its version for good. |
+| K2 | Only the **global administrator** changes workflow definitions and which tools a unit kind has. Every change is a new version and an audit entry. |
+| K3 | **Adding** a tool to a unit kind also reaches existing units (it appears as "Not started"). **Removing** a tool, reordering or changing gates applies to **new units only**; existing units keep their definition and their data. |
+
+### 9.4 People, roles and offices
+
+| # | Rule |
+|---|---|
+| P1 | Starting roles: the six of v2.5 plus **Global Administrator** and **Office Administrator**. |
+| P2 | New permissions: create activity, view history, view reports, manage catalogues, manage offices, manage workflow definitions, invite outside people, manage the global library, manage the office library. |
+| P3 | An office is **never deleted**: it is closed (read only) and stays readable for people with organisation scope. |
+| P4 | Only a global administrator changes a person's home office. Their assignments in the old office stay until someone removes them; the confirmation lists them. |
+| P5 | A person who leaves is deactivated: sign-in ends, assignments end, and their name stays in the history. Accounts are never deleted. |
+| P6 | An outside account with an expiry date is deactivated on that date; the office administrators are notified 7 days before and can extend it. |
+| P7 | The activity log: an office administrator reads their own office's entries, a global administrator all of them. |
+| P8 | Teams/groups are not built until asked (an assignment is always person + role + scope). |
+
+### 9.5 Time and periods
+
+| # | Rule |
+|---|---|
+| T1 | Times are stored once (UTC) and shown in the reader's own time zone; each office has a time zone used in its exports. |
+| T2 | Yearly reports follow the **calendar year** in every office, unless the client says an office reports differently (C13). |
+
+### 9.6 Decided by Claude (design, delegated by the owner)
+
+- The library always shows its two layers as two labelled groups (§2.5b).
+- The header's context slot shows the office name; exports carry the office's name; the sign-in
+  brand panel is AKF-wide on a central installation and follows the office on a one-office server.
+- An activity opens with the same spine one level down (back to the project), as designed in D84.
+- Reports is an item of the main menu; the map is a view switch on the Projects list, not a
+  separate page.
+- The office switcher lists only the offices the person can enter, with the home office first.
+
+### 9.7 Out of scope for v3 unless the client asks
+
+No redesign of the interface; no programme records; no grouping by sector; no visual workflow
+designer; no cross-country comparison dashboards; no teams/groups; no automatic translation of
+typed content; no time-based reminders; no office-defined roles; no projects shared by two offices.
+The structure allows each of them later.
+
+### 9.8 Phase order
+
+The 15 phases of §8 and the three stages of §8.1 are the working order; only the order of v3.0 and
+v3.1 waits for the client (C11).
+
+---
+
 ## Session log
 
 - 2026-11-16 — draft created from V3_VISION and D80–D95; first questions asked (activities,
@@ -556,3 +644,6 @@ sessions build, mid-plan, would cause more confusion than it saves.
 - 2026-11-16 — work order agreed: v2.5 is built as planned on the current backend; the technology
   stage stays after the domain structure and the client facts; rewriting the v2.5 backend parts in
   v3 is accepted (§8.2).
+- 2026-11-16 — round 7 asked: every remaining proposal and small rule gathered in §9 (migration
+  details, activity rules, catalogues and definitions, people and offices, time, out of scope);
+  the client question sheet written ([V3_CLIENT_QUESTIONS.md](V3_CLIENT_QUESTIONS.md), C1–C14).

@@ -130,11 +130,21 @@ wanted.
 3. **Roll-up is display only.** The project overview shows a summary of its activities (each
    activity's state, and the highest risk category among them). An activity never blocks the
    project's own steps and never changes the project's category by itself.
-4. **An activity is a full unit of its own:** its own code (shape `ESMS-024-A03`: the project code
-   plus an activity number, given by the server, Latin, D93), dates, location, documents and
-   team.
+4. **An activity is a full unit of its own:** its own code (shape `ESMS-SY-024-A03`: the project
+   code, §2.5c, plus an activity number, given by the server, Latin, D93), dates, location,
+   documents and team.
 5. **Access:** a person with access to a project sees all its activities; a person can also be
    assigned to **one activity only** (activity is a scope level, §3).
+
+**[AGREED 2026-11-16]** (round 6)
+
+- **Who creates an activity:** a new permission "create activity", given at the start to the same
+  roles that can edit the project. Creating an activity needs no approval.
+- **The risk rating of an activity always comes from its own tools** (its screening and
+  assessment), exactly as for a project. It is never a label somebody picks.
+- **Activity kind (a descriptive label such as "construction", "training", "distribution") is not
+  wanted now.** The structure supports it as an optional managed catalogue (§2.4) on the activity,
+  switched off; the owner asks the client whether such a list is wanted (C12).
 
 **[AGREED 2026-11-16]** (round 2)
 
@@ -222,6 +232,16 @@ exactly one layer (no copies between layers).
   offices (D93).
 - Existing codes (`ESMS-024`) keep working in search and links as **aliases** of the new code, so
   workbooks exported before v3 still lead to their project.
+
+### 2.5d Reports across projects
+
+**[AGREED 2026-11-16]** (round 6) A **Reports** page with a few fixed tables — projects and
+activities by state, by risk category and by office; monitoring gaps — each with an Excel export,
+and each showing only what the person's assignments allow (an office-scope person sees their
+office; an organisation-scope person sees every office). **Built to grow:** the tables read from
+one reporting layer over the units, so later versions add wider reports and dashboards without a
+structural change (owner: "start with this, wider reports in later versions as long as the
+structure allows it").
 
 ### 2.6 People and identity
 
@@ -414,9 +434,9 @@ their own stage, after the domain structure above is settled:
 | Q20 | People outside the organisation (third-party readers): how they get an account. | owner | **answered** — email invitation, local account, optional expiry (§2.6) |
 | Q21 | Email notifications and password reset by email. | owner | **answered** (§2.6) |
 | Q22 | How Syria moves to v3. | owner | **answered** — first office, one cut-over (§5) |
-| Q23 | Order of delivery: one release or stages; what the client needs first. | owner | asked (round 6) |
-| Q24 | Reports across projects (office and organisation level). | owner | asked (round 6) |
-| Q25 | Who creates an activity; activity kinds. | owner | asked (round 6) |
+| Q23 | Order of delivery: one release or stages; what the client needs first. | owner / client | **answered** — three stages, order to confirm with the client (§8.1, C11) |
+| Q24 | Reports across projects (office and organisation level). | owner | **answered** — a Reports page with a few fixed tables, wider reports in later versions (§2.5d) |
+| Q25 | Who creates an activity; activity kinds. | owner / client | **answered** — permission "create activity"; kinds supported but off, client asked (§2.3, C12) |
 | Q16 | Technology (database, languages, sign-in technology, integration). | separate stage | **deferred** by the owner to a dedicated architecture stage (§6.1) |
 
 ### 7.1 Facts to collect from the client and their IT (before the technology stage)
@@ -433,6 +453,8 @@ their own stage, after the domain structure above is settled:
 | C8 | Other organisation levels in use (regions, field offices, other AKDN agencies) — Q5. | Extra scope levels. |
 | C9 | The SEMP Plan and Stakeholder Awareness on activities, and other tools wanted — Q12. | Start configuration of the tool registry. |
 | C10 | The features the client has not disclosed yet — Q9. | May shape the structure. |
+| C11 | What the client needs first: activities for Syria, or the global roll-out (other countries, entry from the global platform) — Q23. | Order of the delivery stages (§8.1). |
+| C12 | Whether activities should carry a kind (a descriptive list such as construction, training, distribution) — Q25. | Switches on an optional catalogue; no structural change. |
 
 ---
 
@@ -466,7 +488,22 @@ their own stage, after the domain structure above is settled:
     guide in both languages.
 
 Every phase keeps the rules of the v2.5 phases (tests, CI, coverage floors, docs in the same
-change, the design system as it is). The order inside 6–12 can change with the answers to Q23.
+change, the design system as it is).
+
+### 8.1 Delivery stages
+
+**[AGREED 2026-11-16]** v3 is delivered in stages, not as one big release. **The order of the
+stages stays open until the owner has asked the client (C11)**; the structure does not depend on
+it, because offices, units and the tool registry exist from the first stage in every order.
+
+| Stage | Holds | Phases |
+|---|---|---|
+| **v3.0** | The whole new structure (one office in use), the tool registry, managed catalogues, activities, history and revisions; Syria moves to it. | 3–9, 12, 13, 15 |
+| **v3.1** | Several offices in use, organisation sign-in and entry from the global platform, invitations and email, the first other country, office export/import. | 10, 14 (+ the office pages of 4) |
+| **v3.2** | Map points and the map view, the Reports page beyond its first tables, later additions. | 11 |
+
+If the client wants the global roll-out first, v3.0 and v3.1 swap: offices and sign-in first with
+the tools as they are, activities next.
 
 ---
 
@@ -497,3 +534,7 @@ change, the design system as it is). The order inside 6–12 can change with the
   staff sign in with the organisation account, outside people by email invitation with an optional
   expiry; email notifications and password reset by email; Syria is the first office, one cut-over,
   v2.5 read only afterwards. Phase outline rewritten (15 phases).
+- 2026-11-16 — round 6 agreed: delivery in three stages with the order
+  to confirm with the client (C11); a Reports page with fixed tables, built to grow; permission
+  "create activity"; an activity's risk rating comes only from its own tools; activity kinds
+  supported but off (C12).

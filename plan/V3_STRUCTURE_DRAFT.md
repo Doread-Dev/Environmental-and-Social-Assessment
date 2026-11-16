@@ -78,18 +78,29 @@ Organisation (AKF)
   `unit_id`, never straight to a project. One implementation of the tools serves projects and
   activities.
 - `computeWorkflow(unit)` stays the single source of workflow state.
-- **[OPEN]** How a project's own tools relate to its activities' tools (roll-up, gates, category) —
-  see §4.
+- **[AGREED 2026-11-16]** A project's unit and its activities' units are independent: see §2.3.
 
 ### 2.3 Activities
 
-**[OPEN]** — the first topic of the session. Questions asked to the owner:
+**[AGREED 2026-11-16]** (owner accepted the four recommendations of round 1)
 
-1. Does the project still fill its own Tools 1–5 when it has activities, or do the activities
-   replace them?
-2. Are activities optional (a small project with none) or required?
-3. Does anything roll up from activities to the project (category, risk, completion %, monitoring)?
-4. Does an activity have its own team/access, code, dates, location, documents?
+1. **Activities add to the project's tools, they do not replace them.** The project keeps its own
+   Tools 1–5 for the project as a whole; each activity has its own Tools 1–5. Nothing is copied
+   automatically between them (in line with D69: inputs the user fills are never auto-filled).
+2. **Activities are optional.** A project with no activities works exactly as in v2.5, so every
+   existing project stays valid after the migration.
+3. **Roll-up is display only.** The project overview shows a summary of its activities (each
+   activity's state, and the highest risk category among them). An activity never blocks the
+   project's own steps and never changes the project's category by itself.
+4. **An activity is a full unit of its own:** its own code (shape `ESMS-024-A03`: the project code
+   plus an activity number, given by the server, Latin, D93), dates, location, documents and
+   team.
+5. **Access:** a person with access to a project sees all its activities; a person can also be
+   assigned to **one activity only** (activity is a scope level, §3).
+
+**[OPEN]** details still to settle: when an activity may be added (any time, or only after a
+project step), what happens to activities when the project is archived or deleted, whether the
+project support modules (SEMP Plan, Stakeholder Awareness) exist per activity, and the exports.
 
 ### 2.4 Reference data (lookups) and content translation
 
@@ -123,7 +134,10 @@ the global platform get a default "no access" state until someone with "manage a
 
 - Scope levels grow from `organisation → project` to
   `organisation → office → project → activity` (the tree of §2.1). An assignment on a node covers
-  everything under it.
+  everything under it. **[AGREED 2026-11-16]** for the activity level: project access covers every
+  activity of the project, and a person can be assigned to a single activity. A person assigned
+  only to an activity sees the parent project's name and code (to know where they are) but not the
+  project's own tools or its other activities (**[PROPOSAL]** for this last sentence).
 - "Administrator" splits by scope: a **global administrator** (roles, catalogues, offices) and an
   **office administrator** (users and access inside their office).
 - Roles stay admin-managed bundles (D82). **[OPEN]** Are roles global (one list for all offices) or
@@ -169,8 +183,18 @@ the global platform get a default "no access" state until someone with "manage a
 
 **[PROPOSAL]** — to be discussed after the domain questions.
 
-- **Deployment shape [OPEN]:** one central server for all countries, or one server per country
-  (data-residency rules), or central + the Syrian offline server. This decides the most.
+- **Deployment shape [AGREED 2026-11-16]:** **one product, two shapes.** The same build runs
+  (a) **central** — one installation holding many offices — or (b) **stand-alone** — one
+  installation holding a single office, offline, as Syria runs today. The choice per country is a
+  deployment setting, not a fork of the code, so the structure does not wait for the client's
+  hosting decision. Consequences:
+  - the office level always exists in the data (a stand-alone server simply has one office);
+  - every identifier that may one day meet another installation's data is globally unique (UUIDs,
+    and project codes that carry an office prefix when more than one office exists — **[PROPOSAL]**);
+  - sign-in works both with an organisation account (central) and with local accounts (stand-alone);
+  - nothing at runtime needs the internet (D37) in either shape;
+  - **[OPEN]** moving an office's data from a stand-alone server into the central one (an
+    export/import of one office) — wanted or not.
 - **Database:** review MongoDB against a relational database (PostgreSQL) for a domain that is
   relational by nature (tree of scopes, assignments, revisions, field history).
 - **Backend:** a modular monolith (modules: identity, access, org, workflow, tools, files, catalogue,
@@ -186,15 +210,17 @@ the global platform get a default "no access" state until someone with "manage a
 
 | # | Question | For | Status |
 |---|---|---|---|
-| Q1 | Activities: do they replace or add to the project's own tools? | owner | asked |
-| Q2 | Activities: optional or required; what rolls up to the project? | owner | asked |
-| Q3 | Activities: own team, code, dates, location, documents? | owner | asked |
-| Q4 | Deployment: central, per country, or both? Does the Syria server stay? | owner / client | asked |
-| Q5 | Organisation levels that really exist (regions, field offices, other agencies). | owner / client | — |
-| Q6 | Catalogues: one global set or per-office additions? | owner / client | — |
-| Q7 | Roles: global or per office? | owner | — |
+| Q1 | Activities: do they replace or add to the project's own tools? | owner | **answered** — add (§2.3) |
+| Q2 | Activities: optional or required; what rolls up to the project? | owner | **answered** — optional, display-only roll-up (§2.3) |
+| Q3 | Activities: own team, code, dates, location, documents? | owner | **answered** — yes (§2.3) |
+| Q4 | Deployment: central, per country, or both? Does the Syria server stay? | owner / client | **answered** — one product, two shapes (§6); which shape each country uses is the client's choice |
+| Q5 | Organisation levels that really exist (regions, field offices, other agencies). | owner / client | asked (round 2) |
+| Q6 | Catalogues: one global set or per-office additions? | owner / client | asked (round 2) |
+| Q7 | Roles and administration: global or per office? | owner | asked (round 2) |
 | Q8 | How do staff sign in to the global platform (identity provider)? | client IT | — |
-| Q9 | The client features not disclosed yet. | owner / client | — |
+| Q9 | The client features not disclosed yet. | owner / client | asked, no answer yet |
+| Q10 | Activities: when may one be added; archive/delete with the project; support modules per activity; exports. | owner | asked (round 2) |
+| Q11 | Moving one office's data from a stand-alone server into the central one. | owner / client | — |
 
 ---
 
@@ -219,3 +245,6 @@ the global platform get a default "no access" state until someone with "manage a
 
 - 2026-11-16 — draft created from V3_VISION and D80–D95; first questions asked (activities,
   deployment shape).
+- 2026-11-16 — round 1 agreed: activities add to the project's tools, optional, display-only
+  roll-up, full unit with its own code/team/documents, activity as a scope level; deployment = one
+  product in two shapes (central, stand-alone).

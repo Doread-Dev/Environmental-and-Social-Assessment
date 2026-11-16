@@ -164,15 +164,64 @@ must all be editable and manageable")
 - A permission "manage catalogues" (global scope) and an entry in the audit log for every publish.
 - A unit is **pinned to the catalogue version it started with**, so editing a question never changes
   an approved screening.
-- Every catalogue text is stored per language (`{ en, ar, fr, … }`), with English as the fallback —
-  this is the "content translation" left open by D81.
+- **[AGREED 2026-11-16]** Every catalogue text is stored per language (`{ en, ar, … }`), with
+  English as the fallback — this is the "content translation" left open by D81. v3 starts with
+  English and Arabic; another language is added as data (interface strings + catalogue
+  translations), with no structural change.
+- **[AGREED 2026-11-16]** **What people type is never translated by the system:** it is stored and
+  shown as written (`dir="auto"`, D87).
+- **[AGREED 2026-11-16]** **Exports ask for the language** at export time: fixed labels and
+  catalogue texts come out in that language, typed content as written.
 - **[PROPOSAL]** Moving a running unit to a newer catalogue version is an explicit action by someone
   who can edit it, never automatic.
 
 ### 2.5 Places
 
-**[PROPOSAL]** A project/activity location = free text **plus** optional coordinates picked on a map
-(owner's idea, 2026-11-10). No fixed lists of governorates. **[OPEN]** map tiles on an offline server.
+**[OPEN — re-asked in round 5]** The first proposal (free text + an office-managed list of
+administrative areas + optional typed coordinates) was written for an offline server. The owner
+then said the global platform is online (§6), so the question is asked again with the map as the
+main way to give a location. Round 5 proposal:
+
+- a location is a **point picked on a map** (coordinates) with a name; the free-text field stays;
+- a project or activity can have **several** location points (one marked as the main one);
+- the country and administrative area are filled from the map at the time of saving and stored
+  with the point (editable), so grouping by place never depends on a later lookup;
+- the Projects list gains a map view;
+- the map provider is chosen in the technology stage (§6.1; the global platform may already have
+  one).
+
+### 2.5a Office-level and organisation-level tools
+
+**[AGREED 2026-11-16]** GHG Emissions and Environmental Data Collection become **one report per
+office and year** (tool `level` = office, §2.2a). The organisation sees the **sum of its offices,
+computed**, never typed in. On a stand-alone server with one office nothing changes for the user.
+
+### 2.5b Library
+
+**[AGREED 2026-11-16]** Two layers, on the same model as D64:
+
+- **Global documents** — managed by the global administrator, read by every office.
+- **Office documents** — managed by the office administrator, read only inside that office (local
+  laws, national guidance).
+
+Both appear under the same "Guidance" button of a page and on the Library page. **Owner's
+condition: it must stay organised, not cluttered.** So (design delegated to Claude, **[PROPOSAL]**):
+the two layers are always shown as two labelled groups ("AKF global", "AKF Syria"), never one mixed
+list; inside a group the order is the manager's order; the Library page has one filter for layer
+and one for place, and each document shows its layer, language and date; a document belongs to
+exactly one layer (no copies between layers).
+
+### 2.5c Project and office codes
+
+**[AGREED 2026-11-16]**
+
+- A project belongs to **exactly one office**. People from another office who work on it are given
+  assignments on it (§3); there are no projects shared between offices.
+- Every office has a short code (country code: `SY`). The project code carries it:
+  `ESMS-SY-024`; an activity: `ESMS-SY-024-A03`. Given by the server, Latin, unique across all
+  offices (D93).
+- Existing codes (`ESMS-024`) keep working in search and links as **aliases** of the new code, so
+  workbooks exported before v3 still lead to their project.
 
 ### 2.6 People and identity
 
@@ -261,7 +310,12 @@ assign a role (same pattern as "New project needs a team", D82/D90).
   - every identifier that may one day meet another installation's data is globally unique (UUIDs,
     and project codes that carry an office prefix when more than one office exists — **[PROPOSAL]**);
   - sign-in works both with an organisation account (central) and with local accounts (stand-alone);
-  - nothing at runtime needs the internet (D37) in either shape;
+  - **[AGREED 2026-11-16] (owner's correction, round 4): the global platform is online — do not
+    design v3 around an offline server.** The central shape assumes the internet and may use
+    online services (map, email, organisation sign-in). D37's "no runtime internet dependency" is a
+    v2/v2.5 rule for the Syria server and no longer limits what v3 can offer. **[OPEN — round 5]**
+    whether a stand-alone installation without internet must still be supported in v3, and what
+    it loses if so;
   - **[AGREED 2026-11-16]** **an office can be moved** from a stand-alone server into the central
     one: a full export/import of one office (its data, files, history and people), which is why
     identifiers are globally unique from day one.
@@ -297,8 +351,10 @@ their own stage, after the domain structure above is settled:
 
 **Constraints that hold whatever is chosen** (they come from agreed items):
 
-- one build, two deployment shapes (central and stand-alone/offline), Windows and Linux (D75);
-- nothing at runtime needs the internet (D37);
+- one build, two deployment shapes (central online; stand-alone — its offline requirement is open,
+  round 5);
+- online services (map, email, organisation sign-in) sit behind interfaces, so the core work
+  (filling, reviewing, exporting) never fails because one of them is down;
 - transactions and referential integrity for the tree of scopes, assignments, revisions and history;
 - globally unique identifiers; export/import of one office;
 - a scripted, tested migration from v2.5 (§5);
@@ -325,6 +381,12 @@ their own stage, after the domain structure above is settled:
 | Q13 | One person in several offices; head-office view. | owner | **answered** (§3) |
 | Q14 | Approval path per country / for activities; multi-level approval. | owner | **answered** — one path, levels supported but off (§4) |
 | Q15 | History and revisions. | owner | **answered** (§4) |
+| Q17 | Office-level tools (GHG, Environmental Data); library layers; one office per project and the code; languages and exports. | owner | **answered** (§2.5a–c, §2.4) |
+| Q18 | Location of a project/activity now that the platform is online. | owner | re-asked (round 5) |
+| Q19 | Must a stand-alone installation without internet still be supported in v3? | owner | asked (round 5) |
+| Q20 | People outside the organisation (third-party readers): how they get an account. | owner | asked (round 5) |
+| Q21 | Email notifications and password reset by email. | owner | asked (round 5) |
+| Q22 | How Syria moves to v3. | owner | asked (round 5) |
 | Q16 | Technology (database, languages, sign-in technology, integration). | separate stage | **deferred** by the owner to a dedicated architecture stage (§6.1) |
 
 ### 7.1 Facts to collect from the client and their IT (before the technology stage)
@@ -380,3 +442,8 @@ their own stage, after the domain structure above is settled:
   revisions and field-level history; export/import of one office. **Technology deferred by the
   owner** to a dedicated architecture stage (§6.1), with the list of client facts to collect first
   (§7.1).
+- 2026-11-16 — round 4 agreed: GHG and Environmental Data per office with a computed organisation
+  total; library in two organised layers (global, office); one office per project, codes with the
+  office code and old codes as aliases; catalogues per language, typed content never translated,
+  exports ask for the language. **Owner's correction: the global platform is online; v3 is not
+  designed around an offline server.** Location re-opened for that reason.

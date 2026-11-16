@@ -201,23 +201,36 @@ assign a role (same pattern as "New project needs a team", D82/D90).
   means the same in every country. Office-defined roles only if the client asks.
 - A restricted person never sees names or counts outside their scopes (D82 rule, applied to offices
   too).
-- Head-office (cross-country) views are allowed by the structure and built only when asked.
+- **[AGREED 2026-11-16]** **People across offices:** every person has one **home office** and can be
+  given assignments in other offices. The office switcher in the header (the D84 context slot)
+  appears only for a person with access to more than one office.
+- **[AGREED 2026-11-16]** **Head office:** a person with an organisation-scope assignment sees the
+  projects of every office in the same lists, with an "Office" filter and column. Cross-country
+  comparison dashboards are not built until asked.
 - Teams/groups: only if asked.
 
 ---
 
 ## 4. Workflow changes
 
-**[PROPOSAL]** (all depend on the answers to §2.3)
-
-- The five steps and their rules stay as in v2.5 for every workflow unit.
+- **[AGREED 2026-11-16]** **One path for everyone at the start:** the five steps and their rules stay
+  as in v2.5 for every workflow unit, in every office, for projects and activities (Tools 1–2
+  reviewed, Tools 3–5 without approval, D88).
+- **[AGREED 2026-11-16]** **Multi-level approval is supported by the structure, not switched on:** a
+  reviewed step's definition holds an ordered list of approval levels (one level today). A second
+  level (for example office reviewer, then head office) is a change of the definition when the
+  client asks, not a rebuild.
 - The workflow definition (per unit kind: which registered tools apply, their order, kind and
   gates — §2.2a) moves from code constants to a **versioned workflow definition** read by
   `computeWorkflow`, so a different path (per unit kind, later per office) is data. **[AGREED
   2026-11-16]** for "which tools a unit has is configuration". Not a visual workflow designer.
-- Real **revisions** of approved steps (v2.5 has "reopen with a reason", D88): each approval freezes a
-  numbered revision that can be read later and exported.
-- **Field-level history** for every write (extends the D65 audit entries).
+- **[AGREED 2026-11-16]** **Revisions:** each approval of a reviewed step freezes a numbered revision
+  (Revision 1, 2, …) that can be read and exported later. Reopening (D88) starts a new revision and
+  never erases an earlier one.
+- **[AGREED 2026-11-16]** **Field-level history:** every write records who changed which field,
+  when, and the old and new value (extends the D65 audit entries, which stay for critical actions).
+  It is read by people with a new permission "view history" on the project or activity. History is
+  append-only: nobody edits or deletes it in the app.
 
 ---
 
@@ -239,8 +252,6 @@ assign a role (same pattern as "New project needs a team", D82/D90).
 
 ## 6. Architecture
 
-**[PROPOSAL]** — to be discussed after the domain questions.
-
 - **Deployment shape [AGREED 2026-11-16]:** **one product, two shapes.** The same build runs
   (a) **central** — one installation holding many offices — or (b) **stand-alone** — one
   installation holding a single office, offline, as Syria runs today. The choice per country is a
@@ -251,16 +262,47 @@ assign a role (same pattern as "New project needs a team", D82/D90).
     and project codes that carry an office prefix when more than one office exists — **[PROPOSAL]**);
   - sign-in works both with an organisation account (central) and with local accounts (stand-alone);
   - nothing at runtime needs the internet (D37) in either shape;
-  - **[OPEN]** moving an office's data from a stand-alone server into the central one (an
-    export/import of one office) — wanted or not.
-- **Database:** review MongoDB against a relational database (PostgreSQL) for a domain that is
-  relational by nature (tree of scopes, assignments, revisions, field history).
-- **Backend:** a modular monolith (modules: identity, access, org, workflow, tools, files, catalogue,
-  audit, notifications) with typed boundaries; TypeScript on both sides.
-- **Identity:** OpenID Connect sign-in with the organisation account + local accounts for offline
-  servers; server-side sessions with revocation ("sign out of all devices").
-- **Offline server:** must keep working with no internet (D37) in every shape.
-- **Observability:** structured logs, error tracking, health and metrics.
+  - **[AGREED 2026-11-16]** **an office can be moved** from a stand-alone server into the central
+    one: a full export/import of one office (its data, files, history and people), which is why
+    identifiers are globally unique from day one.
+
+### 6.1 Technology — a separate stage, not decided here
+
+**[AGREED 2026-11-16]** (owner) The technology choices (database, languages, frameworks, sign-in
+technology, how ESMS connects to the client's systems) are **not decided in this draft**. They get
+their own stage, after the domain structure above is settled:
+
+- **How:** a dedicated architecture session that reads the whole project and writes architecture
+  decision records with the installed engineering skills (architecture, system design, and the
+  others where they fit), option by option with trade-offs.
+- **The owner's criteria:** the best decision on the right foundations. **Cost is not a
+  constraint** — rewriting the whole application, in any language, is acceptable. Staying close to
+  how the client's organisation already works (their accounts, their systems, their hosting) matters
+  more than staying close to today's code.
+- **What is needed first** (facts about the client, §7.1): how staff accounts work, what the global
+  platform is built on and how it links to other tools, what databases and servers the client's IT
+  runs, where data may live.
+
+**Inputs already known** (to verify, not decisions):
+
+- The owner believes the client's systems are SQL-based; a relational database for ESMS is "most
+  likely yes", to be confirmed in that stage.
+- Staff use organisation email accounts (the Syria environment lead's address is on the `akdn.org`
+  domain), so an organisation-wide directory probably exists; which identity provider is behind it
+  is a question for the client's IT.
+- **Claude's starting lean, to be tested in that stage, not a decision:** PostgreSQL, TypeScript on
+  both sides, a modular monolith (modules: identity, access, org, workflow, tools, files,
+  catalogues, history, notifications), OpenID Connect sign-in beside local accounts, server-side
+  sessions with revocation.
+
+**Constraints that hold whatever is chosen** (they come from agreed items):
+
+- one build, two deployment shapes (central and stand-alone/offline), Windows and Linux (D75);
+- nothing at runtime needs the internet (D37);
+- transactions and referential integrity for the tree of scopes, assignments, revisions and history;
+- globally unique identifiers; export/import of one office;
+- a scripted, tested migration from v2.5 (§5);
+- observability: structured logs, error tracking, health and metrics.
 
 ---
 
@@ -279,7 +321,26 @@ assign a role (same pattern as "New project needs a team", D82/D90).
 | Q9 | The client features not disclosed yet. | owner / client | asked, no answer yet |
 | Q10 | Activities: when may one be added; archive/delete with the project; support modules per activity; exports. | owner | **answered** (§2.3 6–9) |
 | Q12 | Do activities also get the SEMP Plan and Stakeholder Awareness? Are more tools wanted (project or activity)? | owner asks the client | — (structure ready either way, §2.2a) |
-| Q11 | Moving one office's data from a stand-alone server into the central one. | owner / client | — |
+| Q11 | Moving one office's data from a stand-alone server into the central one. | owner / client | **answered** — yes, export/import of one office (§6) |
+| Q13 | One person in several offices; head-office view. | owner | **answered** (§3) |
+| Q14 | Approval path per country / for activities; multi-level approval. | owner | **answered** — one path, levels supported but off (§4) |
+| Q15 | History and revisions. | owner | **answered** (§4) |
+| Q16 | Technology (database, languages, sign-in technology, integration). | separate stage | **deferred** by the owner to a dedicated architecture stage (§6.1) |
+
+### 7.1 Facts to collect from the client and their IT (before the technology stage)
+
+| # | Fact | Why it matters |
+|---|---|---|
+| C1 | How staff sign in at work: which identity provider (for example Microsoft Entra ID / Active Directory, Google, another), one directory for all AKDN or one per agency/country, multi-factor rules. | Decides the sign-in technology and how accounts are created. |
+| C2 | What the global AKF platform is: product or custom build, its technology, and how it opens other tools (a plain link, single sign-on, an embedded frame, an API). | Decides the entry from the platform and deep links. |
+| C3 | Which databases and server systems the client's IT runs and supports (SQL Server, PostgreSQL, other; Windows or Linux; cloud or own servers). | A stack their IT already operates is easier to host, back up and approve. |
+| C4 | Where data may live: one central hosting, or countries whose data must stay inside them. | Decides which countries are central and which stand-alone. |
+| C5 | Whether ESMS must exchange data with other systems (project lists from the global platform, reporting tools, document storage). | Decides the integration layer (APIs, import/export). |
+| C6 | Which countries and how many users are expected first, and when. | Sizing and the order of the roll-out. |
+| C7 | Whether the server can send email (open IT item since v2). | Notifications by email (D90). |
+| C8 | Other organisation levels in use (regions, field offices, other AKDN agencies) — Q5. | Extra scope levels. |
+| C9 | The SEMP Plan and Stakeholder Awareness on activities, and other tools wanted — Q12. | Start configuration of the tool registry. |
+| C10 | The features the client has not disclosed yet — Q9. | May shape the structure. |
 
 ---
 
@@ -287,8 +348,9 @@ assign a role (same pattern as "New project needs a team", D82/D90).
 
 **[PROPOSAL]** — rough order, refined at the end of the session.
 
-1. v3 review and decisions (this draft → D-numbers).
-2. Platform base: database choice, module layout, migrations tooling, TypeScript.
+1. v3 review and decisions (this draft → D-numbers), after the client facts of §7.1 are collected.
+2. **Technology stage** (§6.1): architecture decision records for the database, languages, sign-in
+   and integration; then the platform base (module layout, migration tooling).
 3. Organisation tree and scopes; access model on the tree; migration of v2.5 assignments.
 4. Workflow unit and tool registry: tools become registered modules pointing to units; versioned
    workflow definitions; data migration.
@@ -313,3 +375,8 @@ assign a role (same pattern as "New project needs a team", D82/D90).
   project, own workbook; one new level (country office), tree as data; one global managed catalogue
   with versions; global and office administrators, one global role list; new accounts start with no
   access.
+- 2026-11-16 — round 3 agreed: home office plus assignments in other offices, head office sees all
+  offices in the same lists; one approval path, multi-level approval supported but off; numbered
+  revisions and field-level history; export/import of one office. **Technology deferred by the
+  owner** to a dedicated architecture stage (§6.1), with the list of client facts to collect first
+  (§7.1).

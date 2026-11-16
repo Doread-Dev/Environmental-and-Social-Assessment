@@ -334,8 +334,8 @@ assign a role (same pattern as "New project needs a team", D82/D90).
 - Staff accounts are matched to organisation accounts by email at first sign-in; accounts of
   people outside the organisation stay local.
 - Every project gets one workflow unit; tool data is re-pointed from `project_id` to `unit_id`.
-- Organisation-scope assignments become **office-scope (Syria)** assignments. The first Global
-  Administrator is the owner (§9.1 M1).
+- Organisation-scope assignments become **office-scope (Syria)** assignments. Syria's current
+  administrator also holds the global role until the client names theirs (§9.1 M1).
 - The seeded lookups become catalogue **version 1**; every existing unit is pinned to it.
 - The audit log, files, notifications and deleted items are carried over as they are.
 - The migration is a scripted, repeatable, tested step with a dry run and a backup first; never by
@@ -530,13 +530,13 @@ sessions build, mid-plan, would cause more confusion than it saves.
 
 Everything that was still a proposal or not yet asked, closed in one round so that only the client
 questions (§7.1, [V3_CLIENT_QUESTIONS.md](V3_CLIENT_QUESTIONS.md)) and the technology stage (§6.1)
-remain. **Status: every row is [AGREED 2026-11-16]** (owner, round 7); M1 was changed by the owner (see its row).
+remain. **Status: every row is [AGREED 2026-11-16]** (owner, round 7); M1 was settled the next day (see its row).
 
 ### 9.1 Migration from v2.5 — details
 
 | # | Item | Rule |
 |---|---|---|
-| M1 | Administrators | Today's Syria administrators become **office administrators of Syria only**. The **first Global Administrator is the owner** (the supplier), on an account made for that at the migration, until the client names their own; the global role is then handed over. The owner's reason: better than giving Syria's administrator a wider role and taking it back later. **[AGREED 2026-11-16]**. How the hand-over is done (give the role to the named person's own account and end the owner's, so the history shows two people, rather than passing one account and its password) is a **[PROPOSAL]** put to the owner. |
+| M1 | Administrators | Today's Syria administrators become **office administrators of Syria**. Until the client names a Global Administrator, **Syria's current administrator also holds the Global Administrator role**, so nothing they can do today is lost and the shared things (catalogues, roles, offices) have a manager from day one. When the client names their person, that person gets **their own account** with the global role, and the global role is removed from Syria's administrator. **No account or password is ever passed from one person to another**, so the history always shows who did what. **[AGREED 2026-11-17]** (the owner first chose to hold the global role himself, then returned to this). |
 | M2 | Assignments | Organisation-scope assignments of v2.5 become **office-scope (Syria)**; project-scope assignments stay as they are. Nobody gains or loses access through the migration. |
 | M3 | History | The v2.5 activity log is carried over as it is. Field-level history **starts on the migration day**; nothing is reconstructed. Each step that is approved at the migration becomes **Revision 1**, with its original approval date and people. |
 | M4 | Carried as they are | Archived projects, deleted items with their remaining days, notifications with their read state, project files, status histories. |
@@ -652,3 +652,7 @@ v3.1 waits for the client (C11).
   the migration), explained again to the owner.
 - 2026-11-16 — M1 settled by the owner: Syria's administrators become office administrators only;
   the first Global Administrator is the owner, handed over when the client names theirs.
+- 2026-11-17 — M1 final: Syria's current administrator holds both roles (office and global) until
+  the client names a Global Administrator, who then gets their own account; no account or password
+  is passed between people. Replaces the entry above. The draft is closed: only the client
+  questions (C1–C14) and the technology stage remain.

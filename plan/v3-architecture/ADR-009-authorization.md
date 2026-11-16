@@ -51,7 +51,7 @@ programmer forgets a check.
 
 ## Options considered
 
-| | A. Checks written in each service | **B. One policy module + SQL filter** | C. B + database row security on the office | D. An external authorization engine |
+| | A. Checks written in each service | B. One policy module + SQL filter | **C. B + database row security on the office** | D. An external authorization engine |
 |---|---|---|---|---|
 | One place to change the rules | No | Yes | Yes | Yes |
 | List filtering in the database | Hand-written each time | Generated condition | Generated condition | Needs data copied to the engine, or post-filtering |

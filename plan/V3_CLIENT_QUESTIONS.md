@@ -212,3 +212,67 @@ discussed yet?
 قد تؤثّر على البنية، لذلك نحتاجها قبل مرحلة التقنية.
 
 **Answer — الجواب:**
+
+---
+
+## C. Added by the technology stage — أسئلة أضافتها مرحلة التقنية
+
+These four come from the architecture records in [v3-architecture/](v3-architecture/README.md).
+C15–C17 are for the IT team; C18 is for whoever handles maps at the client.
+
+### C15. Who maintains the code — من يصون الكود على المدى الطويل
+
+**EN:** After delivery, who maintains and extends the application: the supplier, or your IT team?
+Does IT require a specific platform or programming language for applications it hosts or takes
+over (for example Microsoft .NET)?
+
+**AR:** بعد التسليم، من يصون التطبيق ويطوّره: المورّد أم فريق الـ IT عندكم؟ هل يشترط الـ IT منصة أو
+لغة برمجة معيّنة للتطبيقات التي يستضيفها أو يستلمها (مثلاً Microsoft .NET)؟
+
+**Why — السبب:** it decides the programming language of the server (ADR-003). The hosting is not
+affected. يحدّد لغة برمجة الخادم؛ ولا يؤثّر على الاستضافة.
+
+**Answer — الجواب:**
+
+### C16. Security requirements — متطلبات الأمان
+
+**EN:** Which security standards or policies must a new application meet? Is a security assessment
+or penetration test required before go-live, and who performs it? How is this kind of data
+classified in your organisation?
+
+**AR:** ما هي معايير أو سياسات الأمان التي يجب أن يلتزم بها أي تطبيق جديد؟ هل يُشترط تقييم أمني أو
+اختبار اختراق قبل التشغيل، ومن ينفّذه؟ كيف يُصنَّف هذا النوع من البيانات عندكم؟
+
+**Why — السبب:** it sets the security level we build and prove (ADR-018).
+يحدّد مستوى الأمان الذي نبنيه ونثبته.
+
+**Answer — الجواب:**
+
+### C17. Availability and recovery — التوفّر والاسترجاع
+
+**EN:** In which hours must ESMS be available in each office? How long may it be down in the worst
+case, and how much recent work may be lost (minutes, hours)? Who should be contacted when the
+service is down?
+
+**AR:** في أيّ ساعات يجب أن يكون ESMS متاحاً في كل مكتب؟ كم يُسمح أن يتوقف في أسوأ الأحوال، وكم من
+العمل الأخير يُسمح بفقدانه (دقائق، ساعات)؟ من يجب إبلاغه عند توقف الخدمة؟
+
+**Why — السبب:** it sizes the hosting and the backups (ADR-016, ADR-017).
+يحدّد حجم الاستضافة والنسخ الاحتياطي.
+
+**Answer — الجواب:**
+
+### C18. Maps and boundaries — الخرائط والحدود الإدارية
+
+**EN:** Does your organisation have a mapping (GIS) team or a map service (for example ArcGIS)?
+Which administrative boundaries (countries, governorates, districts) do you use officially in your
+maps and reports?
+
+**AR:** هل عند المنظمة فريق خرائط (GIS) أو خدمة خرائط (مثلاً ArcGIS)؟ ما هي الحدود الإدارية (دول،
+محافظات، مناطق) التي تعتمدونها رسمياً في خرائطكم وتقاريركم؟
+
+**Why — السبب:** project locations are stored with their country and area; the boundaries used must
+be the ones the organisation accepts (ADR-021). مواقع المشاريع تُحفظ مع الدولة والمنطقة؛ ويجب أن
+تكون الحدود المستخدمة هي المعتمدة عند المنظمة.
+
+**Answer — الجواب:**

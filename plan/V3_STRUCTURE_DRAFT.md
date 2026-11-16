@@ -245,7 +245,7 @@ structure allows it").
 
 ### 2.6 People and identity
 
-**[PROPOSAL — for the technology stage, §6.1]** A user = a person record + one or more *identities* (local password; organisation
+**[PROPOSAL — settled as a recommendation in [ADR-008](v3-architecture/ADR-008-identity-and-sessions.md)]** A user = a person record + one or more *identities* (local password; organisation
 account through single sign-on). Home office on the person.
 
 **[AGREED 2026-11-16]** (round 5)
@@ -369,6 +369,14 @@ assign a role (same pattern as "New project needs a team", D82/D90).
 
 ### 6.1 Technology — a separate stage, not decided here
 
+**[PROPOSAL 2026-11-17] The stage has run:** its output is the system overview and the 22
+architecture decision records in [v3-architecture/](v3-architecture/README.md). They are
+recommendations (best enterprise-level option now, adjusted when the client answers), not
+decisions; the ones that wait for a client fact say which (C1–C18). In one line: a modular
+monolith in TypeScript on PostgreSQL, organisation sign-in through OpenID Connect with
+server-side sessions, history written by the database, tools as modules with workflow paths as
+data, one container image hosted in the client's cloud or on one machine.
+
 **[AGREED 2026-11-16]** (owner) The technology choices (database, languages, frameworks, sign-in
 technology, how ESMS connects to the client's systems) are **not decided in this draft**. They get
 their own stage, after the domain structure above is settled:
@@ -437,7 +445,7 @@ their own stage, after the domain structure above is settled:
 | Q23 | Order of delivery: one release or stages; what the client needs first. | owner / client | **answered** — three stages, order to confirm with the client (§8.1, C11) |
 | Q24 | Reports across projects (office and organisation level). | owner | **answered** — a Reports page with a few fixed tables, wider reports in later versions (§2.5d) |
 | Q25 | Who creates an activity; activity kinds. | owner / client | **answered** — permission "create activity"; kinds supported but off, client asked (§2.3, C12) |
-| Q16 | Technology (database, languages, sign-in technology, integration). | separate stage | **deferred** by the owner to a dedicated architecture stage (§6.1) |
+| Q16 | Technology (database, languages, sign-in technology, integration). | separate stage | **proposed** — [v3-architecture/](v3-architecture/README.md), 22 ADRs; confirmed after the client facts |
 
 ### 7.1 Facts to collect from the client and their IT (before the technology stage)
 
@@ -458,6 +466,10 @@ The sheet the owner takes to the client, in English and Arabic: [V3_CLIENT_QUEST
 | C11 | What the client needs first: activities for Syria, or the global roll-out (other countries, entry from the global platform) — Q23. | Order of the delivery stages (§8.1). |
 | C13 | Whether every office reports by calendar year; which languages beyond English and Arabic, and who translates the catalogues. | Periods of the yearly reports; languages are added as data. |
 | C14 | Rules on keeping and removing data (project records after closing, personal data). | A retention rule would be a setting; v3 removes nothing by itself. |
+| C15 | Who maintains and extends the code in the long term (the supplier or the client's IT), and whether IT mandates a platform or language for applications it hosts. | Language of the server (ADR-003). |
+| C16 | The client's security requirements: standards they follow, an assessment or penetration test they require before go-live, how they classify this data. | Security baseline (ADR-018). |
+| C17 | Working hours per office, how much downtime and data loss is acceptable, who is called when the service is down. | Availability and recovery targets (ADR-016, ADR-017). |
+| C18 | Whether the client has a mapping (GIS) team, a map service, and preferred administrative boundaries. | Boundary dataset and map provider (ADR-021). |
 | C12 | Whether activities should carry a kind (a descriptive list such as construction, training, distribution) — Q25. | Switches on an optional catalogue; no structural change. |
 
 ---
@@ -468,9 +480,12 @@ The sheet the owner takes to the client, in English and Arabic: [V3_CLIENT_QUEST
 
 1. v3 review and decisions (this draft → D-numbers), after the client facts of §7.1 are collected.
 2. **Technology stage** (§6.1): architecture decision records for the database, languages, sign-in
-   and integration; then the platform base (module layout, migration tooling).
+   and integration; then the platform base (module layout, migration tooling). *Run on 2026-11-17
+   as proposals: [v3-architecture/](v3-architecture/README.md).*
 3. **Platform base:** module layout, the history writer (field-level, used by every later module),
-   sessions, migration tooling, CI, observability.
+   sessions, migration tooling, CI, observability. It starts with a **walking skeleton** (one thin
+   slice through sign-in, access, one unit, one tool, history, a revision and an export) that
+   proves the stack before the modules are built (ADR-001, ADR-004).
 4. **Organisation tree and access:** offices, scopes on the tree, global and office administrators,
    the office switcher and the "Office" filter.
 5. **Workflow unit, tool registry, workflow definitions:** Tools 1–5 as registered modules pointing
@@ -656,3 +671,8 @@ v3.1 waits for the client (C11).
   the client names a Global Administrator, who then gets their own account; no account or password
   is passed between people. Replaces the entry above. The draft is closed: only the client
   questions (C1–C14) and the technology stage remain.
+- 2026-11-17 — technology stage run in the same session (owner: "propose the best as enterprise
+  level, we adjust from the client's answers"): system overview and ADR-001 to ADR-022 in
+  [v3-architecture/](v3-architecture/README.md), all as proposals; four client questions added
+  (C15–C18); the model item of §2.6 (person + identities) is ADR-008. Skills used:
+  architecture, system-design, testing-strategy.

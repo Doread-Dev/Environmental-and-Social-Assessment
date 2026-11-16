@@ -52,7 +52,9 @@ Claude (owner's standing rule); the owner answers domain and business questions.
 
 ### 2.1 The organisation tree (scopes)
 
-**[PROPOSAL]** One tree of *organisation units*, each node a possible scope for assignments:
+**[AGREED 2026-11-16]** One tree of *organisation units*, each node a possible scope for
+assignments. v3 builds **one new level, the country office**; the tree is stored as data so a level
+the client asks for later is added without a rebuild:
 
 ```
 Organisation (AKF)
@@ -65,8 +67,9 @@ Organisation (AKF)
   the client asks for later (region above offices, field office below a country, a programme between
   office and project) is a new *kind*, not a rebuild.
 - Every project belongs to exactly one office. Every user has a home office.
-- **[OPEN]** Which levels really exist at the client: regions? field offices inside a country?
-  other AKDN agencies beside AKF?
+- **[OPEN, for the client]** Whether other levels are really in use (regions grouping countries,
+  field offices inside a country, other AKDN agencies beside AKF). The owner knows of none today;
+  the structure does not depend on the answer.
 
 ### 2.2 The workflow unit
 
@@ -79,6 +82,41 @@ Organisation (AKF)
   activities.
 - `computeWorkflow(unit)` stays the single source of workflow state.
 - **[AGREED 2026-11-16]** A project's unit and its activities' units are independent: see §2.3.
+
+### 2.2a The tool registry (tools are pluggable)
+
+**[AGREED 2026-11-16]** (owner's requirement: "the structure must let us add tools easily, for
+activities or for the project as a whole" — the client may ask for the SEMP Plan and Stakeholder
+Awareness on activities too, or for new tools.)
+
+Every tool is a **module registered in one tool registry**. The rest of the system (workflow,
+navigation spine, permissions, exports, help, deleted items) reads the registry and never names a
+tool by hand. A tool's registration declares:
+
+| Field | Meaning |
+|---|---|
+| `key` | Stable key, also its place key for guidance and help (D64, D78). Never a number or an order. |
+| `level` | Where an instance of the tool lives: `unit` (one per project or activity), `office`, `organisation` (GHG Emissions, Environmental Data Collection). |
+| `kind` | `reviewed` (submit → review → approve/return), `working` (no approval), `support` (outside the gated path: SEMP Plan, Stakeholder Awareness), `report` (periodic, e.g. one per year). The step pattern of D88 already draws these. |
+| `permissions` | The named permissions the tool adds (view, edit, approve, export…), which then appear in Roles & permissions (D82). |
+| data module | Its own tables, validation, service and routes behind one module boundary; every row points to a `unit_id` (or an office / the organisation). |
+| lifecycle hooks | What it does on archive, delete/restore, purge and migration of its owner, so a new tool cannot be forgotten by the delete cascade (the gap found in the v2 prototype). |
+| export | Its sheet(s) in the workbook export. |
+| catalogues | Which managed catalogues it reads (§2.4). |
+
+**Which tools a unit has is configuration, not code:** the *workflow definition* (§4) lists, per
+unit kind (`project`, `activity`), the tools that apply, their order and their gates. So:
+
+- turning the SEMP Plan on for activities = one more line in the activity definition, with no new
+  page, model or migration;
+- a brand-new tool = one new module + its registration; the spine, the overview, permissions,
+  notifications, help and exports pick it up from the registry;
+- a tool for the whole office or organisation uses the same registration with another `level`.
+
+**Start configuration [AGREED 2026-11-16]:** project = Tools 1–5 + SEMP Plan + Stakeholder
+Awareness (as in v2.5); activity = Tools 1–5 + its documents. **[OPEN, owner asks the client]**
+whether activities also get the SEMP Plan and Stakeholder Awareness, and whether more tools are
+wanted.
 
 ### 2.3 Activities
 
@@ -98,21 +136,38 @@ Organisation (AKF)
 5. **Access:** a person with access to a project sees all its activities; a person can also be
    assigned to **one activity only** (activity is a scope level, §3).
 
-**[OPEN]** details still to settle: when an activity may be added (any time, or only after a
-project step), what happens to activities when the project is archived or deleted, whether the
-project support modules (SEMP Plan, Stakeholder Awareness) exist per activity, and the exports.
+**[AGREED 2026-11-16]** (round 2)
+
+6. **An activity can be added at any time** after the project exists; it does not wait for the
+   project's screening or any other project step.
+7. **Archive and delete follow the project:** archiving a project makes its activities read only;
+   deleting a project moves its activities with it to Deleted items (30 days, D89) and restoring
+   brings them back together. An activity can also be archived or deleted on its own.
+8. **Exports:** one workbook per activity; the project workbook gains a sheet summarising its
+   activities.
+9. **Support modules** stay at project level at the start (§2.2a); moving them to activities is a
+   configuration change if the client wants it.
 
 ### 2.4 Reference data (lookups) and content translation
 
-**[PROPOSAL]**
+**[AGREED 2026-11-16]** (owner: "enterprise level — questions, indicators, categories and the like
+must all be editable and manageable")
 
-- Impact questions, indicators, categories and job titles become **managed catalogues**: versioned
-  sets edited by an administrator in the app, not seed files.
+- Impact questions, indicators, categories, job titles — and every other fixed list a tool reads
+  (file categories, RACI activities, GHG categories, …) — become **managed catalogues**: versioned
+  sets edited by an administrator in the app, not seed files or code constants.
+- **One global catalogue for every country**, managed by the global administrator. An office does
+  not change it; office-specific *additions* on top of the global set are added only if the client
+  asks (the structure allows an `office` owner on a catalogue item).
+- Editing happens on a **draft version**; publishing makes it the current version for new units.
+  Items are retired, never deleted, so old data keeps its meaning.
+- A permission "manage catalogues" (global scope) and an entry in the audit log for every publish.
 - A unit is **pinned to the catalogue version it started with**, so editing a question never changes
   an approved screening.
 - Every catalogue text is stored per language (`{ en, ar, fr, … }`), with English as the fallback —
   this is the "content translation" left open by D81.
-- **[OPEN]** Is there one global catalogue for every country, or may an office add/override items?
+- **[PROPOSAL]** Moving a running unit to a newer catalogue version is an explicit action by someone
+  who can edit it, never automatic.
 
 ### 2.5 Places
 
@@ -122,9 +177,9 @@ project support modules (SEMP Plan, Stakeholder Awareness) exist per activity, a
 ### 2.6 People and identity
 
 **[PROPOSAL]** A user = a person record + one or more *identities* (local password; organisation
-account through single sign-on). Home office on the person. Accounts created on first sign-in from
-the global platform get a default "no access" state until someone with "manage access" assigns them
-— or a default role per office (**[OPEN]**).
+account through single sign-on). Home office on the person. **[AGREED 2026-11-16]** An account created on first sign-in from the global platform starts
+with **no access**; the administrators of its office are notified ("New person needs access") and
+assign a role (same pattern as "New project needs a team", D82/D90).
 
 ---
 
@@ -138,10 +193,12 @@ the global platform get a default "no access" state until someone with "manage a
   activity of the project, and a person can be assigned to a single activity. A person assigned
   only to an activity sees the parent project's name and code (to know where they are) but not the
   project's own tools or its other activities (**[PROPOSAL]** for this last sentence).
-- "Administrator" splits by scope: a **global administrator** (roles, catalogues, offices) and an
-  **office administrator** (users and access inside their office).
-- Roles stay admin-managed bundles (D82). **[OPEN]** Are roles global (one list for all offices) or
-  may an office define its own?
+- **[AGREED 2026-11-16]** "Administrator" splits by scope: a **global administrator** (offices,
+  roles, catalogues, workflow definitions) and an **office administrator** (users and access inside
+  their own office only; never sees or changes another office's people). On a stand-alone server
+  the same person can hold both.
+- **[AGREED 2026-11-16]** Roles stay admin-managed bundles (D82) in **one global list**, so a role
+  means the same in every country. Office-defined roles only if the client asks.
 - A restricted person never sees names or counts outside their scopes (D82 rule, applied to offices
   too).
 - Head-office (cross-country) views are allowed by the structure and built only when asked.
@@ -154,9 +211,10 @@ the global platform get a default "no access" state until someone with "manage a
 **[PROPOSAL]** (all depend on the answers to §2.3)
 
 - The five steps and their rules stay as in v2.5 for every workflow unit.
-- The workflow definition (list of steps, kind, gates) moves from code constants to a **versioned
-  workflow definition** read by `computeWorkflow`, so a different path (per office, per unit kind) is
-  data. Not a visual workflow designer.
+- The workflow definition (per unit kind: which registered tools apply, their order, kind and
+  gates — §2.2a) moves from code constants to a **versioned workflow definition** read by
+  `computeWorkflow`, so a different path (per unit kind, later per office) is data. **[AGREED
+  2026-11-16]** for "which tools a unit has is configuration". Not a visual workflow designer.
 - Real **revisions** of approved steps (v2.5 has "reopen with a reason", D88): each approval freezes a
   numbered revision that can be read later and exported.
 - **Field-level history** for every write (extends the D65 audit entries).
@@ -214,12 +272,13 @@ the global platform get a default "no access" state until someone with "manage a
 | Q2 | Activities: optional or required; what rolls up to the project? | owner | **answered** — optional, display-only roll-up (§2.3) |
 | Q3 | Activities: own team, code, dates, location, documents? | owner | **answered** — yes (§2.3) |
 | Q4 | Deployment: central, per country, or both? Does the Syria server stay? | owner / client | **answered** — one product, two shapes (§6); which shape each country uses is the client's choice |
-| Q5 | Organisation levels that really exist (regions, field offices, other agencies). | owner / client | asked (round 2) |
-| Q6 | Catalogues: one global set or per-office additions? | owner / client | asked (round 2) |
-| Q7 | Roles and administration: global or per office? | owner | asked (round 2) |
+| Q5 | Organisation levels that really exist (regions, field offices, other agencies). | owner / client | **answered** — build the country office only; tree is data; client to confirm other levels |
+| Q6 | Catalogues: one global set or per-office additions? | owner / client | **answered** — one global, managed in the app, versioned (§2.4) |
+| Q7 | Roles and administration: global or per office? | owner | **answered** — global + office administrators, one global role list (§3) |
 | Q8 | How do staff sign in to the global platform (identity provider)? | client IT | — |
 | Q9 | The client features not disclosed yet. | owner / client | asked, no answer yet |
-| Q10 | Activities: when may one be added; archive/delete with the project; support modules per activity; exports. | owner | asked (round 2) |
+| Q10 | Activities: when may one be added; archive/delete with the project; support modules per activity; exports. | owner | **answered** (§2.3 6–9) |
+| Q12 | Do activities also get the SEMP Plan and Stakeholder Awareness? Are more tools wanted (project or activity)? | owner asks the client | — (structure ready either way, §2.2a) |
 | Q11 | Moving one office's data from a stand-alone server into the central one. | owner / client | — |
 
 ---
@@ -231,7 +290,8 @@ the global platform get a default "no access" state until someone with "manage a
 1. v3 review and decisions (this draft → D-numbers).
 2. Platform base: database choice, module layout, migrations tooling, TypeScript.
 3. Organisation tree and scopes; access model on the tree; migration of v2.5 assignments.
-4. Workflow unit: tools re-pointed to units; data migration.
+4. Workflow unit and tool registry: tools become registered modules pointing to units; versioned
+   workflow definitions; data migration.
 5. Activities (model, workflow, pages on the existing patterns, exports).
 6. Managed catalogues with versions and translations.
 7. Identity: OIDC sign-in, server sessions, entry from the global platform.
@@ -248,3 +308,8 @@ the global platform get a default "no access" state until someone with "manage a
 - 2026-11-16 — round 1 agreed: activities add to the project's tools, optional, display-only
   roll-up, full unit with its own code/team/documents, activity as a scope level; deployment = one
   product in two shapes (central, stand-alone).
+- 2026-11-16 — round 2 agreed: tools are pluggable through a tool registry and per-unit-kind
+  workflow definitions (owner's requirement); activities added at any time, archive/delete with the
+  project, own workbook; one new level (country office), tree as data; one global managed catalogue
+  with versions; global and office administrators, one global role list; new accounts start with no
+  access.

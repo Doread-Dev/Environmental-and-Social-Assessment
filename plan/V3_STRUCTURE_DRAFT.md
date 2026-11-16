@@ -505,6 +505,21 @@ it, because offices, units and the tool registry exist from the first stage in e
 If the client wants the global roll-out first, v3.0 and v3.1 swap: offices and sign-in first with
 the tools as they are, activities next.
 
+### 8.2 v2.5 and v3: the work order
+
+**[AGREED 2026-11-16]** (owner) **v2.5 is built as planned** (phases 15–26, D95) on the current
+backend. The technology stage (§6.1) is **not** moved in front of it: changing what the v2.5
+sessions build, mid-plan, would cause more confusion than it saves.
+
+- The owner accepts that the parts of v2.5 written on today's backend (access model, notifications,
+  deleted items, accounts) are **written again in v3**, on the new structure, "so that it is
+  consistent and built right".
+- What carries from v2.5 into v3 as it is: the design system, the page designs and patterns, the
+  decisions D80–D95 as behaviour, the tests as a description of that behaviour, and the data
+  (through the migration, §5).
+- v2.5 is therefore the **behavioural reference** for v3: a v3 phase rebuilds a v2.5 behaviour on
+  the new structure, it does not redesign it.
+
 ---
 
 ## Session log
@@ -538,3 +553,6 @@ the tools as they are, activities next.
   to confirm with the client (C11); a Reports page with fixed tables, built to grow; permission
   "create activity"; an activity's risk rating comes only from its own tools; activity kinds
   supported but off (C12).
+- 2026-11-16 — work order agreed: v2.5 is built as planned on the current backend; the technology
+  stage stays after the domain structure and the client facts; rewriting the v2.5 backend parts in
+  v3 is accepted (§8.2).

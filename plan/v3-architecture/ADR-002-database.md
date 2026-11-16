@@ -41,7 +41,7 @@ always known:
 | Native UUID v7 | Identifiers (ADR-010) | UUID made in the application |
 
 Portable by choice where it costs nothing: the scope tree uses a closure table (not `ltree`), and
-the query layer (ADR-004) has a SQL Server dialect.
+the data layer (ADR-004) has a first-class SQL Server provider.
 
 ## Options considered
 
@@ -77,8 +77,7 @@ product. SQL Server wins on one point that is the client's to judge: if their da
 administrators, backups, monitoring and BI are all built around it, that operational fit can
 outweigh the rest.
 
-So the recommendation is PostgreSQL, with the switch kept cheap on purpose: SQL written through a
-query layer that speaks both, a closure table instead of a PostgreSQL-only tree type, and the table
+So the recommendation is PostgreSQL, with the switch kept cheap on purpose: data access through a layer with providers for both, a closure table instead of a PostgreSQL-only tree type, and the table
 above as the complete list of what would be rewritten.
 
 ## What would change this decision

@@ -88,7 +88,7 @@ would least forgive.
 
 ## Action items
 
-1. [ ] Phase 3: prove row security with the pool and the query builder on the walking skeleton.
+1. [ ] Phase 3: prove row security with the connection pool and the data layer on the walking skeleton.
 2. [ ] Phase 4: the policy module, the closure table, the route declaration and its tests, a test
    that every office-data table has its policy.
 3. [ ] Phase 4: a scripted leak test — a person of office A calls every read route with office B's

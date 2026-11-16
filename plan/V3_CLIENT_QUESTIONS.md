@@ -217,8 +217,9 @@ discussed yet?
 
 ## C. Added by the technology stage — أسئلة أضافتها مرحلة التقنية
 
-These four come from the architecture records in [v3-architecture/](v3-architecture/README.md).
-C15–C17 are for the IT team; C18 is for whoever handles maps at the client.
+These five come from the architecture records in [v3-architecture/](v3-architecture/README.md).
+C15–C17 are for the IT team; C18 is for whoever handles maps at the client; C19 is for the
+client's management together with IT.
 
 ### C15. Who maintains the code — من يصون الكود على المدى الطويل
 
@@ -274,5 +275,30 @@ maps and reports?
 **Why — السبب:** project locations are stored with their country and area; the boundaries used must
 be the ones the organisation accepts (ADR-021). مواقع المشاريع تُحفظ مع الدولة والمنطقة؛ ويجب أن
 تكون الحدود المستخدمة هي المعتمدة عند المنظمة.
+
+**Answer — الجواب:**
+
+### C19. Countries that keep their data inside — الدول التي تُبقي بياناتها داخلها
+
+**EN:** For a country that must host ESMS on its own server, or whose data may not leave it:
+(1) Will that server be reachable over the internet, or only inside a closed network?
+(2) May head-office staff open that country's system from abroad to view its projects?
+(3) May a summary without names be sent to the central system for global reports — for example
+project code, status, risk category, dates and area, with no people's names, no free text and no
+documents? Or only totals? Or nothing?
+(4) Who will host, back up and update that country's server?
+
+**AR:** بخصوص دولة يجب أن تستضيف ESMS على خادمها الخاص، أو لا يُسمح لبياناتها بالخروج منها:
+(1) هل سيكون ذلك الخادم متاحاً عبر الإنترنت، أم داخل شبكة مغلقة فقط؟
+(2) هل يُسمح لموظفي المكتب الرئيسي بفتح نظام تلك الدولة من الخارج للاطلاع على مشاريعها؟
+(3) هل يُسمح بإرسال ملخّص بلا أسماء إلى النظام المركزي للتقارير العالمية — مثلاً رمز المشروع، حالته،
+فئة الخطورة، التواريخ والمنطقة، دون أسماء أشخاص ودون نصوص حرّة ودون وثائق؟ أم الأعداد الإجمالية
+فقط؟ أم لا شيء؟
+(4) من سيستضيف خادم تلك الدولة ويأخذ نسخه الاحتياطية ويحدّثه؟
+
+**Why — السبب:** such a country still gets the same settings as everyone and can still appear in
+global reports; these answers decide how much of that is switched on (ADR-023).
+هذه الدولة تأخذ الإعدادات نفسها مثل الجميع ويمكن أن تظهر في التقارير العالمية؛ وهذه الأجوبة تحدّد
+مقدار ما يُفعَّل من ذلك.
 
 **Answer — الجواب:**

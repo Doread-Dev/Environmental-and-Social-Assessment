@@ -3,7 +3,7 @@
 **Status:** Proposed — **to confirm with the client's answers (C3, C4)**
 **Date:** 2026-11-17
 **Deciders:** the owner; the client's IT (where and on what it runs)
-**Draft:** §6, §6.1 · **Related:** ADR-001, ADR-002, ADR-006, ADR-013, ADR-017, ADR-018
+**Draft:** §6, §6.1 · **Related:** ADR-001, ADR-002, ADR-006, ADR-013, ADR-017, ADR-018, ADR-023
 
 **In plain words:** ESMS is delivered as one sealed package that runs the same way everywhere. For
 the central, online installation the recommendation is the client's own cloud account with the
@@ -48,13 +48,16 @@ country that must keep its data inside can run the very same package on one mach
 4. **Stand-alone shape:** a **compose bundle** for one Linux machine: `api`, `worker`,
    PostgreSQL, a reverse proxy with the certificate, the filesystem file driver, a backup job to a
    second disk, and an offline installer that loads the images from a file. A Windows-only site
-   runs it in a Linux virtual machine. The v2 native install scripts are not carried over.
+   runs it in a Linux virtual machine. The v2 native install scripts are not carried over;
+   because the server is .NET (ADR-003), a native Windows-service package can be produced from
+   the same build if a country's IT truly cannot run a Linux machine — added when such a country
+   appears, not before.
 5. **Releases:** `migrate` runs first; migrations are written to be compatible with the previous
    release, so `api` instances are replaced one by one without downtime and a rollback is the
    previous image. Changes that cannot be compatible are split over two releases.
 6. **Environments:** development (compose on a laptop), staging (same shape as production; holds
-   the migration rehearsals with copies of real data under the client's rules), production. A
-   central installation per region if residency rules demand it (system overview §8).
+   the migration rehearsals with copies of real data under the client's rules), production. A country that must keep its data inside gets its own installation, linked to the central one
+   as described in ADR-023.
 7. **Backups and recovery (targets in ADR-017):** the managed database's continuous backup plus
    a daily logical dump kept in another location; object storage versioning; a restore rehearsal
    on a schedule, as v2's `test-backup-restore` does today.
@@ -68,7 +71,7 @@ country that must keep its data inside can run the very same package on one mach
 | Data under the client's control | Yes | Yes | Depends on the provider's regions and terms | Yes |
 | Effort for the client's IT | Runs our scripts | Standard for any modern IT | Least | Highest unless they already run it |
 | High availability, restore to a point in time | Hand-made | From the managed services | Yes | Hand-made or managed |
-| Fits a Windows-only IT | Yes | Cloud: yes. Stand-alone: needs a Linux VM | Yes | Rarely |
+| Fits a Windows-only IT | Yes | Cloud: yes. Stand-alone: a Linux VM, or a native package on request | Yes | Rarely |
 
 ## Trade-off analysis
 
@@ -78,9 +81,9 @@ the least work but places an NGO's project data and staff accounts with a compan
 not choose; the hosting must be the client's. D is a good base *if the client already runs it*
 (the image runs there unchanged), but requiring it would impose a platform team on them.
 
-B's one real loss is the native Windows install. It is accepted because the stand-alone shape is
-"possible, not the design target" (draft §6) and a Linux virtual machine is a small ask next to
-the cost of a second packaging forever.
+B's one loss is the native Windows install as a standard path. It is accepted because a Linux
+virtual machine is a small ask next to the cost of testing a second packaging on every release,
+and because the .NET server keeps a native package possible for the country that really needs it.
 
 ## What would change this decision
 

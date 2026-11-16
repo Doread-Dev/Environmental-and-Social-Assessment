@@ -26,7 +26,8 @@ drag-and-drop tool builder and no heavyweight workflow product underneath.
 
 ### A tool is a compile-time module with one manifest
 
-Each tool lives in `modules/<key>/` and exports a **manifest** that the registry reads at start:
+Each tool is a module project on the server (ADR-004) with an interface package beside it
+(ADR-005), and registers a **manifest** that the registry reads at start:
 
 | Manifest part | Used by |
 |---|---|

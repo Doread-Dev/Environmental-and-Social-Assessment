@@ -1,94 +1,125 @@
-# ADR-003: Language and runtime — TypeScript on Node.js, on both sides
+# ADR-003: Server platform — C# on .NET; the interface stays TypeScript
 
-**Status:** Proposed — **to confirm with the client's answers (C3, C15)**
+**Status:** Proposed (revised 2026-11-17 after the owner's review) — **to confirm with the client's
+answers (C3, C15)**
 **Date:** 2026-11-17
 **Deciders:** the owner; the client's IT only if they set a standard or will maintain the code
-**Draft:** §6.1 · **Related:** ADR-004, ADR-005, ADR-007, ADR-012
+**Draft:** §6.1 · **Related:** ADR-004, ADR-005, ADR-008, ADR-012, ADR-018
 
-**In plain words:** the owner allowed a rewrite in any language. After weighing the alternatives,
-the recommendation is to stay in the JavaScript family but move to TypeScript (JavaScript with
-checked types) for the server and the interface alike. One exception is named: if the client's IT
-will take the code over and works in .NET, C# becomes the better choice.
+**In plain words:** the server part of v3 is written in C# on Microsoft's .NET platform, not in
+JavaScript/TypeScript. The screens stay in TypeScript (ADR-005). The first version of this record
+recommended TypeScript everywhere; that recommendation leaned on staying close to today's code. The
+owner removed that weight ("choose the best for this kind of system, not the nearest"), and on
+merit alone the answer changes.
+
+## Why the first recommendation was revised
+
+The first version gave real weight to two things: reusing today's JavaScript rules and tests, and
+one language across server and interface. Looked at again without the wish to stay near the
+current code:
+
+- the rules and tests are **rewritten in any case** — the database, the module structure and the
+  API all change, so the tests are carried over as *cases* (inputs and expected outcomes), which
+  is language-independent work;
+- one shared language matters when both sides run the same rules. Here they must not: the server
+  owns every rule and the interface only shows state (D30). What the two sides share is a
+  *contract*, and a generated contract works across languages (ADR-007).
+
+What remains is the question an architect would ask with a free hand: which platform is the
+soundest base for a long-lived, rule-heavy, audited business system with organisation sign-in.
 
 ## Context
 
-- The owner's criteria: the best decision, cost no object, closeness to the client's organisation
-  matters more than closeness to today's code.
-- "Closeness to the client" has two different meanings. What their IT **hosts** (database, sign-in,
-  servers, monitoring) touches them every day; it is settled by ADR-002, ADR-008 and ADR-016, and
-  a container hides the language from the host. What their IT **maintains** touches them only if
-  they will ever change the code; that is not known (question C15, added by this stage).
-- The interface is a React application and stays one: the v2.5 design system and every page design
-  are built for it (draft §1.2).
-- A tool in v3 is one unit made of a server part, an interface part, an export and tests (draft
-  §2.2a). The fewer languages a tool crosses, the easier it is to add one.
-- The existing rules are JavaScript: workflow computation, gates, version checks, Excel exports,
-  and about 9,500 lines of backend tests that describe the behaviour v3 must keep.
-- Today's code is plain JavaScript with no types. In a system whose weight is rules over many
-  related records, the lack of checked types is a real cost: a wrong field name or a missing case
-  is found by a test or a user, not by the build.
+- The system: small load, heavy on rules, permissions, history and sign-in; internet-facing;
+  several countries; expected life of ten years or more; maintained by a small group.
+- The security-critical parts are sign-in, sessions, password handling, a second sign-in step,
+  protection against forged requests, and authorization. Mistakes there are the costly ones.
+- ADR-001 needs walls between modules that hold without relying on discipline.
+- ADR-018 sets a written security baseline that includes control of third-party code.
+- Some countries may host their own installation, possibly on Windows servers (ADR-023).
+- Who maintains the code in the long run, and whether the client's IT mandates a platform, is not
+  known (C15).
 
 ## Decision
 
-**TypeScript in strict mode on the current Node.js LTS line, for server, worker, interface, exports
-and tests.** One language end to end, one set of types for the API contract shared by both sides
-(ADR-007), no plain JavaScript in the new codebase.
+**C# on the current long-term-support release of .NET (ASP.NET Core) for the `api`, `worker` and
+`migrate` roles.** The interface is React in TypeScript (ADR-005). The two meet at the generated
+API contract (ADR-007). End-to-end tests stay in Playwright.
 
 ## Options considered
 
-| | A. JavaScript as today | **B. TypeScript on Node.js** | C. C# on .NET | D. Java or Kotlin on Spring | E. Python |
+| | A. JavaScript as today | B. TypeScript on Node.js | **C. C# on .NET** | D. Java or Kotlin on Spring | E. Python, Go, others |
 |---|---|---|---|---|---|
-| Checked types for a rule-heavy domain | No | Yes | Yes (strongest tooling) | Yes | Optional, weaker |
-| One language for a whole tool (server, interface, export) | Yes | Yes | No: C# + TypeScript | No | No |
-| API contract shared with the interface | By convention | Same types, generated | Generated from OpenAPI | Generated | Generated |
-| Reuse of today's rules, exports and tests | Direct | Ported with types added | Rewritten | Rewritten | Rewritten |
-| Sign-in, SQL, queue, Excel, observability libraries | Mature | Mature | Mature (first-class Microsoft sign-in) | Mature | Mature |
-| Fit when the client's IT maintains the code | Common skill | Common skill | Best in a Microsoft shop | Best in a Java shop | Rare for this kind of system |
-| Runtime characteristics at this load | Ample | Ample | Ample | Ample | Ample |
-| Long-term support | LTS every year | LTS every year | LTS every two years, long windows | Long | Long |
-
-**A** keeps the gap that matters most for an enterprise codebase.
-
-**C** is the serious alternative. .NET is an excellent platform for exactly this kind of system:
-long support windows, first-class Microsoft sign-in, strong data tooling. Its costs here are
-specific: every tool would cross two languages; the Excel exports and the tested rules would be
-rewritten rather than ported; and the API contract would be translated between type systems
-instead of shared.
-
-**D** has the same costs as C without the Microsoft fit. **E** is the wrong tool for a typed,
-transactional web system of this shape.
+| Sign-in, sessions, local accounts, second step, forgery protection | Assembled from separate libraries | Assembled from separate libraries | **First-party, one vendor, one release line** | First-party (Spring Security), very mature | Assembled |
+| Module walls | Convention + lint | Convention + lint (framework helps) | **Enforced by the compiler** (one assembly per module, internal types) + architecture tests | Enforced (modules, Spring Modulith verifies them) | Varies |
+| Type safety for a rule-heavy domain | None | Good; types vanish at run time | Strong, present at run time, null-safety checked | Strong | Varies |
+| Third-party code inside the running server | Hundreds of small packages | Hundreds of small packages | **A handful beyond the vendor's own** | Moderate | Varies |
+| Support rhythm | Yearly, about 30 months each | Yearly, about 30 months each | Every two years, three years each, smooth upgrades | Long | Varies |
+| Database, queue, Excel, OpenAPI, telemetry | Mature | Mature | Mature, mostly first-party | Mature | Varies |
+| Runs natively on Windows servers as well as in Linux containers | Yes | Yes | **Yes, first-class on both** | Yes | Varies |
+| One language with the interface | Yes | **Yes** | No (C# + TypeScript) | No | No |
+| Fit if the organisation is a Microsoft shop | Neutral | Neutral | Best | Neutral | Neutral |
+| Common skill for a future maintainer | Yes | Yes | Yes | Yes | Mixed |
 
 ## Trade-off analysis
 
-At this load every option runs the system comfortably, so the decision rests on change and
-ownership, not speed. For change, one language across a tool is a structural advantage that
-matches the owner's requirement ("add tools easily") and no other option has it. For ownership,
-the answer depends on who will maintain the code in five years:
+**B against C** is the real comparison.
 
-- the supplier (as today) → TypeScript is the best fit on every row;
-- the client's IT, in a .NET organisation → C# gives them a codebase their own people can own, and
-  that outweighs the one-language advantage.
+*What TypeScript on Node.js has that .NET does not:* one language end to end. Its value here is
+limited to convenience for the people writing a tool, because rules are not shared across the
+contract.
 
-The runtime itself is not a hosting concern in either case: the client's IT receives a container
-image (ADR-016) and operates a database, a sign-in registration and logs, none of which depend on
-the language.
+*What .NET has that Node.js does not, for this system:*
+
+1. **The security-critical parts come from the platform's maker,** maintained and patched as one
+   product: organisation sign-in, cookie sessions with a server-side store, local accounts with
+   lockout and a second step, forgery protection, authorization policies. On Node.js each of these
+   is a separate library to choose, wire together and keep in step — exactly the part of a system
+   where assembling it ourselves is least wise.
+2. **Walls the compiler enforces.** A module is its own assembly; what it does not make public
+   cannot be referenced from another module at all. ADR-001's central rule stops depending on a
+   lint rule nobody may switch off.
+3. **A much smaller surface of third-party code in the running server.** The JavaScript package
+   ecosystem has been the target of repeated supply-chain attacks, and a typical Node.js server
+   pulls in hundreds of packages from many authors. A .NET server of this kind runs on the
+   vendor's own libraries plus a handful. For a baseline like ADR-018 this is a structural
+   advantage, not a detail. (The interface's build still uses that ecosystem, but it runs in the
+   browser with no secrets, not next to the database.)
+4. **Slower, longer support cycles,** which suit a system meant to live ten years with a small
+   group looking after it.
+5. **A native Windows form** at low cost, which matters if a country hosts its own installation on
+   Windows servers (ADR-016, ADR-023).
+
+**C against D:** Spring is as strong an enterprise platform as .NET and has, in Spring Modulith, a
+framework made for exactly the modular-monolith shape. .NET is preferred here for three smaller
+reasons: one vendor for platform, framework, data access and identity; lighter to run on a single
+machine in the stand-alone shape; and a first-class life on Windows as well as Linux. If the
+client's IT is a Java organisation and will own the code, D is the right choice and every other
+record stands.
+
+**The honest costs of C:** a tool crosses two languages (a C# module and a TypeScript interface
+package, still one change in one repository); the contract is generated rather than shared; and
+today's rules are re-expressed in another language, with the carried-over test cases as the
+safety net (ADR-019).
 
 ## What would change this decision
 
-- The client's IT states a mandated platform for applications they host, or will maintain the code
-  themselves in .NET → option C for the server; the interface stays React + TypeScript; ADR-004 is
-  rewritten (ASP.NET Core); every other ADR stands as written.
+- C15: the client's IT will maintain the code and works in Java → option D.
+- C15: the client's IT will maintain the code and works only in JavaScript/TypeScript → option B;
+  the design in the other records does not change, ADR-004 is rewritten.
+- C3 has no effect on this record: the database and the hosting do not depend on the language.
 
 ## Consequences
 
-- Easier: one skill set; shared contract types; today's rules and exports are ported with their
-  tests as the safety net; a tool module is one language.
-- Harder: Node.js needs discipline for heavy work in the request path (exports and scans go to the
-  worker, ADR-014); yearly LTS upgrades.
+- Easier: the riskiest parts are bought from the platform, not built; module walls are a compile
+  error; fewer upgrades and fewer dependencies to watch; Windows hosting stays open.
+- Harder: two toolchains in one repository and pipeline (ADR-006); nothing of today's server code
+  is reused as code; the people steering the build read C# on the server side.
 - To revisit: after C15.
 
 ## Action items
 
 1. [ ] Owner: ask C15 (who maintains the code long term; any mandated platform).
-2. [ ] Phase 3: compiler settings (strict, no implicit any, no unchecked index access), lint rules
-   and the type-check as a required CI job.
+2. [ ] Phase 3: solution layout, compiler settings (nullable checks on, warnings as errors),
+   analysers, the build and type checks as required CI jobs; pin the .NET release from the
+   documentation of that day.

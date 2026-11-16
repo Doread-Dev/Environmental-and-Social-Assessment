@@ -28,7 +28,7 @@ A **modular monolith**:
    lifecycle hooks and tests. Two groups: the *kernel* (identity, access, org, workflow, catalogues,
    files, history, notifications, places, reports, exports, integration, platform) and the *tools*
    (one module per tool).
-2. **Dependency rules, enforced by a test in CI:** a tool depends on kernel interfaces only, never
+2. **Dependency rules, enforced by the compiler and by an architecture test in CI (ADR-004):** a tool depends on kernel interfaces only, never
    on another tool; the kernel never imports a tool (it reads the registry); a module is used only
    through its public interface or through an event; no module queries another module's tables,
    except the reporting views.
@@ -63,8 +63,8 @@ installation). It would also make the office export/import a distributed operati
 The real choice is between A and B: how much structure to pay for inside one process. B costs a
 fixed amount up front (the module template, the boundary test, the registry) and repays it every
 time a tool is added or changed, which the owner expects to happen. The discipline B asks for
-cannot rest on good intentions, so it is enforced mechanically: a dependency test fails the build
-when a module reaches around another's interface, and a conformance suite (ADR-012) fails when a
+cannot rest on good intentions, so it is enforced mechanically: the compiler refuses a reference past a module's public contracts, an architecture test
+covers what the compiler cannot express, and a conformance suite (ADR-012) fails when a
 tool forgets a lifecycle hook.
 
 The risk in B is boundaries drawn in the wrong place. The mitigation is that the first cut follows
@@ -81,7 +81,7 @@ guesses.
 
 ## Action items
 
-1. [ ] Phase 3: module template, the public-interface convention, the dependency test in CI.
+1. [ ] Phase 3: module template, the public-contracts convention, the architecture test in CI.
 2. [ ] Phase 3: a walking skeleton (one thin slice through identity, access, org, workflow, one
    tool, history, export) before the remaining modules are built.
 3. [ ] Phase 5: the tool conformance suite (ADR-012).

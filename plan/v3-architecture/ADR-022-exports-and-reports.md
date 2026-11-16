@@ -31,8 +31,9 @@ so a number is the same wherever it is shown.
      report over all offices) run as a job and are fetched when ready (ADR-014).
    - **A revision is exported from its snapshot** (ADR-011), a live step from live data, by the
      same builder.
-   - The same spreadsheet library moves to the server, so the existing builders and their
-     completeness tests are ported, not rewritten; the interface loses its heaviest dependency.
+   - The sheet layouts and their completeness tests are carried over as the specification; the
+     builders are written on the server with a maintained spreadsheet library for .NET, and the
+     interface loses its heaviest dependency.
 2. **One reporting layer** (`reports` module): a set of documented database views in a `reporting`
    schema — units with their state, risk category, office and area; steps with their dates;
    monitoring gaps; access and activity counts. They are the **only** sanctioned read across
@@ -43,7 +44,9 @@ so a number is the same wherever it is shown.
 4. **Outside reporting tools** read the same views (ADR-015): through the integration API, or a
    read-only database account limited to the `reporting` schema, on a replica when one exists.
    Office isolation for such an account is set by the database's row security, not by trust.
-5. **Growing later:** heavier views become materialised and refreshed by a job; a replica takes
+5. **Country installations** (ADR-023) send their summary rows into this same layer, marked
+   with their origin, so global tables and totals cover them where their rules allow.
+6. **Growing later:** heavier views become materialised and refreshed by a job; a replica takes
    the load; nothing on the page or in a BI model changes because the views keep their shape.
 
 ## Options considered

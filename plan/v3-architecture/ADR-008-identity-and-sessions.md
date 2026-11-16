@@ -3,7 +3,8 @@
 **Status:** Proposed — **to confirm with the client's answers (C1, C2)**
 **Date:** 2026-11-17
 **Deciders:** the owner; the client's IT (identity provider, application registration)
-**Draft:** §2.6, §3, §9.1 M8, §9.4 P5–P6 · **Related:** ADR-009, ADR-014, ADR-015, ADR-018
+**Draft:** §2.6, §3, §9.1 M8, §9.4 P5–P6 · **Related:** ADR-009, ADR-014, ADR-015, ADR-018,
+ADR-023
 
 **In plain words:** staff sign in to ESMS with the account they already use at work, with no ESMS
 password. People from outside get an invited local account. Whoever signs in, ESMS itself holds the
@@ -38,7 +39,7 @@ a user is one person record with one or more ways to sign in.
 - **OpenID Connect, authorization-code flow with PKCE, the server as a confidential client.** The
   browser never receives a token from the provider; the server exchanges the code, validates the
   ID token and opens an ESMS session.
-- A certified OpenID Connect library, not hand-written protocol code. The provider is
+- The platform's own OpenID Connect components (ADR-003), not hand-written protocol code. The provider is
   configuration (issuer, client, claim mapping), so any standards-compliant provider works. If the
   client can only offer SAML, the same module gains a SAML driver; nothing above it changes.
 - **Multi-factor sign-in is the provider's job** for staff; ESMS can require that the provider
@@ -47,9 +48,10 @@ a user is one person record with one or more ways to sign in.
   notified (draft §2.6). The home office is taken from a directory claim when one exists (C1),
   otherwise chosen by an administrator.
 - **Leavers:** a staff member disabled in the directory can no longer sign in, by construction.
-  Ending their ESMS assignments automatically (draft P5) is done by a directory check (a
-  provisioning feed or a periodic lookup) when the client's IT offers one; until then an
-  administrator deactivates them. The interface for it exists from the start.
+  To also end their ESMS assignments and sessions at once (draft P5), ESMS offers the **standard
+  provisioning interface (SCIM 2.0)** that organisation directories use to tell applications about
+  people who join, change or leave. It is built in from the start and switched on when the
+  client's IT connects it (C1); without it an administrator deactivates the person.
 
 ### Local accounts
 
@@ -58,9 +60,19 @@ a user is one person record with one or more ways to sign in.
 - Passwords hashed with a memory-hard algorithm (Argon2id). Hashes migrated from v2.5 keep working
   and are re-hashed at the next sign-in (M8).
 - Password reset by a single-use link by email; expiry date with a 7-day notice (P6).
-- **A second step for local accounts** (an authenticator-app code): supported for every local
-  account, **required for local accounts that hold an administrator role**. Outside readers may be
-  required to use it by a setting. *(Proposal put to the owner: it changes what those people see.)*
+- **A second sign-in step (a code from an authenticator app) — kept narrow** (owner,
+  2026-11-17: only where it is really needed):
+  - staff never meet it in ESMS: their organisation account already carries the organisation's
+    own second step;
+  - outside readers and other ordinary local accounts: **off**. Their protection is the
+    password rules of D91, the limit on attempts, the expiry date and their narrow, read-mostly
+    access;
+  - **required in one case only: a local account with an administrator role on an installation
+    reachable from the internet.** One stolen password there would hand over every user and
+    every access right. On the central installation that is at most one emergency account; on
+    a country server inside a closed network it is not required;
+  - the ability comes with the platform (ADR-003), so a client security team that asks for
+    more (C16) gets it by a setting, not by new work.
 - Sign-in attempts are rate-limited per account and per address; lockouts are temporary.
 
 ### Sessions
@@ -101,8 +113,7 @@ A is not acceptable for an enterprise system: no revocation and a token any scri
 Between B and C the question is whether ESMS needs an identity *product* or an identity *module*.
 C brings every protocol and a ready administration console, at the price of a second system with
 its own database, upgrades and security surface in both deployment shapes. ESMS's needs are
-narrow and already specified (one organisation provider, invited local accounts, sessions), so a
-module built on a certified library is the smaller and safer whole. The door to C stays open: the
+narrow and already specified (one organisation provider, invited local accounts, sessions), so a module built on the platform's own sign-in components is the smaller and safer whole. The door to C stays open: the
 `identity` module is the only place that knows how a person proved who they are. D sends staff and
 outside people's personal data to another company and cannot serve the stand-alone shape.
 
@@ -124,6 +135,6 @@ outside people's personal data to another company and cannot serve the stand-alo
 ## Action items
 
 1. [ ] Owner: bring C1 and C2; ask the client's IT for a test tenant or test accounts.
-2. [ ] Owner: decide the second step for local accounts (the proposal above).
+2. [x] Second sign-in step: settled as above with the owner (2026-11-17).
 3. [ ] Phase 3: sessions and local accounts on the walking skeleton. Phase 10: organisation
    sign-in, invitations, entry from the platform.

@@ -123,7 +123,8 @@ shape swaps each for a local driver or runs without it.
 
 ## 6. Shape of the system (ADR-001)
 
-One codebase, one container image, three process roles, one PostgreSQL database.
+One codebase, one container image, three process roles, one PostgreSQL database. The server is
+C# on .NET (ADR-003); the interface is React in TypeScript (ADR-005).
 
 ```
  Browser (React SPA, TypeScript) ── same origin ──▶  api  (HTTP: /api/v1, the SPA files, /health)
@@ -191,6 +192,14 @@ driver; local accounts; nightly backup to a second disk, as today.
 
 ---
 
+**Country installation (a "spoke", ADR-023):** the same image in a country that keeps its data
+inside — online in its own region or offline on its own servers. Global settings come down from
+the central installation as signed packages; head-office people open the country's site with the
+same organisation account; a summary without names goes up for global reports only where the
+country allows it.
+
+---
+
 ## 8. What to revisit as it grows
 
 | Sign | Then |
@@ -199,4 +208,4 @@ driver; local accounts; nightly backup to a second disk, as today.
 | Reports slow the working database | Point the reporting views at a read replica. |
 | Search needs more than names, codes and titles | Add a search service fed from the outbox; nothing else changes. |
 | One module needs its own release rhythm or scale | Lift it out behind its existing interface; the module boundaries are already drawn. |
-| Offices with strict residency rules multiply | Add regional central installations; office export/import already moves an office. |
+| Many countries run their own installation and allow viewing from abroad | Add the live combined view left out of ADR-023. |

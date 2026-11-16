@@ -52,8 +52,9 @@ unreachable.
 
 **Office export/import** uses the same machinery: each module's lifecycle hooks (ADR-012) write
 and read a versioned archive (data, files with hashes, history, people); import runs as a job in
-one transaction per office, refuses a version it does not know, and reports counts for
-verification.
+one transaction per office, refuses a version it does not know, and reports counts for verification. The link between the
+central installation and a country's own installation (ADR-023) is built from these same
+mechanisms.
 
 ## Options considered
 

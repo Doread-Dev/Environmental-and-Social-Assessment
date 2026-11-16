@@ -365,17 +365,28 @@ assign a role (same pattern as "New project needs a team", D82/D90).
     is designed around that case;
   - **[AGREED 2026-11-16]** **an office can be moved** from a stand-alone server into the central
     one: a full export/import of one office (its data, files, history and people), which is why
-    identifiers are globally unique from day one.
+    identifiers are globally unique from day one;
+  - **[PROPOSAL 2026-11-17]** (owner: some countries will require their own server or forbid
+    data from leaving — how do they stay connected to the head office?) **country installations
+    are linked to the central one as a hub with spokes:** global settings (catalogues, roles,
+    workflow definitions, the global library) flow down as signed packages and are read-only in
+    the country; head-office people open the country's site with the same organisation account
+    and need an assignment there like anyone from another office (§3); a summary without names
+    flows up for the global reports only where that country allows it. Details:
+    [ADR-023](v3-architecture/ADR-023-country-installations-and-the-head-office.md).
 
 ### 6.1 Technology — a separate stage, not decided here
 
-**[PROPOSAL 2026-11-17] The stage has run:** its output is the system overview and the 22
+**[PROPOSAL 2026-11-17] The stage has run:** its output is the system overview and the 23
 architecture decision records in [v3-architecture/](v3-architecture/README.md). They are
 recommendations (best enterprise-level option now, adjusted when the client answers), not
-decisions; the ones that wait for a client fact say which (C1–C18). In one line: a modular
-monolith in TypeScript on PostgreSQL, organisation sign-in through OpenID Connect with
-server-side sessions, history written by the database, tools as modules with workflow paths as
-data, one container image hosted in the client's cloud or on one machine.
+decisions; the ones that wait for a client fact say which (C1–C19). In one line: a modular
+monolith with the server in C# on .NET and the interface in React and TypeScript, on PostgreSQL;
+organisation sign-in through OpenID Connect with server-side sessions; history written by the
+database; tools as modules with workflow paths as data; one container image hosted in the
+client's cloud, with country installations linked to it as hub and spokes. (The first pass
+recommended TypeScript for the server too; the owner asked for a choice on merit alone and the
+server recommendation changed — ADR-003.)
 
 **[AGREED 2026-11-16]** (owner) The technology choices (database, languages, frameworks, sign-in
 technology, how ESMS connects to the client's systems) are **not decided in this draft**. They get
@@ -445,7 +456,7 @@ their own stage, after the domain structure above is settled:
 | Q23 | Order of delivery: one release or stages; what the client needs first. | owner / client | **answered** — three stages, order to confirm with the client (§8.1, C11) |
 | Q24 | Reports across projects (office and organisation level). | owner | **answered** — a Reports page with a few fixed tables, wider reports in later versions (§2.5d) |
 | Q25 | Who creates an activity; activity kinds. | owner / client | **answered** — permission "create activity"; kinds supported but off, client asked (§2.3, C12) |
-| Q16 | Technology (database, languages, sign-in technology, integration). | separate stage | **proposed** — [v3-architecture/](v3-architecture/README.md), 22 ADRs; confirmed after the client facts |
+| Q16 | Technology (database, languages, sign-in technology, integration). | separate stage | **proposed** — [v3-architecture/](v3-architecture/README.md), 23 ADRs; confirmed after the client facts |
 
 ### 7.1 Facts to collect from the client and their IT (before the technology stage)
 
@@ -470,6 +481,7 @@ The sheet the owner takes to the client, in English and Arabic: [V3_CLIENT_QUEST
 | C16 | The client's security requirements: standards they follow, an assessment or penetration test they require before go-live, how they classify this data. | Security baseline (ADR-018). |
 | C17 | Working hours per office, how much downtime and data loss is acceptable, who is called when the service is down. | Availability and recovery targets (ADR-016, ADR-017). |
 | C18 | Whether the client has a mapping (GIS) team, a map service, and preferred administrative boundaries. | Boundary dataset and map provider (ADR-021). |
+| C19 | For a country that must keep its data inside: online or offline; may head-office staff view it from abroad; may a summary without names be sent for global reports; who hosts and operates its server. | How that country links to the central installation (ADR-023). |
 | C12 | Whether activities should carry a kind (a descriptive list such as construction, training, distribution) — Q25. | Switches on an optional catalogue; no structural change. |
 
 ---
@@ -676,3 +688,9 @@ v3.1 waits for the client (C11).
   [v3-architecture/](v3-architecture/README.md), all as proposals; four client questions added
   (C15–C18); the model item of §2.6 (person + identities) is ADR-008. Skills used:
   architecture, system-design, testing-strategy.
+- 2026-11-17 — owner's review of the technology stage: "choose the best for this kind of
+  system, not the nearest to today's code or to a familiar language". Re-examined on merit:
+  the server recommendation changed to C# on .NET (ADR-003, ADR-004); React kept after weighing
+  Angular and Blazor (ADR-005); a new repository agreed (v3 starts after v2.5 is finished); the
+  second sign-in step narrowed to local administrators on an internet-facing server (ADR-008);
+  ADR-023 added for countries with their own server (hub and spokes) with client question C19.

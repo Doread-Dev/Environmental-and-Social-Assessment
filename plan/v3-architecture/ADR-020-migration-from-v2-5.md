@@ -25,7 +25,7 @@ is about *how* that program is built; *what* it does was agreed in the draft.
    - **Extract:** from a `mongodump` of the frozen v2.5 database and a copy of its uploads folder
      (never from the live server). Each document is loaded unchanged into a `migration` schema in
      PostgreSQL as raw JSON, one table per collection, with a manifest of counts and file hashes.
-   - **Transform and load:** SQL and TypeScript transforms read the raw tables and write the
+   - **Transform and load:** SQL and application-code transforms read the raw tables and write the
      target tables **through the same constraints as normal use**, in one transaction: the Syria
      office, people and identities, assignments (M1, M2), units, tool data, catalogue version 1
      with every unit pinned to it (M6), Revision 1 snapshots of approved steps (M3), the

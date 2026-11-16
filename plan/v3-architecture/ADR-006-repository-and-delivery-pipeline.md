@@ -15,7 +15,7 @@ image that is the same thing tested and installed. The v2 repository stays as it
   code between them, releases as a zip built by a script, installed by PowerShell or bash scripts.
 - v2.5 is still to be built there (phases 15–26) and stays in service, then read-only, until Syria
   has moved (draft §5, §9.1 M9).
-- v3 is a different toolchain (TypeScript, a workspace, containers) and a different structure
+- v3 is a different toolchain (.NET for the server, TypeScript for the interface, containers) and a different structure
   (modules shared by server, worker and interface).
 
 ## Decision
@@ -27,20 +27,27 @@ image that is the same thing tested and installed. The v2 repository stays as it
      numbering there.
    - The standing rules move with it: no client documents in the repository, no AI attribution in
      commits, changes through pull requests, every behaviour change with a test.
-2. **One workspace** (a package manager with workspaces):
+2. **One repository, two toolchains side by side** (ADR-003, ADR-005):
 
    ```
-   apps/api        HTTP process          apps/worker     background jobs
-   apps/web        the interface         apps/migrate    migrations runner
-   modules/<name>  one folder per module of ADR-001 (server part; `ui/` for its pages)
-   packages/contracts      schemas and generated API types
-   packages/design-system  the v2.5 components, typed
-   packages/platform       transaction, logging, config, test helpers
-   db/migrations   SQL migrations        e2e/            Playwright flows
-   deploy/         compose files, infrastructure definitions, runbooks
+   server/                 the .NET solution
+     src/Api  src/Worker  src/Migrate       the three process roles
+     src/Platform                           transaction, logging, config, test helpers
+     src/Modules/<Name>                     one project per module of ADR-001
+     src/Modules/<Name>.Contracts           what other modules may see
+     tests/                                 unit, integration, architecture, conformance
+   web/                    the interface workspace (TypeScript)
+     app/                                   the shell
+     tools/<key>/                           a tool's pages
+     packages/api-client                    generated from the OpenAPI document
+     packages/design-system                 the v2.5 components, typed
+   db/                     migration scripts as reviewed SQL
+   e2e/                    Playwright flows
+   deploy/                 compose files, infrastructure definitions, runbooks
    ```
-3. **Pipeline on every pull request:** type-check, lint, format, unit tests, integration tests
-   against a real PostgreSQL, the module-boundary test, migrations on an empty and on the previous
+   A tool is one change that touches `server/src/Modules/<Name>` and `web/tools/<key>`.
+3. **Pipeline on every pull request:** build and type-check of both sides, lint, format, unit tests, integration tests
+   against a real PostgreSQL, the architecture test, migrations on an empty and on the previous
    schema, build of the image, end-to-end flows against that image, dependency and image scans.
    All required before a merge, as today.
 4. **Release = one versioned, signed container image** plus the migration set, promoted unchanged
@@ -77,6 +84,7 @@ planning documents changing home, is a single move with links left behind.
 
 ## Action items
 
-1. [ ] Owner: confirm the new repository (name, visibility, who has access).
+1. [x] Owner: a new repository is agreed (2026-11-17); v3 starts only after v2.5 is finished.
+   Still to choose: name, visibility, who has access.
 2. [ ] Phase 3: workspace, pipeline, image build and signing, staging environment.
 3. [ ] Phase 3: move the v3 planning documents; leave links in the old repository.

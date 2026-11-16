@@ -21,8 +21,9 @@ systems of the client can be connected later without a new design.
 1. **Resource-oriented REST over JSON** under `/api/v1` of the new platform. Tools are addressed
    through their unit and their registry key (`/units/{id}/tools/{key}`), so a new tool adds routes
    of a known shape, not a new convention.
-2. **One schema source** (ADR-004) produces validation, TypeScript types and the **OpenAPI
-   document**, published with every build. A CI check fails when a change breaks the published
+2. **One contract source:** the server's typed request and response shapes (ADR-004) produce
+   validation and the **OpenAPI document**, published with every build; the interface's
+   TypeScript client is generated from it (ADR-005). A CI check fails when a change breaks the published
    contract without a version step.
 3. **Errors** follow the standard problem format with three fields the interface relies on: a
    stable `code` (the D81 error codes, listed in the contract), field-level details for forms, and
@@ -54,8 +55,9 @@ systems of the client can be connected later without a new design.
 
 ## Trade-off analysis
 
-C is the smoothest for a team that owns both sides and nothing else, and v3 is explicitly not
-that: other systems are expected. B shines when many different clients need many shapes of the
+C is the smoothest for a team that owns both sides in one language and nothing else. v3 is
+neither: other systems are expected, and the server and the interface are in different languages
+(ADR-003). B shines when many different clients need many shapes of the
 same data; here the pages have known request budgets and the permission model is per resource and
 action, which REST expresses directly and GraphQL makes harder to prove. A gives our interface the
 same type safety through generation and gives everyone else a standard document.

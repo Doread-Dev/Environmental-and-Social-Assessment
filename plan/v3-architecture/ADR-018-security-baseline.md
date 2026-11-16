@@ -34,8 +34,9 @@ several countries.
    policy without inline scripts (kept from v2); uploads per ADR-013 (real type, scan, never
    served from a public address); protection against request forgery (ADR-008); rate limits per
    person, per service account and per address, stored centrally so several instances share them.
-5. **Supply chain:** dependencies pinned by lockfile and installed without running install
-   scripts by default; automated dependency and image vulnerability scans as required pipeline
+5. **Supply chain:** dependencies of both toolchains pinned by lock files, the interface's packages
+   installed without running install scripts; a small, reviewed list of third-party packages in
+   the server (ADR-003); automated dependency and image vulnerability scans as required pipeline
    jobs; a software bill of materials published with each image; images signed (ADR-006); a
    policy for how fast a critical finding is patched.
 6. **Auditability:** ADR-011 — complete, append-only history; administrator actions, access

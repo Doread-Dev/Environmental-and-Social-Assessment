@@ -43,7 +43,7 @@ how it is built.
 
 ## What each client answer decides
 
-Questions are in [V3_CLIENT_QUESTIONS.md](../V3_CLIENT_QUESTIONS.md).
+Questions are in [V3_CLIENT_QUESTIONS.md](../V3_CLIENT_QUESTIONS.md); who is asked each one is in [questions/README.md](../questions/README.md).
 
 | Answer | ADRs it settles | If the answer differs from the assumption |
 |---|---|---|

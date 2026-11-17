@@ -163,7 +163,7 @@ Worked out in [V2_5_CONCEPT.md](V2_5_CONCEPT.md) and its playgrounds in [design/
 
 ## Open items
 
-Waiting for the organisation's IT (owner asks them; decide when the answer comes):
+Waiting for the organisation's IT (owner asks them; decide when the answer comes). The questions as the owner asks them, with every other open question to the client, are in [questions/](questions/README.md) (the Syria IT sheet, S1 and S5 for these two):
 - **HTTPS certificate (owner, 2026-11-06).** The install guides (`deploy/`) assume IT provides a certificate for the server's name. If they have none, the options are: a certificate from their internal certificate authority (usual on a Windows domain; trusted by every domain PC automatically), or a self-signed certificate made by a script and installed once on each user's PC (by hand or by IT policy). Plain HTTP is not recommended (passwords and data unencrypted on the network), at most for a short trial. When the answer comes, add the chosen path to `deploy/` (guide + script) and test it.
 - **Server operating system (owner, 2026-11-06).** Not known yet (D75 1). Windows is tested for real (phase 11 service test). If the server is Linux, the owner says so, and the Linux path (`deploy/linux/`, never run on a real server) is tested before the install.
 

@@ -5,6 +5,8 @@ technology stage. It comes from [V3_STRUCTURE_DRAFT.md](V3_STRUCTURE_DRAFT.md) Â
 Each question is written in English (for the client) and Arabic (for the owner), with why we ask.
 Write the answer under each question, then copy the answers into the draft.
 
+**Who is asked what (2026-11-17):** the owner has three contacts, so the questions are split into three sheets in [questions/](questions/README.md): two meeting sheets (the head of the environment department, the Syria IT) and one file sent by email to the team of the global platform. This file stays the register of the C questions with their full text; the sheets carry the same numbers. Sections A and B below are sorted by topic, not by who is asked: the map in [questions/README.md](questions/README.md) says who.
+
 **Nothing in the v3 structure waits for these answers** â€” the structure supports every answer.
 They decide the technology, the order of delivery and what is switched on.
 

@@ -460,7 +460,7 @@ their own stage, after the domain structure above is settled:
 
 ### 7.1 Facts to collect from the client and their IT (before the technology stage)
 
-The sheet the owner takes to the client, in English and Arabic: [V3_CLIENT_QUESTIONS.md](V3_CLIENT_QUESTIONS.md).
+The sheet the owner takes to the client, in English and Arabic: [V3_CLIENT_QUESTIONS.md](V3_CLIENT_QUESTIONS.md). Who is asked which question (the head of the environment department, the Syria IT, the team of the global platform by email): [questions/README.md](questions/README.md).
 
 | # | Fact | Why it matters |
 |---|---|---|
